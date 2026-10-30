@@ -1,0 +1,25 @@
+[package]
+name = "nova"
+version = "0.1.0"
+edition = "2021"
+description = "A TUI launcher for terminal applications on Linux"
+authors = ["Nova Contributors"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+
+[dependencies]
+ratatui = "0.28"
+crossterm = "0.28"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+which = "8.0.6"
+
+[dev-dependencies]
+# Gerçek terminal/Konsole başlatmayan testler için ek paket gerekmiyor; sahte
+# adapterler test dosyalarının içinde tanımlıdır.
+
+[[bin]]
+name = "nova"
+path = "src/main.rs"
+
+[workspace]

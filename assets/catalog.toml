@@ -1,0 +1,455 @@
+# Nova varsayılan araç kataloğu.
+#
+# Bu dosya uygulamayla birlikte gelir ve derleme sırasında ikiliye gömülür;
+# kullanıcı bunu düzenlemez. Güncellemeler bu dosyayı değiştirebilir.
+#
+# Kendi araçlarını eklemek, bir aracın alanlarını değiştirmek veya favorileri
+# korumak için `~/.config/nova/config.toml` kullanılır. Nova iki dosyayı
+# `id` alanına göre birleştirir: aynı `id` hem burada hem kullanıcı dosyasında
+# varsa kullanıcının verdiği alanlar kazanır, diğer alanlar buradan gelir.
+#
+# Alanlar:
+#   id                Zorunlu, benzersiz kimlik (birleştirme anahtarı).
+#   name              Ekranda görünen ad. Boşsa `id` kullanılır.
+#   category          CATEGORIES listesinden biri (aşağıda).
+#   executable        PATH üzerinde aranacak program adı. Boşsa `id`.
+#   args              Argümanlar ayrı ayrı verilir; kabuk yok, genişletme yok.
+#   launch_kind       interactive | command_help | shell_integration_info |
+#                     custom_command
+#   help_text         `command_help` için gösterilecek sabit metin. Araç
+#                     `--help` ile ÇALIŞTIRILMAZ.
+#   handlers          `help_text` tek sayfaya sığmazsa kullanılacak
+#                     sayfalayıcılar; PATH'te bulunan ilki kullanılır.
+#   info_text         `shell_integration_info` için açıklama.
+#   alternative_to    Bu araç başka bir araca alternatifse o aracın `id`si.
+#   working_directory current | home | custom | project
+#   working_dir_path  `custom`/`project` için yol.
+#   favorite          Başlangıçta favori mi.
+#
+# Kategoriler:
+#   AI ve Kodlama
+#   Git ve Geliştirici Araçları
+#   Dosya Yönetimi ve Arama
+#   Sistem ve Kaynak Kullanımı
+#   Ağ ve Bağlantı
+#   Docker ve Sunucu
+#   Günlük Terminal Yardımcıları
+#   Özel Araçlar
+
+# ---------------------------------------------------------------------------
+# AI ve Kodlama
+# ---------------------------------------------------------------------------
+
+[[tools]]
+id = "opencode"
+name = "OpenCode"
+category = "AI ve Kodlama"
+executable = "opencode"
+description = "Terminalde çalışan açık kaynaklı yapay zekâ kodlama asistanı."
+
+[[tools]]
+id = "codex"
+name = "OpenAI Codex CLI"
+category = "AI ve Kodlama"
+executable = "codex"
+description = "OpenAI'nin terminal tabanlı kodlama ajanı."
+
+[[tools]]
+id = "claude"
+name = "Claude Code"
+category = "AI ve Kodlama"
+executable = "claude"
+description = "Anthropic'in terminal tabanlı kodlama asistanı."
+
+[[tools]]
+id = "lazygit"
+name = "lazygit"
+category = "Git ve Geliştirici Araçları"
+executable = "lazygit"
+description = "Git işlemleri için klavye odaklı terminal arayüzü."
+
+# ---------------------------------------------------------------------------
+# Sistem ve Kaynak Kullanımı
+# ---------------------------------------------------------------------------
+
+[[tools]]
+id = "btop"
+name = "btop"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "btop"
+description = "CPU, bellek, disk ve ağ kullanımını grafik olarak izler."
+
+[[tools]]
+id = "fastfetch"
+name = "fastfetch"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "fastfetch"
+description = "Sistem bilgilerini logoyla birlikte hızlıca özetler."
+
+[[tools]]
+id = "procs"
+name = "procs"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "procs"
+description = "Renkli ve okunaklı süreç listesi; `ps`ye modern alternatif."
+
+[[tools]]
+id = "btm"
+name = "bottom (btm)"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "btm"
+description = "Grafiksel sistem izleyici; btop'a alternatif."
+alternative_to = "btop"
+
+[[tools]]
+id = "dust"
+name = "dust"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "dust"
+description = "Dizinlerin disk kullanımını ağaç biçiminde sıralar."
+
+[[tools]]
+id = "duf"
+name = "duf"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "duf"
+description = "Diskleri ve doluluk oranlarını tablo hâlinde gösterir."
+
+# ---------------------------------------------------------------------------
+# Dosya Yönetimi ve Arama
+# ---------------------------------------------------------------------------
+
+[[tools]]
+id = "spf"
+name = "spf"
+category = "Dosya Yönetimi ve Arama"
+executable = "spf"
+description = "Hızlı, klavye odaklı terminal dosya yöneticisi."
+
+[[tools]]
+id = "yazi"
+name = "Yazi"
+category = "Dosya Yönetimi ve Arama"
+executable = "yazi"
+description = "Görsel önizlemeli, hızlı terminal dosya yöneticisi."
+
+[[tools]]
+id = "gdu"
+name = "gdu"
+category = "Dosya Yönetimi ve Arama"
+executable = "gdu"
+description = "Disk kullanımını etkileşimli gezerek incele; duf'a alternatif."
+alternative_to = "duf"
+
+[[tools]]
+id = "fzf"
+name = "fzf"
+category = "Dosya Yönetimi ve Arama"
+executable = "fzf"
+description = "Bulanık arama aracı; tek başına çalışır, Ctrl+T/Ctrl+R/Alt+C kısayolları için kabuk entegrasyonu gerekir."
+
+[[tools]]
+id = "rg"
+name = "ripgrep (rg)"
+category = "Dosya Yönetimi ve Arama"
+executable = "rg"
+description = "Çok hızlı dosya içeriği arama aracı."
+launch_kind = "command_help"
+help_text = """
+ripgrep (rg) — dosya içeriğinde arama
+
+  rg <desen>                 Geçerli dizinde ara
+  rg -i <desen>              Büyük/küçük harf duyarsız ara
+  rg -l <desen>              Yalnızca eşleşen dosya adlarını yaz
+  rg -g '*.rs' <desen>       Yalnızca eşleşen dosyalarda ara
+  rg -C 3 <desen>            Eşleşme çevresinde 3 satır göster
+  rg --hidden <desen>        Gizli dosyalara da bak
+
+Nova ripgrep'i bu sekmeye kendiliğinden bir desen vermeden başlatmaz;
+kullanmak için terminalde yukarıdaki komutlardan birini yaz.
+"""
+
+[[tools]]
+id = "fd"
+name = "fd"
+category = "Dosya Yönetimi ve Arama"
+executable = "fd"
+description = "Dosya adlarında hızlı arama; `find`e daha kolay alternatif."
+launch_kind = "command_help"
+help_text = """
+fd — dosya adında arama
+
+  fd <desen>                 Adı desenle eşleşen dosyaları bul
+  fd -e rs                   Uzantısı .rs olan dosyaları bul
+  fd -t d <desen>            Yalnızca dizinleri ara
+  fd -x <komut>              Her sonuç için komut çalıştır
+  fd --hidden <desen>        Gizli dosyalara da bak
+
+Nova fd'yi argümansız başlatmaz; terminalde yukarıdaki komutlardan birini yaz.
+"""
+
+[[tools]]
+id = "bat"
+name = "bat"
+category = "Dosya Yönetimi ve Arama"
+executable = "bat"
+description = "Sözdizimi renklendirmeli dosya görüntüleyici."
+
+[[tools]]
+id = "eza"
+name = "eza"
+category = "Dosya Yönetimi ve Arama"
+executable = "eza"
+description = "Renkli ve simgeli dizin listesi; `ls`ye modern alternatif."
+
+# ---------------------------------------------------------------------------
+# Ağ ve Bağlantı
+# ---------------------------------------------------------------------------
+
+[[tools]]
+id = "bandwhich"
+name = "bandwhich"
+category = "Ağ ve Bağlantı"
+executable = "bandwhich"
+description = "Ağ bant genişliğini süreç ve bağlantı bazında gösterir. Yerel arayüzleri izlemek için ek izinler gerekebilir."
+
+[[tools]]
+id = "trip"
+name = "trippy (trip)"
+category = "Ağ ve Bağlantı"
+executable = "trip"
+description = "Görsel traceroute aracı. Hedef adresi argüman olarak vermek gerekir."
+launch_kind = "command_help"
+help_text = """
+trippy (trip) — görsel traceroute
+
+  trip <hedef>               Hedefe ağ yolunu izle
+  trip --help                Tüm seçenekleri göster
+
+Nova bir hedef adres uydurmaz; kullanmak için terminalde
+  trip example.com
+biçiminde bir komut yaz.
+"""
+
+[[tools]]
+id = "cloudflare-speed-test"
+name = "Cloudflare Hız Testi"
+category = "Ağ ve Bağlantı"
+executable = "curl"
+args = ["-fsSL", "--max-time", "20", "-o", "/dev/null", "-w", "Ortalama indirme hızı: %{speed_download} B/s\n", "https://speed.cloudflare.com/__down?bytes=25000000"]
+description = "Cloudflare'dan 25 MB indirir; curl ortalama indirme hızını verir. Program ve argümanlar config.toml ile değiştirilebilir."
+launch_kind = "custom_command"
+handlers = ["less", "more"]
+
+[[tools]]
+id = "mtr"
+name = "mtr"
+category = "Ağ ve Bağlantı"
+executable = "mtr"
+description = "ping ve traceroute'u birleştiren ağ tanılama aracı. Hedef adresi vermek gerekir."
+launch_kind = "command_help"
+help_text = """
+mtr — ağ yol tanılama
+
+  mtr <hedef>                Etkileşimli görünümde hedefe giden yolu izle
+  mtr --report <hedef>       Tek seferlik rapor üret
+  mtr --tcp --port 443 <hedef>  TCP/443 üzerinden ölç
+
+Nova bir hedef uydurmaz; terminalde örneğin
+  mtr example.com
+yaz.
+"""
+
+[[tools]]
+id = "curl"
+name = "curl"
+category = "Ağ ve Bağlantı"
+executable = "curl"
+description = "Veri transfer ve HTTP istek aracı."
+launch_kind = "command_help"
+help_text = """
+curl — veri transfer aracı
+
+  curl https://example.com             İçeriği ekrana yaz
+  curl -I https://example.com          Yalnızca başlıkları göster
+  curl -o dosya.zip <adres>            İndirip dosyaya yaz
+  curl -fsSL <adres> | jq             JSON'u biçimlendir (jq kuruluysa)
+  curl --max-time 10 <adres>           Zaman aşımı ver
+
+Nova curl'ü adres vermeden çalıştırmaz; terminalde yukarıdaki biçimlerden
+birini kullan.
+"""
+
+# ---------------------------------------------------------------------------
+# Docker ve Sunucu
+# ---------------------------------------------------------------------------
+
+[[tools]]
+id = "lazydocker"
+name = "lazydocker"
+category = "Docker ve Sunucu"
+executable = "lazydocker"
+description = "Docker konteynerleri, imajları ve günlükleri için terminal arayüzü."
+
+[[tools]]
+id = "lazysql"
+name = "lazysql"
+category = "Docker ve Sunucu"
+executable = "lazysql"
+description = "Veritabanlarını gezmek için terminal arayüzü."
+
+[[tools]]
+id = "ssh"
+name = "SSH bağlantısı"
+category = "Docker ve Sunucu"
+executable = "ssh"
+description = "Uzak sunucuya bağlan. Sunucu, kullanıcı ve seçenekler `~/.config/nova/config.toml` içinde bir `ssh` kaydıyla verilir (örn. args = [\"user@host.example\"])."
+launch_kind = "command_help"
+help_text = """
+ssh — uzak sunucuya bağlanma
+
+  ssh user@host.example              Parola veya anahtarla bağlan
+  ssh -p 2222 user@host.example      Farklı port kullan
+  ssh -i ~/.ssh/anahtar sunucu       Belirli bir anahtar kullan
+
+Nova kendiliğinden bir sunucuya bağlanmaz. Kendi bağlantı profilleriniz için
+~/.config/nova/config.toml dosyasına şu biçimde kayıtlar ekleyin:
+
+[[tools]]
+id = "sunucu-ornek"
+name = "Örnek Sunucu"
+category = "Docker ve Sunucu"
+executable = "ssh"
+args = ["user@host.example"]
+description = "Örnek sunucu bağlantısı"
+launch_kind = "custom_command"
+"""
+
+# ---------------------------------------------------------------------------
+# Günlük Terminal Yardımcıları
+# ---------------------------------------------------------------------------
+
+[[tools]]
+id = "atuin"
+name = "Atuin"
+category = "Günlük Terminal Yardımcıları"
+executable = "atuin"
+description = "Kabuk geçmişini veritabanında tutar ve aranabilir hâle getirir. Geçmiş araması kabuk entegrasyonu gerektirir."
+launch_kind = "shell_integration_info"
+info_text = """
+Atuin kabuk geçmişini kaydetmek için kabuk entegrasyonu ister.
+
+Kurulumdan sonra shell yapılandırmanıza ekleyin:
+
+  bash:      eval "$(atuin init bash)"
+  zsh:       eval "$(atuin init zsh)"
+  fish:      atuin init fish | source
+
+Entegrasyon olmadan `atuin` komutu geçmişi doldurmaz. Ayrıntılar:
+  atuin --help
+"""
+
+[[tools]]
+id = "tldr"
+name = "tldr"
+category = "Günlük Terminal Yardımcıları"
+executable = "tldr"
+description = "Komutların kısa ve örnekli kullanım özetlerini gösterir."
+launch_kind = "command_help"
+help_text = """
+tldr — komutların kısa örnekleri
+
+  tldr <komut>               Komutun kısa kullanımını göster
+  tldr --list                Bilinen sayfaları listele
+  tldr --update              Yerel önbelleği güncelle
+
+Ayrıntılı örnek için:
+  tldr tar
+"""
+
+[[tools]]
+id = "jq"
+name = "jq"
+category = "Günlük Terminal Yardımcıları"
+executable = "jq"
+description = "JSON sorgulama ve biçimlendirme aracı."
+launch_kind = "command_help"
+help_text = """
+jq — JSON işleme
+
+  jq '.' dosya.json                   JSON'u biçimlendirip yaz
+  curl -fsSL <adres> | jq '.'        JSON yanıtı biçimlendir
+  jq '.[] | .ad' dosya.json           Alandaki değerleri yaz
+  jq '.liste | length' dosya.json     Dizi uzunluğu
+
+jq standart girdi bekler; dosya veya boru hattı olmadan çalıştırmak anlamsızdır.
+"""
+
+[[tools]]
+id = "yq"
+name = "yq"
+category = "Günlük Terminal Yardımcıları"
+executable = "yq"
+description = "YAML, JSON ve TOML sorgulama ve dönüştürme aracı."
+launch_kind = "command_help"
+help_text = """
+yq — YAML/JSON/TOML işleme
+
+  yq '.' dosya.yaml                  YAML'ı biçimlendirip yaz
+  yq '.alan.ad' dosya.yaml           Alan değerini yaz
+  yq -o=json '.' dosya.yaml          YAML'ı JSON'a çevir
+  yq -i '.yeni = true' dosya.yaml    Dosyayı yerinde güncelle
+
+yq bir dosya bekler; dosya vermeden çalıştırmak anlamsızdır.
+"""
+
+[[tools]]
+id = "glow"
+name = "glow"
+category = "Günlük Terminal Yardımcıları"
+executable = "glow"
+description = "Markdown dosyalarını terminalde biçimli gösterir."
+
+[[tools]]
+id = "gh"
+name = "GitHub CLI (gh)"
+category = "Günlük Terminal Yardımcıları"
+executable = "gh"
+description = "GitHub depoları, sorunları ve pull request'leri terminalden yönetir. İlk kullanımda `gh auth login` gerekir."
+
+[[tools]]
+id = "delta"
+name = "delta"
+category = "Günlük Terminal Yardımcıları"
+executable = "delta"
+description = "Git diff'lerini renkli ve okunaklı gösterir; genellikle git yapılandırmasına bağlanır."
+launch_kind = "shell_integration_info"
+info_text = """
+delta tek başına çalıştırıldığında bir diff bekler; bu bir kabuk/git
+entegrasyonudur.
+
+.gitconfig dosyasına ekleyin:
+
+  [core]
+      pager = delta
+  [interactive]
+      diffFilter = delta --color-only
+
+Olmadan Nova'dan başlatmak anlamlı bir çıktı üretmez.
+"""
+
+# ---------------------------------------------------------------------------
+# Özel Araçlar
+# ---------------------------------------------------------------------------
+#
+# Bu kategori boş gelir. Kendi aracınızı eklemek için
+# ~/.config/nova/config.toml dosyasına bir kayıt ekleyin:
+#
+# [[tools]]
+# id = "benim-aracim"
+# name = "Benim Aracım"
+# category = "Özel Araçlar"
+# executable = "benim-program"
+# args = ["--ornek"]
+# description = "Ne işe yaradığını anlatan kısa bir not"
+# launch_kind = "custom_command"

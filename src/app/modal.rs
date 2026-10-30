@@ -1,0 +1,83 @@
+//! Ekran üstü modallar: onay, özel araç formu/gözden geçirme, proje seçici,
+//! geçmiş.
+//!
+//! Modal açıkken ana ekranın kısayolları **çalışmaz** (bkz.
+//! [`crate::app::App::handle_key`]); böylece yıkıcı bir işlem yanlışlıkla
+//! tetiklenmez. Modallar dosya sistemi değiştirmez; etki yalnızca
+//! [`crate::app::App`]'in onaylanmış eylemlerinden doğar.
+
+use super::form::{ToolForm, ValidTool};
+use std::path::PathBuf;
+
+/// Onay ekranının neyi onaylattığı.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ConfirmAction {
+    /// Bir özel aracı sil / gizle.
+    DeleteTool { id: String, name: String },
+    /// Geçmişi temizle.
+    ClearRecents,
+    /// Listedeki proje dizinini çıkar.
+    RemoveProject { path: PathBuf },
+    /// Var olmayan çalışma dizinini oluşturup başlatmayı yeniden dene.
+    CreateDir { path: PathBuf, tool_id: String },
+}
+
+/// Açık olan modal.
+#[derive(Debug, Clone, PartialEq)]
+pub enum Modal {
+    /// Modal yok.
+    None,
+    /// Evet/hayır onayı.
+    Confirm {
+        /// Sorulacak soru.
+        question: String,
+        /// Onaylanınca yapılacak eylem.
+        action: ConfirmAction,
+    },
+    /// Özel araç formu.
+    ToolForm(Box<ToolForm>),
+    /// Form doğrulandıktan sonraki gözden geçirme adımı.
+    ToolReview {
+        /// Form (Esc ile geri dönülünce korunur).
+        form: Box<ToolForm>,
+        /// Doğrulanmış değerler.
+        valid: Box<ValidTool>,
+    },
+    /// Proje dizini listesi.
+    ProjectPicker {
+        /// Seçili satır.
+        index: usize,
+    },
+    /// Proje dizini ekleme (tek satır).
+    ProjectAdd {
+        /// Girilen metin.
+        input: String,
+        /// Son hatadan kalan mesaj.
+        error: Option<String>,
+    },
+    /// Geçmiş görünümü (salt okunur; `X` onaylı temizleme).
+    History,
+    /// Kullanıcı tercihleri: terminal ve varsayılan çalışma dizini.
+    Settings {
+        /// Tercih edilen terminal adı.
+        preferred_terminal: String,
+        /// Varsayılan çalışma dizini.
+        default_working_dir: String,
+        /// Odaklı alan (0 terminal, 1 çalışma dizini).
+        focus: usize,
+        /// Son doğrulama/kaydetme hatası.
+        error: Option<String>,
+    },
+}
+
+impl Modal {
+    /// Modal açık mı?
+    pub fn is_open(&self) -> bool {
+        !matches!(self, Modal::None)
+    }
+
+    /// Ana ekran tuşlarının engellenip engellenmeyeceği.
+    pub fn blocks_main_keys(&self) -> bool {
+        self.is_open()
+    }
+}
