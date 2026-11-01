@@ -471,19 +471,32 @@ impl App {
         }
 
         // Araç paneli (genişte orta/sağ sütun; AI sağ-detayda tools_end_x'e kadar;
-        // darda tüm içerik). Detay/aksiyon panelleri salt okunur tıklama yok sayılır.
+        // darda tüm içerik). Detay paneli salt okunur; aksiyonlar liste içinde.
         if areas.wide && x >= areas.tools_end_x {
             return;
         }
-        let tools = self.filtered_tools();
-        if let Some(row) = list_index_at_y(y, panel_top, panel_h, self.tool_index, tools.len()) {
-            if row != self.tool_index {
-                self.tool_index = row;
-                self.reset_tool_action_index();
-            } else {
-                self.tool_index = row;
+        let hits = crate::ui::tool_list_hits(self);
+        let selected_visual = crate::ui::tool_list_selected_visual(self).unwrap_or(0);
+        if let Some(row) = list_index_at_y(y, panel_top, panel_h, selected_visual, hits.len()) {
+            match hits[row] {
+                crate::ui::ToolListHit::Tool(idx) => {
+                    if idx != self.tool_index {
+                        self.tool_index = idx;
+                        self.reset_tool_action_index();
+                    } else {
+                        self.tool_index = idx;
+                    }
+                    self.focus = PanelFocus::Tool;
+                }
+                crate::ui::ToolListHit::Action {
+                    tool_index,
+                    action_index,
+                } => {
+                    self.tool_index = tool_index;
+                    self.tool_action_index = action_index;
+                    self.focus = PanelFocus::ToolActions;
+                }
             }
-            self.focus = PanelFocus::Tool;
         }
     }
 
@@ -1200,8 +1213,9 @@ impl App {
     ///
     /// Mağaza sekmesinde üç panel vardır: sekme listesi, mağaza kategorileri
     /// ve mağaza uygulamaları. Araç/Ayarlar sekmesinde iki panel vardır. AI
-    /// aracı seçiliyken aksiyon listesi zincire eklenir (her zaman görünür;
-    /// Tab/a ile açılmaz). Dar terminalde gizlenen paneller zincirden çıkarılır.
+    /// aracı seçiliyken aksiyonlar araç adının altında görünür ve odak
+    /// zincirine eklenir (Tab/a ile açılmaz). Dar terminalde gizlenen
+    /// paneller zincirden çıkarılır.
     fn focus_chain(&self) -> &'static [PanelFocus] {
         let side = if self.language_picker_open {
             2u8

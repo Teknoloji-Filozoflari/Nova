@@ -466,9 +466,9 @@ fn help_screen_renders_without_panic_on_small_terminals() {
 }
 
 #[test]
-fn ai_tool_detail_and_actions_sit_side_by_side_on_wide_terminals() {
-    // Geniş terminalde AI detay|aksiyon mağaza gibi sağ panele taşınır;
-    // alt şeritte dikey istiflenmez.
+fn ai_tool_actions_nest_under_name_and_detail_is_wide_on_side() {
+    // Geniş terminalde Detay sağ paneledir; aksiyonlar seçili aracın adının
+    // altında görünür (ayrı sağ sütun / alt şerit yok).
     use ratatui::{backend::TestBackend, Terminal};
 
     let mut app = app_with_sample();
@@ -492,31 +492,48 @@ fn ai_tool_detail_and_actions_sit_side_by_side_on_wide_terminals() {
         lines.push(row);
     }
     let text = lines.join("\n");
-    assert!(text.contains("Aksiyonlar"), "aksiyon paneli yok:\n{text}");
     assert!(text.contains("Detay"), "detay paneli yok:\n{text}");
-    // Sağ panel Borders::ALL başlığı aynı satırda kenarlık taşır.
-    assert!(
-        lines
-            .iter()
-            .any(|l| l.contains("Aksiyonlar") && l.contains('─')),
-        "aksiyon paneli kenarlıklı olmalı:\n{text}"
-    );
     assert!(
         lines.iter().any(|l| l.contains("Detay") && l.contains('─')),
         "detay paneli kenarlıklı olmalı:\n{text}"
     );
-    // Aksiyonlar detayın SOLUNDA; detay en sağda.
-    let order_ok = lines.iter().any(|l| {
-        let a = l.find("Aksiyonlar");
-        let d = l.find("Detay");
-        matches!((a, d), (Some(ai), Some(di)) if ai < di)
-    });
-    assert!(order_ok, "aksiyonlar detaydan önce (solda) olmalı:\n{text}");
+    // Ayrı "Aksiyonlar" sütun başlığı olmamalı.
+    assert!(
+        !lines
+            .iter()
+            .any(|l| l.contains("Aksiyonlar") && l.contains('─')),
+        "aksiyonlar ayrı kenarlıklı sütun olmamalı:\n{text}"
+    );
+    // Codex adından sonra aksiyon etiketleri (Aç / Devam et vb.) görünür.
+    let codex_y = lines
+        .iter()
+        .position(|l| l.contains("Codex") || l.contains("codex"))
+        .unwrap_or_else(|| panic!("codex satırı yok:\n{text}"));
+    let under: String = lines
+        .iter()
+        .skip(codex_y)
+        .take(8)
+        .cloned()
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(
+        under.contains("Aç") || under.contains("Devam") || under.contains("Yardım"),
+        "aksiyonlar araç adının altında görünmeli:\n{under}"
+    );
+    // Sağ detay paneli eski aksiyon sütununu da alır (72 sütun).
+    let areas = nova::ui::click_areas((120, 36), false, false, true);
+    assert!(areas.tool_detail_side);
+    assert_eq!(areas.tools_end_x, 120 - nova::ui::TOOL_DETAIL_PANEL_WIDTH);
+    assert_eq!(nova::ui::TOOL_DETAIL_PANEL_WIDTH, 72);
+    assert_eq!(
+        nova::ui::STORE_DETAIL_PANEL_WIDTH,
+        nova::ui::TOOL_DETAIL_PANEL_WIDTH
+    );
 }
 
 #[test]
 fn ai_tool_actions_are_visible_without_tab_and_focus_moves_with_arrows() {
-    // Aksiyon paneli AI aracı seçilince her zaman görünür (Tab/a ile açılmaz);
+    // Aksiyonlar AI aracı seçilince adın altında görünür (Tab/a ile açılmaz);
     // Right odak taşır, Enter listede birincil açmayı çalıştırır.
     use std::sync::Mutex;
     static LAST: Mutex<Option<(String, Vec<String>, nova::config::LaunchKind)>> = Mutex::new(None);
