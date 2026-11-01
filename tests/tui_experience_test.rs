@@ -466,6 +466,48 @@ fn help_screen_renders_without_panic_on_small_terminals() {
 }
 
 #[test]
+fn ai_tool_detail_and_actions_sit_side_by_side_on_wide_terminals() {
+    // Geniş terminalde AI detay|aksiyon mağaza gibi sağ panele taşınır;
+    // alt şeritte dikey istiflenmez.
+    use ratatui::{backend::TestBackend, Terminal};
+
+    let mut app = app_with_sample();
+    go_to_category(&mut app, "AI ve Kodlama");
+    let idx = app
+        .filtered_tools()
+        .iter()
+        .position(|e| e.id == "codex")
+        .expect("codex AI listesinde olmalı");
+    app.tool_index = idx;
+
+    let mut terminal = Terminal::new(TestBackend::new(120, 36)).unwrap();
+    terminal.draw(|f| nova::ui::draw(f, &app)).unwrap();
+    let buffer = terminal.backend().buffer();
+    let mut lines = Vec::new();
+    for y in 0..36u16 {
+        let mut row = String::new();
+        for x in 0..120u16 {
+            row.push_str(buffer[(x, y)].symbol());
+        }
+        lines.push(row);
+    }
+    let text = lines.join("\n");
+    assert!(text.contains("Aksiyonlar"), "aksiyon paneli yok:\n{text}");
+    assert!(text.contains("Detay"), "detay paneli yok:\n{text}");
+    // Sağ panel Borders::ALL başlığı aynı satırda kenarlık taşır.
+    assert!(
+        lines
+            .iter()
+            .any(|l| l.contains("Aksiyonlar") && l.contains('─')),
+        "aksiyon sağ paneli kenarlıklı olmalı:\n{text}"
+    );
+    assert!(
+        lines.iter().any(|l| l.contains("Detay") && l.contains('─')),
+        "detay sağ paneli kenarlıklı olmalı:\n{text}"
+    );
+}
+
+#[test]
 fn ai_tool_actions_are_visible_without_tab_and_focus_moves_with_arrows() {
     // Aksiyon paneli AI aracı seçilince her zaman görünür (Tab/a ile açılmaz);
     // Right odak taşır, Enter listede birincil açmayı çalıştırır.
