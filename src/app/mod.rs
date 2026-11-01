@@ -722,6 +722,9 @@ impl App {
                     state: FilePickerState::new(&self.home_dir),
                 };
             }
+            KeyCode::Char('a') | KeyCode::Char('A') => {
+                self.launch_default_ai_tool();
+            }
             KeyCode::Char('n') | KeyCode::Char('N') => {
                 self.modal = modal::Modal::ToolForm(Box::default());
             }
@@ -1132,7 +1135,34 @@ impl App {
             self.status_message = "Başlatılacak araç yok.".into();
             return;
         };
+        self.launch_catalog_entry(entry);
+    }
 
+    /// Ayarlardaki varsayılan AI CLI aracını başlatır (`a` kısayolu).
+    ///
+    /// Tercih yoksa veya araç artık uygun değilse başlatıcı çağrılmaz; durum
+    /// satırında ne yapılacağı söylenir.
+    pub fn launch_default_ai_tool(&mut self) {
+        let Some(id) = self.state.file.prefs.default_ai_tool.clone() else {
+            self.status_message =
+                "Varsayılan AI aracı seçilmedi. Ayarlar → Gelişmiş'ten ayarla.".into();
+            return;
+        };
+        let Some(entry) = self.catalog.get_by_id(&id).cloned() else {
+            self.status_message =
+                format!("Varsayılan AI '{id}' katalogda yok; Ayarlar → Gelişmiş'ten güncelle.");
+            return;
+        };
+        if entry.category != "AI ve Kodlama" {
+            self.status_message =
+                format!("'{id}' AI kategorisinde değil; varsayılan AI başlatılmadı.");
+            return;
+        }
+        self.launch_catalog_entry(entry);
+    }
+
+    /// Katalog girdisini kurulum durumuna göre başlatır (veya reddeder).
+    fn launch_catalog_entry(&mut self, entry: crate::catalog::CatalogEntry) {
         // Kurulu olmayan araç için başlatıcı **hiç çağrılmaz**; eksik komut
         // adı kullanıcıya söylenir. Launcher da aynı kontrolü yapar
         // (savunma katmanı), ama kullanıcıya en yakın yerde reddetmek
@@ -1500,7 +1530,7 @@ impl App {
                 .prefs
                 .preferred_terminal
                 .clone()
-                .unwrap_or_else(|| "konsole".into()),
+                .unwrap_or_default(),
             default_working_dir: self
                 .state
                 .file
@@ -2824,12 +2854,13 @@ impl App {
         let terminal = preferred_terminal.trim();
         let preferred_terminal = if terminal.is_empty() {
             None
-        } else if terminal.eq_ignore_ascii_case("konsole") {
-            Some("konsole".to_string())
+        } else if let Some(adapter) = crate::launcher::find_adapter_by_name(terminal) {
+            Some(adapter.executable().to_string())
         } else {
-            return Err(
-                "Şu an yalnızca Konsole destekleniyor (boş bırakmak da Konsole'u seçer).".into(),
-            );
+            return Err(format!(
+                "Desteklenmeyen terminal '{terminal}' (desteklenen: {}; boş = otomatik).",
+                crate::launcher::supported_executables_list()
+            ));
         };
 
         let default_working_dir = if default_working_dir.trim().is_empty() {

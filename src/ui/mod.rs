@@ -53,7 +53,7 @@ pub const DETAIL_ROWS: u16 = 8;
 ///
 /// Mağaza detayı araç detayından daha fazla bilgi taşır (sürüm, canlı takip,
 /// kurulum yöntemi); bu yüzden biraz daha yüksektir.
-pub const STORE_DETAIL_ROWS: u16 = 11;
+pub const STORE_DETAIL_ROWS: u16 = 12;
 
 /// Liste panellerindeki `Borders::ALL` üst/alt kenarlık kalınlığı (satır).
 pub const LIST_BORDER: u16 = 1;
@@ -726,11 +726,24 @@ fn draw_store_apps(f: &mut Frame, app: &App, area: Rect) {
                 ("· ", Style::default().fg(Color::DarkGray))
             };
 
-            let name = truncate(&entry.name, inner_width.saturating_sub(6));
+            let trust = entry.trust_level();
+            let trust_badge = format!("[{}]", trust.badge());
+            let trust_style = match trust {
+                crate::store::trust::TrustLevel::HashAndSignature => {
+                    Style::default().fg(Color::Green)
+                }
+                crate::store::trust::TrustLevel::HashOnly => Style::default().fg(Color::Cyan),
+                crate::store::trust::TrustLevel::Manual => Style::default().fg(Color::DarkGray),
+            };
+            // Ad + rozet sığacak şekilde kısaltılır.
+            let badge_budget = trust_badge.len() + 1;
+            let name = truncate(&entry.name, inner_width.saturating_sub(6 + badge_budget));
             ListItem::new(Line::from(vec![
                 Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
                 Span::styled(marker, marker_style),
                 Span::styled(name, style),
+                Span::raw(" "),
+                Span::styled(trust_badge, trust_style),
             ]))
         })
         .collect();
@@ -1116,6 +1129,22 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         Span::styled("Kurulum: ", Style::default().fg(Color::DarkGray)),
         Span::styled(method_line, Style::default().fg(Color::Yellow)),
     ]));
+
+    // Güven rozeti: hash+sig / hash / manual.
+    let trust = entry.trust_level();
+    let trust_color = match trust {
+        crate::store::trust::TrustLevel::HashAndSignature => Color::Green,
+        crate::store::trust::TrustLevel::HashOnly => Color::Cyan,
+        crate::store::trust::TrustLevel::Manual => Color::DarkGray,
+    };
+    lines.push(Line::from(vec![
+        Span::styled("Güven: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            format!("{} — {}", trust.badge(), trust.label()),
+            Style::default().fg(trust_color),
+        ),
+    ]));
+
     if entry.install_method.is_package_manager() {
         let cmd = resolved_plan
             .as_ref()
@@ -1402,6 +1431,7 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
             ("M", "Mağaza sekmesi"),
             ("U", "Güncellemeyi denetle"),
             ("O", "Dosya seçici"),
+            ("A", "Varsayılan AI"),
         ]),
         help_line(&[("Q", "Çıkış"), ("Ctrl+C", "Çıkış")]),
     ];
@@ -1424,7 +1454,7 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
 /// Yükseklik sınırlı olduğu için kırpma kaçınılmaz; bu sıralama kırpılan
 /// kısmın en az kritik tuşlar olmasını sağlar.
 fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
-    let entries: [(&'static str, &'static str); 16] = [
+    let entries: [(&'static str, &'static str); 17] = [
         ("↑↓", "Gezin"),
         ("←→", "Panel"),
         ("/", "Ara"),
@@ -1439,6 +1469,7 @@ fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
         ("M", "Mağaza"),
         ("U", "Güncellemeyi denetle"),
         ("O", "Dosya seçici"),
+        ("A", "Varsayılan AI"),
         ("C", "Yalnızca favoriler"),
         ("Q", "Çıkış"),
     ];
