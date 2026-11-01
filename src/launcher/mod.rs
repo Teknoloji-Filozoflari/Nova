@@ -25,7 +25,11 @@ pub mod terminal;
 pub const INTERNAL_PAGER_ARGUMENT: &str = "--nova-internal-page";
 
 pub use request::{resolve_directory, DirectoryValidator, FsValidator, LaunchRequest};
-pub use terminal::{select_adapter, Konsole, TerminalAdapter, TERMINALS};
+pub use terminal::{
+    find_adapter_by_name, select_adapter, supported_executables_list, Alacritty, Foot,
+    GnomeTerminal, Kitty, Konsole, TerminalAdapter, Tmux, Wezterm, XdgTerminalExec, Xterm,
+    TERMINALS,
+};
 
 use crate::catalog::{CatalogEntry, LaunchMode};
 use crate::error::NovaError;
@@ -164,6 +168,17 @@ pub trait ProcessSpawner {
     /// Verilen programı argümanlarla başlatır ve **bu çalıştırılabilir
     /// dosyanın** PID'ini döner.
     fn spawn(&self, program: &Path, args: &[std::ffi::OsString]) -> Result<u32, NovaError>;
+
+    /// [`spawn`] gibi, isteğe bağlı çalışma dizini ile (ör. xterm).
+    fn spawn_in(
+        &self,
+        program: &Path,
+        args: &[std::ffi::OsString],
+        cwd: Option<&Path>,
+    ) -> Result<u32, NovaError> {
+        let _ = cwd;
+        self.spawn(program, args)
+    }
 }
 
 /// Gerçek `std::process::Command` kullanan spawner.
@@ -174,9 +189,21 @@ pub struct CommandSpawner;
 
 impl ProcessSpawner for CommandSpawner {
     fn spawn(&self, program: &Path, args: &[std::ffi::OsString]) -> Result<u32, NovaError> {
+        self.spawn_in(program, args, None)
+    }
+
+    fn spawn_in(
+        &self,
+        program: &Path,
+        args: &[std::ffi::OsString],
+        cwd: Option<&Path>,
+    ) -> Result<u32, NovaError> {
         let mut cmd = Command::new(program);
         cmd.args(args);
-        // Konsole, çocuk süreç sonlanana kadar ön planda kalabilir ve
+        if let Some(dir) = cwd {
+            cmd.current_dir(dir);
+        }
+        // Emülatör, çocuk süreç sonlanana kadar ön planda kalabilir ve
         // ebeveynin stdio'sunu tutabilir. TUI'nin bu yüzden donmaması için
         // standart akışlar ayrılır ve süreç beklenmez.
         cmd.stdin(Stdio::null())
@@ -332,9 +359,14 @@ pub fn launch_with_options<S: ProcessSpawner>(
     let (emulator_path, adapter) = select_adapter(options.preferred_terminal.as_deref())?;
 
     // Adım 4: yalnızca emülatörün argümanları üretilir; aracın kendi
-    // argümanları `-e` sonrasına olduğu gibi geçer.
+    // argümanları `-e` sonrasına olduğu gibi geçer. `cwd` özellikle
+    // çalışma dizini seçeneği olmayan emülatörler (xterm) içindir.
     let args = adapter.build_args(&emulator_path, &request);
-    let emulator_pid = spawner.spawn(&emulator_path, &args)?;
+    let emulator_pid = spawner.spawn_in(
+        &emulator_path,
+        &args,
+        Some(request.working_directory.as_path()),
+    )?;
 
     Ok(LaunchOutcome {
         tool: entry.name.clone(),
@@ -447,7 +479,11 @@ fn launch_text<S: ProcessSpawner>(
     request.stdin_data = None;
     request.stdin_file_path = None;
     let args = adapter.build_args(&emulator_path, &request);
-    let emulator_pid = match spawner.spawn(&emulator_path, &args) {
+    let emulator_pid = match spawner.spawn_in(
+        &emulator_path,
+        &args,
+        Some(request.working_directory.as_path()),
+    ) {
         Ok(pid) => pid,
         Err(error) => {
             let _ = request::remove_private_help_file(&help_file);
@@ -608,11 +644,11 @@ mod tests {
         // Argümanlar ayrı ve bozulmadan geçmeli.
         let calls = spawner.calls.borrow();
         let (program, args) = &calls[0];
-        assert!(program
-            .file_name()
-            .unwrap()
-            .to_string_lossy()
-            .contains("konsole"));
+        let name = program.file_name().unwrap().to_string_lossy();
+        assert!(
+            find_adapter_by_name(name.as_ref()).is_some(),
+            "bilinen emülatör beklenirdi: {name}"
+        );
         let tail: Vec<String> = args
             .iter()
             .map(|a| a.to_string_lossy().into_owned())

@@ -580,6 +580,7 @@ fn settings_save_default_workdir_and_supported_terminal() {
     for (width, height) in [(40, 8), (40, 12), (60, 16), (120, 30)] {
         let _ = render_text(&app, width, height);
     }
+    type_str(&mut app, "kitty");
     app.handle_key(key(crossterm::event::KeyCode::Tab)).unwrap();
     type_str(&mut app, project.to_str().unwrap());
     app.handle_key(key(crossterm::event::KeyCode::Enter))
@@ -592,7 +593,7 @@ fn settings_save_default_workdir_and_supported_terminal() {
     );
     assert_eq!(
         app.state.file.prefs.preferred_terminal.as_deref(),
-        Some("konsole")
+        Some("kitty")
     );
     assert_eq!(
         app.launch_options().default_working_dir.as_deref(),
@@ -625,14 +626,15 @@ fn settings_refuse_missing_workdir_and_unsupported_terminal_without_changes() {
     assert!(app.state.file.prefs.default_working_dir.is_none());
 
     app.handle_key(key(crossterm::event::KeyCode::Up)).unwrap();
-    for _ in 0.."konsole".chars().count() {
-        app.handle_key(key(crossterm::event::KeyCode::Backspace))
-            .unwrap();
-    }
-    type_str(&mut app, "kitty");
+    type_str(&mut app, "urxvt");
     app.handle_key(key(crossterm::event::KeyCode::Enter))
         .unwrap();
-    assert!(app.status_message.contains("yalnızca Konsole"));
+    assert!(
+        app.status_message.contains("Desteklenmeyen terminal")
+            || app.status_message.contains("desteklenen"),
+        "{}",
+        app.status_message
+    );
     assert!(app.state.file.prefs.preferred_terminal.is_none());
 }
 

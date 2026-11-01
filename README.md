@@ -56,12 +56,14 @@ araçları yeniden yazmaz; onları bulmayı ve başlatmayı kolaylaştırır.
 
 - Linux
 - Rust araç zinciri (<code>cargo</code>, <code>rustc</code>)
-- Araçları yeni sekmede başlatmak için KDE Konsole (<code>konsole</code>)
+- Araçları yeni sekmede başlatmak için desteklenen bir terminal
+  (<code>$TERMINAL</code>, <code>xdg-terminal-exec</code>, kitty, alacritty,
+  wezterm, gnome-terminal, konsole, foot, xterm veya tmux)
 - Katalogdaki kullanım metinlerini sayfalı görüntülemek için <code>less</code> veya
   <code>more</code> (isteğe bağlı)
 
-Konsole olmadan arayüzü açıp katalogda gezebilirsin; araç başlatma isteği
-Konsole bulunmadığında hata verir.
+Desteklenen bir emülatör olmadan arayüzü açıp katalogda gezebilirsin; araç
+başlatma isteği hiçbiri bulunamadığında hata verir.
 
 ### Kaynaktan derleme
 
