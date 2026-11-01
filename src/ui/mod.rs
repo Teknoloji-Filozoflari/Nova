@@ -46,14 +46,18 @@ pub const CONTENT_MIN_HEIGHT: u16 = 5;
 pub const HELP_HELP_MAX_HEIGHT: u16 = 10;
 /// Sol panelin (sekme listesi) genişliği.
 pub const CATEGORY_PANEL_WIDTH: u16 = 26;
-/// Mağaza kategori panelinin genişliği (üç sütunlu mağaza görünümünde).
+/// Mağaza kategori panelinin genişliği (üç/dört sütunlu mağaza görünümünde).
 pub const STORE_CATEGORY_PANEL_WIDTH: u16 = 26;
+/// Mağaza sağ detay panelinin genişliği (geniş terminalde).
+pub const STORE_DETAIL_PANEL_WIDTH: u16 = 36;
+/// Dört sütunlu mağaza (sekme + kategori + uygulama + sağ detay) için en az genişlik.
+pub const STORE_DETAIL_SIDE_MIN_WIDTH: u16 = 110;
 /// Araç detay panelinin satır sayısı (üst kenarlık dâhil).
 pub const DETAIL_ROWS: u16 = 8;
-/// Mağaza detay panelinin satır sayısı (üst kenarlık dâhil).
+/// Mağaza detay panelinin satır sayısı (üst kenarlık dâhil; dar/orta düzen).
 ///
-/// Mağaza detayı araç detayından daha fazla bilgi taşır (sürüm, canlı takip,
-/// kurulum yöntemi); bu yüzden biraz daha yüksektir.
+/// Geniş terminalde detay sağ panele taşınır; bu yükseklik yalnızca
+/// dar/orta düzende alt şerit için kullanılır.
 pub const STORE_DETAIL_ROWS: u16 = 12;
 
 /// Liste panellerindeki `Borders::ALL` üst/alt kenarlık kalınlığı (satır).
@@ -74,20 +78,32 @@ pub struct ClickAreas {
     /// Mağaza kategori panelinin bitiş sütunu (hariç). Yalnızca mağaza
     /// sekmesinde ve geniş modda anlamlıdır.
     pub store_category_end_x: u16,
+    /// Mağaza uygulama listesinin bitiş sütunu (hariç). Sağ detay paneli
+    /// açıkken uygulamalar bu sütuna kadar uzar; aksi hâlde ekran sonudur.
+    pub store_apps_end_x: u16,
     /// Mağaza kategori panelinin bittiği satır (hariç). Yalnızca mağaza
     /// sekmesinde ve dar modda anlamlıdır (kategoriler üstte).
     pub store_category_end_y: u16,
+    /// Geniş mağazada detay sağda mı? (değilse alt şeritte veya gizli).
+    pub store_detail_side: bool,
 }
 
 /// Terminal boyutuna göre fare tıklama alanlarını hesaplar.
 pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickAreas {
     let (w, h) = size;
     let wide = w >= WIDE_MIN_WIDTH;
+    let store_detail_side = store_tab && wide && w >= STORE_DETAIL_SIDE_MIN_WIDTH;
     let show_detail = w >= MEDIUM_MIN_WIDTH && h >= 10;
     let tall = h >= TALL_MIN_HEIGHT;
+    // Geniş mağazada detay sağ paneledir; alt şerit yalnızca araç sekmesi
+    // veya dar/orta mağaza düzeninde yer kaplar.
     let detail_h = if show_detail {
         if store_tab {
-            STORE_DETAIL_ROWS.min(h.saturating_sub(CONTENT_MIN_HEIGHT + 3))
+            if store_detail_side {
+                0
+            } else {
+                STORE_DETAIL_ROWS.min(h.saturating_sub(CONTENT_MIN_HEIGHT + 3))
+            }
         } else {
             DETAIL_ROWS
         }
@@ -111,6 +127,12 @@ pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickA
     let content_bottom = h.saturating_sub(detail_h + 1 + help_height);
     let content_height = content_bottom.saturating_sub(content_top);
     let category_end_x = if wide { CATEGORY_PANEL_WIDTH } else { w };
+    let store_category_end_x = CATEGORY_PANEL_WIDTH + STORE_CATEGORY_PANEL_WIDTH;
+    let store_apps_end_x = if store_detail_side {
+        w.saturating_sub(STORE_DETAIL_PANEL_WIDTH)
+    } else {
+        w
+    };
     // Dar modda mağaza kategorileri içerik alanının üstünde durur (+2 kenarlık).
     // `draw_store_content` ile aynı: uygulama listesine en az 3 satır bırak.
     let store_category_rows = (STORE_CATEGORIES.len() as u16 + 2)
@@ -121,8 +143,10 @@ pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickA
         content_height,
         wide,
         category_end_x,
-        store_category_end_x: CATEGORY_PANEL_WIDTH + STORE_CATEGORY_PANEL_WIDTH,
+        store_category_end_x,
+        store_apps_end_x,
         store_category_end_y: content_top + store_category_rows,
+        store_detail_side,
     }
 }
 
@@ -236,15 +260,19 @@ pub fn draw(f: &mut Frame, app: &App) {
     }
 
     let wide = area.width >= WIDE_MIN_WIDTH;
+    let store_detail_side = app.store_tab && wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH;
     let show_detail = area.width >= MEDIUM_MIN_WIDTH && area.height >= 10;
     let tall = area.height >= TALL_MIN_HEIGHT;
 
-    // Detay panelinin yüksekliği. Mağaza detayı araç detayından daha fazla
-    // bilgi taşır (sürüm, canlı takip, kurulum yöntemi); ekrana
-    // sığmayacak kadar büyürse içerik alanı korunacak şekilde kırpılır.
+    // Detay paneli: geniş mağazada sağ sütuna taşınır (alt şerit 0).
+    // Dar/orta mağazada ve araç sekmesinde alt şerit kullanılır.
     let detail_h = if show_detail {
         if app.store_tab {
-            STORE_DETAIL_ROWS.min(area.height.saturating_sub(CONTENT_MIN_HEIGHT + 3))
+            if store_detail_side {
+                0
+            } else {
+                STORE_DETAIL_ROWS.min(area.height.saturating_sub(CONTENT_MIN_HEIGHT + 3))
+            }
         } else {
             DETAIL_ROWS
         }
@@ -399,12 +427,26 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
 
 /// Mağaza sekmesinin içerik alanı.
 ///
-/// Geniş terminalde **üç sütun**: sekme listesi (araç kategorileri +
-/// mağaza sekmesi), mağaza kategorileri ve o kategorideki uygulamalar.
-/// Dar terminalde yatay üç sütun sığmaz; mağaza kategorileri üste,
-/// uygulamalar alta yerleşir.
+/// Yeterince geniş terminalde **dört sütun**: sekme listesi, mağaza
+/// kategorileri, uygulamalar ve sağda zengin detay. Daha dar geniş
+/// modda üç sütun (detay alt şeritte kalır). Dar terminalde yatay
+/// sütunlar sığmaz; kategoriler üste, uygulamalar alta yerleşir.
 fn draw_store_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
-    if wide {
+    if wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH {
+        let panels = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Length(CATEGORY_PANEL_WIDTH),
+                Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
+                Constraint::Min(20),
+                Constraint::Length(STORE_DETAIL_PANEL_WIDTH),
+            ])
+            .split(area);
+        draw_categories(f, app, panels[0]);
+        draw_store_categories(f, app, panels[1]);
+        draw_store_apps(f, app, panels[2]);
+        draw_store_detail_panel(f, app, panels[3]);
+    } else if wide {
         let panels = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
@@ -803,24 +845,12 @@ fn draw_store_apps(f: &mut Frame, app: &App, area: Rect) {
                 ("· ", Style::default().fg(Color::DarkGray))
             };
 
-            let trust = entry.trust_level();
-            let trust_badge = format!("[{}]", trust.badge());
-            let trust_style = match trust {
-                crate::store::trust::TrustLevel::HashAndSignature => {
-                    Style::default().fg(Color::Green)
-                }
-                crate::store::trust::TrustLevel::HashOnly => Style::default().fg(Color::Cyan),
-                crate::store::trust::TrustLevel::Manual => Style::default().fg(Color::DarkGray),
-            };
-            // Ad + rozet sığacak şekilde kısaltılır.
-            let badge_budget = trust_badge.len() + 1;
-            let name = truncate(&entry.name, inner_width.saturating_sub(6 + badge_budget));
+            // Güven rozeti (manual/hash) liste satırında gösterilmez; detay panelinde kalır.
+            let name = truncate(&entry.name, inner_width.saturating_sub(6));
             ListItem::new(Line::from(vec![
                 Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
                 Span::styled(marker, marker_style),
                 Span::styled(name, style),
-                Span::raw(" "),
-                Span::styled(trust_badge, trust_style),
             ]))
         })
         .collect();
@@ -994,7 +1024,25 @@ fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
     f.render_stateful_widget(list, area, &mut state);
 }
 
+/// Mağaza sağ detay paneli (geniş dört sütun düzeni).
+fn draw_store_detail_panel(f: &mut Frame, app: &App, area: Rect) {
+    let lang = app.ui_lang();
+    let pal = palette(app);
+    let lines = store_detail_lines(app, area);
+    let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(pal.muted))
+            .title(format!(" {} ", lang.t(Msg::StoreDetail))),
+    );
+    f.render_widget(detail, area);
+}
+
 fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
+    // Geniş mağazada detay sağ paneldedir; alt şerit boş bırakılır.
+    if app.store_tab && area.height == 0 {
+        return;
+    }
     let lines = if app.store_tab {
         store_detail_lines(app, area)
     } else if let Some(entry) = app.selected_tool() {
@@ -1270,8 +1318,81 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ),
     ]));
 
-    // 9. Kullanıcıya ne yapılacağını söyleyen satır (tuiui: Enter: Install).
+    // 9. Mimari / platform.
+    if let Some(arch) = crate::store::CpuArch::host() {
+        let ok = entry.supports_arch(arch);
+        lines.push(Line::from(vec![
+            Span::styled("Mimari: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                format!(
+                    "{} {}",
+                    arch.as_str(),
+                    if ok { "✓" } else { "desteklenmiyor" }
+                ),
+                Style::default().fg(if ok { Color::Green } else { Color::Red }),
+            ),
+        ]));
+    }
+    if !entry.supported_platforms.is_empty() {
+        let plats = entry.supported_platforms.join(", ");
+        lines.push(Line::from(vec![
+            Span::styled("Platform: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                truncate(&plats, inner_w.saturating_sub(10)),
+                Style::default().fg(Color::White),
+            ),
+        ]));
+    }
+
+    // 10. İmza / checksum (güven ayrıntısı).
+    if let Some(sig) = &entry.signature {
+        lines.push(Line::from(vec![
+            Span::styled("İmza: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                truncate(sig.kind.label(), inner_w.saturating_sub(6)),
+                Style::default().fg(Color::Green),
+            ),
+        ]));
+    }
+    if let Some(sum) = entry.checksum.as_deref().filter(|s| !s.is_empty()) {
+        let kind = entry.checksum_type.as_deref().unwrap_or("SHA-256");
+        lines.push(Line::from(vec![
+            Span::styled(format!("{kind}: "), Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                truncate(sum, inner_w.saturating_sub(kind.chars().count() + 2)),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]));
+    }
+
+    // 11. Canlı takip deposu.
+    if let Some(release) = &entry.release {
+        lines.push(Line::from(vec![
+            Span::styled("Depo: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                truncate(&release.repo, inner_w.saturating_sub(6)),
+                Style::default().fg(Color::Cyan),
+            ),
+        ]));
+    }
+
+    // 12. Kurulum notları (özellikle manual).
+    if let Some(notes) = entry.install_notes.as_deref().filter(|n| !n.is_empty()) {
+        lines.push(Line::from(Span::styled(
+            "Notlar:",
+            Style::default()
+                .fg(Color::DarkGray)
+                .add_modifier(Modifier::BOLD),
+        )));
+        lines.push(Line::from(Span::styled(
+            truncate(notes, inner_w.saturating_mul(2).min(inner_w * 3)),
+            Style::default().fg(Color::Yellow),
+        )));
+    }
+
+    // 13. Kullanıcıya ne yapılacağını söyleyen satır (tuiui: Enter: Install).
     let installed = status == crate::detection::InstalledStatus::Installed;
+    lines.push(Line::from(""));
     lines.push(Line::from(Span::styled(
         if has_update {
             "Enter: güncelle   U: sürümleri denetle"

@@ -20,6 +20,8 @@ pub enum Language {
     Uz,
     /// Қазақша.
     Kk,
+    /// Türkmençe.
+    Tk,
 }
 
 impl Language {
@@ -32,6 +34,7 @@ impl Language {
             Self::Az => "az",
             Self::Uz => "uz",
             Self::Kk => "kk",
+            Self::Tk => "tk",
         }
     }
 
@@ -44,6 +47,7 @@ impl Language {
             Self::Az => "Azərbaycan",
             Self::Uz => "Oʻzbekcha",
             Self::Kk => "Қазақша",
+            Self::Tk => "Türkmençe",
         }
     }
 
@@ -56,6 +60,7 @@ impl Language {
             "az" | "az-az" | "azerbaijani" | "azerice" => Self::Az,
             "uz" | "uz-uz" | "uzbek" => Self::Uz,
             "kk" | "kk-kz" | "kazakh" | "qazaq" => Self::Kk,
+            "tk" | "tk-tm" | "turkmen" | "turkmence" | "türkmençe" | "türkmence" => Self::Tk,
             _ => Self::Tr,
         }
     }
@@ -68,19 +73,21 @@ impl Language {
             Self::Ru => Self::Az,
             Self::Az => Self::Uz,
             Self::Uz => Self::Kk,
-            Self::Kk => Self::Tr,
+            Self::Kk => Self::Tk,
+            Self::Tk => Self::Tr,
         }
     }
 
     /// Önceki dil (döngüsel).
     pub fn prev(self) -> Self {
         match self {
-            Self::Tr => Self::Kk,
+            Self::Tr => Self::Tk,
             Self::En => Self::Tr,
             Self::Ru => Self::En,
             Self::Az => Self::Ru,
             Self::Uz => Self::Az,
             Self::Kk => Self::Uz,
+            Self::Tk => Self::Kk,
         }
     }
 
@@ -91,7 +98,15 @@ impl Language {
 
     /// Tüm diller (seçici panel / test).
     pub fn all() -> &'static [Self] {
-        &[Self::Tr, Self::En, Self::Ru, Self::Az, Self::Uz, Self::Kk]
+        &[
+            Self::Tr,
+            Self::En,
+            Self::Ru,
+            Self::Az,
+            Self::Uz,
+            Self::Kk,
+            Self::Tk,
+        ]
     }
 
     /// Bu dile ait metin tablosu.
@@ -103,6 +118,7 @@ impl Language {
             Self::Az => &AZ,
             Self::Uz => &UZ,
             Self::Kk => &KK,
+            Self::Tk => &TK,
         }
     }
 
@@ -170,6 +186,11 @@ impl Language {
             Msg::ThemeLight => t.theme_light,
             Msg::ThemeForest => t.theme_forest,
             Msg::ThemeAmber => t.theme_amber,
+            Msg::ThemeOcean => t.theme_ocean,
+            Msg::ThemeMidnight => t.theme_midnight,
+            Msg::ThemeRose => t.theme_rose,
+            Msg::ThemeSlate => t.theme_slate,
+            Msg::ThemeCrimson => t.theme_crimson,
             Msg::AdvTerminal => t.adv_terminal,
             Msg::AdvWorkdir => t.adv_workdir,
             Msg::AdvTheme => t.adv_theme,
@@ -262,6 +283,11 @@ pub enum Msg {
     ThemeLight,
     ThemeForest,
     ThemeAmber,
+    ThemeOcean,
+    ThemeMidnight,
+    ThemeRose,
+    ThemeSlate,
+    ThemeCrimson,
     AdvTerminal,
     AdvWorkdir,
     AdvTheme,
@@ -343,6 +369,11 @@ struct Table {
     theme_light: &'static str,
     theme_forest: &'static str,
     theme_amber: &'static str,
+    theme_ocean: &'static str,
+    theme_midnight: &'static str,
+    theme_rose: &'static str,
+    theme_slate: &'static str,
+    theme_crimson: &'static str,
     adv_terminal: &'static str,
     adv_workdir: &'static str,
     adv_theme: &'static str,
@@ -424,6 +455,11 @@ const TR: Table = Table {
     theme_light: "Açık",
     theme_forest: "Orman",
     theme_amber: "Amber",
+    theme_ocean: "Okyanus",
+    theme_midnight: "Gece",
+    theme_rose: "Gül",
+    theme_slate: "Arduvaz",
+    theme_crimson: "Kızıl",
     adv_terminal: "Varsayılan terminal",
     adv_workdir: "Varsayılan çalışma dizini",
     adv_theme: "Tema",
@@ -506,6 +542,11 @@ const EN: Table = Table {
     theme_light: "Light",
     theme_forest: "Forest",
     theme_amber: "Amber",
+    theme_ocean: "Ocean",
+    theme_midnight: "Midnight",
+    theme_rose: "Rose",
+    theme_slate: "Slate",
+    theme_crimson: "Crimson",
     adv_terminal: "Default terminal",
     adv_workdir: "Default working directory",
     adv_theme: "Theme",
@@ -588,6 +629,11 @@ const RU: Table = Table {
     theme_light: "Светлая",
     theme_forest: "Лес",
     theme_amber: "Янтарная",
+    theme_ocean: "Океан",
+    theme_midnight: "Ночь",
+    theme_rose: "Роза",
+    theme_slate: "Сланец",
+    theme_crimson: "Алая",
     adv_terminal: "Терминал по умолчанию",
     adv_workdir: "Рабочий каталог по умолчанию",
     adv_theme: "Тема",
@@ -669,6 +715,11 @@ const AZ: Table = Table {
     theme_light: "Açıq",
     theme_forest: "Meşə",
     theme_amber: "Kəhrəba",
+    theme_ocean: "Okean",
+    theme_midnight: "Gecə",
+    theme_rose: "Qızılgül",
+    theme_slate: "Şifer",
+    theme_crimson: "Qırmızı",
     adv_terminal: "Standart terminal",
     adv_workdir: "Standart iş qovluğu",
     adv_theme: "Tema",
@@ -750,6 +801,11 @@ const UZ: Table = Table {
     theme_light: "Yorugʻ",
     theme_forest: "Oʻrmon",
     theme_amber: "Amber",
+    theme_ocean: "Okean",
+    theme_midnight: "Tun",
+    theme_rose: "Atirgul",
+    theme_slate: "Slanets",
+    theme_crimson: "Qizil",
     adv_terminal: "Standart terminal",
     adv_workdir: "Standart ishchi katalog",
     adv_theme: "Mavzu",
@@ -832,6 +888,11 @@ const KK: Table = Table {
     theme_light: "Жарық",
     theme_forest: "Орман",
     theme_amber: "Кәріптас",
+    theme_ocean: "Мұхит",
+    theme_midnight: "Түн",
+    theme_rose: "Раушан",
+    theme_slate: "Тақтатас",
+    theme_crimson: "Қызыл",
     adv_terminal: "Әдепкі терминал",
     adv_workdir: "Әдепкі жұмыс қалтасы",
     adv_theme: "Тақырып",
@@ -850,6 +911,93 @@ const KK: Table = Table {
     error_prefix: "Қате:",
     no_store_app: "Дүкенде таңдалған қолданба жоқ.",
     empty_store_category: "Бұл дүкен санатында қолданба жоқ.",
+};
+
+const TK: Table = Table {
+    settings: "Sazlamalar",
+    store: "Dükan",
+    categories: "Kategoriýalar",
+    store_categories: "Dükan kategoriýalary",
+    favorites: "Halanýanlar",
+    tools: "Gurallar",
+    store_detail: "Dükan jikme-jigi",
+    tool_detail: "Jikme-jik",
+    keyboard: "Klawiatura",
+    update: "Täzele",
+    update_hint: "GitHub Releases ikilisi — tema üçin cargo rebuild gerek",
+    theme: "Tema",
+    theme_hint_open: "sag panelden saýla",
+    theme_hint_closed: "Enter bilen wariantlar",
+    theme_pick_title: "Tema saýla",
+    language: "Dil",
+    language_hint_open: "sag panelden saýla",
+    language_hint_closed: "Enter bilen wariantlar",
+    language_pick_title: "Dil saýla",
+    search_hint_tight: "/ gözle  c halanýan  ?",
+    search_hint_wide: "/ gözle   c halanýanlar   ? kömek",
+    help_navigate: "Gezmek",
+    help_panel: "Panel",
+    help_switch_panel: "Paneli üýtget",
+    help_search: "Gözle",
+    help_launch: "Başlat",
+    help_launch_info: "Başlat / maglumat",
+    help_close_search: "Gözlegi ýap",
+    help_close: "ýap",
+    help_help: "Kömek",
+    help_favorite: "Halanýan",
+    help_fav_only: "Diňe halanýanlar",
+    help_new_tool: "Täze gural",
+    help_delete_tool: "Guraly poz/gizle",
+    help_recents: "Soňkular",
+    help_projects: "Taslama bukjalary",
+    help_project: "Taslama bukjasy",
+    help_settings: "Sazlamalar",
+    help_store_tab: "Dükan taby",
+    help_update_check: "Täzelemeleri barla",
+    help_file_picker: "Faýl saýlaýjy",
+    help_default_ai: "Deslapky AI",
+    help_quit: "Çykmak",
+    help_store_nav: "↑↓ kategoriýa · Enter gurna/täzele",
+    help_store_update: "Dükanda wersiýany barla",
+    working_dir: "iş bukjasy",
+    active_project: "işjeň taslama",
+    default_label: "deslapky",
+    settings_saved: "✓ Sazlamalar ýatda saklandy.",
+    settings_unchanged: "Sazlamalar üýtgedilmedi.",
+    theme_saved: "✓ Tema",
+    theme_closed: "Tema paneli ýapyldy.",
+    theme_pick_hint: "Tema: ↑↓ bilen saýla, Enter ulan, Esc ýap.",
+    language_saved: "✓ Dil",
+    language_closed: "Dil paneli ýapyldy.",
+    language_pick_hint: "Dil: ↑↓ bilen saýla, Enter ulan, Esc ýap.",
+    theme_default: "Deslapky",
+    theme_light: "Ýagty",
+    theme_forest: "Tokaý",
+    theme_amber: "Kehribar",
+    theme_ocean: "Umman",
+    theme_midnight: "Gije",
+    theme_rose: "Gül",
+    theme_slate: "Şifer",
+    theme_crimson: "Gyzyl",
+    adv_terminal: "Deslapky terminal",
+    adv_workdir: "Deslapky iş bukjasy",
+    adv_theme: "Tema",
+    adv_ai: "Deslapky AI guraly",
+    adv_image: "Deslapky surat programmasy",
+    adv_video: "Deslapky wideo programmasy",
+    adv_language: "Dil",
+    adv_empty_home: "(boş: öý bukjasy)",
+    adv_empty_default: "(deslapky)",
+    adv_empty_none: "(saýlanmady)",
+    adv_konsole_hint:
+        "Boş = awto ($TERMINAL, xdg-terminal-exec, kitty, …). Goldanylýan ady ýazyp bilersiňiz.",
+    adv_catalog: "Katalog",
+    adv_user_settings: "Ulanyjy sazlamalary",
+    adv_keys: "Tab/↑↓: meýdan   ←→: dil   Enter: sakla   Esc: ýatyr",
+    adv_error_prefix: "Ýalňyşlyk",
+    error_prefix: "Ýalňyşlyk:",
+    no_store_app: "Dükanda saýlanan programma ýok.",
+    empty_store_category: "Bu dükan kategoriýasynda programma ýok.",
 };
 
 #[cfg(test)]
@@ -880,7 +1028,7 @@ mod tests {
     fn every_language_has_distinct_settings_label() {
         let labels: std::collections::BTreeSet<_> =
             Language::all().iter().map(|l| l.t(Msg::Settings)).collect();
-        // TR/AZ share "Mağaza" for store but Settings labels differ across all six.
+        // Settings labels must be unique across every language.
         assert_eq!(labels.len(), Language::all().len());
     }
 

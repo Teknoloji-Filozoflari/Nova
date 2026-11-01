@@ -475,7 +475,7 @@ impl App {
                     self.store_app_index = 0;
                     self.focus = PanelFocus::StoreCategory;
                 }
-            } else {
+            } else if x < areas.store_apps_end_x {
                 let apps = self.filtered_store_apps();
                 if let Some(row) =
                     list_index_at_y(y, panel_top, panel_h, self.store_app_index, apps.len())
@@ -484,6 +484,7 @@ impl App {
                     self.focus = PanelFocus::StoreApp;
                 }
             }
+            // Sağ detay paneli salt okunur; tıklama yok sayılır.
             return;
         }
 
