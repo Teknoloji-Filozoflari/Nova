@@ -460,10 +460,18 @@ fn wrapped_lines(text: &str, width: u16) -> u16 {
 }
 
 fn draw_confirm(f: &mut Frame, screen: Rect, question: &str) {
-    let width = 56.min(screen.width.saturating_sub(MODAL_MARGIN * 2));
+    // Mağaza kurulum onayı çok satırlı (komut, PM, kapsam, sudo, lisans…).
+    let width = 72
+        .min(screen.width.saturating_sub(MODAL_MARGIN * 2))
+        .max(40);
     let inner_w = width.saturating_sub(2);
     let hint = "Enter: onayla   Esc: vazgeç";
-    let lines = wrapped_lines(question, inner_w) + 2;
+    let content_lines = wrapped_lines(question, inner_w);
+    let max_h = screen
+        .height
+        .saturating_sub(MODAL_MARGIN * 2)
+        .saturating_sub(2);
+    let lines = (content_lines + 2).min(max_h.max(6));
     let area = modal_area(screen, width, lines);
     let inner = frame(f, area, "Onay gerekli");
     let mut text = vec![Line::from(Span::styled(

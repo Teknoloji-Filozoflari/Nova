@@ -15,11 +15,12 @@
 //! - `executable` — executable adı
 //! - `install_method` — kurulum yöntemi (`manual` | `download_archive` |
 //!   `pipx` | `npm` | `cargo` | `brew` | `apt` | `dnf` | `pacman` | `uv`)
-//! - `supported_platforms` — desteklenen platformlar (ör. "linux-x64")
+//! - `supported_platforms` — desteklenen platformlar (`linux-x64`, `linux-aarch64`)
 //! - `checksum` — SHA-256 doğrulama özeti
 //! - `checksum_type` — "sha256" gibi
 //! - `version` — kurulacak sürüm
-//! - `download_url` — indirilecek arşivin `https://` adresi
+//! - `download_url` — indirilecek arşivin `https://` adresi (tek-arch yedek)
+//! - `artifacts` — mimariye özel arşiv URL/checksum/release desenleri
 //! - `install_command` — paket yöneticisi yöntemlerinde kabuksuz argv
 //! - `install_notes` — alternatifler ve resmî URL (özellikle `manual`)
 //! - `signature` — isteğe bağlı upstream imza (minisign/cosign/gpg/attestation)
@@ -35,9 +36,12 @@ pub mod loader;
 pub mod manifest;
 pub mod net;
 pub mod path;
+pub mod platform;
 pub mod signature;
 pub mod sync;
 pub mod trust;
+
+pub use platform::CpuArch;
 
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -179,6 +183,37 @@ impl InstallMethod {
     }
 }
 
+/// Mimariye özel arşiv varlığı (`[[apps.artifacts]]`).
+///
+/// `download_archive` kayıtlarında host CPU’ya göre URL / SHA-256 / canlı
+/// sürüm asset deseni seçilir. Üst düzey `download_url`/`checksum` yalnızca
+/// `artifacts` boşken (eski tek-arch kayıtlar) kullanılır.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ArchArtifact {
+    /// CPU mimarisi: `x86_64` veya `aarch64` (eş anlamlılar kabul).
+    pub arch: String,
+    /// Bu mimari için `https://` indirme adresi.
+    pub download_url: String,
+    /// SHA-256 özeti (64 hex).
+    pub checksum: String,
+    /// Checksum türü (varsayılan sha256).
+    #[serde(default)]
+    pub checksum_type: Option<String>,
+    /// Canlı takip için bu mimariye özel asset deseni (opsiyonel).
+    #[serde(default)]
+    pub asset_pattern: Option<String>,
+    /// Canlı takip için bu mimariye özel checksum dosyası deseni.
+    #[serde(default)]
+    pub checksum_asset_pattern: Option<String>,
+}
+
+impl ArchArtifact {
+    /// `arch` alanını [`CpuArch`] olarak çözer.
+    pub fn cpu_arch(&self) -> Option<CpuArch> {
+        CpuArch::parse(&self.arch)
+    }
+}
+
 /// Tek bir mağaza kaydı.
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct StoreEntry {
@@ -202,7 +237,7 @@ pub struct StoreEntry {
     /// Desteklenen platformlar.
     #[serde(default)]
     pub supported_platforms: Vec<String>,
-    /// SHA-256 doğrulama özeti (opsiyonel).
+    /// SHA-256 doğrulama özeti (opsiyonel; `artifacts` yoksa arşiv için zorunlu).
     #[serde(default)]
     pub checksum: Option<String>,
     /// Checksum türü (opsiyonel).
@@ -211,13 +246,16 @@ pub struct StoreEntry {
     /// Kurulacak sürüm (ör. "15.2.0"). Yalnızca `download_archive` için.
     #[serde(default)]
     pub version: Option<String>,
-    /// İndirilecek arşivin adresi.
+    /// İndirilecek arşivin adresi (tek-arch yedek; `artifacts` tercih edilir).
     ///
-    /// Yalnızca `download_archive` yöntemde zorunludur; `https://` şemasında
-    /// olmalıdır. Nova bu adresi `curl | sh` gibi bir kabuk betiği olarak
-    /// çalıştırmaz, dosyayı indirip doğrular.
+    /// Yalnızca `download_archive` yöntemde, `artifacts` boşken zorunludur;
+    /// `https://` şemasında olmalıdır. Nova bu adresi `curl | sh` gibi bir
+    /// kabuk betiği olarak çalıştırmaz, dosyayı indirip doğrular.
     #[serde(default)]
     pub download_url: Option<String>,
+    /// Mimariye özel arşiv varlıkları (`x86_64` / `aarch64`).
+    #[serde(default)]
+    pub artifacts: Vec<ArchArtifact>,
     /// Paket yöneticisi kurulumunda çalıştırılacak argv (kabuk yok).
     ///
     /// Örnek: `["pipx", "install", "aider-chat"]` veya
@@ -243,6 +281,79 @@ pub struct StoreEntry {
     /// doğrulanır.
     #[serde(default)]
     pub signature: Option<trust::SignatureSpec>,
+}
+
+impl StoreEntry {
+    /// Bu kayıt verilen mimariyi destekliyor mu?
+    ///
+    /// `supported_platforms` boşsa (eski/gevşek kayıt) tüm mimariler kabul
+    /// edilir. Aksi hâlde etiket veya `artifacts` eşleşmesi gerekir.
+    pub fn supports_arch(&self, arch: CpuArch) -> bool {
+        if self.supported_platforms.is_empty() {
+            return true;
+        }
+        if self
+            .supported_platforms
+            .iter()
+            .any(|p| platform::platform_matches(p, arch))
+        {
+            return true;
+        }
+        self.artifact_for(arch).is_some()
+    }
+
+    /// Verilen mimari için `[[apps.artifacts]]` kaydı.
+    pub fn artifact_for(&self, arch: CpuArch) -> Option<&ArchArtifact> {
+        self.artifacts.iter().find(|a| a.cpu_arch() == Some(arch))
+    }
+
+    /// Host mimarisi için indirme URL + SHA-256.
+    pub fn resolve_download_for(&self, arch: CpuArch) -> Result<(String, String), String> {
+        if let Some(art) = self.artifact_for(arch) {
+            return Ok((art.download_url.clone(), art.checksum.clone()));
+        }
+        if !self.artifacts.is_empty() {
+            return Err(format!(
+                "'{}' için {} mimarisinde arşiv varlığı yok",
+                self.id,
+                arch.as_str()
+            ));
+        }
+        if !self.supports_arch(arch) {
+            return Err(format!(
+                "'{}' {} mimarisini desteklemiyor",
+                self.id,
+                arch.as_str()
+            ));
+        }
+        let url = self
+            .download_url
+            .as_deref()
+            .map(str::trim)
+            .filter(|u| !u.is_empty())
+            .ok_or_else(|| format!("'{}' için download_url eksik", self.id))?;
+        let sum = self
+            .checksum
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .ok_or_else(|| format!("'{}' için checksum eksik", self.id))?;
+        Ok((url.to_string(), sum.to_string()))
+    }
+
+    /// Host mimarisine göre canlı sürüm kaynağı (asset desenleri override).
+    pub fn release_source_for(&self, arch: CpuArch) -> Option<manifest::ReleaseSource> {
+        let mut src = self.release.clone()?;
+        if let Some(art) = self.artifact_for(arch) {
+            if let Some(pattern) = art.asset_pattern.as_ref().filter(|p| !p.trim().is_empty()) {
+                src.asset_pattern = pattern.clone();
+            }
+            if art.checksum_asset_pattern.is_some() {
+                src.checksum_asset_pattern = art.checksum_asset_pattern.clone();
+            }
+        }
+        Some(src)
+    }
 }
 
 /// Mağaza dosyasının kök yapısı.
@@ -293,36 +404,7 @@ impl Store {
                 ));
             }
             if entry.install_method.is_archive() {
-                let url = entry.download_url.as_deref().unwrap_or_default();
-                if url.trim().is_empty() {
-                    return Err(format!(
-                        "'{}' için download_url eksik; indirilebilir kayıtlar \
-                         doğrulanabilir bir adres taşımalı.",
-                        entry.id
-                    ));
-                }
-                if !url.starts_with("https://") {
-                    return Err(format!(
-                        "'{}' için download_url yalnızca https:// şemasında olabilir: '{}'",
-                        entry.id, url
-                    ));
-                }
-                match entry.checksum.as_deref() {
-                    None => {
-                        return Err(format!(
-                            "'{}' için checksum eksik; indirilebilir kayıtlar SHA-256 \
-                             doğrulama özeti taşımalı.",
-                            entry.id
-                        ))
-                    }
-                    Some(sum) if !is_sha256_hex(sum) => {
-                        return Err(format!(
-                            "'{}' için checksum SHA-256 değil: '{}'",
-                            entry.id, sum
-                        ))
-                    }
-                    Some(_) => {}
-                }
+                validate_archive_entry(entry)?;
             }
             if entry.install_method.is_package_manager() {
                 let argv = entry.install_command.as_deref().unwrap_or_default();
@@ -462,6 +544,95 @@ pub fn store_app_bin_dir(id: &str) -> Option<PathBuf> {
 pub fn is_sha256_hex(value: &str) -> bool {
     let v = value.trim();
     v.len() == 64 && v.chars().all(|c| c.is_ascii_hexdigit())
+}
+
+/// `download_archive` kaydının URL/checksum/`artifacts` kurallarını doğrular.
+fn validate_archive_entry(entry: &StoreEntry) -> Result<(), String> {
+    if entry.artifacts.is_empty() {
+        let url = entry.download_url.as_deref().unwrap_or_default();
+        if url.trim().is_empty() {
+            return Err(format!(
+                "'{}' için download_url eksik; indirilebilir kayıtlar \
+                 doğrulanabilir bir adres taşımalı (veya [[apps.artifacts]]).",
+                entry.id
+            ));
+        }
+        if !url.starts_with("https://") {
+            return Err(format!(
+                "'{}' için download_url yalnızca https:// şemasında olabilir: '{}'",
+                entry.id, url
+            ));
+        }
+        match entry.checksum.as_deref() {
+            None => {
+                return Err(format!(
+                    "'{}' için checksum eksik; indirilebilir kayıtlar SHA-256 \
+                     doğrulama özeti taşımalı.",
+                    entry.id
+                ))
+            }
+            Some(sum) if !is_sha256_hex(sum) => {
+                return Err(format!(
+                    "'{}' için checksum SHA-256 değil: '{}'",
+                    entry.id, sum
+                ))
+            }
+            Some(_) => {}
+        }
+        return Ok(());
+    }
+
+    let mut seen = std::collections::HashSet::new();
+    for art in &entry.artifacts {
+        let Some(arch) = art.cpu_arch() else {
+            return Err(format!(
+                "'{}' artifact arch geçersiz: '{}' (x86_64 veya aarch64)",
+                entry.id, art.arch
+            ));
+        };
+        if !seen.insert(arch) {
+            return Err(format!(
+                "'{}' için yinelenen artifact mimarisi: {}",
+                entry.id,
+                arch.as_str()
+            ));
+        }
+        if !art.download_url.starts_with("https://") {
+            return Err(format!(
+                "'{}' ({}) download_url yalnızca https:// olabilir: '{}'",
+                entry.id,
+                arch.as_str(),
+                art.download_url
+            ));
+        }
+        if !is_sha256_hex(&art.checksum) {
+            return Err(format!(
+                "'{}' ({}) checksum SHA-256 değil: '{}'",
+                entry.id,
+                arch.as_str(),
+                art.checksum
+            ));
+        }
+        if let Some(pattern) = art.asset_pattern.as_deref() {
+            if pattern.trim().is_empty() {
+                return Err(format!(
+                    "'{}' ({}) asset_pattern boş olamaz",
+                    entry.id,
+                    arch.as_str()
+                ));
+            }
+        }
+        if let Some(pattern) = art.checksum_asset_pattern.as_deref() {
+            if pattern.trim().is_empty() {
+                return Err(format!(
+                    "'{}' ({}) checksum_asset_pattern boş olamaz",
+                    entry.id,
+                    arch.as_str()
+                ));
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Paket yöneticisi `install_command` argv'sini doğrular.
@@ -622,6 +793,7 @@ mod tests {
             checksum_type: Some("sha256".into()),
             version: Some("1.0.0".into()),
             download_url: Some("https://example.org/a.tar.gz".into()),
+            artifacts: vec![],
             install_command: None,
             install_notes: None,
             release: None,
@@ -644,6 +816,7 @@ mod tests {
             checksum_type: None,
             version: None,
             download_url: None,
+            artifacts: vec![],
             install_command: Some(vec!["pipx".into(), "install".into(), format!("{id}-pkg")]),
             install_notes: Some(format!("pipx: pipx install {id}-pkg")),
             release: None,

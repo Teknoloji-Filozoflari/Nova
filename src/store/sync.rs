@@ -79,6 +79,7 @@ mod tests {
             download_url: None,
             checksum: None,
             checksum_type: None,
+            artifacts: vec![],
             install_command: Some(vec![
                 "npm".into(),
                 "install".into(),
