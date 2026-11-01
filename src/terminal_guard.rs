@@ -270,6 +270,38 @@ pub fn raw_mode_error(err: std::io::Error) -> NovaError {
     ))
 }
 
+/// TUI’yi geçici olarak bırakır (sudo parola / etkileşimli PM için).
+///
+/// Fare yakalama kapatılır, ham mod ve alt ekran bırakılır. Başarılı olursa
+/// çağıran [`resume_tui`] ile geri dönmelidir.
+pub fn suspend_tui() -> Result<(), NovaError> {
+    use crossterm::event::DisableMouseCapture;
+    use crossterm::terminal::{disable_raw_mode, LeaveAlternateScreen};
+    use crossterm::ExecutableCommand;
+    use std::io::stdout;
+
+    let mut out = stdout();
+    let _ = out.execute(DisableMouseCapture);
+    disable_raw_mode().map_err(raw_mode_error)?;
+    out.execute(LeaveAlternateScreen).map_err(raw_mode_error)?;
+    let _ = out.flush();
+    Ok(())
+}
+
+/// [`suspend_tui`] sonrası TUI’yi yeniden kurar.
+pub fn resume_tui() -> Result<(), NovaError> {
+    use crossterm::event::EnableMouseCapture;
+    use crossterm::terminal::{enable_raw_mode, EnterAlternateScreen};
+    use crossterm::ExecutableCommand;
+    use std::io::stdout;
+
+    enable_raw_mode().map_err(raw_mode_error)?;
+    let mut out = stdout();
+    out.execute(EnterAlternateScreen).map_err(raw_mode_error)?;
+    out.execute(EnableMouseCapture).map_err(raw_mode_error)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -14,7 +14,7 @@
 //! - `license` — lisans bilgisi
 //! - `executable` — executable adı
 //! - `install_method` — kurulum yöntemi (`manual` | `download_archive` |
-//!   `pipx` | `npm` | `cargo` | `brew` | `apt`)
+//!   `pipx` | `npm` | `cargo` | `brew` | `apt` | `dnf` | `uv`)
 //! - `supported_platforms` — desteklenen platformlar (ör. "linux-x64")
 //! - `checksum` — SHA-256 doğrulama özeti
 //! - `checksum_type` — "sha256" gibi
@@ -89,6 +89,10 @@ pub enum InstallMethod {
     Brew,
     /// `sudo apt install …` (kullanıcı onayı sonrası, kabuksuz argv).
     Apt,
+    /// `sudo dnf install …` (kullanıcı onayı sonrası, kabuksuz argv).
+    Dnf,
+    /// `uv tool install …` (kullanıcı onayı sonrası, kabuksuz argv).
+    Uv,
 }
 
 impl InstallMethod {
@@ -105,7 +109,7 @@ impl InstallMethod {
         matches!(self, InstallMethod::DownloadArchive)
     }
 
-    /// Paket yöneticisi (pipx/npm/cargo/brew/apt) yöntemi mi?
+    /// Paket yöneticisi (pipx/npm/cargo/brew/apt/dnf/uv) yöntemi mi?
     pub fn is_package_manager(self) -> bool {
         matches!(
             self,
@@ -114,7 +118,14 @@ impl InstallMethod {
                 | InstallMethod::Cargo
                 | InstallMethod::Brew
                 | InstallMethod::Apt
+                | InstallMethod::Dnf
+                | InstallMethod::Uv
         )
+    }
+
+    /// `sudo` parola / TTY isteyebilecek sistem PM’i mi (apt/dnf)?
+    pub fn needs_elevated_tty(self) -> bool {
+        matches!(self, InstallMethod::Apt | InstallMethod::Dnf)
     }
 
     /// Arayüzde gösterilecek kısa etiket (ör. detay satırı).
@@ -127,6 +138,8 @@ impl InstallMethod {
             InstallMethod::Cargo => "cargo",
             InstallMethod::Brew => "brew",
             InstallMethod::Apt => "apt",
+            InstallMethod::Dnf => "dnf",
+            InstallMethod::Uv => "uv",
         }
     }
 
@@ -140,6 +153,8 @@ impl InstallMethod {
             InstallMethod::Cargo => "cargo (onaylı komut)",
             InstallMethod::Brew => "brew (onaylı komut)",
             InstallMethod::Apt => "apt (onaylı komut)",
+            InstallMethod::Dnf => "dnf (onaylı komut)",
+            InstallMethod::Uv => "uv (onaylı komut)",
         }
     }
 }
@@ -417,8 +432,8 @@ pub fn is_sha256_hex(value: &str) -> bool {
 /// - Boş olamaz; her argüman boşluksuz ve boş olmamalıdır.
 /// - Program `sh` / `bash` / `curl` / `wget` / `env` olamaz (sessiz
 ///   `curl | bash` yolunu kapatır).
-/// - Yönteme göre ilk program: `pipx` / `npm` / `cargo` / `brew`, veya
-///   `apt` için `apt` ya da `sudo apt …`.
+/// - Yönteme göre ilk program: `pipx` / `npm` / `cargo` / `brew` / `uv`,
+///   veya `apt`/`dnf` için `apt`/`dnf` ya da `sudo apt|dnf …`.
 /// - Argümanlarda tek başına `|` kabul edilmez.
 pub fn validate_install_command(method: InstallMethod, argv: &[String]) -> Result<(), String> {
     if !method.is_package_manager() {
@@ -457,11 +472,30 @@ pub fn validate_install_command(method: InstallMethod, argv: &[String]) -> Resul
             }
             Ok(())
         }
+        InstallMethod::Dnf if program == "dnf" => Ok(()),
+        InstallMethod::Dnf if program == "sudo" => {
+            if argv.get(1).map(String::as_str) != Some("dnf") {
+                return Err("sudo sonrası program 'dnf' olmalıdır".into());
+            }
+            Ok(())
+        }
+        InstallMethod::Uv if program == "uv" => {
+            if argv.get(1).map(String::as_str) != Some("tool") {
+                return Err("uv için 'uv tool …' bekleniyor".into());
+            }
+            let verb = argv.get(2).map(String::as_str);
+            if !matches!(verb, Some("install") | Some("upgrade")) {
+                return Err("uv tool install|upgrade bekleniyor".into());
+            }
+            Ok(())
+        }
         InstallMethod::Pipx
         | InstallMethod::Npm
         | InstallMethod::Cargo
         | InstallMethod::Brew
-        | InstallMethod::Apt => Err(format!(
+        | InstallMethod::Apt
+        | InstallMethod::Dnf
+        | InstallMethod::Uv => Err(format!(
             "'{}' yöntemi için program '{program}' beklenmiyor",
             method.short_label()
         )),
@@ -641,6 +675,36 @@ mod tests {
             "htop".into(),
         ]);
         assert!(Store::from_entries(vec![entry]).is_ok());
+    }
+
+    #[test]
+    fn dnf_and_uv_commands_validate() {
+        let mut dnf = pipx_entry("htop-dnf");
+        dnf.install_method = InstallMethod::Dnf;
+        dnf.install_command = Some(vec![
+            "sudo".into(),
+            "dnf".into(),
+            "install".into(),
+            "-y".into(),
+            "htop".into(),
+        ]);
+        assert!(Store::from_entries(vec![dnf]).is_ok());
+
+        let mut uv = pipx_entry("llm-uv");
+        uv.install_method = InstallMethod::Uv;
+        uv.install_command = Some(vec![
+            "uv".into(),
+            "tool".into(),
+            "install".into(),
+            "llm".into(),
+        ]);
+        assert!(Store::from_entries(vec![uv]).is_ok());
+
+        assert!(validate_install_command(
+            InstallMethod::Uv,
+            &["uv".into(), "pip".into(), "install".into(), "x".into()]
+        )
+        .is_err());
     }
 
     #[test]

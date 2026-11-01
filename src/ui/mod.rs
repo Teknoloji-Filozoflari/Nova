@@ -860,7 +860,10 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
             display_method.short_label()
         );
         if display_method != entry.install_method {
-            label.push_str(&format!(" (katalog: {})", entry.install_method.short_label()));
+            label.push_str(&format!(
+                " (katalog: {})",
+                entry.install_method.short_label()
+            ));
         }
         label
     } else {
