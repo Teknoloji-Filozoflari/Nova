@@ -7,6 +7,7 @@
 //! terminalde `qwen` gibi komutları klasör aramadan çalıştırır.
 
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 /// `$HOME/.local/bin` — kullanıcı alanı PATH hedefi.
@@ -150,19 +151,80 @@ pub fn remove_path_shim(exe_name: &str) -> Result<(), String> {
 
 /// Kurulum sonrası: çözülen ikiliyi shim’le; yol yoksa atla.
 ///
+/// Kırık npm yer tutucusu / yanlış mimari dosyasına shim yazılmaz; varsa
+/// eski kırık `~/.local/bin` bağı temizlenir.
+///
 /// Hata kurulumu bozmaz; çağıran özet metnine not ekleyebilir.
 pub fn shim_installed_executable(exe_name: &str, source: &Path) -> Result<PathBuf, String> {
-    if !source.is_absolute() || !source.is_file() {
-        // PM kurulumu bazen yalnızca adı döner; detection ile yeniden dene.
-        if let Some(found) = crate::detection::resolve(exe_name).1 {
-            return ensure_path_shim(exe_name, &found);
-        }
+    let resolved = if source.is_absolute() && source.is_file() {
+        source.to_path_buf()
+    } else if let Some(found) = crate::detection::resolve(exe_name).1 {
+        found
+    } else {
         return Err(format!(
             "'{exe_name}' için shim yolu bulunamadı (kaynak: {})",
             source.display()
         ));
+    };
+    if !looks_like_runnable_cli(&resolved) {
+        let _ = remove_path_shim(exe_name);
+        return Err(format!(
+            "'{exe_name}' çalıştırılabilir ikili değil (npm postinstall/optional deps veya yanlış mimari?). \
+             Kırık shim yazılmadı: {}",
+            resolved.display()
+        ));
     }
-    ensure_path_shim(exe_name, source)
+    ensure_path_shim(exe_name, &resolved)
+}
+
+/// Dosyanın gerçekten çalıştırılabilir bir CLI olup olmadığına bakar.
+///
+/// - ELF (`0x7F ELF`) veya Mach-O sihirli baytları → kabul
+/// - `#!` shebang → içerikte Anthropic npm yer tutucu hatası yoksa kabul
+/// - Aksi → reddet (kırık shim / Exec format error önlemi)
+pub fn looks_like_runnable_cli(path: &Path) -> bool {
+    let Ok(mut f) = fs::File::open(path) else {
+        return false;
+    };
+    let mut head = [0u8; 256];
+    let Ok(n) = f.read(&mut head) else {
+        return false;
+    };
+    if n < 4 {
+        return false;
+    }
+    // ELF
+    if head.starts_with(&[0x7f, b'E', b'L', b'F']) {
+        return true;
+    }
+    // Mach-O (fat / 64-bit / 32-bit)
+    let mag = u32::from_be_bytes([head[0], head[1], head[2], head[3]]);
+    if matches!(
+        mag,
+        0xfeedface | 0xfeedfacf | 0xcefaedfe | 0xcffaedfe | 0xcafebabe
+    ) {
+        return true;
+    }
+    // PE (Windows) — Linux’ta Exec format error verir; reddet.
+    if head.starts_with(b"MZ") {
+        return false;
+    }
+    if head.starts_with(b"#!") {
+        let text = String::from_utf8_lossy(&head[..n]).to_ascii_lowercase();
+        if text.contains("native binary not installed")
+            || text.contains("claude native binary")
+            || text.contains("could not find native binary")
+        {
+            return false;
+        }
+        // Makul shebang sarmalayıcı (node/python/bash).
+        return text.contains("node")
+            || text.contains("python")
+            || text.contains("bash")
+            || text.contains("sh")
+            || text.contains("env ");
+    }
+    false
 }
 
 #[cfg(unix)]
@@ -275,6 +337,51 @@ mod tests {
         with_temp_home(|_| {
             let err = ensure_path_shim("x", Path::new("relative/x")).unwrap_err();
             assert!(err.contains("mutlak"), "{err}");
+        });
+    }
+
+    #[test]
+    fn looks_like_runnable_cli_accepts_elf_and_rejects_placeholder() {
+        with_temp_home(|home| {
+            let elf = home.join("good");
+            let mut bytes = vec![0x7f, b'E', b'L', b'F'];
+            bytes.extend_from_slice(&[0; 60]);
+            fs::write(&elf, &bytes).unwrap();
+            assert!(looks_like_runnable_cli(&elf));
+
+            let placeholder = home.join("bad");
+            fs::write(
+                &placeholder,
+                b"#!/usr/bin/env node\nError: claude native binary not installed.\n",
+            )
+            .unwrap();
+            assert!(!looks_like_runnable_cli(&placeholder));
+
+            let pe = home.join("win");
+            fs::write(&pe, b"MZ\0\0not-a-linux-binary").unwrap();
+            assert!(!looks_like_runnable_cli(&pe));
+        });
+    }
+
+    #[test]
+    fn shim_refuses_broken_placeholder_and_clears_old_link() {
+        with_temp_home(|home| {
+            let real_dir = home.join("pkg");
+            fs::create_dir_all(&real_dir).unwrap();
+            let real = real_dir.join("claude");
+            fs::write(
+                &real,
+                b"#!/usr/bin/env node\nthrow new Error('claude native binary not installed');\n",
+            )
+            .unwrap();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                fs::set_permissions(&real, fs::Permissions::from_mode(0o755)).unwrap();
+            }
+            let err = shim_installed_executable("claude", &real).unwrap_err();
+            assert!(err.contains("çalıştırılabilir ikili değil"), "{err}");
+            assert!(!home.join(".local/bin/claude").exists());
         });
     }
 }

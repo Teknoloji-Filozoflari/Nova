@@ -410,14 +410,14 @@ impl App {
             Some(s) => s,
             None => return Ok(()),
         };
-        let tool_detail_side = !self.store_tab
-            && !self.settings_tab
-            && crate::ui::tool_detail_side_layout(
-                size.0 >= crate::ui::WIDE_MIN_WIDTH,
-                size.0,
-                self.selected_tool_has_ai_actions(),
-            );
-        let areas = crate::ui::click_areas(size, self.show_help, self.store_tab, tool_detail_side);
+        let tool_detail_side = false;
+        let areas = crate::ui::click_areas_ex(
+            size,
+            self.show_help,
+            self.store_tab,
+            tool_detail_side,
+            !self.store_tab && !self.settings_tab && self.selected_tool_has_ai_actions(),
+        );
 
         match mouse.kind {
             MouseEventKind::Down(MouseButton::Left) => {
@@ -439,6 +439,26 @@ impl App {
     /// Sol tık: kenarlıklı liste satırına isabet eden öğeyi seçer.
     fn handle_mouse_click(&mut self, x: u16, y: u16, areas: crate::ui::ClickAreas) {
         use crate::ui::list_index_at_y;
+
+        // Yatay aksiyon şeridi içerik alanının altında; önce onu dene.
+        if !self.store_tab
+            && !self.settings_tab
+            && areas.actions_height > 0
+            && y >= areas.actions_top
+            && y < areas.actions_top.saturating_add(areas.actions_height)
+        {
+            let strip = ratatui::layout::Rect {
+                x: 0,
+                y: areas.actions_top,
+                width: areas.tools_end_x.max(1),
+                height: areas.actions_height,
+            };
+            if let Some(action_index) = crate::ui::action_index_at_x(self, x, strip) {
+                self.tool_action_index = action_index;
+                self.focus = PanelFocus::ToolActions;
+            }
+            return;
+        }
 
         if y < areas.content_top || y >= areas.content_top.saturating_add(areas.content_height) {
             return;
@@ -470,33 +490,21 @@ impl App {
             return;
         }
 
-        // Araç paneli (genişte orta/sağ sütun; AI sağ-detayda tools_end_x'e kadar;
-        // darda tüm içerik). Detay paneli salt okunur; aksiyonlar liste içinde.
+        // Araç paneli (genişte orta/sağ sütun; darda tüm içerik).
         if areas.wide && x >= areas.tools_end_x {
             return;
         }
         let hits = crate::ui::tool_list_hits(self);
         let selected_visual = crate::ui::tool_list_selected_visual(self).unwrap_or(0);
         if let Some(row) = list_index_at_y(y, panel_top, panel_h, selected_visual, hits.len()) {
-            match hits[row] {
-                crate::ui::ToolListHit::Tool(idx) => {
-                    if idx != self.tool_index {
-                        self.tool_index = idx;
-                        self.reset_tool_action_index();
-                    } else {
-                        self.tool_index = idx;
-                    }
-                    self.focus = PanelFocus::Tool;
-                }
-                crate::ui::ToolListHit::Action {
-                    tool_index,
-                    action_index,
-                } => {
-                    self.tool_index = tool_index;
-                    self.tool_action_index = action_index;
-                    self.focus = PanelFocus::ToolActions;
-                }
+            let crate::ui::ToolListHit::Tool(idx) = hits[row];
+            if idx != self.tool_index {
+                self.tool_index = idx;
+                self.reset_tool_action_index();
+            } else {
+                self.tool_index = idx;
             }
+            self.focus = PanelFocus::Tool;
         }
     }
 
@@ -765,9 +773,16 @@ impl App {
                 self.move_up();
             }
             KeyCode::Char('h') | KeyCode::Left => {
-                // Dar terminalde araç kategorisi paneli gizli olduğundan odak
-                // listede kalır; yön tuşları yanıltıcı olmasın.
-                if self.narrow_mode && !self.store_tab {
+                // Yatay aksiyon şeridinde ← önceki aksiyon; baştayken araç listesine.
+                if self.focus == PanelFocus::ToolActions {
+                    if self.tool_action_index > 0 {
+                        self.tool_action_index -= 1;
+                    } else {
+                        self.focus = PanelFocus::Tool;
+                    }
+                } else if self.narrow_mode && !self.store_tab {
+                    // Dar terminalde araç kategorisi paneli gizli olduğundan odak
+                    // listede kalır; yön tuşları yanıltıcı olmasın.
                     self.status_message =
                         "Kategori paneli bu genişlikte gizli; terminali genişlet.".into();
                 } else {
@@ -775,7 +790,13 @@ impl App {
                 }
             }
             KeyCode::Char('l') | KeyCode::Right => {
-                self.focus = self.next_focus();
+                // Yatay aksiyon şeridinde → sonraki aksiyon.
+                if self.focus == PanelFocus::ToolActions {
+                    let max = self.selected_tool_actions_len().saturating_sub(1);
+                    self.tool_action_index = (self.tool_action_index + 1).min(max);
+                } else {
+                    self.focus = self.next_focus();
+                }
             }
             KeyCode::Tab => {
                 self.focus = self.next_focus();
@@ -991,6 +1012,7 @@ impl App {
                 }
             }
             PanelFocus::ToolActions => {
+                // Şerit yatay; ↓ de sonraki aksiyona gider (←→ ile aynı).
                 let max = self.selected_tool_actions_len().saturating_sub(1);
                 self.tool_action_index = (self.tool_action_index + 1).min(max);
             }
@@ -1043,7 +1065,12 @@ impl App {
                 }
             }
             PanelFocus::ToolActions => {
-                self.tool_action_index = self.tool_action_index.saturating_sub(1);
+                // ↑ ilk aksiyondayken araç listesine döner.
+                if self.tool_action_index == 0 {
+                    self.focus = PanelFocus::Tool;
+                } else {
+                    self.tool_action_index = self.tool_action_index.saturating_sub(1);
+                }
             }
             PanelFocus::StoreCategory => {
                 self.store_category_index = self.store_category_index.saturating_sub(1);
@@ -1213,7 +1240,7 @@ impl App {
     ///
     /// Mağaza sekmesinde üç panel vardır: sekme listesi, mağaza kategorileri
     /// ve mağaza uygulamaları. Araç/Ayarlar sekmesinde iki panel vardır. AI
-    /// aracı seçiliyken aksiyonlar araç adının altında görünür ve odak
+    /// aracı seçiliyken aksiyonlar yatay şeritte görünür ve odak
     /// zincirine eklenir (Tab/a ile açılmaz). Dar terminalde gizlenen
     /// paneller zincirden çıkarılır.
     fn focus_chain(&self) -> &'static [PanelFocus] {

@@ -27,10 +27,16 @@ description = "Anthropic'in terminal tabanlı kodlama asistanı."
 source = "https://code.claude.com"
 license = "Proprietary"
 executable = "claude"
+# Nova önce Anthropic native CDN ikilisini kurar (SHA-256, doğru mimari).
+# npm yedek yoldur; optional-deps/postinstall atlanırsa yer tutucu kırılır.
 install_method = "npm"
 install_command = ["npm", "install", "-g", "@anthropic-ai/claude-code"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """npm: npm install -g @anthropic-ai/claude-code\nResmî: https://code.claude.com/"""
+install_notes = """Nova: Anthropic native CDN (downloads.claude.ai, SHA-256) — tercih edilen yol
+Manuel: curl -fsSL https://claude.ai/install.sh | bash
+npm (kırılgan): npm install -g @anthropic-ai/claude-code  # postinstall + optional deps şart
+Risk: npm 12 / --omit=optional / --ignore-scripts yer tutucu bırakır → Exec format error
+Resmî: https://code.claude.com/docs/en/setup"""
 
 [[apps]]
 id = "codex"

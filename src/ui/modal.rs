@@ -127,139 +127,149 @@ fn draw_store_installed_menu(f: &mut Frame, screen: Rect, name: &str, index: usi
     f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
-/// Güncelleme onay ekranını çizer.
+/// Güncelleme onayını ortalanmış panelde çizer (tam ekran kaplamaz).
 fn draw_update_confirm(
     f: &mut Frame,
-    area: Rect,
+    screen: Rect,
     current: &Version,
     latest: &Version,
     release: &GitHubRelease,
 ) {
-    let inner_w = area.width.saturating_sub(2) as usize;
-    let mut lines: Vec<Line> = Vec::new();
-
+    let width = 64.min(screen.width.saturating_sub(MODAL_MARGIN * 2));
+    let inner_w = width.saturating_sub(2) as usize;
+    let mut lines: Vec<Line> = vec![
+        Line::from(Span::styled(
+            "Yeni sürümü kurmak üzeresiniz.",
+            Style::default().fg(Color::White),
+        )),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Mevcut  ", Style::default().fg(Color::DarkGray)),
+            Span::styled(current.to_string(), Style::default().fg(Color::White)),
+        ]),
+        Line::from(vec![
+            Span::styled("Yeni    ", Style::default().fg(Color::DarkGray)),
+            Span::styled(latest.to_string(), Style::default().fg(Color::Green)),
+        ]),
+    ];
+    if !release.body.trim().is_empty() {
+        lines.push(Line::from(Span::styled(
+            truncate(&release.body, inner_w),
+            Style::default().fg(Color::Gray),
+        )));
+    }
     lines.push(Line::from(Span::styled(
-        "Güncelleme onayı",
-        Style::default()
-            .fg(Color::Cyan)
-            .add_modifier(Modifier::BOLD),
+        truncate(&release.html_url, inner_w),
+        Style::default().fg(Color::Blue),
     )));
     lines.push(Line::from(""));
-    lines.push(Line::from(vec![
-        Span::styled("Mevcut: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(current.to_string(), Style::default().fg(Color::White)),
-    ]));
-    lines.push(Line::from(vec![
-        Span::styled("Yeni: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(latest.to_string(), Style::default().fg(Color::White)),
-    ]));
     lines.push(Line::from(Span::styled(
-        format!("Yayın notları: {}", truncate(&release.body, inner_w)),
-        Style::default().fg(Color::Gray),
-    )));
-    lines.push(Line::from(vec![
-        Span::styled("Kaynak: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            truncate(&release.html_url, inner_w.saturating_sub(10)),
-            Style::default().fg(Color::Blue),
-        ),
-    ]));
-    lines.push(Line::from(""));
-    lines.push(Line::from(Span::styled(
-        "Enter: kurulum onayı   Esc: kapat",
+        "Enter kur  ·  Esc vazgeç",
         Style::default()
             .fg(Color::Cyan)
             .add_modifier(Modifier::BOLD),
     )));
 
-    let list = List::new(lines.into_iter().map(ListItem::new).collect::<Vec<_>>()).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::Cyan))
-            .title(" Güncelleme onayı "),
-    );
-    f.render_widget(list, area);
+    let area = modal_area(screen, width, lines.len() as u16);
+    let inner = frame(f, area, "Güncelleme onayı");
+    f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
-/// Güncelleme denetim ekranını çizer.
+/// Güncelleme denetimini ortalanmış panelde çizer (tam ekranı ele geçirmez).
 fn draw_update_check(
     f: &mut Frame,
-    area: Rect,
+    screen: Rect,
     status: &UpdateStatus,
     check: Option<&UpdateCheck>,
     error: Option<&str>,
 ) {
-    let inner_w = area.width.saturating_sub(2) as usize;
+    let width = 66.min(screen.width.saturating_sub(MODAL_MARGIN * 2));
+    let inner_w = width.saturating_sub(2) as usize;
     let mut lines: Vec<Line> = Vec::new();
 
     match status {
         UpdateStatus::Idle => {
             lines.push(Line::from(Span::styled(
-                "İki yol: Releases ikilisi (Enter/U) ve repo main (G).",
+                "Nova güncellemesi",
                 Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD),
             )));
+            lines.push(Line::from(""));
             lines.push(Line::from(Span::styled(
-                "G → cargo install --git (ağ + derleme; Releases etiketi gerekmez).",
-                Style::default().fg(Color::DarkGray),
+                "İki yol var; ikisi de burada kalır:",
+                Style::default().fg(Color::White),
+            )));
+            lines.push(Line::from(Span::styled(
+                "  Enter / U  —  GitHub Releases ikilisi",
+                Style::default().fg(Color::Gray),
+            )));
+            lines.push(Line::from(Span::styled(
+                "  G          —  repo main (cargo install --git)",
+                Style::default().fg(Color::Gray),
             )));
             lines.push(Line::from(""));
             if let Some(current) = current_version() {
                 lines.push(Line::from(vec![
-                    Span::styled("Mevcut sürüm: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled("Şu an  ", Style::default().fg(Color::DarkGray)),
                     Span::styled(current.to_string(), Style::default().fg(Color::White)),
                 ]));
             }
+            lines.push(Line::from(Span::styled(
+                "Esc ile kapatın; ana ekran yerinde kalır.",
+                Style::default().fg(Color::DarkGray),
+            )));
         }
         UpdateStatus::Checking => {
             lines.push(Line::from(Span::styled(
-                "GitHub Releases denetleniyor… (repo yolu G ile ayrı)",
+                "GitHub Releases kontrol ediliyor…",
                 Style::default().fg(Color::Yellow),
+            )));
+            lines.push(Line::from(Span::styled(
+                "Repo yolu için G’ye basabilirsiniz.",
+                Style::default().fg(Color::DarkGray),
             )));
         }
         UpdateStatus::Done => match check {
             Some(UpdateCheck::UpToDate { current }) => {
                 lines.push(Line::from(Span::styled(
-                    "Releases ikilisine göre güncelsiniz.",
+                    "Releases’e göre güncelsiniz.",
                     Style::default().fg(Color::Green),
                 )));
                 lines.push(Line::from(vec![
-                    Span::styled("Sürüm: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled("Sürüm  ", Style::default().fg(Color::DarkGray)),
                     Span::styled(current.to_string(), Style::default().fg(Color::White)),
                 ]));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    "main’deki yeni commit’ler için G: cargo install --git (ağ+derleme).",
+                    "main’deki commit’ler için G (ağ + derleme).",
                     Style::default().fg(Color::DarkGray),
                 )));
                 lines.push(Line::from(Span::styled(
-                    "Enter/U: Releases yeniden   G: repo main   Esc: kapat",
+                    "Enter/U yeniden  ·  G repo  ·  Esc kapat",
                     Style::default().fg(Color::Cyan),
                 )));
             }
             Some(UpdateCheck::NoPublishedRelease { current }) => {
                 lines.push(Line::from(Span::styled(
-                    "GitHub’da yayınlanmış Nova ikilisi yok.",
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
+                    "Henüz yayınlanmış Nova ikilisi yok.",
+                    Style::default().fg(Color::Yellow),
                 )));
                 lines.push(Line::from(vec![
-                    Span::styled("Çalışan sürüm: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled("Çalışan  ", Style::default().fg(Color::DarkGray)),
                     Span::styled(current.to_string(), Style::default().fg(Color::White)),
                 ]));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    "Releases yolu şu an kullanılamaz; repo yolu açık.",
+                    "Releases yolu kapalı; repo yolu açık.",
                     Style::default().fg(Color::Gray),
                 )));
                 lines.push(Line::from(Span::styled(
-                    "G: cargo install --git … --branch main (ağ + derleme gerekir)",
+                    "G: cargo install --git … --branch main",
                     Style::default().fg(Color::Gray),
                 )));
                 lines.push(Line::from(Span::styled(
-                    "Enter/U: Releases yeniden   G: repo main   Esc: kapat",
+                    "Enter/U yeniden  ·  G repo  ·  Esc kapat",
                     Style::default().fg(Color::Cyan),
                 )));
             }
@@ -269,39 +279,36 @@ fn draw_update_check(
                 release,
             }) => {
                 lines.push(Line::from(Span::styled(
-                    "Yeni GitHub sürümü var!",
+                    "Yeni GitHub sürümü var.",
                     Style::default()
                         .fg(Color::Green)
                         .add_modifier(Modifier::BOLD),
                 )));
                 lines.push(Line::from(vec![
-                    Span::styled("Mevcut: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled("Mevcut  ", Style::default().fg(Color::DarkGray)),
                     Span::styled(current.to_string(), Style::default().fg(Color::White)),
+                    Span::raw("  →  "),
+                    Span::styled(latest.to_string(), Style::default().fg(Color::Green)),
                 ]));
-                lines.push(Line::from(vec![
-                    Span::styled("Yeni: ", Style::default().fg(Color::DarkGray)),
-                    Span::styled(latest.to_string(), Style::default().fg(Color::White)),
-                ]));
+                if !release.body.trim().is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        truncate(&release.body, inner_w),
+                        Style::default().fg(Color::Gray),
+                    )));
+                }
                 lines.push(Line::from(Span::styled(
-                    format!("Yayın notları: {}", truncate(&release.body, inner_w)),
-                    Style::default().fg(Color::Gray),
+                    truncate(&release.html_url, inner_w),
+                    Style::default().fg(Color::Blue),
                 )));
-                lines.push(Line::from(vec![
-                    Span::styled("Kaynak: ", Style::default().fg(Color::DarkGray)),
-                    Span::styled(
-                        truncate(&release.html_url, inner_w.saturating_sub(10)),
-                        Style::default().fg(Color::Blue),
-                    ),
-                ]));
                 if release.download_url.is_none() {
                     lines.push(Line::from(Span::styled(
-                        "Uyarı: uygun Linux ikili varlığı yok; kurulum yapılamaz.",
+                        "Uygun Linux ikilisi yok; Releases kurulumu yapılamaz.",
                         Style::default().fg(Color::Yellow),
                     )));
                 }
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    "Enter: Releases kurulum onayı   G: repo main   Esc: kapat",
+                    "Enter onay  ·  G repo main  ·  Esc kapat",
                     Style::default()
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::BOLD),
@@ -313,17 +320,17 @@ fn draw_update_check(
                     Style::default().fg(Color::Yellow),
                 )));
                 lines.push(Line::from(Span::styled(
-                    "Enter/U: denetle   Esc: kapat",
+                    "Enter/U denetle  ·  Esc kapat",
                     Style::default().fg(Color::Cyan),
                 )));
             }
             Some(UpdateCheck::Error(msg)) => {
                 lines.push(Line::from(Span::styled(
-                    format!("Denetim hatası: {msg}"),
+                    truncate(&format!("Denetim hatası: {msg}"), inner_w),
                     Style::default().fg(Color::Red),
                 )));
                 lines.push(Line::from(Span::styled(
-                    "Enter/U: yeniden dene   Esc: kapat",
+                    "Enter/U yeniden  ·  Esc kapat",
                     Style::default().fg(Color::Cyan),
                 )));
             }
@@ -333,18 +340,14 @@ fn draw_update_check(
     if let Some(err) = error {
         lines.push(Line::from(""));
         lines.push(Line::from(Span::styled(
-            format!("Hata: {err}"),
+            truncate(&format!("Hata: {err}"), inner_w),
             Style::default().fg(Color::Red),
         )));
     }
 
-    let list = List::new(lines.into_iter().map(ListItem::new).collect::<Vec<_>>()).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::Cyan))
-            .title(" Güncellemeleri denetle "),
-    );
-    f.render_widget(list, area);
+    let area = modal_area(screen, width, lines.len() as u16);
+    let inner = frame(f, area, "Güncelle");
+    f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
 /// Mevcut sürümü `CARGO_PKG_VERSION`'dan döner.
