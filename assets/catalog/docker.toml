@@ -10,7 +10,7 @@ name = "lazydocker"
 category = "Docker ve Sunucu"
 executable = "lazydocker"
 description = "Docker konteynerleri, imajları ve günlükleri için terminal arayüzü."
-examples = ["lazydocker"]
+examples = ["lazydocker   ← konteyner/servis panosu", "lazydocker --help", "İpucu: Docker/Podman socket gerekir"]
 
 [[tools]]
 id = "lazysql"
@@ -18,7 +18,7 @@ name = "lazysql"
 category = "Docker ve Sunucu"
 executable = "lazysql"
 description = "Veritabanlarını gezmek için terminal arayüzü."
-examples = ["lazysql"]
+examples = ["lazysql   ← SQL TUI istemcisi", "lazysql --help"]
 
 [[tools]]
 id = "ssh"

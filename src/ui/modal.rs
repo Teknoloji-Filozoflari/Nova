@@ -195,13 +195,13 @@ fn draw_update_check(
     match status {
         UpdateStatus::Idle => {
             lines.push(Line::from(Span::styled(
-                "GitHub Releases ikili denetimi için Enter veya U.",
+                "İki yol: Releases ikilisi (Enter/U) ve repo main (G).",
                 Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD),
             )));
             lines.push(Line::from(Span::styled(
-                "Kaynak/tema için cargo rebuild gerekir; bu ekran git pull yapmaz.",
+                "G → cargo install --git (ağ + derleme; Releases etiketi gerekmez).",
                 Style::default().fg(Color::DarkGray),
             )));
             lines.push(Line::from(""));
@@ -214,14 +214,14 @@ fn draw_update_check(
         }
         UpdateStatus::Checking => {
             lines.push(Line::from(Span::styled(
-                "GitHub Releases denetleniyor…",
+                "GitHub Releases denetleniyor… (repo yolu G ile ayrı)",
                 Style::default().fg(Color::Yellow),
             )));
         }
         UpdateStatus::Done => match check {
             Some(UpdateCheck::UpToDate { current }) => {
                 lines.push(Line::from(Span::styled(
-                    "Yayınlanan ikiliye göre güncelsiniz.",
+                    "Releases ikilisine göre güncelsiniz.",
                     Style::default().fg(Color::Green),
                 )));
                 lines.push(Line::from(vec![
@@ -230,11 +230,11 @@ fn draw_update_check(
                 ]));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    "main’deki tema/özellik için kaynak koddan yeniden derleyin.",
+                    "main’deki yeni commit’ler için G: cargo install --git (ağ+derleme).",
                     Style::default().fg(Color::DarkGray),
                 )));
                 lines.push(Line::from(Span::styled(
-                    "Enter/U: yeniden denetle   Esc: kapat",
+                    "Enter/U: Releases yeniden   G: repo main   Esc: kapat",
                     Style::default().fg(Color::Cyan),
                 )));
             }
@@ -251,15 +251,15 @@ fn draw_update_check(
                 ]));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    "Self-update yalnızca Releases ikilisiyle çalışır.",
+                    "Releases yolu şu an kullanılamaz; repo yolu açık.",
                     Style::default().fg(Color::Gray),
                 )));
                 lines.push(Line::from(Span::styled(
-                    "Tema (#9) vb. için: git pull && cargo build --release",
+                    "G: cargo install --git … --branch main (ağ + derleme gerekir)",
                     Style::default().fg(Color::Gray),
                 )));
                 lines.push(Line::from(Span::styled(
-                    "Enter/U: yeniden denetle   Esc: kapat",
+                    "Enter/U: Releases yeniden   G: repo main   Esc: kapat",
                     Style::default().fg(Color::Cyan),
                 )));
             }
@@ -301,7 +301,7 @@ fn draw_update_check(
                 }
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    "Enter: kurulum onayı   Esc: kapat",
+                    "Enter: Releases kurulum onayı   G: repo main   Esc: kapat",
                     Style::default()
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::BOLD),

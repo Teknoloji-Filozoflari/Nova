@@ -41,6 +41,7 @@ pub mod net;
 pub mod path;
 pub mod platform;
 pub mod remote;
+pub mod repo_sync;
 pub mod signature;
 pub mod sync;
 pub mod trust;

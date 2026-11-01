@@ -137,12 +137,17 @@ pub struct GitHubRelease {
 }
 
 /// Güncelleme denetimi sonucu.
+///
+/// Nova **iki** yolu destekler (birbirinin yerine geçmez):
+/// 1. GitHub Releases ikili self-update (varsa)
+/// 2. Repo `main` üzerinden `cargo install --git` (ağ + derleme gerekir)
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UpdateCheck {
     /// Güncelleme yok; mevcut sürüm yayınlanan sürümle aynı veya daha yeni.
+    /// Repo yolu hâlâ `cargo install --git` ile denenebilir.
     UpToDate { current: Version },
     /// Depoda henüz (kararlı) GitHub Release yok — ikili self-update yapılamaz.
-    /// Kaynak/tema değişiklikleri için `cargo build` / `cargo install` gerekir.
+    /// Repo yolu (`cargo install --git`) önerilir.
     NoPublishedRelease { current: Version },
     /// Güncelleme mevcut.
     UpdateAvailable {
@@ -155,6 +160,100 @@ pub enum UpdateCheck {
     },
     /// Güncelleme denetimi başarısız oldu (ağ, doğrulama vb.).
     Error(String),
+}
+
+/// Repo (kaynak) güncellemesinin özeti — UI’da dürüstçe gösterilir.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RepoUpdatePlan {
+    /// Git HTTPS URL.
+    pub git_url: String,
+    /// Dal adı.
+    pub branch: String,
+    /// Çalıştırılacak komut (görüntü / onay).
+    pub command_display: String,
+    /// Kullanıcıya uyarı: ağ + derleme gerekir.
+    pub warnings: Vec<String>,
+}
+
+impl Default for RepoUpdatePlan {
+    fn default() -> Self {
+        Self::for_nova_main()
+    }
+}
+
+impl RepoUpdatePlan {
+    /// Nova `main` dalı için varsayılan plan.
+    pub fn for_nova_main() -> Self {
+        let git_url = std::env::var("NOVA_GIT_SOURCE_URL")
+            .unwrap_or_else(|_| NOVA_GIT_SOURCE_URL.to_string());
+        let branch = std::env::var("NOVA_GIT_BRANCH")
+            .unwrap_or_else(|_| NOVA_GIT_DEFAULT_BRANCH.to_string());
+        let command_display =
+            format!("cargo install --git {git_url} --branch {branch} --force --locked");
+        Self {
+            git_url,
+            branch,
+            command_display,
+            warnings: vec![
+                "Ağ gerekir: GitHub’dan kaynak çekilir.".into(),
+                "Derleme gerekir: Rust toolchain (cargo) ile yerelde derlenir; birkaç dakika sürebilir.".into(),
+                "Kurulum hedefi genellikle ~/.cargo/bin/nova (PATH’te olmalı).".into(),
+                "GitHub Releases ikili yolu ayrıdır; bu komut Releases etiketi beklemez.".into(),
+            ],
+        }
+    }
+}
+
+/// `cargo install --git` ile Nova’yı main (veya seçili dal) üzerinden kurar.
+///
+/// Kullanıcı onayı alınmış olmalıdır. `sudo` kullanılmaz.
+pub fn install_nova_from_git(plan: &RepoUpdatePlan) -> Result<UpdateOutcome, String> {
+    which_cargo()?;
+    let status = std::process::Command::new("cargo")
+        .args([
+            "install",
+            "--git",
+            &plan.git_url,
+            "--branch",
+            &plan.branch,
+            "--force",
+            "--locked",
+        ])
+        .status()
+        .map_err(|e| format!("cargo başlatılamadı: {e}"))?;
+    if !status.success() {
+        return Err(format!(
+            "cargo install başarısız (çıkış {:?}). Ağ / toolchain / derleme hatası olabilir.",
+            status.code()
+        ));
+    }
+    let version = Version::parse(env!("CARGO_PKG_VERSION")).unwrap_or_default();
+    let bin_dir = crate::store::path::user_local_bin_dir()
+        .or_else(|| {
+            std::env::var_os("CARGO_HOME")
+                .map(PathBuf::from)
+                .map(|p| p.join("bin"))
+        })
+        .unwrap_or_else(|| {
+            std::env::var_os("HOME")
+                .map(PathBuf::from)
+                .unwrap_or_else(|| PathBuf::from("."))
+                .join(".cargo/bin")
+        });
+    Ok(UpdateOutcome {
+        version,
+        install_dir: bin_dir,
+        summary: format!(
+            "Nova kaynak güncellemesi tamamlandı (`{}`). Yeni kabuk veya PATH yenilemesi gerekebilir.",
+            plan.command_display
+        ),
+    })
+}
+
+fn which_cargo() -> Result<PathBuf, String> {
+    which::which("cargo").map_err(|_| {
+        "cargo bulunamadı — kaynak güncellemesi için Rust toolchain kurulu olmalı".into()
+    })
 }
 
 /// Güncelleme sağlayıcısı arayüzü. Gerçek GitHub erişimi olmadan test
@@ -225,6 +324,10 @@ pub struct UpdateConfirmation {
 
 /// Nova'nın izlediği GitHub deposu.
 pub const NOVA_GITHUB_REPO: &str = "Teknoloji-Filozoflari/Nova";
+/// Kaynak (repo) güncellemesi için varsayılan dal.
+pub const NOVA_GIT_DEFAULT_BRANCH: &str = "main";
+/// `cargo install --git` kaynak URL’si.
+pub const NOVA_GIT_SOURCE_URL: &str = "https://github.com/Teknoloji-Filozoflari/Nova.git";
 
 /// Gerçek güncelleme sağlayıcısı: GitHub Releases (`NOVA_GITHUB_REPO`).
 ///

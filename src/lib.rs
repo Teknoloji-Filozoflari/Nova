@@ -12,6 +12,7 @@
 //! - `terminal_guard`: Çıkışta ve panikte terminalin geri yüklenmesi
 
 pub mod app;
+pub mod browser;
 pub mod catalog;
 pub mod config;
 pub mod detection;

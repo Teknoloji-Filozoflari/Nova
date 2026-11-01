@@ -56,6 +56,8 @@ pub enum PanelFocus {
     StoreCategory,
     /// Mağaza uygulamaları paneli odaklı.
     StoreApp,
+    /// Mağaza sağ detay paneli odaklı (kaynak/depo bağlantısı; Enter → tarayıcı).
+    StoreDetail,
     /// Ayarlar → Tema seçici paneli odaklı.
     ThemePicker,
     /// Ayarlar → Dil seçici paneli odaklı.
@@ -140,7 +142,8 @@ pub struct App {
     pub store_tab: bool,
     /// Ayarlar sekmesi etkin mi? (Mağaza'nın altındaki satır)
     pub settings_tab: bool,
-    /// Ayarlar sekmesinde seçili eylem: 0 = Güncelle, 1 = Tema, 2 = Dil.
+    /// Ayarlar sekmesinde seçili eylem:
+    /// 0 = Nova güncelle, 1 = Mağaza kataloğu, 2 = Özel araç, 3 = Tema, 4 = Dil.
     pub settings_action_index: usize,
     /// Tema seçici yan paneli açık mı?
     pub theme_picker_open: bool,
@@ -154,6 +157,8 @@ pub struct App {
     pub store_category_index: usize,
     /// Seçili mağaza uygulamasının indeksi (filtrelenmiş liste üzerinden).
     pub store_app_index: usize,
+    /// Mağaza detayındaki seçili bağlantı indeksi ([`crate::ui::store_detail_links`]).
+    pub store_detail_link_index: usize,
     /// Seçili aracın indeksi (filtrelenmiş liste üzerinden).
     pub tool_index: usize,
     /// Seçili AI araç eyleminin indeksi (detay yanı aksiyon listesi).
@@ -288,6 +293,7 @@ impl App {
             language_picker_index: 0,
             store_category_index: 0,
             store_app_index: 0,
+            store_detail_link_index: 0,
             tool_index: 0,
             tool_action_index: 0,
             search_query: String::new(),
@@ -507,10 +513,27 @@ impl App {
                     list_index_at_y(y, panel_top, panel_h, self.store_app_index, apps.len())
                 {
                     self.store_app_index = row;
+                    self.store_detail_link_index = 0;
                     self.focus = PanelFocus::StoreApp;
                 }
+            } else if areas.store_detail_side {
+                // Sağ detay: tıklama kaynak/depo URL'sini tarayıcıda açar.
+                self.focus = PanelFocus::StoreDetail;
+                let links = crate::ui::store_detail_links(self);
+                if links.is_empty() {
+                    self.status_message = "Bu uygulama için açılabilir https kaynağı yok.".into();
+                } else {
+                    // Birden fazla bağlantı varsa tıklama satırına göre seç;
+                    // aksi hâlde (veya satır eşleşmezse) ilk bağlantıyı aç.
+                    let rel_y = y.saturating_sub(panel_top);
+                    if links.len() > 1 && rel_y > 8 {
+                        self.store_detail_link_index = 1.min(links.len() - 1);
+                    } else {
+                        self.store_detail_link_index = 0;
+                    }
+                    self.open_selected_store_detail_link();
+                }
             }
-            // Sağ detay paneli salt okunur; tıklama yok sayılır.
             return;
         }
 
@@ -550,7 +573,7 @@ impl App {
 
         let panel_top = areas.content_top;
         let panel_h = areas.content_height;
-        const SETTINGS_ACTIONS: usize = 3;
+        const SETTINGS_ACTIONS: usize = 5;
 
         if self.settings_side_picker_open() && areas.wide {
             let side_start = areas
@@ -642,11 +665,16 @@ impl App {
 
     /// Ayarlar listesinde tıklanan eylemi uygular (Tema / Dil → paneli aç).
     fn apply_settings_action_click(&mut self, index: usize) {
-        self.settings_action_index = index.min(2);
+        self.settings_action_index = index.min(4);
         self.focus = PanelFocus::Tool;
         match self.settings_action_index {
-            1 => self.open_theme_picker(),
-            2 => self.open_language_picker(),
+            3 => self.open_theme_picker(),
+            4 => self.open_language_picker(),
+            2 => {
+                self.theme_picker_open = false;
+                self.language_picker_open = false;
+                self.modal = modal::Modal::ToolForm(Box::default());
+            }
             _ => {
                 self.theme_picker_open = false;
                 self.language_picker_open = false;
@@ -749,6 +777,9 @@ impl App {
                     self.focus = PanelFocus::StoreApp;
                 }
                 PanelFocus::StoreApp => self.select_store_app(),
+                PanelFocus::StoreDetail => {
+                    self.open_selected_store_detail_link();
+                }
                 PanelFocus::ThemePicker => {
                     let _ = self.apply_theme_at_picker_index();
                 }
@@ -932,7 +963,7 @@ impl App {
             PanelFocus::Category => self.move_tab_down(),
             PanelFocus::Tool => {
                 if self.settings_tab {
-                    self.settings_action_index = (self.settings_action_index + 1).min(2);
+                    self.settings_action_index = (self.settings_action_index + 1).min(4);
                     return;
                 }
                 let tools = self.filtered_tools();
@@ -963,6 +994,14 @@ impl App {
                 }
                 let max = apps.len().saturating_sub(1);
                 self.store_app_index = (self.store_app_index + 1).min(max);
+                self.store_detail_link_index = 0;
+            }
+            PanelFocus::StoreDetail => {
+                let n = crate::ui::store_detail_links(self).len();
+                if n == 0 {
+                    return;
+                }
+                self.store_detail_link_index = (self.store_detail_link_index + 1).min(n - 1);
             }
             PanelFocus::ThemePicker => {
                 let max = crate::ui::UiTheme::all().len().saturating_sub(1);
@@ -999,6 +1038,10 @@ impl App {
             }
             PanelFocus::StoreApp => {
                 self.store_app_index = self.store_app_index.saturating_sub(1);
+                self.store_detail_link_index = 0;
+            }
+            PanelFocus::StoreDetail => {
+                self.store_detail_link_index = self.store_detail_link_index.saturating_sub(1);
             }
             PanelFocus::ThemePicker => {
                 self.theme_picker_index = self.theme_picker_index.saturating_sub(1);
@@ -1110,7 +1153,9 @@ impl App {
         self.language_picker_open = false;
         self.settings_action_index = 0;
         self.focus = PanelFocus::Tool;
-        self.status_message = "Ayarlar: Güncelle / Tema / Dil. Enter uygular.".into();
+        self.status_message =
+            "Ayarlar: Nova güncelle / Mağaza kataloğu / Özel araç / Tema / Dil. Enter uygular."
+                .into();
     }
 
     /// Sol panelde seçili sekmenin satır indeksi (çizilen liste üzerinden).
@@ -1173,6 +1218,12 @@ impl App {
             self.narrow_mode,
             ai_actions,
         ) {
+            (true, _, _, false, _) if self.store_detail_side_active() => &[
+                PanelFocus::Category,
+                PanelFocus::StoreCategory,
+                PanelFocus::StoreApp,
+                PanelFocus::StoreDetail,
+            ],
             (true, _, _, false, _) => &[
                 PanelFocus::Category,
                 PanelFocus::StoreCategory,
@@ -1207,6 +1258,39 @@ impl App {
     /// Ayarlar yan paneli (tema veya dil) açık mı?
     pub fn settings_side_picker_open(&self) -> bool {
         self.theme_picker_open || self.language_picker_open
+    }
+
+    /// Geniş mağazada sağ detay paneli etkin mi?
+    pub fn store_detail_side_active(&self) -> bool {
+        let Some((w, _)) = self.terminal_size else {
+            return false;
+        };
+        self.store_tab
+            && w >= crate::ui::WIDE_MIN_WIDTH
+            && w >= crate::ui::STORE_DETAIL_SIDE_MIN_WIDTH
+    }
+
+    /// Seçili mağaza detay bağlantısını sistem tarayıcısında açar (`xdg-open`).
+    pub fn open_selected_store_detail_link(&mut self) {
+        let links = crate::ui::store_detail_links(self);
+        if links.is_empty() {
+            self.status_message = "Açılacak https kaynak/depo bağlantısı yok.".into();
+            return;
+        }
+        let idx = self.store_detail_link_index.min(links.len() - 1);
+        self.store_detail_link_index = idx;
+        let link = &links[idx];
+        match crate::browser::open_https_url(&link.url) {
+            Ok(()) => {
+                self.status_message = format!(
+                    "{} tarayıcıda açılıyor (xdg-open): {}",
+                    link.label, link.url
+                );
+            }
+            Err(e) => {
+                self.status_message = format!("Bağlantı açılamadı: {e}");
+            }
+        }
     }
 
     /// Odak zincirinde bir sonraki panele geçer (son panelde kalır).
@@ -1571,7 +1655,7 @@ impl App {
         self.language_picker_open = false;
         self.theme_picker_open = true;
         self.theme_picker_index = self.ui_theme().index();
-        self.settings_action_index = 1;
+        self.settings_action_index = 3;
         self.focus = PanelFocus::ThemePicker;
         self.status_message = self.ui_lang().t(crate::i18n::Msg::ThemePickHint).into();
     }
@@ -1590,7 +1674,7 @@ impl App {
         self.theme_picker_open = false;
         self.language_picker_open = true;
         self.language_picker_index = self.ui_lang().index();
-        self.settings_action_index = 2;
+        self.settings_action_index = 4;
         self.focus = PanelFocus::LanguagePicker;
         self.status_message = self.ui_lang().t(crate::i18n::Msg::LanguagePickHint).into();
     }
@@ -1691,7 +1775,8 @@ impl App {
             *check = None;
             *error = None;
         }
-        self.status_message = "Nova güncellemesi denetleniyor (GitHub Releases)…".into();
+        self.status_message =
+            "Nova güncellemesi: GitHub Releases denetleniyor (repo main için G)…".into();
 
         let provider = self.update_provider.as_ref();
         let current = provider.current_version();
@@ -1716,7 +1801,7 @@ impl App {
                     (
                         UpdateCheck::UpToDate { current: current.clone() },
                         format!(
-                            "Nova güncel (v{current}). Self-update Releases ikilisidir; tema için cargo rebuild."
+                            "Nova Releases’a göre güncel (v{current}). Repo main için G: cargo install --git."
                         ),
                     )
                 }
@@ -1726,7 +1811,7 @@ impl App {
                     current: current.clone(),
                 },
                 format!(
-                    "GitHub’da Nova ikili yayını yok (v{current}). Tema/özellik için main’den cargo rebuild."
+                    "GitHub’da Nova ikili yayını yok (v{current}). G: repo main’den cargo install --git (ağ+derleme)."
                 ),
             ),
             Err(e) => {
@@ -1760,9 +1845,24 @@ impl App {
     pub fn activate_settings_action(&mut self) {
         match self.settings_action_index {
             0 => self.start_nova_update_check(),
-            1 => self.open_theme_picker(),
+            1 => self.start_store_catalog_refresh(),
+            2 => {
+                self.modal = modal::Modal::ToolForm(Box::default());
+                self.status_message =
+                    "Özel araç: ad, program, kategori… Esc iptal, Enter gözden geçir.".into();
+            }
+            3 => self.open_theme_picker(),
             _ => self.open_language_picker(),
         }
+    }
+
+    /// Mağaza kataloğunu imzalı Releases + Nova-Store repo (main) ile yeniler.
+    pub fn start_store_catalog_refresh(&mut self) {
+        self.status_message = "Mağaza kataloğu yenileniyor (imzalı Releases + repo main)…".into();
+        let (store, note) = crate::store::repo_sync::refresh_signed_then_repo(&self.store);
+        self.store = store;
+        self.refresh_store_status();
+        self.status_message = note;
     }
 
     /// Gelişmiş ayarlar modalını açar (terminal, medya varsayılanları…).
@@ -2989,13 +3089,20 @@ impl App {
                             release,
                         });
                     } else {
-                        // Idle / güncel / yayın yok / hata: Enter yeniden denetler
-                        // (eski Idle metni Enter diyordu ama hiçbir şey yapmıyordu).
-                        // run_nova_update_check `self.modal`e yazar; apply_modal_key
-                        // sonunda `next` ile ezmemek için take ile yakala.
+                        // Idle / güncel / yayın yok / hata: Enter yeniden denetler.
                         self.run_nova_update_check();
                         take(std::mem::replace(&mut self.modal, modal::Modal::None));
                     }
+                }
+                KeyCode::Char('g') | KeyCode::Char('G') => {
+                    let plan = crate::update::RepoUpdatePlan::for_nova_main();
+                    take(modal::Modal::Confirm {
+                        question: format!(
+                            "Nova kaynak güncellemesi (repo {})?\n{}\nAğ + derleme gerekir. Enter onay, Esc vazgeç.",
+                            plan.branch, plan.command_display
+                        ),
+                        action: modal::ConfirmAction::InstallRepoUpdate { plan },
+                    });
                 }
                 KeyCode::Char('u') | KeyCode::Char('U') => {
                     self.run_nova_update_check();
@@ -3448,8 +3555,23 @@ impl App {
                     _ => {
                         self.status_message = format!(
                             "Hata: Nova v{version} yayında indirilebilir Linux ikilisi yok. \
-                             Kaynak koddan derleyin veya release varlığı ekleyin."
+                             G ile repo main’den cargo install deneyin."
                         );
+                    }
+                }
+            }
+            modal::ConfirmAction::InstallRepoUpdate { plan } => {
+                self.status_message = format!(
+                    "Nova kaynak güncellemesi sürüyor (ağ + derleme): {} …",
+                    plan.command_display
+                );
+                match crate::update::install_nova_from_git(&plan) {
+                    Ok(outcome) => {
+                        crate::store::path::ensure_local_bin_on_process_path();
+                        self.status_message = format!("✓ {}", outcome.summary);
+                    }
+                    Err(e) => {
+                        self.status_message = format!("Hata: kaynak güncellemesi başarısız: {e}");
                     }
                 }
             }
@@ -4183,7 +4305,7 @@ mod tests {
         let mut app = sample_app();
         let before = app.ui_theme();
         app.select_settings_tab();
-        app.settings_action_index = 1;
+        app.settings_action_index = 3;
         app.focus = PanelFocus::Tool;
         app.activate_settings_action();
         assert!(app.theme_picker_open);
@@ -4200,7 +4322,7 @@ mod tests {
         let mut app = sample_app();
         assert_eq!(app.ui_lang(), crate::i18n::Language::Tr);
         app.select_settings_tab();
-        app.settings_action_index = 2;
+        app.settings_action_index = 4;
         app.focus = PanelFocus::Tool;
         app.activate_settings_action();
         assert!(app.language_picker_open);

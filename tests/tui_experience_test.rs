@@ -499,12 +499,19 @@ fn ai_tool_detail_and_actions_sit_side_by_side_on_wide_terminals() {
         lines
             .iter()
             .any(|l| l.contains("Aksiyonlar") && l.contains('─')),
-        "aksiyon sağ paneli kenarlıklı olmalı:\n{text}"
+        "aksiyon paneli kenarlıklı olmalı:\n{text}"
     );
     assert!(
         lines.iter().any(|l| l.contains("Detay") && l.contains('─')),
-        "detay sağ paneli kenarlıklı olmalı:\n{text}"
+        "detay paneli kenarlıklı olmalı:\n{text}"
     );
+    // Aksiyonlar detayın SOLUNDA; detay en sağda.
+    let order_ok = lines.iter().any(|l| {
+        let a = l.find("Aksiyonlar");
+        let d = l.find("Detay");
+        matches!((a, d), (Some(ai), Some(di)) if ai < di)
+    });
+    assert!(order_ok, "aksiyonlar detaydan önce (solda) olmalı:\n{text}");
 }
 
 #[test]

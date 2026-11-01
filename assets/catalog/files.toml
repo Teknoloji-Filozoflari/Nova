@@ -10,7 +10,7 @@ name = "spf"
 category = "Dosya Yönetimi ve Arama"
 executable = "spf"
 description = "Hızlı, klavye odaklı terminal dosya yöneticisi."
-examples = ["spf"]
+examples = ["spf   ← klavye odaklı dosya yöneticisi", "spf .   ← geçerli dizin", "spf --help"]
 
 [[tools]]
 id = "yazi"
@@ -18,7 +18,7 @@ name = "Yazi"
 category = "Dosya Yönetimi ve Arama"
 executable = "yazi"
 description = "Görsel önizlemeli, hızlı terminal dosya yöneticisi."
-examples = ["yazi"]
+examples = ["yazi   ← önizlemeli dosya yöneticisi", "yazi ~   ← ev dizininde aç", "yazi --help"]
 
 [[tools]]
 id = "gdu"
@@ -27,7 +27,7 @@ category = "Dosya Yönetimi ve Arama"
 executable = "gdu"
 description = "Disk kullanımını etkileşimli gezerek incele; duf'a alternatif."
 alternative_to = "duf"
-examples = ["gdu"]
+examples = ["gdu   ← etkileşimli disk kullanımı", "gdu .   ← bu dizinde tara", "gdu --help"]
 
 [[tools]]
 id = "fzf"
@@ -35,7 +35,7 @@ name = "fzf"
 category = "Dosya Yönetimi ve Arama"
 executable = "fzf"
 description = "Bulanık arama aracı; tek başına çalışır, Ctrl+T/Ctrl+R/Alt+C kısayolları için kabuk entegrasyonu gerekir."
-examples = ["fzf"]
+examples = ["fzf   ← etkileşimli bulanık seçici", "ls | fzf   ← listeden seç", "fzf --help"]
 
 [[tools]]
 id = "rg"
@@ -85,7 +85,7 @@ name = "bat"
 category = "Dosya Yönetimi ve Arama"
 executable = "bat"
 description = "Sözdizimi renklendirmeli dosya görüntüleyici."
-examples = ["bat dosya.txt"]
+examples = ["bat dosya.txt   ← renkli görüntüle", "bat -n dosya.txt   ← satır numaralı", "bat --help"]
 
 [[tools]]
 id = "eza"
@@ -93,4 +93,4 @@ name = "eza"
 category = "Dosya Yönetimi ve Arama"
 executable = "eza"
 description = "Renkli ve simgeli dizin listesi; `ls`ye modern alternatif."
-examples = ["eza", "eza -la"]
+examples = ["eza   ← renkli dizin listesi", "eza -la   ← gizli + uzun biçim", "eza --tree   ← ağaç görünümü"]

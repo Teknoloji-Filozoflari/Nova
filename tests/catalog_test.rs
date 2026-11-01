@@ -600,11 +600,22 @@ fn search_is_case_insensitive_for_short_names() {
 fn catalog_entries_have_examples_and_setup_info() {
     let cat = builtin_catalog();
 
-    // opencode: örnekler ve kurulum bilgisi var.
+    // opencode: örnekler ve kurulum bilgisi var (detay panelinde çeşitlendirilmiş).
     let opencode = cat.get_by_id("opencode").unwrap();
     assert!(!opencode.examples.is_empty());
-    assert!(opencode.examples.contains(&"opencode".to_string()));
-    assert!(opencode.examples.contains(&"opencode --help".to_string()));
+    assert!(
+        opencode.examples.iter().any(|e| e.contains("opencode")),
+        "{:?}",
+        opencode.examples
+    );
+    assert!(
+        opencode
+            .examples
+            .iter()
+            .any(|e| e.contains("opencode --help")),
+        "{:?}",
+        opencode.examples
+    );
     assert!(opencode.setup_info.is_some());
     assert!(opencode
         .setup_info
@@ -636,9 +647,14 @@ fn catalog_entries_have_examples_and_setup_info() {
         .unwrap()
         .contains("pager = delta"));
 
-    // Biraz örnekli olmayan bir araç (btop): examples boş olabilir ama setup_info yok.
+    // btop: çeşitlendirilmiş kullanım örnekleri (detay paneli seyrek kalmasın).
     let btop = cat.get_by_id("btop").unwrap();
-    assert!(btop.examples.contains(&"btop".to_string()));
+    assert!(
+        btop.examples.iter().any(|e| e.contains("btop")),
+        "{:?}",
+        btop.examples
+    );
+    assert!(btop.examples.len() >= 2, "{:?}", btop.examples);
 }
 
 #[test]
