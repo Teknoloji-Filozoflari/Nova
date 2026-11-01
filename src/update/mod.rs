@@ -130,6 +130,10 @@ pub struct GitHubRelease {
     pub draft: bool,
     /// Yayın ön sürüm mı?
     pub prerelease: bool,
+    /// Linux x86_64 kurulum varlığının adı (varsa).
+    pub asset_name: Option<String>,
+    /// Linux x86_64 kurulum varlığının https indirme adresi (varsa).
+    pub download_url: Option<String>,
 }
 
 /// Güncelleme denetimi sonucu.
@@ -144,7 +148,7 @@ pub enum UpdateCheck {
         /// Yeni sürüm.
         latest: Version,
         /// Yayın kaydı.
-        release: GitHubRelease,
+        release: Box<GitHubRelease>,
     },
     /// Güncelleme denetimi başarısız oldu (ağ, doğrulama vb.).
     Error(String),
@@ -216,10 +220,14 @@ pub struct UpdateConfirmation {
     pub actions: Vec<String>,
 }
 
-/// Gerçek güncelleme sağlayıcısı. Bu sürümde resmî bir GitHub kaynağı
-/// tanımlanmadığı için `fetch_latest_release` her zaman
-/// "kaynağın tanımlanmaması" hatası döner; otomatik güncelleme varmış gibi
-/// gösterilmez.
+/// Nova'nın izlediği GitHub deposu.
+pub const NOVA_GITHUB_REPO: &str = "Teknoloji-Filozoflari/Nova";
+
+/// Gerçek güncelleme sağlayıcısı: GitHub Releases (`NOVA_GITHUB_REPO`).
+///
+/// Yayın yoksa (`404`) `Ok(None)` döner — bu "güncelsiniz / yayın yok"
+/// anlamına gelir; hata sayılmaz. İkili indirme için yayın varlıkları
+/// arasından Linux x86_64 adayı seçilir ([`pick_linux_asset`]).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct DefaultUpdateProvider;
 
@@ -229,12 +237,274 @@ impl UpdateProvider for DefaultUpdateProvider {
     }
 
     fn fetch_latest_release(&self) -> Result<Option<GitHubRelease>, String> {
-        Err(
-            "Resmî güncelleme kaynağı henüz tanımlanmadı. Nova'yı güncellemek için \
-             kaynak koddan derleyin veya resmi bir dağıtım paketini bekleyin."
-                .into(),
-        )
+        fetch_nova_latest_release(NOVA_GITHUB_REPO)
     }
+}
+
+/// GitHub Releases API'den Nova yayınını okur.
+pub fn fetch_nova_latest_release(repo: &str) -> Result<Option<GitHubRelease>, String> {
+    let url = format!("https://api.github.com/repos/{repo}/releases/latest");
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .timeout_global(Some(std::time::Duration::from_secs(45)))
+        .build()
+        .into();
+    let mut request = agent
+        .get(&url)
+        .header("User-Agent", "nova-update")
+        .header("Accept", "application/vnd.github+json");
+    if let Ok(token) = std::env::var("GITHUB_TOKEN") {
+        if !token.trim().is_empty() {
+            request = request.header("Authorization", &format!("Bearer {token}"));
+        }
+    }
+    let mut response = match request.call() {
+        Ok(r) => r,
+        Err(e) => {
+            let msg = e.to_string();
+            // Yayın yoksa GitHub 404 döner; bunu hata değil "yayın yok" say.
+            if msg.contains("404") {
+                return Ok(None);
+            }
+            return Err(format!("GitHub yayınları okunamadı ({repo}): {e}"));
+        }
+    };
+    let status = response.status().as_u16();
+    if status == 404 {
+        return Ok(None);
+    }
+    if !(200..300).contains(&status) {
+        return Err(format!(
+            "GitHub yayınları okunamadı ({repo}): HTTP {status}"
+        ));
+    }
+    let body = response
+        .body_mut()
+        .read_to_string()
+        .map_err(|e| format!("GitHub yanıtı okunamadı: {e}"))?;
+    parse_github_release_json(&body)
+}
+
+/// GitHub release JSON gövdesini [`GitHubRelease`]'a çevirir.
+pub fn parse_github_release_json(body: &str) -> Result<Option<GitHubRelease>, String> {
+    #[derive(serde::Deserialize)]
+    struct ApiRelease {
+        tag_name: String,
+        #[serde(default)]
+        body: Option<String>,
+        html_url: String,
+        #[serde(default)]
+        draft: bool,
+        #[serde(default)]
+        prerelease: bool,
+        #[serde(default)]
+        assets: Vec<ApiAsset>,
+    }
+    #[derive(serde::Deserialize)]
+    struct ApiAsset {
+        name: String,
+        browser_download_url: String,
+    }
+    let api: ApiRelease =
+        serde_json::from_str(body).map_err(|e| format!("GitHub JSON okunamadı: {e}"))?;
+    if api.draft || api.prerelease {
+        return Ok(None);
+    }
+    let version = Version::parse(&api.tag_name)
+        .map_err(|e| format!("yayın etiketi ayrıştırılamadı '{}': {e}", api.tag_name))?;
+    let (asset_name, download_url) = pick_linux_asset_from(
+        api.assets
+            .iter()
+            .map(|a| (a.name.as_str(), a.browser_download_url.as_str())),
+    )
+    .map(|(n, u)| (Some(n), Some(u)))
+    .unwrap_or((None, None));
+    Ok(Some(GitHubRelease {
+        tag_name: api.tag_name,
+        version,
+        body: api.body.unwrap_or_default(),
+        html_url: api.html_url,
+        draft: api.draft,
+        prerelease: api.prerelease,
+        asset_name,
+        download_url,
+    }))
+}
+
+/// Yayın JSON'undan Linux x86_64 ikili/arşiv adayını seçer.
+pub fn pick_linux_asset(body: &str) -> Result<(String, String), String> {
+    #[derive(serde::Deserialize)]
+    struct ApiRelease {
+        #[serde(default)]
+        assets: Vec<ApiAsset>,
+    }
+    #[derive(serde::Deserialize)]
+    struct ApiAsset {
+        name: String,
+        browser_download_url: String,
+    }
+    let api: ApiRelease =
+        serde_json::from_str(body).map_err(|e| format!("GitHub JSON okunamadı: {e}"))?;
+    pick_linux_asset_from(
+        api.assets
+            .iter()
+            .map(|a| (a.name.as_str(), a.browser_download_url.as_str())),
+    )
+}
+
+/// Varlık listesinden en uygun Linux x86_64 adayını seçer.
+pub fn pick_linux_asset_from<'a, I>(assets: I) -> Result<(String, String), String>
+where
+    I: IntoIterator<Item = (&'a str, &'a str)>,
+{
+    let mut scored: Vec<(i32, String, String)> = Vec::new();
+    for (name, url) in assets {
+        let n = name.to_lowercase();
+        if !(n.contains("nova")
+            || n.ends_with(".tar.gz")
+            || n.ends_with(".tgz")
+            || n == "nova"
+            || n.ends_with(".zip"))
+        {
+            continue;
+        }
+        let mut score = 0;
+        if n.contains("linux") {
+            score += 5;
+        }
+        if n.contains("x86_64") || n.contains("amd64") || n.contains("x64") {
+            score += 5;
+        }
+        if n.contains("nova") {
+            score += 3;
+        }
+        if n.ends_with(".tar.gz") || n.ends_with(".tgz") {
+            score += 2;
+        }
+        if n.contains("musl") || n.contains("gnu") {
+            score += 1;
+        }
+        if n.contains("darwin") || n.contains("windows") || n.contains("macos") {
+            score -= 20;
+        }
+        scored.push((score, name.to_string(), url.to_string()));
+    }
+    scored.sort_by_key(|a| std::cmp::Reverse(a.0));
+    scored
+        .into_iter()
+        .find(|(s, _, _)| *s > 0)
+        .map(|(_, name, url)| (name, url))
+        .ok_or_else(|| {
+            "Yayında Linux x86_64 Nova ikilisi/arşivi bulunamadı. \
+             Kaynak koddan derleyin veya uygun bir GitHub release varlığı ekleyin."
+                .into()
+        })
+}
+
+/// Kullanıcı alanına Nova ikilisi kurar (`~/.local/bin/nova`).
+pub fn install_nova_from_url(
+    version: &Version,
+    download_url: &str,
+    asset_name: &str,
+) -> Result<UpdateOutcome, String> {
+    if !download_url.starts_with("https://") {
+        return Err("yalnızca https:// indirme adresleri kabul edilir".into());
+    }
+    let install_root = crate::store::store_install_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("nova-update")
+        .join(format!("v{version}"));
+    std::fs::create_dir_all(&install_root)
+        .map_err(|e| format!("kurulum dizini oluşturulamadı: {e}"))?;
+    let archive_path = install_root.join(asset_name);
+    crate::store::install::Downloader::download(
+        &crate::store::http::HttpDownloader::new(),
+        download_url,
+        &archive_path,
+    )
+    .map_err(|e| format!("Nova indirme başarısız: {e}"))?;
+
+    let bin_dir = crate::store::path::user_local_bin_dir().unwrap_or_else(dirs_fallback_local_bin);
+    std::fs::create_dir_all(&bin_dir).map_err(|e| format!("~/.local/bin oluşturulamadı: {e}"))?;
+    let dest = bin_dir.join("nova");
+
+    let lower = asset_name.to_lowercase();
+    if lower.ends_with(".tar.gz") || lower.ends_with(".tgz") {
+        extract_nova_binary_from_tar_gz(&archive_path, &dest)?;
+    } else if lower.ends_with(".zip") {
+        return Err("zip arşivleri henüz desteklenmiyor; tar.gz kullanın".into());
+    } else {
+        std::fs::copy(&archive_path, &dest)
+            .map_err(|e| format!("ikili kopyalanamadı: {e}"))?;
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = std::fs::metadata(&dest)
+            .map_err(|e| format!("izinler okunamadı: {e}"))?
+            .permissions();
+        perms.set_mode(0o755);
+        std::fs::set_permissions(&dest, perms)
+            .map_err(|e| format!("çalıştırma izni verilemedi: {e}"))?;
+    }
+
+    Ok(UpdateOutcome {
+        version: version.clone(),
+        install_dir: install_root,
+        summary: format!(
+            "Nova v{version} kuruldu: {}. Yeni sürüm için yeni bir kabuk veya PATH yenilemesi gerekebilir.",
+            dest.display()
+        ),
+    })
+}
+
+fn dirs_fallback_local_bin() -> PathBuf {
+    std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join(".local/bin")
+}
+
+fn extract_nova_binary_from_tar_gz(archive: &Path, dest: &Path) -> Result<(), String> {
+    let file = std::fs::File::open(archive).map_err(|e| format!("arşiv açılamadı: {e}"))?;
+    let gz = flate2::read::GzDecoder::new(file);
+    let mut archive = tar::Archive::new(gz);
+    let mut found = false;
+    for entry in archive
+        .entries()
+        .map_err(|e| format!("arşiv okunamadı: {e}"))?
+    {
+        let mut entry = entry.map_err(|e| format!("arşiv girişi okunamadı: {e}"))?;
+        let path = entry
+            .path()
+            .map_err(|e| format!("arşiv yolu okunamadı: {e}"))?
+            .to_path_buf();
+        let name = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or_default();
+        if name != "nova" {
+            continue;
+        }
+        {
+            let tmp = dest.with_extension("tmp");
+            {
+                let mut out = std::fs::File::create(&tmp)
+                    .map_err(|e| format!("geçici ikili yazılamadı: {e}"))?;
+                std::io::copy(&mut entry, &mut out)
+                    .map_err(|e| format!("ikili çıkarılamadı: {e}"))?;
+            }
+            std::fs::rename(&tmp, dest).map_err(|e| {
+                let _ = std::fs::remove_file(&tmp);
+                format!("ikili yerine konamadı: {e}")
+            })?;
+        }
+        found = true;
+        break;
+    }
+    if !found {
+        return Err("arşivde 'nova' adlı ikili bulunamadı".into());
+    }
+    Ok(())
 }
 
 /// Güncelleme onay ekranı için bilgi hazırlar.
@@ -334,6 +604,10 @@ mod tests {
             html_url: "https://github.com/nova/releases/tag/v0.2.0".into(),
             draft: false,
             prerelease: false,
+            asset_name: Some("nova-v0.2.0-x86_64-unknown-linux-musl.tar.gz".into()),
+            download_url: Some(
+                "https://github.com/nova/releases/download/v0.2.0/nova.tar.gz".into(),
+            ),
         };
         let provider = FakeProvider {
             current,
@@ -355,11 +629,46 @@ mod tests {
             html_url: "https://github.com/nova/releases/tag/v0.2.0".into(),
             draft: false,
             prerelease: false,
+            asset_name: None,
+            download_url: None,
         };
         let confirm = prepare_update_confirmation(&current, &latest, &release);
         assert_eq!(confirm.current, current);
         assert_eq!(confirm.latest, latest);
         assert!(confirm.actions.iter().any(|a| a.contains("sudo/root yok")));
         assert!(confirm.source.contains("github.com"));
+    }
+
+    #[test]
+    fn pick_linux_asset_prefers_linux_x86_64_nova() {
+        let (name, url) = pick_linux_asset_from([
+            (
+                "nova-v1.0.0-aarch64-apple-darwin.tar.gz",
+                "https://example/darwin",
+            ),
+            (
+                "nova-v1.0.0-x86_64-unknown-linux-musl.tar.gz",
+                "https://example/linux",
+            ),
+            ("NOTES.txt", "https://example/notes"),
+        ])
+        .unwrap();
+        assert!(name.contains("linux"));
+        assert_eq!(url, "https://example/linux");
+    }
+
+    #[test]
+    fn parse_release_json_without_assets_is_ok() {
+        let body = r#"{
+            "tag_name": "v0.3.0",
+            "html_url": "https://github.com/Teknoloji-Filozoflari/Nova/releases/tag/v0.3.0",
+            "body": "deneme",
+            "draft": false,
+            "prerelease": false,
+            "assets": []
+        }"#;
+        let release = parse_github_release_json(body).unwrap().unwrap();
+        assert_eq!(release.version.to_string(), "0.3.0");
+        assert!(release.download_url.is_none());
     }
 }

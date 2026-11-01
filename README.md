@@ -93,7 +93,7 @@ Ana ekrandaki temel kısayollar:
 | <code>c</code> | Yalnızca favorileri göster veya tüm listeye dön |
 | <code>r</code> | Başlatma geçmişini aç |
 | <code>p</code> | Proje dizinlerini yönet |
-| <code>s</code> | Ayarları aç |
+| <code>s</code> | Ayarlar sekmesine geç (Güncelle + Tema) |
 | <code>m</code> | Mağaza sekmesine geç |
 | <code>u</code> | Nova'yı güncellemeyi denetle; mağaza sekmesindeyken mağaza uygulamalarını denetle |
 | <code>o</code> | Dosya seçiciyi aç |
@@ -114,7 +114,9 @@ uygulama açıklamalarını, çalıştırma biçimini ve varsa güvenli kullanı
 ana oturumu açık kalır.
 
 Nova, katalog girdilerindeki kurulum durumunu çalıştırılabilir dosyayı
-arayarak belirler. MiniMax Code için <code>mcode</code>, <code>PATH</code>'e ek olarak
+arayarak belirler. Ana başlatıcı kategorilerinde yalnızca kurulu araçlar
+görünür; boş kategoriler gizlenir. Kurulu olmayanlar Mağaza’da kalır.
+MiniMax Code için <code>mcode</code>, <code>PATH</code>'e ek olarak
 Linux'taki <code>~/.minimax-code/bin/mcode</code> konumunda da aranır.
 
 Kendi araçlarını [yapılandırma dosyasına](#yapılandırma-ve-kullanıcı-verileri)
@@ -203,11 +205,12 @@ kuralları için [mimari belgesine](ARCHITECTURE.md) bak.
 ## Bilinen sınırlamalar
 
 - Hedef platform Linux'tur; yalnızca KDE Konsole ile araç başlatma desteklenir.
-- Hazır dağıtım paketi veya ikili yayın henüz yoktur.
-- Nova'nın güncelleme ekranı vardır, ancak proje için resmî yayın kaynağı
-  tanımlanmadığından Nova kendini otomatik güncelleyemez.
-- Tema tercihi kaydedilir; arayüz şu anda tek görsel tema kullanır. Varsayılan
-  AI CLI tercihi de saklanır ancak başlatma akışını henüz değiştirmez.
+- Hazır dağıtım paketi veya ikili yayın henüz yoktur; Ayarlar→Güncelle
+  <code>Teknoloji-Filozoflari/Nova</code> GitHub Releases’a bakar. Yayın/ikili
+  yoksa “güncelsiniz” benzeri sonuç döner.
+- Tema tercihi (<code>varsayilan</code>, <code>acik</code>, <code>orman</code>,
+  <code>amber</code>) kalıcıdır ve Ayarlar→Tema ile değişir. Varsayılan AI CLI
+  tercihi de saklanır ancak başlatma akışını henüz değiştirmez.
 - Fare desteği ana ekrandaki listeler içindir; ayarlar ve diğer pencerelerde
   klavye kullanılır.
 

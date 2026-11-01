@@ -328,6 +328,9 @@ fn app_survives_launcher_errors_and_shows_message() {
     }
 
     let mut app = App::new(builtin_catalog());
+    for entry in app.catalog.entries_mut() {
+        entry.status = InstalledStatus::Installed;
+    }
     app.set_launcher(failing_launcher);
     app.focus = nova::app::PanelFocus::Tool;
     app.handle_key(k('j')).unwrap();
@@ -360,6 +363,9 @@ fn app_reports_requested_not_opened() {
     }
 
     let mut app = App::new(builtin_catalog());
+    for entry in app.catalog.entries_mut() {
+        entry.status = InstalledStatus::Installed;
+    }
     app.set_launcher(ok_launcher);
     app.focus = nova::app::PanelFocus::Tool;
     app.handle_key(crossterm::event::KeyEvent::new(

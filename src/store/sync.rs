@@ -18,11 +18,11 @@ pub fn catalog_category_for_store(store_category: &str) -> &'static str {
         "AI" => "AI ve Kodlama",
         "Git" | "Geliştirme" | "Editörler" => "Git ve Geliştirici Araçları",
         "Dosya ve Arama" => "Dosya Yönetimi ve Arama",
-        "Sistem" | "Güvenlik" | "Verimlilik" => "Sistem ve Kaynak Kullanımı",
+        "Sistem" | "Paneller" | "Güvenlik" | "Verimlilik" => "Sistem ve Kaynak Kullanımı",
         "Ağ" | "Web" => "Ağ ve Bağlantı",
         "Konteyner" | "Veritabanı" => "Docker ve Sunucu",
         "Günlük" => "Günlük Terminal Yardımcıları",
-        "Medya" | "Mesajlaşma" | "Oyunlar" => "Özel Araçlar",
+        "Medya" | "Mesajlaşma" | "Oyunlar" | "Ekran Koruyucular" => "Özel Araçlar",
         _ => "Özel Araçlar",
     }
 }

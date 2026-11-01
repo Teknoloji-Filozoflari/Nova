@@ -123,10 +123,13 @@ pub struct App {
     pub category_index: usize,
     /// Mağaza sekmesi etkin mi?
     ///
-    /// Sol paneldeki sekme listesinin son satırı "Mağaza"dır. Bu bayrak
-    /// o satırın seçili olduğunu belirtir; mağaza ayrı bir modal değil,
-    /// ana ekranın bir sekmesidir.
+    /// Sol panelde Mağaza, Ayarlar'dan hemen önce gelir. `settings_tab` ile
+    /// aynı anda açılmaz; mağaza ayrı bir modal değil, ana ekran sekmesidir.
     pub store_tab: bool,
+    /// Ayarlar sekmesi etkin mi? (Mağaza'nın altındaki satır)
+    pub settings_tab: bool,
+    /// Ayarlar sekmesinde seçili eylem: 0 = Güncelle, 1 = Tema.
+    pub settings_action_index: usize,
     /// Seçili mağaza kategorisinin indeksi.
     pub store_category_index: usize,
     /// Seçili mağaza uygulamasının indeksi (filtrelenmiş liste üzerinden).
@@ -255,6 +258,8 @@ impl App {
             focus: PanelFocus::Category,
             category_index: 0,
             store_tab: false,
+            settings_tab: false,
+            settings_action_index: 0,
             store_category_index: 0,
             store_app_index: 0,
             tool_index: 0,
@@ -418,6 +423,9 @@ impl App {
                             }
                         }
                     }
+                } else if self.settings_tab {
+                    self.settings_action_index = row.min(1);
+                    self.focus = PanelFocus::Tool;
                 } else {
                     // Araç paneli.
                     let tools = self.filtered_tools();
@@ -540,46 +548,10 @@ impl App {
                 };
             }
             KeyCode::Char('s') | KeyCode::Char('S') => {
-                self.modal = modal::Modal::Settings {
-                    preferred_terminal: self
-                        .state
-                        .file
-                        .prefs
-                        .preferred_terminal
-                        .clone()
-                        .unwrap_or_else(|| "konsole".into()),
-                    default_working_dir: self
-                        .state
-                        .file
-                        .prefs
-                        .default_working_dir
-                        .clone()
-                        .unwrap_or_default(),
-                    theme: self.state.file.prefs.theme.clone().unwrap_or_default(),
-                    default_ai_tool: self
-                        .state
-                        .file
-                        .prefs
-                        .default_ai_tool
-                        .clone()
-                        .unwrap_or_default(),
-                    default_image_app: self
-                        .state
-                        .file
-                        .prefs
-                        .default_image_app
-                        .clone()
-                        .unwrap_or_default(),
-                    default_video_app: self
-                        .state
-                        .file
-                        .prefs
-                        .default_video_app
-                        .clone()
-                        .unwrap_or_default(),
-                    focus: 0,
-                    error: None,
-                };
+                // Sol paneldeki Ayarlar sekmesine gider (Güncelle + Tema).
+                // Gelişmiş tercihler (terminal, medya…) Ayarlar içinde
+                // "Gelişmiş" ile veya Esc sonrası eski modal ile açılabilir.
+                self.select_settings_tab();
             }
             KeyCode::Char('m') | KeyCode::Char('M') => {
                 // Mağaza artık ayrı bir modal değil, sol paneldeki "Mağaza"
@@ -592,11 +564,7 @@ impl App {
                 if self.store_tab {
                     self.check_store_updates();
                 } else {
-                    self.modal = modal::Modal::UpdateCheck {
-                        status: modal::UpdateStatus::Idle,
-                        check: None,
-                        error: None,
-                    };
+                    self.start_nova_update_check();
                 }
             }
             KeyCode::Char('o') | KeyCode::Char('O') => {
@@ -742,6 +710,10 @@ impl App {
         match self.focus {
             PanelFocus::Category => self.move_tab_down(),
             PanelFocus::Tool => {
+                if self.settings_tab {
+                    self.settings_action_index = (self.settings_action_index + 1).min(1);
+                    return;
+                }
                 let tools = self.filtered_tools();
                 if tools.is_empty() {
                     return;
@@ -771,6 +743,10 @@ impl App {
         match self.focus {
             PanelFocus::Category => self.move_tab_up(),
             PanelFocus::Tool => {
+                if self.settings_tab {
+                    self.settings_action_index = self.settings_action_index.saturating_sub(1);
+                    return;
+                }
                 self.tool_index = self.tool_index.saturating_sub(1);
             }
             PanelFocus::StoreCategory => {
@@ -785,31 +761,69 @@ impl App {
 
     /// Sekme listesinde aşağı hareket eder.
     ///
-    /// Sekme listesi araç kategorileriyle başlar ve "Mağaza" satırıyla
-    /// biter. Mağaza satırına gelindiğinde sağdaki paneller mağaza
-    /// görünümüne dönüşür.
+    /// Görünür (kurulu araçlı) kategoriler → Mağaza → Ayarlar.
+    /// Odak Category panelinde kalır (`m` / `select_store_tab` odak değiştirir).
     fn move_tab_down(&mut self) {
-        if self.store_tab {
-            // Mağaza sekmesi listenin sonudur.
+        if self.settings_tab {
             return;
         }
-        if self.category_index + 1 < CATEGORIES.len() {
-            self.category_index += 1;
-        } else {
+        if self.store_tab {
+            self.store_tab = false;
+            self.settings_tab = true;
+            self.settings_action_index = 0;
+            return;
+        }
+        let visible = self.visible_category_indices();
+        if visible.is_empty() {
             self.store_tab = true;
+            self.settings_tab = false;
             self.store_category_index = 0;
             self.store_app_index = 0;
+            return;
+        }
+        if let Some(pos) = visible.iter().position(|&i| i == self.category_index) {
+            if pos + 1 < visible.len() {
+                self.category_index = visible[pos + 1];
+                self.tool_index = 0;
+            } else {
+                self.store_tab = true;
+                self.settings_tab = false;
+                self.store_category_index = 0;
+                self.store_app_index = 0;
+            }
+        } else {
+            self.category_index = visible[0];
+            self.tool_index = 0;
         }
     }
 
     /// Sekme listesinde yukarı hareket eder.
     fn move_tab_up(&mut self) {
-        if self.store_tab {
-            self.store_tab = false;
-            self.category_index = CATEGORIES.len() - 1;
+        if self.settings_tab {
+            self.store_tab = true;
+            self.settings_tab = false;
+            self.store_category_index = 0;
+            self.store_app_index = 0;
             return;
         }
-        self.category_index = self.category_index.saturating_sub(1);
+        if self.store_tab {
+            self.store_tab = false;
+            self.settings_tab = false;
+            let visible = self.visible_category_indices();
+            self.category_index = visible.last().copied().unwrap_or(0);
+            self.tool_index = 0;
+            return;
+        }
+        let visible = self.visible_category_indices();
+        if let Some(pos) = visible.iter().position(|&i| i == self.category_index) {
+            if pos > 0 {
+                self.category_index = visible[pos - 1];
+                self.tool_index = 0;
+            }
+        } else if let Some(&first) = visible.first() {
+            self.category_index = first;
+            self.tool_index = 0;
+        }
     }
 
     /// Mağaza sekmesine geçer.
@@ -818,6 +832,7 @@ impl App {
     /// kullanıcı kurulum eylemini hemen görebilsin diye.
     pub fn select_store_tab(&mut self) {
         self.store_tab = true;
+        self.settings_tab = false;
         self.store_category_index = 0;
         self.store_app_index = 0;
         self.focus = PanelFocus::StoreApp;
@@ -825,49 +840,65 @@ impl App {
             "Mağaza: solda mağaza kategorileri, sağda o kategorideki uygulamalar.".into();
     }
 
-    /// Sol panelde seçili sekmenin satır indeksi.
+    /// Ayarlar sekmesine geçer (Mağaza'nın altı).
+    pub fn select_settings_tab(&mut self) {
+        self.settings_tab = true;
+        self.store_tab = false;
+        self.settings_action_index = 0;
+        self.focus = PanelFocus::Tool;
+        self.status_message = "Ayarlar: Güncelle (GitHub) veya Tema — Enter ile uygula.".into();
+    }
+
+    /// Sol panelde seçili sekmenin satır indeksi (çizilen liste üzerinden).
     ///
-    /// Satırlar sırayla `CATEGORIES` (araç kategorileri) ve son satırda
-    /// mağaza sekmesidir.
+    /// Satırlar: görünür kategoriler + Mağaza + Ayarlar.
     pub fn selected_tab_index(&self) -> usize {
-        if self.store_tab {
-            CATEGORIES.len()
+        let n = self.visible_category_indices().len();
+        if self.settings_tab {
+            n + 1
+        } else if self.store_tab {
+            n
         } else {
-            self.category_index
+            self.visible_category_indices()
+                .iter()
+                .position(|&i| i == self.category_index)
+                .unwrap_or(0)
         }
     }
 
     /// Sol paneldeki satıra göre sekmeyi seçer.
     ///
-    /// Son satır mağaza sekmesidir; araç kategorileri seçilirse mağaza
-    /// sekmesi kapatılır.
+    /// Görünür kategori satırlarından sonra Mağaza, en sonda Ayarlar gelir.
     pub fn set_tab_index(&mut self, row: usize) {
-        if row >= CATEGORIES.len() {
-            self.store_tab = true;
-            self.store_category_index = 0;
-            self.store_app_index = 0;
-        } else {
+        let visible = self.visible_category_indices();
+        if row < visible.len() {
             self.store_tab = false;
-            self.category_index = row;
+            self.settings_tab = false;
+            self.category_index = visible[row];
+            self.tool_index = 0;
             self.store_app_index = 0;
+        } else if row == visible.len() {
+            self.select_store_tab();
+        } else {
+            self.select_settings_tab();
         }
     }
 
     /// Etkin odak zinciri (soldan sağa).
     ///
     /// Mağaza sekmesinde üç panel vardır: sekme listesi, mağaza kategorileri
-    /// ve mağaza uygulamaları. Araç sekmesinde iki panel vardır. Dar
+    /// ve mağaza uygulamaları. Araç/Ayarlar sekmesinde iki panel vardır. Dar
     /// terminalde gizlenen paneller zincirden çıkarılır.
     fn focus_chain(&self) -> &'static [PanelFocus] {
-        match (self.store_tab, self.narrow_mode) {
-            (true, false) => &[
+        match (self.store_tab, self.settings_tab, self.narrow_mode) {
+            (true, _, false) => &[
                 PanelFocus::Category,
                 PanelFocus::StoreCategory,
                 PanelFocus::StoreApp,
             ],
-            (true, true) => &[PanelFocus::StoreCategory, PanelFocus::StoreApp],
-            (false, false) => &[PanelFocus::Category, PanelFocus::Tool],
-            (false, true) => &[PanelFocus::Tool],
+            (true, _, true) => &[PanelFocus::StoreCategory, PanelFocus::StoreApp],
+            (_, true, false) | (false, false, false) => &[PanelFocus::Category, PanelFocus::Tool],
+            (_, true, true) | (false, false, true) => &[PanelFocus::Tool],
         }
     }
 
@@ -915,6 +946,10 @@ impl App {
     /// bozmaz, yalnızca durum satırında görünür. Başarı mesajı bilinçli
     /// olarak "istendi" der; aracın gerçekten çalıştığını Nova doğrulayamaz.
     pub fn select_tool(&mut self) {
+        if self.settings_tab {
+            self.activate_settings_action();
+            return;
+        }
         let tools = self.filtered_tools();
         let Some(entry) = tools
             .get(self.tool_index.min(tools.len().saturating_sub(1)))
@@ -1067,6 +1102,9 @@ impl App {
     }
 
     /// Filtrelenmiş araç listesini döner (kategori, arama, favori filtresi uygulanmış).
+    ///
+    /// Ana başlatıcı **yalnızca kurulu** araçları gösterir. Kurulu olmayanlar
+    /// Mağaza sekmesinde kalır (`filtered_store_apps` her iki durumu da listeler).
     pub fn filtered_tools(&self) -> Vec<&crate::catalog::CatalogEntry> {
         let category = self.selected_category().unwrap_or("");
 
@@ -1092,8 +1130,150 @@ impl App {
         if !self.hidden.is_empty() {
             tools.retain(|e| !self.hidden.contains(&e.id));
         }
+        tools.retain(|e| e.status == crate::detection::InstalledStatus::Installed);
 
         tools
+    }
+
+    /// Ana listede (kurulu + gizlisiz + isteğe bağlı favori/arama) en az bir
+    /// araç olan kategoriler. Boş kategoriler sol panelde gizlenir.
+    pub fn visible_category_indices(&self) -> Vec<usize> {
+        CATEGORIES
+            .iter()
+            .enumerate()
+            .filter(|(_, cat)| self.category_has_launcher_tools(cat))
+            .map(|(i, _)| i)
+            .collect()
+    }
+
+    /// Kategoride ana başlatıcıda gösterilecek en az bir araç var mı?
+    pub fn category_has_launcher_tools(&self, category: &str) -> bool {
+        self.catalog.by_category(category).into_iter().any(|e| {
+            e.status == crate::detection::InstalledStatus::Installed
+                && !self.hidden.contains(&e.id)
+                && (!self.favorite_only || e.favorite)
+                && (self.search_query.is_empty() || self.matches_search(e))
+        })
+    }
+
+    /// Etkin UI teması (`prefs.theme`).
+    pub fn ui_theme(&self) -> crate::ui::UiTheme {
+        crate::ui::UiTheme::parse(self.state.file.prefs.theme.as_deref().unwrap_or(""))
+    }
+
+    /// Temayı bir sonraki değere alır ve state.toml'a yazar.
+    pub fn cycle_theme(&mut self) -> Result<crate::ui::UiTheme, String> {
+        let next = self.ui_theme().next();
+        self.state.file.prefs.theme = Some(next.id().to_string());
+        self.persist_state()
+            .map_err(|e| format!("Tema kaydedilemedi: {e}"))?;
+        Ok(next)
+    }
+
+    /// Nova güncelleme denetimini başlatır (Ayarlar / `U`).
+    pub fn start_nova_update_check(&mut self) {
+        self.modal = modal::Modal::UpdateCheck {
+            status: modal::UpdateStatus::Idle,
+            check: None,
+            error: None,
+        };
+    }
+
+    /// Ayarlar sekmesindeki seçili eylemi uygular.
+    pub fn activate_settings_action(&mut self) {
+        match self.settings_action_index {
+            0 => {
+                self.start_nova_update_check();
+                // Denetimi hemen çalıştır (modal içindeki U ile aynı).
+                if let modal::Modal::UpdateCheck {
+                    status,
+                    check,
+                    error,
+                } = &mut self.modal
+                {
+                    *status = modal::UpdateStatus::Checking;
+                    *check = None;
+                    *error = None;
+                    let provider = self.update_provider.as_ref();
+                    let current = provider.current_version();
+                    match provider.fetch_latest_release() {
+                        Ok(Some(release)) => {
+                            let latest = release.version.clone();
+                            if release.version > current {
+                                *check = Some(UpdateCheck::UpdateAvailable {
+                                    current,
+                                    latest,
+                                    release: Box::new(release),
+                                });
+                            } else {
+                                *check = Some(UpdateCheck::UpToDate { current });
+                            }
+                            *status = modal::UpdateStatus::Done;
+                        }
+                        Ok(None) => {
+                            *check = Some(UpdateCheck::UpToDate { current });
+                            *status = modal::UpdateStatus::Done;
+                        }
+                        Err(e) => {
+                            *error = Some(e);
+                            *status = modal::UpdateStatus::Done;
+                        }
+                    }
+                }
+            }
+            _ => match self.cycle_theme() {
+                Ok(theme) => {
+                    self.status_message = format!("✓ Tema: {} ({})", theme.label(), theme.id());
+                }
+                Err(e) => {
+                    self.status_message = format!("Hata: {e}");
+                }
+            },
+        }
+    }
+
+    /// Gelişmiş ayarlar modalını açar (terminal, medya varsayılanları…).
+    pub fn open_advanced_settings_modal(&mut self) {
+        self.modal = modal::Modal::Settings {
+            preferred_terminal: self
+                .state
+                .file
+                .prefs
+                .preferred_terminal
+                .clone()
+                .unwrap_or_else(|| "konsole".into()),
+            default_working_dir: self
+                .state
+                .file
+                .prefs
+                .default_working_dir
+                .clone()
+                .unwrap_or_default(),
+            theme: self.state.file.prefs.theme.clone().unwrap_or_default(),
+            default_ai_tool: self
+                .state
+                .file
+                .prefs
+                .default_ai_tool
+                .clone()
+                .unwrap_or_default(),
+            default_image_app: self
+                .state
+                .file
+                .prefs
+                .default_image_app
+                .clone()
+                .unwrap_or_default(),
+            default_video_app: self
+                .state
+                .file
+                .prefs
+                .default_video_app
+                .clone()
+                .unwrap_or_default(),
+            focus: 0,
+            error: None,
+        };
     }
 
     /// Mağaza için filtrelenmiş uygulama listesi (kategori ve arama filtresi).
@@ -2065,7 +2245,7 @@ impl App {
                         take(modal::Modal::UpdateConfirm {
                             current,
                             latest,
-                            release,
+                            release: *release,
                         });
                     }
                 }
@@ -2082,7 +2262,7 @@ impl App {
                                 *check = Some(UpdateCheck::UpdateAvailable {
                                     current,
                                     latest,
-                                    release,
+                                    release: Box::new(release),
                                 });
                             } else {
                                 *check = Some(UpdateCheck::UpToDate { current });
@@ -2104,7 +2284,7 @@ impl App {
             modal::Modal::UpdateConfirm {
                 current,
                 latest,
-                release: _,
+                release,
             } => match code {
                 KeyCode::Esc => take(modal::Modal::None),
                 KeyCode::Enter => {
@@ -2115,6 +2295,7 @@ impl App {
                         ),
                         action: modal::ConfirmAction::InstallUpdate {
                             version: latest.to_string(),
+                            release: Box::new(release.clone()),
                         },
                     });
                 }
@@ -2494,10 +2675,31 @@ impl App {
                 self.status_message = format!("'{}' {} sürümüne güncelleniyor...", name, version);
                 self.start_store_update(&id);
             }
-            modal::ConfirmAction::InstallUpdate { version } => {
-                self.status_message = format!(
-                    "✓ Nova v{version} güncelleme onaylandı. Kurulum kullanıcı alanına yapılır."
-                );
+            modal::ConfirmAction::InstallUpdate { version, release } => {
+                match (
+                    release.download_url.as_deref(),
+                    release.asset_name.as_deref(),
+                ) {
+                    (Some(url), Some(asset)) => {
+                        match crate::update::install_nova_from_url(&release.version, url, asset) {
+                            Ok(outcome) => {
+                                crate::store::path::ensure_local_bin_on_process_path();
+                                self.status_message = format!("✓ {}", outcome.summary);
+                            }
+                            Err(e) => {
+                                self.status_message = format!(
+                                    "Hata: Nova v{version} kurulamadı: {e}"
+                                );
+                            }
+                        }
+                    }
+                    _ => {
+                        self.status_message = format!(
+                            "Hata: Nova v{version} yayında indirilebilir Linux ikilisi yok. \
+                             Kaynak koddan derleyin veya release varlığı ekleyin."
+                        );
+                    }
+                }
             }
         }
     }
@@ -2531,12 +2733,21 @@ impl Default for App {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::detection::InstalledStatus;
+
     /// Test için kategori adını `CATEGORIES` indeksine çevirir.
     fn category_index(name: &str) -> usize {
         CATEGORIES
             .iter()
             .position(|c| *c == name)
             .unwrap_or_else(|| panic!("bilinmeyen kategori: {name}"))
+    }
+
+    /// Ana listede tüm araçları "kurulu" gösterir (filtre testleri için).
+    fn mark_all_installed(app: &mut App) {
+        for entry in app.catalog.entries_mut() {
+            entry.status = InstalledStatus::Installed;
+        }
     }
 
     /// Gerçek gömülü katalogla oluşturulmuş uygulama.
@@ -2620,6 +2831,7 @@ mod tests {
     #[test]
     fn toggle_favorite_updates_status() {
         let mut app = sample_app();
+        mark_all_installed(&mut app);
         app.focus = PanelFocus::Tool;
         app.category_index = category_index("Sistem ve Kaynak Kullanımı");
         app.tool_index = 0;
@@ -2678,25 +2890,43 @@ mod tests {
     #[test]
     fn category_navigation_is_bounded() {
         let mut app = sample_app();
-        app.category_index = 0;
-        // Kategori panelinde aşağı hareket kategori indeksini artırır ve sınırı aşmaz.
+        mark_all_installed(&mut app);
+        let visible = app.visible_category_indices();
+        assert!(visible.len() >= 2, "en az iki görünür kategori");
+        app.category_index = visible[0];
         app.move_down();
-        assert_eq!(app.category_index, 1);
+        assert_eq!(app.category_index, visible[1]);
         for _ in 0..CATEGORIES.len() + 5 {
             app.move_down();
         }
-        assert_eq!(app.category_index, CATEGORIES.len() - 1);
+        assert!(app.settings_tab, "son satır Ayarlar olmalı");
         for _ in 0..CATEGORIES.len() + 5 {
             app.move_up();
         }
-        assert_eq!(app.category_index, 0);
+        assert!(!app.store_tab && !app.settings_tab);
+        assert_eq!(app.category_index, visible[0]);
     }
 
     #[test]
     fn filtered_tools_empty_when_no_match() {
-        let app = sample_app();
+        let mut app = sample_app();
+        mark_all_installed(&mut app);
         // Seçili kategori "Sistem ve Kaynak Kullanımı", içinde araçlar var.
         assert!(!app.filtered_tools().is_empty());
+    }
+
+    #[test]
+    fn filtered_tools_hides_uninstalled() {
+        let mut app = sample_app();
+        for entry in app.catalog.entries_mut() {
+            entry.status = InstalledStatus::Missing;
+        }
+        assert!(
+            app.filtered_tools().is_empty(),
+            "kurulu olmayan araçlar ana listede görünmemeli"
+        );
+        // Mağaza hâlâ tüm kayıtları gösterir.
+        assert!(!app.filtered_store_apps().is_empty());
     }
 
     #[test]
@@ -2729,7 +2959,6 @@ mod tests {
         let openers: Vec<(char, IsOpen)> = vec![
             ('P', |m| matches!(m, modal::Modal::ProjectPicker { .. })),
             ('R', |m| matches!(m, modal::Modal::History)),
-            ('S', |m| matches!(m, modal::Modal::Settings { .. })),
             ('N', |m| matches!(m, modal::Modal::ToolForm(_))),
         ];
         for (opener, is_open) in openers {
@@ -2744,6 +2973,20 @@ mod tests {
                     app.modal
                 );
             }
+        }
+        // S artık Ayarlar sekmesine gider; gelişmiş modal ayrı açılır.
+        let mut app = sample_app();
+        app.handle_key(typed('S')).unwrap();
+        assert!(app.settings_tab);
+        assert!(!app.modal.is_open());
+        app.open_advanced_settings_modal();
+        assert!(matches!(app.modal, modal::Modal::Settings { .. }));
+        for c in ['/', 't', 'm', 'p', 'Z'] {
+            app.handle_key(typed(c)).unwrap();
+            assert!(
+                matches!(app.modal, modal::Modal::Settings { .. }),
+                "gelişmiş ayarlar '{c}' ile kapandı"
+            );
         }
     }
 
@@ -2874,18 +3117,21 @@ mod tests {
     #[test]
     fn mouse_click_selects_category() {
         let mut app = sample_app();
+        mark_all_installed(&mut app);
         app.terminal_size = Some((100, 30));
         app.focus = PanelFocus::Tool;
         // Kategori paneli: x < 26; içerik satırı 2'den başlar, satır 1 → y = 3.
         app.handle_mouse(mouse_down(5, 3)).unwrap();
         assert_eq!(app.focus, PanelFocus::Category);
-        assert_eq!(app.category_index, 1);
+        let visible = app.visible_category_indices();
+        assert_eq!(app.category_index, visible[1]);
         assert_eq!(app.tool_index, 0);
     }
 
     #[test]
     fn mouse_click_selects_tool() {
         let mut app = sample_app();
+        mark_all_installed(&mut app);
         app.terminal_size = Some((100, 30));
         app.focus = PanelFocus::Category;
         app.category_index = category_index("Sistem ve Kaynak Kullanımı");
@@ -2899,6 +3145,7 @@ mod tests {
     #[test]
     fn mouse_scroll_changes_tool_selection() {
         let mut app = sample_app();
+        mark_all_installed(&mut app);
         app.terminal_size = Some((100, 30));
         app.focus = PanelFocus::Tool;
         app.category_index = category_index("Sistem ve Kaynak Kullanımı");
@@ -2910,9 +3157,10 @@ mod tests {
     #[test]
     fn mouse_click_in_narrow_mode_selects_tool_only() {
         let mut app = sample_app();
+        mark_all_installed(&mut app);
         app.terminal_size = Some((40, 30));
         app.focus = PanelFocus::Category;
-        app.category_index = 0;
+        app.category_index = app.visible_category_indices()[0];
         // Dar modda kategori paneli yok; ekranın sağ tarafındaki tıklama
         // yine aracı seçmelidir.
         app.handle_mouse(mouse_down(39, 2)).unwrap();
@@ -3037,18 +3285,21 @@ mod tests {
     }
 
     #[test]
-    fn store_tab_is_the_last_row_of_the_category_list() {
+    fn store_tab_is_followed_by_settings_in_the_category_list() {
         let mut app = sample_app();
+        mark_all_installed(&mut app);
         app.focus = PanelFocus::Category;
-        // Son araç kategorisinden bir satır aşağı inince mağaza sekmesi seçilir.
-        app.category_index = CATEGORIES.len() - 1;
+        let visible = app.visible_category_indices();
+        app.category_index = *visible.last().expect("görünür kategori");
         app.handle_key(typed('j')).unwrap();
         assert!(app.store_tab);
-        assert_eq!(app.selected_tab_index(), CATEGORIES.len());
-        // Mağaza sekmesinden bir satır yukarı inince son araç kategorisine dönülür.
+        assert_eq!(app.selected_tab_index(), visible.len());
+        app.handle_key(typed('j')).unwrap();
+        assert!(app.settings_tab);
+        assert_eq!(app.selected_tab_index(), visible.len() + 1);
         app.handle_key(typed('k')).unwrap();
-        assert!(!app.store_tab);
-        assert_eq!(app.category_index, CATEGORIES.len() - 1);
+        assert!(app.store_tab);
+        assert!(!app.settings_tab);
     }
 
     #[test]
@@ -3561,7 +3812,10 @@ mod tests {
             app.state.file.custom_tools.iter().any(|t| t.id == "gemini-cli"),
             "state.toml custom_tools’a yazılmalı"
         );
-        // AI filtresinde listelenmeli.
+        // Kurulum sonrası PATH’te bulunursa ana listede görünür.
+        if let Some(entry) = app.catalog.entries_mut().iter_mut().find(|e| e.id == "gemini-cli") {
+            entry.status = InstalledStatus::Installed;
+        }
         let tools = app.filtered_tools();
         assert!(
             tools.iter().any(|t| t.id == "gemini-cli"),

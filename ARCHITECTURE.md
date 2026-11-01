@@ -481,7 +481,7 @@ kullanıcıya durum satırında açıklanır.
 - **Arama sıralaması yok.** Sonuçlar katalog sırasındadır; alaka sırasına göre sıralama yapılmaz.
 - **Süreç yeniden sahiplenilmiyor.** Konsole süreci Nova tarafından `wait` edilmez (bilinçli); PID yalnızca raporlama içindir.
 - **Asgari Rust sürümü doğrulanmadı.** Bağımlılıkların `rust-version` alanları ≥1.74 öneriyor; yalnızca 1.99.1 ile derleme/test yapıldı.
-- **`[ui] theme` okunur ama uygulanmaz**; tek tema vardır.
+- **Tema tercihleri uygulanır** (`varsayilan` / `acik` / `orman` / `amber`); Ayarlar sekmesinden döngülenir ve `state.toml`’a yazılır.
 - **PTY kapanınca alt ekrandan çıkış dizisi yazılamaz.** Terminal (tty) yoksa `leave_alternate_screen` IO hatası verir; hook bunu bilinçli olarak yutar ve Nova panik üretmeden çıkar.
 - **Dağıtım paketi/yayın yok.** Proje MIT OR Apache-2.0 çift lisanslıdır (`LICENSE.md`); crates.io, AUR, distro paketi ve ikili yayın yapılmadı. `docs/VERSIONING.md` akışı önerir.
 - **Mağaza sürüm denetimi kullanıcı isteğine bağlı.** Otomatik denetim yok; kullanıcı mağazada `U` tuşuna bastığında GitHub Releases sorgulanır.
@@ -489,7 +489,7 @@ kullanıcıya durum satırında açıklanır.
 - **GitHub API hız sınırı kimliksiz IP başına saatte 60 istek.** `GITHUB_TOKEN` ile saatte 5000'e yükseltilebilir; 6 saatlik önbellek taze kayıtları ağa hiç çıkarmadığı için sınırı büyük ölçüde azaltır. `ETag` yalnızca bant genişliği tasarrufu sağlar (`304` de sınırdan düşer).
 - **Mağazada 6 uygulama indirilebilir.** Kalan 13 kayıt `manual` yöntemdedir; upstream doğrulanabilir SHA-256 özeti yayımlamadığı için "Kur" eylemi sunulmaz.
 - **Tek çalıştırılabilir dosya kurulur.** Arşivdeki man sayfaları, tamamlayıcılar ve ek belgeler kurulmaz; yalnızca katalogdaki `executable` yerleştirilir.
-- **Güncelleme sağlayıcısı henüz gerçek bir kaynağa bağlı değil.** `DefaultUpdateProvider` her zaman "resmî güncelleme kaynağı tanımlanmadı" hatası verir; otomatik güncelleme varmış gibi gösterilmez.
+- **Güncelleme sağlayıcısı GitHub Releases’a bağlıdır** (`Teknoloji-Filozoflari/Nova`). Yayın yoksa (`404`) güncel kabul edilir; uygun Linux ikilisi varsa kullanıcı onayından sonra `~/.local/bin/nova` kurulur.
 - **Güvenlik denetimi çalıştırılmadı** (`cargo-audit`/`cargo-deny` bu ortamda kurulu değildi).
 
 ## Proje Dizinini Geçersiz Kılma (Faz 5)
