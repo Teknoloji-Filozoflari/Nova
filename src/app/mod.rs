@@ -609,6 +609,9 @@ impl App {
                     state: FilePickerState::new(&self.home_dir),
                 };
             }
+            KeyCode::Char('a') | KeyCode::Char('A') => {
+                self.launch_default_ai_tool();
+            }
             KeyCode::Char('n') | KeyCode::Char('N') => {
                 self.modal = modal::Modal::ToolForm(Box::default());
             }
@@ -1019,7 +1022,34 @@ impl App {
             self.status_message = "Başlatılacak araç yok.".into();
             return;
         };
+        self.launch_catalog_entry(entry);
+    }
 
+    /// Ayarlardaki varsayılan AI CLI aracını başlatır (`a` kısayolu).
+    ///
+    /// Tercih yoksa veya araç artık uygun değilse başlatıcı çağrılmaz; durum
+    /// satırında ne yapılacağı söylenir.
+    pub fn launch_default_ai_tool(&mut self) {
+        let Some(id) = self.state.file.prefs.default_ai_tool.clone() else {
+            self.status_message =
+                "Varsayılan AI aracı seçilmedi. Ayarlar → Gelişmiş'ten ayarla.".into();
+            return;
+        };
+        let Some(entry) = self.catalog.get_by_id(&id).cloned() else {
+            self.status_message =
+                format!("Varsayılan AI '{id}' katalogda yok; Ayarlar → Gelişmiş'ten güncelle.");
+            return;
+        };
+        if entry.category != "AI ve Kodlama" {
+            self.status_message =
+                format!("'{id}' AI kategorisinde değil; varsayılan AI başlatılmadı.");
+            return;
+        }
+        self.launch_catalog_entry(entry);
+    }
+
+    /// Katalog girdisini kurulum durumuna göre başlatır (veya reddeder).
+    fn launch_catalog_entry(&mut self, entry: crate::catalog::CatalogEntry) {
         // Kurulu olmayan araç için başlatıcı **hiç çağrılmaz**; eksik komut
         // adı kullanıcıya söylenir. Launcher da aynı kontrolü yapar
         // (savunma katmanı), ama kullanıcıya en yakın yerde reddetmek

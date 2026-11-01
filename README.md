@@ -5,8 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="LICENSE-MIT"><img alt="MIT lisansı" src="https://img.shields.io/badge/lisans-MIT-blue?style=flat-square"></a>
-  <a href="LICENSE-APACHE"><img alt="Apache 2.0 lisansı" src="https://img.shields.io/badge/lisans-Apache--2.0-blue?style=flat-square"></a>
+  <a href="LICENSE.md"><img alt="SPDX: MIT OR Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=flat-square"></a>
   <img alt="Platform: Linux" src="https://img.shields.io/badge/platform-Linux-333?style=flat-square&logo=linux">
   <img alt="Rust 2021" src="https://img.shields.io/badge/Rust-2021-orange?style=flat-square&logo=rust">
 </p>
@@ -97,6 +96,7 @@ Ana ekrandaki temel kısayollar:
 | <code>m</code> | Mağaza sekmesine geç |
 | <code>u</code> | Nova'yı güncellemeyi denetle; mağaza sekmesindeyken mağaza uygulamalarını denetle |
 | <code>o</code> | Dosya seçiciyi aç |
+| <code>a</code> | Ayarlardaki varsayılan AI CLI aracını başlat |
 | <code>n</code> | Özel araç ekle |
 | <code>d</code> | Seçili özel aracı sil |
 | <code>?</code> | Yardımı göster |
@@ -213,7 +213,7 @@ kuralları için [mimari belgesine](ARCHITECTURE.md) bak.
   koddan yeniden derlemek gerekir.
 - Tema tercihi (<code>varsayilan</code>, <code>acik</code>, <code>orman</code>,
   <code>amber</code>) kalıcıdır ve Ayarlar→Tema ile değişir. Varsayılan AI CLI
-  tercihi de saklanır ancak başlatma akışını henüz değiştirmez.
+  tercihi Ayarlar→Gelişmiş'te saklanır; <code>a</code> tuşu o aracı başlatır.
 - Fare desteği ana ekrandaki listeler içindir; ayarlar ve diğer pencerelerde
   klavye kullanılır.
 
@@ -234,5 +234,6 @@ Hata veya özellik isteğini [GitHub Issues](https://github.com/Teknoloji-Filozo
 
 ## Lisans
 
-Nova, tercihine göre [MIT](LICENSE-MIT) veya
-[Apache License 2.0](LICENSE-APACHE) altında kullanılabilir.
+SPDX: `MIT OR Apache-2.0`. Tercihine göre [MIT](LICENSE-MIT) veya
+[Apache License 2.0](LICENSE-APACHE) altında kullanılabilir; seçim özeti
+[LICENSE.md](LICENSE.md) dosyasındadır.

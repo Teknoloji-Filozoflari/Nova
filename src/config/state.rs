@@ -107,6 +107,7 @@ pub struct Prefs {
     pub theme: Option<String>,
     /// Varsayılan AI komut satırı aracının katalog kimliği (`id`).
     /// Yalnızca kurulu olan AI kategorisindeki araçlar seçilebilir.
+    /// Ana ekranda `a` tuşu bu aracı başlatır.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default_ai_tool: Option<String>,
     /// Resim dosyaları için varsayılan uygulama (katalog `id` veya executable adı).

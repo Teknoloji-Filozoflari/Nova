@@ -483,7 +483,7 @@ kullanıcıya durum satırında açıklanır.
 - **Asgari Rust sürümü doğrulanmadı.** Bağımlılıkların `rust-version` alanları ≥1.74 öneriyor; yalnızca 1.99.1 ile derleme/test yapıldı.
 - **Tema tercihleri uygulanır** (`varsayilan` / `acik` / `orman` / `amber`); Ayarlar sekmesinden döngülenir ve `state.toml`’a yazılır.
 - **PTY kapanınca alt ekrandan çıkış dizisi yazılamaz.** Terminal (tty) yoksa `leave_alternate_screen` IO hatası verir; hook bunu bilinçli olarak yutar ve Nova panik üretmeden çıkar.
-- **Dağıtım paketi/yayın yok.** Proje MIT OR Apache-2.0 çift lisanslıdır (`LICENSE.md`); crates.io, AUR, distro paketi ve ikili yayın yapılmadı. `docs/VERSIONING.md` akışı önerir.
+- **Dağıtım paketi/yayın yok.** Proje SPDX `MIT OR Apache-2.0` çift lisanslıdır (`LICENSE.md` seçim özeti; metinler `LICENSE-MIT` / `LICENSE-APACHE`). crates.io, AUR, distro paketi ve ikili yayın yapılmadı. `docs/VERSIONING.md` akışı önerir.
 - **Mağaza sürüm denetimi kullanıcı isteğine bağlı.** Otomatik denetim yok; kullanıcı mağazada `U` tuşuna bastığında GitHub Releases sorgulanır.
 - **Mağaza kataloğu uzaktan güncellenmiyor.** Katalog gömülü `assets/store.toml` içinde sabittir; canlı akış yalnızca sürüm ipucu getirir. Bu bilinçli bir tasarım kararıdır (bkz. "Canlı Sürüm Takibi → Tasarım kararı").
 - **GitHub API hız sınırı kimliksiz IP başına saatte 60 istek.** `GITHUB_TOKEN` ile saatte 5000'e yükseltilebilir; 6 saatlik önbellek taze kayıtları ağa hiç çıkarmadığı için sınırı büyük ölçüde azaltır. `ETag` yalnızca bant genişliği tasarrufu sağlar (`304` de sınırdan düşer).
