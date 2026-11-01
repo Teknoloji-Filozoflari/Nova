@@ -3,10 +3,10 @@
 //!
 //! Düzen terminal boyutuna göre üç kademede uyarlanır:
 //! - **Geniş (≥ 70 sütun):** kategori paneli solda, araç listesi sağda.
-//!   AI aksiyonlu araçta ve ≥ 112 sütunda aksiyon|detay mağaza gibi sağ
-//!   panele taşınır (aksiyon solda, detay en sağda; alt şeritte istiflenmez).
+//!   AI aksiyonlu araçta ve ≥ 112 sütunda detay mağaza gibi sağ panele
+//!   taşınır; aksiyonlar seçili aracın adının altında listelenir.
 //! - **Orta (45–69 sütun):** tek sütun; kategori başlık satırında gösterilir,
-//!   araç listesi ve detay alanı görünür; AI aksiyonları detayın solunda.
+//!   araç listesi ve alt detay alanı görünür; AI aksiyonları yine adın altında.
 //! - **Dar (< 45 sütun):** yalnızca araç listesi; detay ve büyük yardım
 //!   paneli gizlenir, tek satırlık kısa yardım gösterilir.
 //!
@@ -53,20 +53,20 @@ pub const CATEGORY_PANEL_WIDTH: u16 = 26;
 pub const STORE_CATEGORY_PANEL_WIDTH: u16 = 22;
 /// Mağaza sağ detay panelinin genişliği (geniş terminalde).
 ///
-/// Açıklama / kurulum / güven satırlarının okunabilir kalması için liste
-/// alanından daha geniştir; uygulama listesi `Min` ile sıkışır.
-pub const STORE_DETAIL_PANEL_WIDTH: u16 = 52;
+/// Kurulu araç detayıyla aynı cömert ölçü: açıklama / kurulum / güven
+/// satırları okunaklı kalır; uygulama listesi `Min` ile sıkışır.
+pub const STORE_DETAIL_PANEL_WIDTH: u16 = 72;
 /// Dört sütunlu mağaza (sekme + kategori + uygulama + sağ detay) için en az genişlik.
-pub const STORE_DETAIL_SIDE_MIN_WIDTH: u16 = 114;
+pub const STORE_DETAIL_SIDE_MIN_WIDTH: u16 = 134;
 /// Araç detay panelinin satır sayısı (üst kenarlık dâhil).
 pub const DETAIL_ROWS: u16 = 10;
-/// AI araç aksiyon listesinin genişliği (detayın solunda).
-pub const TOOL_ACTIONS_PANEL_WIDTH: u16 = 24;
-/// Sağdaki araç detay bilgisinin genişliği (aksiyon paneli ayrı; mağaza detayıyla aynı).
-pub const TOOL_DETAIL_PANEL_WIDTH: u16 = 48;
-/// Dört sütunlu araç düzeni (sekme + liste + aksiyon + detay) için en az genişlik.
+/// Sağdaki araç detay bilgisinin genişliği (eski aksiyon sütunu Detay'a verildi).
 ///
-/// Yeterince genişte aksiyon|detay alt şeritte istiflenmez; detay en sağdadır.
+/// AI aksiyonları araç adının altında listelenir; ayrı sağ sütun yok.
+pub const TOOL_DETAIL_PANEL_WIDTH: u16 = 72;
+/// Üç sütunlu araç düzeni (sekme + liste + detay) için en az genişlik.
+///
+/// AI aracı seçiliyken detay sağ paneledir; aksiyonlar liste içinde adın altındadır.
 pub const TOOL_DETAIL_SIDE_MIN_WIDTH: u16 = 112;
 /// Mağaza detay panelinin satır sayısı (üst kenarlık dâhil; dar/orta düzen).
 ///
@@ -97,22 +97,74 @@ pub struct ClickAreas {
     /// Mağaza uygulama listesinin bitiş sütunu (hariç). Sağ detay paneli
     /// açıkken uygulamalar bu sütuna kadar uzar; aksi hâlde ekran sonudur.
     pub store_apps_end_x: u16,
-    /// Araç listesinin bitiş sütunu (hariç). AI detay+aksiyon sağdayken
-    /// liste bu sütuna kadar uzar; aksi hâlde ekran sonudur.
+    /// Araç listesinin bitiş sütunu (hariç). AI detay sağdayken liste bu
+    /// sütuna kadar uzar; aksi hâlde ekran sonudur.
     pub tools_end_x: u16,
     /// Mağaza kategori panelinin bittiği satır (hariç). Yalnızca mağaza
     /// sekmesinde ve dar modda anlamlıdır (kategoriler üstte).
     pub store_category_end_y: u16,
     /// Geniş mağazada detay sağda mı? (değilse alt şeritte veya gizli).
     pub store_detail_side: bool,
-    /// Geniş araç sekmesinde AI detay+aksiyon sağda mı?
+    /// Geniş araç sekmesinde AI detay sağda mı?
     pub tool_detail_side: bool,
 }
 
-/// Geniş terminalde AI araç detay+aksiyonun mağaza gibi sağ panele taşınıp
-/// taşınmayacağını hesaplar.
+/// Geniş terminalde AI araç detayının mağaza gibi sağ panele taşınıp
+/// taşınmayacağını hesaplar (aksiyonlar liste içinde kalır).
 pub fn tool_detail_side_layout(wide: bool, width: u16, has_ai_actions: bool) -> bool {
     wide && has_ai_actions && width >= TOOL_DETAIL_SIDE_MIN_WIDTH
+}
+
+/// Kurulu araç listesinde görünen satır (araç veya seçili AI aksiyonu).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ToolListHit {
+    /// `filtered_tools` indeksi.
+    Tool(usize),
+    /// Seçili AI aracının aksiyon satırı.
+    Action {
+        tool_index: usize,
+        action_index: usize,
+    },
+}
+
+/// Seçili AI aracının aksiyonlarını adın altında açan görsel satır listesi.
+pub fn tool_list_hits(app: &App) -> Vec<ToolListHit> {
+    let tools = app.filtered_tools();
+    let mut hits = Vec::with_capacity(tools.len().saturating_mul(2));
+    for (i, entry) in tools.iter().enumerate() {
+        hits.push(ToolListHit::Tool(i));
+        if i == app.tool_index && entry.has_ai_actions() {
+            for action_index in 0..entry.actions.len() {
+                hits.push(ToolListHit::Action {
+                    tool_index: i,
+                    action_index,
+                });
+            }
+        }
+    }
+    hits
+}
+
+/// Odak ve seçime göre vurgulanacak görsel satır indeksi.
+pub fn tool_list_selected_visual(app: &App) -> Option<usize> {
+    let hits = tool_list_hits(app);
+    if hits.is_empty() {
+        return None;
+    }
+    let target = if app.focus == PanelFocus::ToolActions {
+        ToolListHit::Action {
+            tool_index: app.tool_index,
+            action_index: app.tool_action_index,
+        }
+    } else {
+        ToolListHit::Tool(app.tool_index)
+    };
+    Some(
+        hits.iter()
+            .position(|h| *h == target)
+            .unwrap_or(0)
+            .min(hits.len() - 1),
+    )
 }
 
 /// Terminal boyutuna göre fare tıklama alanlarını hesaplar.
@@ -168,7 +220,7 @@ pub fn click_areas(
         w
     };
     let tools_end_x = if tool_detail_side {
-        w.saturating_sub(TOOL_DETAIL_PANEL_WIDTH + TOOL_ACTIONS_PANEL_WIDTH)
+        w.saturating_sub(TOOL_DETAIL_PANEL_WIDTH)
     } else {
         w
     };
@@ -239,10 +291,7 @@ const _: () = assert!(TIGHT_HINT_WIDTH > 20);
 const _: () = assert!(TOOL_DETAIL_SIDE_MIN_WIDTH >= WIDE_MIN_WIDTH);
 const _: () = assert!(
     TOOL_DETAIL_SIDE_MIN_WIDTH
-        >= CATEGORY_PANEL_WIDTH
-            + LIST_PANEL_MIN_WIDTH
-            + TOOL_DETAIL_PANEL_WIDTH
-            + TOOL_ACTIONS_PANEL_WIDTH
+        >= CATEGORY_PANEL_WIDTH + LIST_PANEL_MIN_WIDTH + TOOL_DETAIL_PANEL_WIDTH
 );
 const _: () = assert!(
     STORE_DETAIL_SIDE_MIN_WIDTH
@@ -251,6 +300,7 @@ const _: () = assert!(
             + LIST_PANEL_MIN_WIDTH
             + STORE_DETAIL_PANEL_WIDTH
 );
+const _: () = assert!(STORE_DETAIL_PANEL_WIDTH == TOOL_DETAIL_PANEL_WIDTH);
 
 /// Metni en fazla `max` karakter olacak şekilde keser (UTF-8 güvenli).
 pub fn truncate(text: &str, max: usize) -> String {
@@ -553,20 +603,18 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
         }
     } else if wide && tool_detail_side_layout(true, area.width, app.selected_tool_has_ai_actions())
     {
-        // Sekme | liste | aksiyon | detay (detay en sağda; aksiyon ondan önce).
+        // Sekme | liste | detay (aksiyonlar seçili aracın adının altında).
         let panels = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
                 Constraint::Length(CATEGORY_PANEL_WIDTH),
                 Constraint::Min(LIST_PANEL_MIN_WIDTH),
-                Constraint::Length(TOOL_ACTIONS_PANEL_WIDTH),
                 Constraint::Length(TOOL_DETAIL_PANEL_WIDTH),
             ])
             .split(area);
         draw_categories(f, app, panels[0]);
         draw_tools(f, app, panels[1]);
-        draw_tool_actions(f, app, panels[2]);
-        draw_tool_detail_info(f, app, panels[3], true);
+        draw_tool_detail_info(f, app, panels[2], true);
     } else if wide {
         let panels = Layout::default()
             .direction(Direction::Horizontal)
@@ -1048,83 +1096,104 @@ fn draw_store_apps(f: &mut Frame, app: &App, area: Rect) {
     f.render_stateful_widget(list, area, &mut state);
 }
 
-/// Liste satırında ad sütununa ayrılan azami genişlik.
-///
-/// Tek bir uzun ad (ör. "Claude Code") açıklamayı ekranın dışına itmesin
-/// diye ad kısaltılır; açıklamaya her zaman yer kalır.
-const NAME_MAX_WIDTH: usize = 24;
-/// Ad ile açıklama arasındaki ayırıcı.
-const NAME_DESC_SEP: &str = " — ";
-/// Açıklamaya bırakılan en az genişlik; ad bu sınıra kadar kısalır.
-const DESC_MIN_WIDTH: usize = 8;
-
-/// Bir araç satırındaki `(_)`: ad ve açıklama dışındaki sütun sayısı
+/// Bir araç satırındaki sabit sütun sayısı
 /// (vurgu işareti 2 + favori 1 + boşluk 1 + durum 1 + boşluk 1).
 /// Testlerin toplamı yeniden hesaplarken kullandığı doğrulama değeridir.
 pub const TOOL_ROW_FIXED_WIDTH: usize = 6;
 
-/// Ad ve açıklamaya ayrılan sütun sayılarını hesaplar.
-///
-/// `inner`, satırın kullanabildiği sütun sayısıdır (kenarlıklar hariç).
-/// Toplam (`TOOL_ROW_FIXED_WIDTH` + ad + ayırıcı + açıklama) her zaman
-/// `inner`i aşmaz. `max_width` ad için üst sınırdır.
-pub fn tool_row_widths(inner: usize, max_width: usize) -> (usize, usize) {
-    let sep = NAME_DESC_SEP.chars().count();
-    // Sabit ön ek (vurgu + favori + durum) için yer yoksa çizilecek bir ad
-    // da yoktur; ratatui satırı kırpar, taşma olmaz.
+/// Liste satırında ada ayrılan genişlik (açıklama liste satırında yok;
+/// detay paneli taşır). `inner` kenarlıklar hariç sütun sayısıdır.
+pub fn tool_row_name_width(inner: usize, max_width: usize) -> usize {
     if inner < TOOL_ROW_FIXED_WIDTH {
-        return (0, 0);
+        return 0;
     }
     let free = inner - TOOL_ROW_FIXED_WIDTH;
-    // Ad + ayırıcı için bile yer yoksa yalnızca ad yazılır (açıklama 0).
-    if free <= sep {
-        return (free.min(max_width), 0);
-    }
-    let name_width = NAME_MAX_WIDTH
-        .min(max_width)
-        .min(free.saturating_sub(sep + DESC_MIN_WIDTH))
-        .max(1);
-    let desc_width = free.saturating_sub(name_width + sep);
-    (name_width, desc_width)
+    free.min(max_width)
+}
+
+/// Geriye dönük test uyumu: açıklama sütunu her zaman 0 (liste satırında yok).
+pub fn tool_row_widths(inner: usize, max_width: usize) -> (usize, usize) {
+    (tool_row_name_width(inner, max_width), 0)
 }
 
 fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
     let tools = app.filtered_tools();
+    let pal = palette(app);
     // Kenarlıklar (2 sütun) satır içeriğine dahil değildir.
     let inner_width = area.width.saturating_sub(2) as usize;
-    let (name_width, desc_width) = tool_row_widths(inner_width, NAME_MAX_WIDTH);
+    // highlight_symbol ("▶ ") 2 sütun kaplar; ada kalan yer.
+    let name_width = tool_row_name_width(
+        inner_width,
+        inner_width.saturating_sub(TOOL_ROW_FIXED_WIDTH),
+    );
+    let action_width = inner_width.saturating_sub(4).max(1);
+    let hits = tool_list_hits(app);
 
-    let items: Vec<ListItem> = tools
+    let items: Vec<ListItem> = hits
         .iter()
-        .map(|entry| {
-            let fav = if entry.favorite { "★" } else { "☆" };
-            let name = truncate(&entry.name, name_width);
-            let desc = truncate(&entry.description, desc_width);
-            let mut spans = vec![
-                Span::styled(fav, Style::default().fg(Color::Yellow)),
-                Span::raw(" "),
-                Span::styled(
-                    entry.status.symbol(),
-                    Style::default().fg(status_color(entry.status)),
-                ),
-                Span::raw(" "),
-                Span::styled(name, Style::default().add_modifier(Modifier::BOLD)),
-            ];
-            // Yer kalmadıysa ayırıcı ve açıklama hiç yazılmaz; satır asla
-            // panel dışına taşmaz.
-            if desc_width > 0 {
-                spans.push(Span::styled(
-                    format!("{NAME_DESC_SEP}{desc}"),
-                    Style::default().fg(Color::Gray),
-                ));
+        .map(|hit| match *hit {
+            ToolListHit::Tool(idx) => {
+                let entry = tools[idx];
+                let fav = if entry.favorite { "★" } else { "☆" };
+                let name = truncate(&entry.name, name_width.max(1));
+                ListItem::new(Line::from(vec![
+                    Span::styled(fav, Style::default().fg(Color::Yellow)),
+                    Span::raw(" "),
+                    Span::styled(
+                        entry.status.symbol(),
+                        Style::default().fg(status_color(entry.status)),
+                    ),
+                    Span::raw(" "),
+                    Span::styled(name, Style::default().add_modifier(Modifier::BOLD)),
+                ]))
             }
-            ListItem::new(Line::from(spans))
+            ToolListHit::Action {
+                tool_index,
+                action_index,
+            } => {
+                let entry = tools[tool_index];
+                let action = &entry.actions[action_index];
+                let focused =
+                    app.focus == PanelFocus::ToolActions && action_index == app.tool_action_index;
+                let style = if focused {
+                    Style::default()
+                        .fg(pal.accent_on)
+                        .bg(pal.accent)
+                        .add_modifier(Modifier::BOLD)
+                } else if action_index == app.tool_action_index {
+                    Style::default().fg(pal.accent)
+                } else {
+                    Style::default().fg(pal.text)
+                };
+                let hint = if action.args.is_empty() {
+                    entry.executable.clone()
+                } else {
+                    format!("{} {}", entry.executable, action.args.join(" "))
+                };
+                let label = truncate(
+                    &action.label,
+                    action_width
+                        .saturating_sub(hint.chars().count().saturating_add(3))
+                        .max(4),
+                );
+                let hint = truncate(
+                    &hint,
+                    action_width
+                        .saturating_sub(label.chars().count().saturating_add(3))
+                        .max(1),
+                );
+                ListItem::new(Line::from(vec![
+                    Span::raw("  "),
+                    Span::styled(format!("{label}  "), style),
+                    Span::styled(hint, Style::default().fg(pal.muted)),
+                ]))
+            }
         })
         .collect();
 
     let mut state = ListState::default();
-    if !tools.is_empty() {
-        state.select(Some(app.tool_index.min(tools.len() - 1)));
+    if let Some(sel) = tool_list_selected_visual(app) {
+        state.select(Some(sel));
     }
 
     let category_label = app.selected_category().unwrap_or("");
@@ -1144,7 +1213,8 @@ fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
         )
     };
 
-    let border = if app.focus == PanelFocus::Tool {
+    // Aksiyonlar aynı panelde; odak Tool veya ToolActions iken kenarlık vurgulu.
+    let border = if app.focus == PanelFocus::Tool || app.focus == PanelFocus::ToolActions {
         Style::default().fg(Color::Cyan)
     } else {
         Style::default()
@@ -1216,25 +1286,7 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
         return;
     }
 
-    let show_actions = app
-        .selected_tool()
-        .map(|e| e.has_ai_actions())
-        .unwrap_or(false);
-    if show_actions {
-        // Dar/orta: aksiyon | detay (detay sağda / daha geniş).
-        let action_w = TOOL_ACTIONS_PANEL_WIDTH
-            .min(area.width / 2)
-            .min(area.width.saturating_sub(16))
-            .max(12.min(area.width / 2));
-        let panels = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Length(action_w), Constraint::Min(12)])
-            .split(area);
-        draw_tool_actions(f, app, panels[0]);
-        draw_tool_detail_info(f, app, panels[1], false);
-        return;
-    }
-
+    // AI aksiyonları araç listesinde adın altında; alt şerit yalnızca Detay.
     draw_tool_detail_info(f, app, area, false);
 }
 
@@ -1386,7 +1438,9 @@ fn default_usage_examples(exe: &str, category: &str, name: &str) -> Vec<String> 
     let cat = category.to_lowercase();
     if cat.contains("ai") || cat.contains("kodlama") {
         rows.push(format!("{exe}   ← proje dizininde etkileşimli oturum"));
-        rows.push("İpucu: sağdaki Aksiyonlar panelinden Devam et / Yardım seçilebilir.".into());
+        rows.push(
+            "İpucu: araç adının altındaki aksiyonlardan Devam et / Yardım seçilebilir.".into(),
+        );
     } else if cat.contains("git") {
         rows.push(format!("{exe}   ← depo kökünde durum / commit TUI"));
         rows.push(format!("cd proje && {exe}   ← belirli depoda aç"));
@@ -1409,62 +1463,6 @@ fn default_usage_examples(exe: &str, category: &str, name: &str) -> Vec<String> 
         ));
     }
     rows
-}
-
-/// AI araç aksiyon listesi (detay yanında; seçili AI aracında her zaman görünür).
-fn draw_tool_actions(f: &mut Frame, app: &App, area: Rect) {
-    let pal = palette(app);
-    let Some(entry) = app.selected_tool() else {
-        return;
-    };
-    if !entry.has_ai_actions() {
-        return;
-    }
-    let items: Vec<ListItem> = entry
-        .actions
-        .iter()
-        .enumerate()
-        .map(|(i, action)| {
-            let selected = i == app.tool_action_index;
-            let focused = selected && app.focus == PanelFocus::ToolActions;
-            let style = if focused {
-                Style::default()
-                    .fg(pal.accent_on)
-                    .bg(pal.accent)
-                    .add_modifier(Modifier::BOLD)
-            } else if selected {
-                Style::default().fg(pal.accent)
-            } else {
-                Style::default().fg(pal.text)
-            };
-            let prefix = if selected { "▶ " } else { "  " };
-            let hint = if action.args.is_empty() {
-                entry.executable.clone()
-            } else {
-                format!("{} {}", entry.executable, action.args.join(" "))
-            };
-            ListItem::new(Line::from(vec![
-                Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
-                Span::styled(format!("{}  ", action.label), style),
-                Span::styled(hint, Style::default().fg(pal.muted)),
-            ]))
-        })
-        .collect();
-    let border = if app.focus == PanelFocus::ToolActions {
-        Style::default().fg(pal.accent)
-    } else {
-        Style::default().fg(pal.muted)
-    };
-    let list = List::new(items)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_style(border)
-                .title(" Aksiyonlar "),
-        )
-        .highlight_style(Style::default());
-    let mut state = ListState::default().with_selected(Some(app.tool_action_index));
-    f.render_stateful_widget(list, area, &mut state);
 }
 
 /// Mağaza uygulamasının detay satırlarını üretir.
@@ -1921,9 +1919,9 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
     } else if app.focus == PanelFocus::Category {
         "↑↓ kategori   →/l araçlar   / ara   ? yardım"
     } else if app.focus == PanelFocus::ToolActions {
-        "↑↓ aksiyon   ←/h araçlar   Enter çalıştır   ? yardım"
+        "↑↓ aksiyon (adın altında)   ←/h araçlar   Enter çalıştır   ? yardım"
     } else if app.selected_tool_has_ai_actions() {
-        "↑↓ araç   →/l aksiyon   Enter aç   F favori   ? yardım"
+        "↑↓ araç   →/l aksiyon (adın altında)   Enter aç   F favori   ? yardım"
     } else {
         "↑↓ araç   ←/h kategori   Enter başlat   F favori   ? yardım"
     };
@@ -2185,11 +2183,9 @@ mod tests {
         assert!(!bottom.tool_detail_side);
         // Sağ panelde alt şerit kalkar → içerik alanı büyür.
         assert!(side.content_height > bottom.content_height);
-        assert_eq!(
-            side.tools_end_x,
-            120 - TOOL_DETAIL_PANEL_WIDTH - TOOL_ACTIONS_PANEL_WIDTH
-        );
+        assert_eq!(side.tools_end_x, 120 - TOOL_DETAIL_PANEL_WIDTH);
         assert_eq!(bottom.tools_end_x, 120);
+        assert_eq!(STORE_DETAIL_PANEL_WIDTH, TOOL_DETAIL_PANEL_WIDTH);
     }
 
     #[test]

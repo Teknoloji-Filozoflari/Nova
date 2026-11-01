@@ -102,10 +102,8 @@ fn screen_join(screen: &[String]) -> String {
 
 #[test]
 fn tool_row_widths_fit_within_the_available_space() {
-    // İçerik, kenarlık dâhil verilen her genişlikte sığmalı.
-    // Sabit ön ek (vurgu + favori + durum) tek başına 6 sütun tutar; bu
-    // eşik altında ratatui satırı kırpar, taşma olmaz. Kenarlıklar düşünce
-    // en az 6 sütun kalan durumlar gerçekten anlamlı olanlardır.
+    // Liste satırında yalnızca ad vardır (açıklama detayda); sabit ön ek + ad
+    // her genişlikte `inner`i aşmamalı.
     let fixed = nova::ui::TOOL_ROW_FIXED_WIDTH;
     for width in 2..=200u16 {
         let inner = width.saturating_sub(2) as usize;
@@ -113,18 +111,22 @@ fn tool_row_widths_fit_within_the_available_space() {
             continue;
         }
         let (name, desc) = nova::ui::tool_row_widths(inner, 24);
-        let sep = if desc > 0 { 3 } else { 0 };
-        let used = fixed + name + sep + desc;
+        assert_eq!(desc, 0, "liste satırında açıklama sütunu olmamalı");
+        let used = fixed + name;
         assert!(
             used <= inner,
-            "genişlik {width}: kullanılan {used} > içerik {inner} (ad {name}, açıklama {desc})"
+            "genişlik {width}: kullanılan {used} > içerik {inner} (ad {name})"
         );
     }
 }
 
 #[test]
-fn long_name_is_shortened_but_description_keeps_room() {
+fn list_rows_are_name_only_description_lives_in_detail() {
     let (name, desc) = nova::ui::tool_row_widths(70, 24);
     assert!(name <= 24, "ad sınırsız: {name}");
-    assert!(desc >= 8, "açıklamaya yer kalmadı: {desc}");
+    assert_eq!(desc, 0, "kurulu/mağaza listeleri ad-only; açıklama detayda");
+    assert_eq!(
+        nova::ui::STORE_DETAIL_PANEL_WIDTH,
+        nova::ui::TOOL_DETAIL_PANEL_WIDTH
+    );
 }
