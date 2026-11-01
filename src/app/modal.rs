@@ -24,11 +24,14 @@ pub enum ConfirmAction {
     CreateDir { path: PathBuf, tool_id: String },
     /// Mağaza uygulamasını kur (kullanıcı alanına).
     InstallStoreApp { id: String, name: String },
-    /// Nova güncellemesini kur (kullanıcı alanına).
+    /// Nova güncellemesini kur (kullanıcı alanına — GitHub Releases ikilisi).
     InstallUpdate {
         version: String,
         release: Box<crate::update::GitHubRelease>,
     },
+    /// Nova’yı GitHub repo `main` (veya dal) üzerinden `cargo install --git` ile kur.
+    /// Ağ + derleme gerekir; Releases etiketine bağlı değildir.
+    InstallRepoUpdate { plan: crate::update::RepoUpdatePlan },
     /// Mağaza uygulamasını canlı çözümlenmiş yeni sürümle güncelle.
     UpdateStoreApp {
         id: String,

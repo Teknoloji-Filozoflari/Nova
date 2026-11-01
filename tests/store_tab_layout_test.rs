@@ -69,7 +69,18 @@ fn store_tab_is_above_settings_in_the_category_panel() {
     app.select_settings_tab();
     let lines = render(&app, 150, 42);
     let text = all_text(&lines);
-    assert!(text.contains("[Güncelle]"), "Ayarlar Güncelle düğmesi yok");
+    assert!(
+        text.contains("[Nova güncelle]") || text.contains("Nova güncelle"),
+        "Ayarlar Nova güncelle düğmesi yok:\n{text}"
+    );
+    assert!(
+        text.contains("[Mağaza kataloğu]") || text.contains("Mağaza kataloğu"),
+        "Ayarlar Mağaza kataloğu düğmesi yok"
+    );
+    assert!(
+        text.contains("[Özel araç ekle]") || text.contains("Özel araç"),
+        "Ayarlar özel araç düğmesi yok"
+    );
     assert!(text.contains("[Tema]"), "Ayarlar Tema düğmesi yok");
 }
 

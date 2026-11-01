@@ -103,9 +103,16 @@ pub fn tool_entry_from_store(entry: &StoreEntry) -> ToolEntry {
         handlers: Vec::new(),
         info_text: None,
         alternative_to: None,
-        examples: vec![entry.executable.clone()],
+        examples: vec![
+            format!("{}   ← {} arayüzünü açar", entry.executable, entry.name),
+            format!("{} --help   ← yardım ve bayraklar", entry.executable),
+            format!(
+                "Nova’da Enter ile başlatın veya terminalde `{}` yazın.",
+                entry.executable
+            ),
+        ],
         setup_info: Some(format!(
-            "Mağaza’dan kuruldu ({}). Terminalde '{}' yazın.",
+            "Mağaza’dan kuruldu ({}). Terminalde '{}' yazın; detay panelinde kullanım örneklerine bakın.",
             entry.install_method.short_label(),
             entry.executable
         )),

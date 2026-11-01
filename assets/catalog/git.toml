@@ -10,4 +10,4 @@ name = "lazygit"
 category = "Git ve Geliştirici Araçları"
 executable = "lazygit"
 description = "Git işlemleri için klavye odaklı terminal arayüzü."
-examples = ["lazygit", "lazygit --config-path=/path/to/config.yml"]
+examples = ["lazygit   ← Git TUI (durum/commit/branch)", "lazygit --help", "cd proje && lazygit   ← belirli depoda"]

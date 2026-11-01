@@ -13,7 +13,7 @@ name = "OpenCode"
 category = "AI ve Kodlama"
 executable = "opencode"
 description = "Terminalde çalışan açık kaynaklı yapay zekâ kodlama asistanı."
-examples = ["opencode", "opencode --help"]
+examples = ["opencode   ← etkileşimli AI oturumu", "opencode --help", "opencode -c   ← önceki oturuma devam"]
 setup_info = "Kullanmak için terminalde 'opencode' yazın; ilk çalıştırmada kimlik doğrulama istenir."
 actions = [
   { id = "open", label = "Aç", args = [] },
@@ -28,7 +28,7 @@ name = "OpenAI Codex CLI"
 category = "AI ve Kodlama"
 executable = "codex"
 description = "OpenAI'nin terminal tabanlı kodlama ajanı."
-examples = ["codex", "codex --help"]
+examples = ["codex   ← OpenAI kodlama ajanı", "codex --help", "codex resume   ← oturuma devam"]
 setup_info = "Kullanmak için terminalde 'codex' yazın; ilk çalıştırmada kimlik doğrulama istenir."
 actions = [
   { id = "open", label = "Aç", args = [] },
@@ -43,7 +43,7 @@ name = "Claude Code"
 category = "AI ve Kodlama"
 executable = "claude"
 description = "Anthropic'in terminal tabanlı kodlama asistanı."
-examples = ["claude", "claude --help"]
+examples = ["claude   ← Anthropic kodlama asistanı", "claude --help", "claude --resume   ← oturuma devam"]
 setup_info = "Kullanmak için terminalde 'claude' yazın; ilk çalıştırmada kimlik doğrulama istenir."
 actions = [
   { id = "open", label = "Aç", args = [] },
@@ -58,7 +58,7 @@ name = "MiniMax Code"
 category = "AI ve Kodlama"
 executable = "mcode"
 description = "MiniMax'ın terminalde çalışan kodlama asistanı."
-examples = ["mcode"]
+examples = ["mcode   ← MiniMax kodlama asistanı", "mcode --help", "İpucu: PATH veya ~/.minimax-code/bin"]
 setup_info = "Linux'ta PATH'te veya ~/.minimax-code/bin/mcode konumunda bulunur."
 actions = [
   { id = "open", label = "Aç", args = [] },

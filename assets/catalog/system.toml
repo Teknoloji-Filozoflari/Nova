@@ -10,7 +10,7 @@ name = "btop"
 category = "Sistem ve Kaynak Kullanımı"
 executable = "btop"
 description = "CPU, bellek, disk ve ağ kullanımını grafik olarak izler."
-examples = ["btop"]
+examples = ["btop   ← canlı CPU/bellek/disk/ağ grafikleri", "btop --help   ← seçenekler", "İpucu: çoğu izleyicide çıkmak için q"]
 
 [[tools]]
 id = "fastfetch"
@@ -18,7 +18,7 @@ name = "fastfetch"
 category = "Sistem ve Kaynak Kullanımı"
 executable = "fastfetch"
 description = "Sistem bilgilerini logoyla birlikte hızlıca özetler."
-examples = ["fastfetch"]
+examples = ["fastfetch   ← logo + sistem özeti", "fastfetch --logo none   ← logosuz özet", "fastfetch --help"]
 
 [[tools]]
 id = "procs"
@@ -26,7 +26,7 @@ name = "procs"
 category = "Sistem ve Kaynak Kullanımı"
 executable = "procs"
 description = "Renkli ve okunaklı süreç listesi; `ps`ye modern alternatif."
-examples = ["procs"]
+examples = ["procs   ← renkli süreç listesi", "procs $(whoami)   ← kendi süreçlerin", "procs --help"]
 
 [[tools]]
 id = "btm"
@@ -35,7 +35,7 @@ category = "Sistem ve Kaynak Kullanımı"
 executable = "btm"
 description = "Grafiksel sistem izleyici; btop'a alternatif."
 alternative_to = "btop"
-examples = ["btm"]
+examples = ["btm   ← bottom sistem izleyici", "btm --help", "İpucu: btop alternatifidir"]
 
 [[tools]]
 id = "dust"
@@ -43,7 +43,7 @@ name = "dust"
 category = "Sistem ve Kaynak Kullanımı"
 executable = "dust"
 description = "Dizinlerin disk kullanımını ağaç biçiminde sıralar."
-examples = ["dust"]
+examples = ["dust   ← dizin boyutu ağacı", "dust ~   ← ev dizininde", "dust -d 2   ← derinlik sınırı"]
 
 [[tools]]
 id = "duf"
@@ -51,4 +51,4 @@ name = "duf"
 category = "Sistem ve Kaynak Kullanımı"
 executable = "duf"
 description = "Diskleri ve doluluk oranlarını tablo hâlinde gösterir."
-examples = ["duf"]
+examples = ["duf   ← disk doluluk tablosu", "duf --help", "İpucu: yalnızca bağlanmış dosya sistemleri"]

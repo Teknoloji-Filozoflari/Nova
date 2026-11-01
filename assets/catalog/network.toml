@@ -10,7 +10,7 @@ name = "bandwhich"
 category = "Ağ ve Bağlantı"
 executable = "bandwhich"
 description = "Ağ bant genişliğini süreç ve bağlantı bazında gösterir. Yerel arayüzleri izlemek için ek izinler gerekebilir."
-examples = ["bandwhich"]
+examples = ["bandwhich   ← süreç bazlı ağ kullanımı", "bandwhich --help", "İpucu: bazı ortamlarda yetki ister"]
 
 [[tools]]
 id = "trip"

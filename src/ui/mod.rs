@@ -3,10 +3,10 @@
 //!
 //! Düzen terminal boyutuna göre üç kademede uyarlanır:
 //! - **Geniş (≥ 70 sütun):** kategori paneli solda, araç listesi sağda.
-//!   AI aksiyonlu araçta ve ≥ 110 sütunda detay|aksiyon mağaza gibi sağ
-//!   panele taşınır (alt şeritte istiflenmez).
+//!   AI aksiyonlu araçta ve ≥ 112 sütunda aksiyon|detay mağaza gibi sağ
+//!   panele taşınır (aksiyon solda, detay en sağda; alt şeritte istiflenmez).
 //! - **Orta (45–69 sütun):** tek sütun; kategori başlık satırında gösterilir,
-//!   araç listesi ve detay alanı görünür; AI aksiyonları detayla yan yana.
+//!   araç listesi ve detay alanı görünür; AI aksiyonları detayın solunda.
 //! - **Dar (< 45 sütun):** yalnızca araç listesi; detay ve büyük yardım
 //!   paneli gizlenir, tek satırlık kısa yardım gösterilir.
 //!
@@ -49,27 +49,32 @@ pub const HELP_HELP_MAX_HEIGHT: u16 = 10;
 /// Sol panelin (sekme listesi) genişliği.
 pub const CATEGORY_PANEL_WIDTH: u16 = 26;
 /// Mağaza kategori panelinin genişliği (üç/dört sütunlu mağaza görünümünde).
-pub const STORE_CATEGORY_PANEL_WIDTH: u16 = 26;
+/// Başlık sığacak kadar; liste `Min` ile sıkışır, detay geniş kalır.
+pub const STORE_CATEGORY_PANEL_WIDTH: u16 = 22;
 /// Mağaza sağ detay panelinin genişliği (geniş terminalde).
-pub const STORE_DETAIL_PANEL_WIDTH: u16 = 36;
-/// Dört sütunlu mağaza (sekme + kategori + uygulama + sağ detay) için en az genişlik.
-pub const STORE_DETAIL_SIDE_MIN_WIDTH: u16 = 110;
-/// Araç detay panelinin satır sayısı (üst kenarlık dâhil).
-pub const DETAIL_ROWS: u16 = 8;
-/// AI araç aksiyon listesinin genişliği (detay yanında).
-pub const TOOL_ACTIONS_PANEL_WIDTH: u16 = 28;
-/// Sağdaki araç detay bilgisinin genişliği (aksiyon paneli ayrı; mağaza detayıyla aynı).
-pub const TOOL_DETAIL_PANEL_WIDTH: u16 = 36;
-/// Dört sütunlu araç düzeni (sekme + liste + detay + aksiyon) için en az genişlik.
 ///
-/// Mağaza sağ-detay eşiğiyle aynı: yeterince genişte detay+aksiyon alt şeritte
-/// istiflenmez, içerik alanında yan yana sağ panele taşınır.
-pub const TOOL_DETAIL_SIDE_MIN_WIDTH: u16 = 110;
+/// Açıklama / kurulum / güven satırlarının okunabilir kalması için liste
+/// alanından daha geniştir; uygulama listesi `Min` ile sıkışır.
+pub const STORE_DETAIL_PANEL_WIDTH: u16 = 52;
+/// Dört sütunlu mağaza (sekme + kategori + uygulama + sağ detay) için en az genişlik.
+pub const STORE_DETAIL_SIDE_MIN_WIDTH: u16 = 114;
+/// Araç detay panelinin satır sayısı (üst kenarlık dâhil).
+pub const DETAIL_ROWS: u16 = 10;
+/// AI araç aksiyon listesinin genişliği (detayın solunda).
+pub const TOOL_ACTIONS_PANEL_WIDTH: u16 = 24;
+/// Sağdaki araç detay bilgisinin genişliği (aksiyon paneli ayrı; mağaza detayıyla aynı).
+pub const TOOL_DETAIL_PANEL_WIDTH: u16 = 48;
+/// Dört sütunlu araç düzeni (sekme + liste + aksiyon + detay) için en az genişlik.
+///
+/// Yeterince genişte aksiyon|detay alt şeritte istiflenmez; detay en sağdadır.
+pub const TOOL_DETAIL_SIDE_MIN_WIDTH: u16 = 112;
 /// Mağaza detay panelinin satır sayısı (üst kenarlık dâhil; dar/orta düzen).
 ///
 /// Geniş terminalde detay sağ panele taşınır; bu yükseklik yalnızca
 /// dar/orta düzende alt şerit için kullanılır.
-pub const STORE_DETAIL_ROWS: u16 = 13;
+pub const STORE_DETAIL_ROWS: u16 = 16;
+/// Uygulama / araç listesinin dört sütunlu düzende bırakacağı en az genişlik.
+pub const LIST_PANEL_MIN_WIDTH: u16 = 14;
 
 /// Liste panellerindeki `Borders::ALL` üst/alt kenarlık kalınlığı (satır).
 pub const LIST_BORDER: u16 = 1;
@@ -234,7 +239,17 @@ const _: () = assert!(TIGHT_HINT_WIDTH > 20);
 const _: () = assert!(TOOL_DETAIL_SIDE_MIN_WIDTH >= WIDE_MIN_WIDTH);
 const _: () = assert!(
     TOOL_DETAIL_SIDE_MIN_WIDTH
-        >= CATEGORY_PANEL_WIDTH + 20 + TOOL_DETAIL_PANEL_WIDTH + TOOL_ACTIONS_PANEL_WIDTH
+        >= CATEGORY_PANEL_WIDTH
+            + LIST_PANEL_MIN_WIDTH
+            + TOOL_DETAIL_PANEL_WIDTH
+            + TOOL_ACTIONS_PANEL_WIDTH
+);
+const _: () = assert!(
+    STORE_DETAIL_SIDE_MIN_WIDTH
+        >= CATEGORY_PANEL_WIDTH
+            + STORE_CATEGORY_PANEL_WIDTH
+            + LIST_PANEL_MIN_WIDTH
+            + STORE_DETAIL_PANEL_WIDTH
 );
 
 /// Metni en fazla `max` karakter olacak şekilde keser (UTF-8 güvenli).
@@ -244,6 +259,87 @@ pub fn truncate(text: &str, max: usize) -> String {
     }
     let kept: String = text.chars().take(max.saturating_sub(1)).collect();
     format!("{kept}…")
+}
+
+/// Metni kelime sınırlarında `width` sütuna sarar (UTF-8 güvenli).
+///
+/// Detay panelinde açıklamaların tek satıra sıkışıp `…` ile kaybolmasını
+/// önlemek için kullanılır. Boş metinde boş vektör döner.
+pub fn wrap_text(text: &str, width: usize) -> Vec<String> {
+    if width == 0 {
+        return Vec::new();
+    }
+    let text = text.trim();
+    if text.is_empty() {
+        return Vec::new();
+    }
+    let mut lines = Vec::new();
+    let mut current = String::new();
+    for word in text.split_whitespace() {
+        if word.chars().count() > width {
+            if !current.is_empty() {
+                lines.push(std::mem::take(&mut current));
+            }
+            let mut chunk = String::new();
+            for ch in word.chars() {
+                if chunk.chars().count() >= width {
+                    lines.push(std::mem::take(&mut chunk));
+                }
+                chunk.push(ch);
+            }
+            if !chunk.is_empty() {
+                current = chunk;
+            }
+            continue;
+        }
+        if current.is_empty() {
+            current = word.to_string();
+        } else if current.chars().count() + 1 + word.chars().count() <= width {
+            current.push(' ');
+            current.push_str(word);
+        } else {
+            lines.push(std::mem::take(&mut current));
+            current = word.to_string();
+        }
+    }
+    if !current.is_empty() {
+        lines.push(current);
+    }
+    lines
+}
+
+/// Mağaza detayındaki tıklanabilir / Enter ile açılan bağlantı.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StoreDetailLink {
+    /// Kısa etiket (`Kaynak` / `Depo`).
+    pub label: &'static str,
+    /// Açılacak `https://` URL.
+    pub url: String,
+}
+
+/// Seçili mağaza uygulaması için tarayıcıda açılabilir bağlantılar.
+///
+/// Sıra: önce proje kaynağı, varsa canlı takip deposu.
+pub fn store_detail_links(app: &App) -> Vec<StoreDetailLink> {
+    let Some(entry) = app.selected_store_app() else {
+        return Vec::new();
+    };
+    let mut out = Vec::new();
+    let source = entry.source.trim();
+    if source.starts_with("https://") {
+        out.push(StoreDetailLink {
+            label: "Kaynak",
+            url: source.to_string(),
+        });
+    }
+    if let Some(release) = &entry.release {
+        if let Some(url) = crate::browser::github_repo_https_url(&release.repo) {
+            if out.iter().all(|l| l.url != url) {
+                out.push(StoreDetailLink { label: "Depo", url });
+            }
+        }
+    }
+    out
 }
 
 /// Durum satırındaki mesajın rengi.
@@ -457,20 +553,20 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
         }
     } else if wide && tool_detail_side_layout(true, area.width, app.selected_tool_has_ai_actions())
     {
-        // Mağaza sağ-detay düzeninin araç karşılığı: sekme | liste | detay | aksiyon.
+        // Sekme | liste | aksiyon | detay (detay en sağda; aksiyon ondan önce).
         let panels = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
                 Constraint::Length(CATEGORY_PANEL_WIDTH),
-                Constraint::Min(20),
-                Constraint::Length(TOOL_DETAIL_PANEL_WIDTH),
+                Constraint::Min(LIST_PANEL_MIN_WIDTH),
                 Constraint::Length(TOOL_ACTIONS_PANEL_WIDTH),
+                Constraint::Length(TOOL_DETAIL_PANEL_WIDTH),
             ])
             .split(area);
         draw_categories(f, app, panels[0]);
         draw_tools(f, app, panels[1]);
-        draw_tool_detail_info(f, app, panels[2], true);
-        draw_tool_actions(f, app, panels[3]);
+        draw_tool_actions(f, app, panels[2]);
+        draw_tool_detail_info(f, app, panels[3], true);
     } else if wide {
         let panels = Layout::default()
             .direction(Direction::Horizontal)
@@ -495,12 +591,13 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
 /// sütunlar sığmaz; kategoriler üste, uygulamalar alta yerleşir.
 fn draw_store_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
     if wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH {
+        // Liste dar, detay geniş: açıklama / güven / kaynak okunaklı kalsın.
         let panels = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
                 Constraint::Length(CATEGORY_PANEL_WIDTH),
                 Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
-                Constraint::Min(20),
+                Constraint::Min(LIST_PANEL_MIN_WIDTH),
                 Constraint::Length(STORE_DETAIL_PANEL_WIDTH),
             ])
             .split(area);
@@ -514,7 +611,7 @@ fn draw_store_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
             .constraints([
                 Constraint::Length(CATEGORY_PANEL_WIDTH),
                 Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
-                Constraint::Min(20),
+                Constraint::Min(LIST_PANEL_MIN_WIDTH),
             ])
             .split(area);
         draw_categories(f, app, panels[0]);
@@ -681,6 +778,8 @@ fn draw_settings_panel(f: &mut Frame, app: &App, area: Rect) {
     };
     let actions = [
         (lang.t(Msg::Update), lang.t(Msg::UpdateHint)),
+        (lang.t(Msg::UpdateCatalog), lang.t(Msg::UpdateCatalogHint)),
+        (lang.t(Msg::AddCustomTool), lang.t(Msg::AddCustomToolHint)),
         (lang.t(Msg::Theme), theme_hint.as_str()),
         (lang.t(Msg::Language), language_hint.as_str()),
     ];
@@ -1122,17 +1221,17 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
         .map(|e| e.has_ai_actions())
         .unwrap_or(false);
     if show_actions {
-        // Dar/orta: detay | aksiyon her zaman yatay (alt alta istiflenmez).
+        // Dar/orta: aksiyon | detay (detay sağda / daha geniş).
         let action_w = TOOL_ACTIONS_PANEL_WIDTH
             .min(area.width / 2)
             .min(area.width.saturating_sub(16))
             .max(12.min(area.width / 2));
         let panels = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Min(12), Constraint::Length(action_w)])
+            .constraints([Constraint::Length(action_w), Constraint::Min(12)])
             .split(area);
-        draw_tool_detail_info(f, app, panels[0], false);
-        draw_tool_actions(f, app, panels[1]);
+        draw_tool_actions(f, app, panels[0]);
+        draw_tool_detail_info(f, app, panels[1], false);
         return;
     }
 
@@ -1167,27 +1266,34 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     let mut lines: Vec<Line> = Vec::new();
     let inner_w = area.width.saturating_sub(4) as usize;
 
-    lines.push(Line::from(vec![Span::styled(
-        format!("{} · {}", entry.name, entry.category),
-        Style::default().add_modifier(Modifier::BOLD),
-    )]));
-
     lines.push(Line::from(Span::styled(
-        truncate(&entry.description, inner_w),
-        Style::default().fg(Color::Gray),
+        entry.name.clone(),
+        Style::default().add_modifier(Modifier::BOLD),
     )));
+    lines.push(Line::from(vec![
+        Span::styled("Kategori: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(entry.category.clone(), Style::default().fg(Color::Cyan)),
+    ]));
+
+    // Açıklama: satır kırarak tam göster (küçük şerit / `…` yok).
+    for part in wrap_text(&entry.description, inner_w) {
+        lines.push(Line::from(Span::styled(
+            part,
+            Style::default().fg(Color::Gray),
+        )));
+    }
 
     let status_line = match &entry.resolved_path {
-        Some(path) => format!("{} Kurulu ({})", entry.status.symbol(), path.display()),
+        Some(path) => format!("{} Kurulu — {}", entry.status.symbol(), path.display()),
         None => format!(
-            "{} {}: {}",
+            "{} {} — program: {}",
             entry.status.symbol(),
             entry.status.label(),
             entry.executable
         ),
     };
     lines.push(Line::from(Span::styled(
-        truncate(&status_line, inner_w),
+        truncate(&status_line, inner_w.max(1)),
         Style::default().fg(status_color(entry.status)),
     )));
 
@@ -1199,37 +1305,110 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     lines.push(Line::from(vec![
         Span::styled("Komut: ", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            truncate(&cmd, inner_w.saturating_sub(7)),
+            truncate(&cmd, inner_w.saturating_sub(7).max(1)),
             Style::default().fg(Color::White),
         ),
     ]));
 
-    if !entry.examples.is_empty() {
+    let examples = enriched_tool_examples(entry);
+    if !examples.is_empty() {
+        lines.push(Line::from(""));
         lines.push(Line::from(Span::styled(
-            "Kullanım örnekleri:",
+            "Kullanım örnekleri",
             Style::default()
                 .fg(Color::DarkGray)
                 .add_modifier(Modifier::BOLD),
         )));
-        for example in &entry.examples {
-            lines.push(Line::from(vec![
-                Span::styled("  • ", Style::default().fg(Color::DarkGray)),
-                Span::styled(
-                    truncate(example, inner_w.saturating_sub(4)),
-                    Style::default().fg(Color::White),
-                ),
-            ]));
+        for (i, example) in examples.iter().enumerate() {
+            let bullet = if i % 2 == 0 { "▸ " } else { "• " };
+            for (li, part) in wrap_text(example, inner_w.saturating_sub(2).max(1))
+                .into_iter()
+                .enumerate()
+            {
+                let prefix = if li == 0 { bullet } else { "  " };
+                lines.push(Line::from(vec![
+                    Span::styled(prefix, Style::default().fg(Color::DarkGray)),
+                    Span::styled(part, Style::default().fg(Color::White)),
+                ]));
+            }
         }
     }
 
     if let Some(info) = &entry.setup_info {
-        lines.push(Line::from(Span::styled(
-            truncate(info, inner_w),
-            Style::default().fg(Color::Yellow),
-        )));
+        lines.push(Line::from(""));
+        for part in wrap_text(info, inner_w) {
+            lines.push(Line::from(Span::styled(
+                part,
+                Style::default().fg(Color::Yellow),
+            )));
+        }
     }
 
     lines
+}
+
+/// Katalog örneklerini zenginleştirir; seyrek listeleri çeşitlendirir.
+fn enriched_tool_examples(entry: &crate::catalog::CatalogEntry) -> Vec<String> {
+    let mut out: Vec<String> = entry
+        .examples
+        .iter()
+        .map(|e| e.trim().to_string())
+        .filter(|e| !e.is_empty())
+        .collect();
+    // Tek satırlık "yalnızca binary adı" örneklerini çeşitlendir.
+    if out.len() <= 1 {
+        let exe = entry.executable.as_str();
+        let only_exe = out.len() == 1 && out[0] == exe;
+        if out.is_empty() || only_exe {
+            out.clear();
+            out.extend(default_usage_examples(exe, &entry.category, &entry.name));
+        }
+    }
+    // Çok kısa listelere yardım / tipik bayrak ekle (yinelenmesin).
+    if out.len() < 3 {
+        let help = format!("{exe} --help", exe = entry.executable);
+        if !out
+            .iter()
+            .any(|e| e.contains("--help") || e.contains("help"))
+        {
+            out.push(format!("{help}   ← seçenekleri listeler"));
+        }
+    }
+    out
+}
+
+/// Kurulu araç detayında boşluğu dolduran Türkçe kullanım satırları.
+fn default_usage_examples(exe: &str, category: &str, name: &str) -> Vec<String> {
+    let mut rows = vec![
+        format!("{exe}   ← {name} arayüzünü açar"),
+        format!("{exe} --help   ← yardım ve bayraklar"),
+    ];
+    let cat = category.to_lowercase();
+    if cat.contains("ai") || cat.contains("kodlama") {
+        rows.push(format!("{exe}   ← proje dizininde etkileşimli oturum"));
+        rows.push("İpucu: sağdaki Aksiyonlar panelinden Devam et / Yardım seçilebilir.".into());
+    } else if cat.contains("git") {
+        rows.push(format!("{exe}   ← depo kökünde durum / commit TUI"));
+        rows.push(format!("cd proje && {exe}   ← belirli depoda aç"));
+    } else if cat.contains("dosya") || cat.contains("arama") {
+        rows.push(format!("{exe} .   ← geçerli dizinde gez"));
+        rows.push(format!("{exe} ~/Belgeler   ← klasör yolunu vererek aç"));
+    } else if cat.contains("sistem") || cat.contains("kaynak") {
+        rows.push(format!("{exe}   ← canlı kaynak grafikleri"));
+        rows.push("İpucu: çıkmak için çoğu izleyicide q tuşu kullanılır.".into());
+    } else if cat.contains("ağ") || cat.contains("network") {
+        rows.push(format!("{exe}   ← canlı ağ görünümü"));
+        rows.push(format!(
+            "{exe} örnek.com   ← hedef vererek çalıştır (destekliyorsa)"
+        ));
+    } else if cat.contains("docker") || cat.contains("konteyner") {
+        rows.push(format!("{exe}   ← konteyner / servis panosu"));
+    } else {
+        rows.push(format!(
+            "Terminalde `{exe}` yazarak veya Nova’da Enter ile başlatın."
+        ));
+    }
+    rows
 }
 
 /// AI araç aksiyon listesi (detay yanında; seçili AI aracında her zaman görünür).
@@ -1290,9 +1469,9 @@ fn draw_tool_actions(f: &mut Frame, app: &App, area: Rect) {
 
 /// Mağaza uygulamasının detay satırlarını üretir.
 ///
-/// Sıralama bilinçlidir: en sık bakılan bilgiler (sürüm, kurulum durumu,
-/// canlı takip) üstte durur; dar terminalde alt satırlar kırpılsa bile
-/// kullanıcı gerekli olanı görür.
+/// Sıralama bilinçlidir: ad, kategori ve **satır kırılmış açıklama** üstte;
+/// kurulum / güven / kaynak bağlantıları hemen ardından gelir. Kaynak ve depo
+/// satırları tıklanabilir / Enter ile tarayıcıda açılır.
 fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     let Some(entry) = app.selected_store_app() else {
         return vec![Line::from(Span::styled(
@@ -1310,20 +1489,36 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     } else {
         None
     };
+    let links = store_detail_links(app);
+    let link_focus = app.focus == crate::app::PanelFocus::StoreDetail;
 
     let mut lines: Vec<Line> = Vec::new();
 
-    // 1. Ad + kategori (bold).
+    // 1. Ad (bold) + kategori ayrı satır — ne olduğu hemen okunsun.
     lines.push(Line::from(Span::styled(
-        format!("{} · {}", entry.name, entry.category),
+        entry.name.clone(),
         Style::default().add_modifier(Modifier::BOLD),
     )));
+    lines.push(Line::from(vec![
+        Span::styled("Kategori: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(entry.category.clone(), Style::default().fg(Color::Cyan)),
+    ]));
 
-    // 2. Açıklama (gray).
-    lines.push(Line::from(Span::styled(
-        truncate(&entry.description, inner_w),
-        Style::default().fg(Color::Gray),
-    )));
+    // 2. Açıklama — satır kırarak; tek satırlık `…` şeridi yok.
+    let desc = entry.description.trim();
+    if desc.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "Bu uygulama için katalog açıklaması yok.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for part in wrap_text(desc, inner_w) {
+            lines.push(Line::from(Span::styled(
+                part,
+                Style::default().fg(Color::Gray),
+            )));
+        }
+    }
 
     // 3. Sürüm.
     lines.push(Line::from(vec![
@@ -1377,21 +1572,18 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         Span::styled(follow, Style::default().fg(Color::Cyan)),
     ]));
 
-    // 6. Kurulum yöntemi (host’a göre seçilmiş PM gösterilir).
+    // 6. Kurulum yöntemi — kısa kod değil, anlaşılır etiket.
     let display_method = resolved_plan
         .as_ref()
         .map(|p| p.method)
         .unwrap_or(entry.install_method);
     let method_line = if entry.install_method.is_installable() {
-        let mut label = format!(
-            "{} · {}",
-            if status == crate::detection::InstalledStatus::Installed {
-                "kurulu"
-            } else {
-                "kurulabilir"
-            },
-            display_method.short_label()
-        );
+        let state = if status == crate::detection::InstalledStatus::Installed {
+            "kurulu"
+        } else {
+            "kurulabilir"
+        };
+        let mut label = format!("{state} · {}", display_method.label());
         if display_method != entry.install_method {
             label.push_str(&format!(
                 " (katalog: {})",
@@ -1402,10 +1594,12 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     } else {
         entry.install_method.label().to_string()
     };
-    lines.push(Line::from(vec![
-        Span::styled("Kurulum: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(method_line, Style::default().fg(Color::Yellow)),
-    ]));
+    for part in wrap_text(&format!("Kurulum: {method_line}"), inner_w) {
+        lines.push(Line::from(Span::styled(
+            part,
+            Style::default().fg(Color::Yellow),
+        )));
+    }
 
     // Güven sınıfı: A/B/C/D (distro / proje+imza / kayıt defteri / manuel).
     let trust_class = entry.trust_class();
@@ -1420,13 +1614,12 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         Span::styled(entry.trust_display(), Style::default().fg(trust_color)),
     ]));
     if let Some(note) = trust_class.risk_note() {
-        lines.push(Line::from(vec![
-            Span::styled("Risk: ", Style::default().fg(Color::DarkGray)),
-            Span::styled(
-                truncate(note, inner_w.saturating_sub(7)),
+        for part in wrap_text(&format!("Risk: {note}"), inner_w) {
+            lines.push(Line::from(Span::styled(
+                part,
                 Style::default().fg(Color::Yellow),
-            ),
-        ]));
+            )));
+        }
     }
 
     if entry.install_method.is_package_manager() {
@@ -1451,18 +1644,53 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         }
     }
 
-    // 7. Kaynak ve lisans.
-    lines.push(Line::from(vec![
-        Span::styled("Kaynak: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            truncate(&entry.source, inner_w.saturating_sub(10)),
-            Style::default().fg(Color::White),
-        ),
-    ]));
+    // 7. Kaynak / depo bağlantıları (tıkla veya detayda Enter → tarayıcı).
+    if links.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("Kaynak: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                truncate(&entry.source, inner_w.saturating_sub(10).max(1)),
+                Style::default().fg(Color::White),
+            ),
+        ]));
+    } else {
+        for (i, link) in links.iter().enumerate() {
+            let selected = link_focus && i == app.store_detail_link_index;
+            let style = if selected {
+                Style::default()
+                    .fg(Color::Black)
+                    .bg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default()
+                    .fg(Color::Blue)
+                    .add_modifier(Modifier::UNDERLINED)
+            };
+            let mark = if selected { "▶ " } else { "  " };
+            lines.push(Line::from(vec![
+                Span::styled(mark, Style::default().add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    format!("{}: ", link.label),
+                    Style::default().fg(Color::DarkGray),
+                ),
+                Span::styled(
+                    truncate(
+                        &link.url,
+                        inner_w.saturating_sub(link.label.len() + 4).max(1),
+                    ),
+                    style,
+                ),
+            ]));
+        }
+        lines.push(Line::from(Span::styled(
+            "Bağlantı: tıkla veya detayda Enter → tarayıcı (xdg-open)",
+            Style::default().fg(Color::DarkGray),
+        )));
+    }
     lines.push(Line::from(vec![
         Span::styled("Lisans: ", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            truncate(&entry.license, inner_w.saturating_sub(10)),
+            truncate(&entry.license, inner_w.saturating_sub(10).max(1)),
             Style::default().fg(Color::White),
         ),
     ]));
@@ -1523,18 +1751,7 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ]));
     }
 
-    // 11. Canlı takip deposu.
-    if let Some(release) = &entry.release {
-        lines.push(Line::from(vec![
-            Span::styled("Depo: ", Style::default().fg(Color::DarkGray)),
-            Span::styled(
-                truncate(&release.repo, inner_w.saturating_sub(6)),
-                Style::default().fg(Color::Cyan),
-            ),
-        ]));
-    }
-
-    // 12. Kurulum notları (özellikle manual).
+    // 11. Kurulum notları (özellikle manual) — satır kırarak.
     if let Some(notes) = entry.install_notes.as_deref().filter(|n| !n.is_empty()) {
         lines.push(Line::from(Span::styled(
             "Notlar:",
@@ -1542,27 +1759,32 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
                 .fg(Color::DarkGray)
                 .add_modifier(Modifier::BOLD),
         )));
-        lines.push(Line::from(Span::styled(
-            truncate(notes, inner_w.saturating_mul(2).min(inner_w * 3)),
-            Style::default().fg(Color::Yellow),
-        )));
+        for part in wrap_text(notes, inner_w) {
+            lines.push(Line::from(Span::styled(
+                part,
+                Style::default().fg(Color::Yellow),
+            )));
+        }
     }
 
-    // 13. Kullanıcıya ne yapılacağını söyleyen satır (tuiui: Enter: Install).
+    // 12. Eylem ipuçları.
     let installed = status == crate::detection::InstalledStatus::Installed;
     lines.push(Line::from(""));
+    let hint = if link_focus && !links.is_empty() {
+        "Enter: seçili bağlantıyı tarayıcıda aç   Esc/←: listeye dön"
+    } else if has_update {
+        "Enter: güncelle   → detay: bağlantı   U: sürümleri denetle"
+    } else if installed {
+        "Enter: kaldır / güncelle   → detay: bağlantı   U: denetle"
+    } else if entry.install_method.is_package_manager() {
+        "Enter: kur   → detayda Enter/tık: kaynak   U: denetle"
+    } else if entry.install_method.is_archive() {
+        "Enter: kur (arşiv)   → detay: kaynak aç   U: denetle"
+    } else {
+        "Enter: resmî talimat   → detay: kaynak aç   U: denetle"
+    };
     lines.push(Line::from(Span::styled(
-        if has_update {
-            "Enter: güncelle   U: sürümleri denetle"
-        } else if installed {
-            "Enter: kaldır / güncelleme denetle   U: sürümleri denetle"
-        } else if entry.install_method.is_package_manager() {
-            "Enter: Install   U: sürümleri denetle"
-        } else if entry.install_method.is_archive() {
-            "Enter: Install (arşiv)   U: sürümleri denetle"
-        } else {
-            "Enter: resmî talimat   U: sürümleri denetle"
-        },
+        hint,
         Style::default()
             .fg(Color::DarkGray)
             .add_modifier(Modifier::BOLD),
@@ -1936,10 +2158,26 @@ mod tests {
     }
 
     #[test]
+    fn wrap_text_breaks_on_words() {
+        let lines = wrap_text("kısa bir açıklama metni burada", 12);
+        assert!(lines.len() >= 2, "{lines:?}");
+        assert!(lines.iter().all(|l| l.chars().count() <= 12), "{lines:?}");
+    }
+
+    #[test]
     fn tool_detail_side_matches_store_threshold() {
         assert!(!tool_detail_side_layout(true, 100, true));
-        assert!(tool_detail_side_layout(true, 110, true));
-        assert!(!tool_detail_side_layout(true, 110, false));
+        assert!(!tool_detail_side_layout(true, 111, true));
+        assert!(tool_detail_side_layout(
+            true,
+            TOOL_DETAIL_SIDE_MIN_WIDTH,
+            true
+        ));
+        assert!(!tool_detail_side_layout(
+            true,
+            TOOL_DETAIL_SIDE_MIN_WIDTH,
+            false
+        ));
         assert!(!tool_detail_side_layout(false, 120, true));
         let side = click_areas((120, 30), false, false, true);
         let bottom = click_areas((120, 30), false, false, false);
