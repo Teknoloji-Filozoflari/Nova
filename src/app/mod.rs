@@ -404,7 +404,14 @@ impl App {
             Some(s) => s,
             None => return Ok(()),
         };
-        let areas = crate::ui::click_areas(size, self.show_help, self.store_tab);
+        let tool_detail_side = !self.store_tab
+            && !self.settings_tab
+            && crate::ui::tool_detail_side_layout(
+                size.0 >= crate::ui::WIDE_MIN_WIDTH,
+                size.0,
+                self.selected_tool_has_ai_actions(),
+            );
+        let areas = crate::ui::click_areas(size, self.show_help, self.store_tab, tool_detail_side);
 
         match mouse.kind {
             MouseEventKind::Down(MouseButton::Left) => {
@@ -457,7 +464,11 @@ impl App {
             return;
         }
 
-        // Araç paneli (genişte sağ sütun; darda tüm içerik).
+        // Araç paneli (genişte orta/sağ sütun; AI sağ-detayda tools_end_x'e kadar;
+        // darda tüm içerik). Detay/aksiyon panelleri salt okunur tıklama yok sayılır.
+        if areas.wide && x >= areas.tools_end_x {
+            return;
+        }
         let tools = self.filtered_tools();
         if let Some(row) = list_index_at_y(y, panel_top, panel_h, self.tool_index, tools.len()) {
             if row != self.tool_index {
@@ -3932,7 +3943,7 @@ mod tests {
         // Seçimi alta indir; ratatui penceresi kayar. Görünür ilk satır
         // artık tool_index - (inner_h - 1) olmalı.
         app.tool_index = tool_count - 1;
-        let areas = crate::ui::click_areas((100, 30), false, false);
+        let areas = crate::ui::click_areas((100, 30), false, false, false);
         let inner_h = areas.content_height.saturating_sub(2);
         let offset = crate::ui::list_scroll_offset(app.tool_index, inner_h, tool_count);
         // Görünür ilk satıra tıkla → offset indeksini seçer.
@@ -3999,7 +4010,7 @@ mod tests {
         app.narrow_mode = true;
         app.select_settings_tab();
         app.open_theme_picker();
-        let areas = crate::ui::click_areas((50, 30), false, false);
+        let areas = crate::ui::click_areas((50, 30), false, false, false);
         let half = (areas.content_height / 2).max(3);
         // Alt yarıda tema paneli; kenarlık sonrası ilk tema.
         let y = areas.content_top + half + 1;

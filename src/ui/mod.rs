@@ -3,8 +3,10 @@
 //!
 //! Düzen terminal boyutuna göre üç kademede uyarlanır:
 //! - **Geniş (≥ 70 sütun):** kategori paneli solda, araç listesi sağda.
+//!   AI aksiyonlu araçta ve ≥ 110 sütunda detay|aksiyon mağaza gibi sağ
+//!   panele taşınır (alt şeritte istiflenmez).
 //! - **Orta (45–69 sütun):** tek sütun; kategori başlık satırında gösterilir,
-//!   araç listesi ve detay alanı görünür.
+//!   araç listesi ve detay alanı görünür; AI aksiyonları detayla yan yana.
 //! - **Dar (< 45 sütun):** yalnızca araç listesi; detay ve büyük yardım
 //!   paneli gizlenir, tek satırlık kısa yardım gösterilir.
 //!
@@ -56,8 +58,13 @@ pub const STORE_DETAIL_SIDE_MIN_WIDTH: u16 = 110;
 pub const DETAIL_ROWS: u16 = 8;
 /// AI araç aksiyon listesinin genişliği (detay yanında).
 pub const TOOL_ACTIONS_PANEL_WIDTH: u16 = 28;
-/// Detay yanında aksiyon listesi göstermek için en az genişlik.
-pub const TOOL_ACTIONS_SIDE_MIN_WIDTH: u16 = 64;
+/// Sağdaki araç detay bilgisinin genişliği (aksiyon paneli ayrı; mağaza detayıyla aynı).
+pub const TOOL_DETAIL_PANEL_WIDTH: u16 = 36;
+/// Dört sütunlu araç düzeni (sekme + liste + detay + aksiyon) için en az genişlik.
+///
+/// Mağaza sağ-detay eşiğiyle aynı: yeterince genişte detay+aksiyon alt şeritte
+/// istiflenmez, içerik alanında yan yana sağ panele taşınır.
+pub const TOOL_DETAIL_SIDE_MIN_WIDTH: u16 = 110;
 /// Mağaza detay panelinin satır sayısı (üst kenarlık dâhil; dar/orta düzen).
 ///
 /// Geniş terminalde detay sağ panele taşınır; bu yükseklik yalnızca
@@ -85,22 +92,38 @@ pub struct ClickAreas {
     /// Mağaza uygulama listesinin bitiş sütunu (hariç). Sağ detay paneli
     /// açıkken uygulamalar bu sütuna kadar uzar; aksi hâlde ekran sonudur.
     pub store_apps_end_x: u16,
+    /// Araç listesinin bitiş sütunu (hariç). AI detay+aksiyon sağdayken
+    /// liste bu sütuna kadar uzar; aksi hâlde ekran sonudur.
+    pub tools_end_x: u16,
     /// Mağaza kategori panelinin bittiği satır (hariç). Yalnızca mağaza
     /// sekmesinde ve dar modda anlamlıdır (kategoriler üstte).
     pub store_category_end_y: u16,
     /// Geniş mağazada detay sağda mı? (değilse alt şeritte veya gizli).
     pub store_detail_side: bool,
+    /// Geniş araç sekmesinde AI detay+aksiyon sağda mı?
+    pub tool_detail_side: bool,
+}
+
+/// Geniş terminalde AI araç detay+aksiyonun mağaza gibi sağ panele taşınıp
+/// taşınmayacağını hesaplar.
+pub fn tool_detail_side_layout(wide: bool, width: u16, has_ai_actions: bool) -> bool {
+    wide && has_ai_actions && width >= TOOL_DETAIL_SIDE_MIN_WIDTH
 }
 
 /// Terminal boyutuna göre fare tıklama alanlarını hesaplar.
-pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickAreas {
+pub fn click_areas(
+    size: (u16, u16),
+    show_help: bool,
+    store_tab: bool,
+    tool_detail_side: bool,
+) -> ClickAreas {
     let (w, h) = size;
     let wide = w >= WIDE_MIN_WIDTH;
     let store_detail_side = store_tab && wide && w >= STORE_DETAIL_SIDE_MIN_WIDTH;
     let show_detail = w >= MEDIUM_MIN_WIDTH && h >= 10;
     let tall = h >= TALL_MIN_HEIGHT;
-    // Geniş mağazada detay sağ paneledir; alt şerit yalnızca araç sekmesi
-    // veya dar/orta mağaza düzeninde yer kaplar.
+    // Geniş mağazada / AI araçlarında detay sağ paneledir; alt şerit yalnızca
+    // dar/orta düzenlerde veya aksiyonsuz araç sekmesinde yer kaplar.
     let detail_h = if show_detail {
         if store_tab {
             if store_detail_side {
@@ -108,6 +131,8 @@ pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickA
             } else {
                 STORE_DETAIL_ROWS.min(h.saturating_sub(CONTENT_MIN_HEIGHT + 3))
             }
+        } else if tool_detail_side {
+            0
         } else {
             DETAIL_ROWS
         }
@@ -116,7 +141,7 @@ pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickA
     };
     let help_height = if show_help {
         let reserved = 1 + 1 + CONTENT_MIN_HEIGHT + if show_detail { 2 } else { 0 } + 1;
-        let reserved = if store_tab {
+        let reserved = if store_tab || tool_detail_side {
             1 + 1 + CONTENT_MIN_HEIGHT + detail_h + 1
         } else {
             reserved
@@ -137,6 +162,11 @@ pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickA
     } else {
         w
     };
+    let tools_end_x = if tool_detail_side {
+        w.saturating_sub(TOOL_DETAIL_PANEL_WIDTH + TOOL_ACTIONS_PANEL_WIDTH)
+    } else {
+        w
+    };
     // Dar modda mağaza kategorileri içerik alanının üstünde durur (+2 kenarlık).
     // `draw_store_content` ile aynı: uygulama listesine en az 3 satır bırak.
     let store_category_rows = (STORE_CATEGORIES.len() as u16 + 2)
@@ -149,8 +179,10 @@ pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickA
         category_end_x,
         store_category_end_x,
         store_apps_end_x,
+        tools_end_x,
         store_category_end_y: content_top + store_category_rows,
         store_detail_side,
+        tool_detail_side,
     }
 }
 
@@ -199,6 +231,11 @@ pub fn list_index_at_y(
 const _: () = assert!(WIDE_MIN_WIDTH > MEDIUM_MIN_WIDTH);
 const _: () = assert!(TIGHT_HINT_WIDTH < WIDE_MIN_WIDTH);
 const _: () = assert!(TIGHT_HINT_WIDTH > 20);
+const _: () = assert!(TOOL_DETAIL_SIDE_MIN_WIDTH >= WIDE_MIN_WIDTH);
+const _: () = assert!(
+    TOOL_DETAIL_SIDE_MIN_WIDTH
+        >= CATEGORY_PANEL_WIDTH + 20 + TOOL_DETAIL_PANEL_WIDTH + TOOL_ACTIONS_PANEL_WIDTH
+);
 
 /// Metni en fazla `max` karakter olacak şekilde keser (UTF-8 güvenli).
 pub fn truncate(text: &str, max: usize) -> String {
@@ -265,11 +302,14 @@ pub fn draw(f: &mut Frame, app: &App) {
 
     let wide = area.width >= WIDE_MIN_WIDTH;
     let store_detail_side = app.store_tab && wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH;
+    let tool_detail_side = !app.store_tab
+        && !app.settings_tab
+        && tool_detail_side_layout(wide, area.width, app.selected_tool_has_ai_actions());
     let show_detail = area.width >= MEDIUM_MIN_WIDTH && area.height >= 10;
     let tall = area.height >= TALL_MIN_HEIGHT;
 
-    // Detay paneli: geniş mağazada sağ sütuna taşınır (alt şerit 0).
-    // Dar/orta mağazada ve araç sekmesinde alt şerit kullanılır.
+    // Detay paneli: geniş mağazada ve AI araçlarında sağ sütuna taşınır
+    // (alt şerit 0). Dar/orta düzenlerde alt şerit kullanılır.
     let detail_h = if show_detail {
         if app.store_tab {
             if store_detail_side {
@@ -277,6 +317,8 @@ pub fn draw(f: &mut Frame, app: &App) {
             } else {
                 STORE_DETAIL_ROWS.min(area.height.saturating_sub(CONTENT_MIN_HEIGHT + 3))
             }
+        } else if tool_detail_side {
+            0
         } else {
             DETAIL_ROWS
         }
@@ -289,12 +331,12 @@ pub fn draw(f: &mut Frame, app: &App) {
     // en az `CONTENT_MIN_HEIGHT` satır bırakır; küçük terminallerde ise
     // satırlar kırpılır (bkz. `draw_help`).
     //
-    // Araç sekmesinde detay panelinin yüksekliği yardımın büyümesine izin
-    // verilen alandan düşülmez (mevcut davranış korunur); mağaza sekmesinde
-    // detay daha yüksek olduğu için gerçekten düşülür.
+    // Araç sekmesinde (aksiyonsuz) detay panelinin yüksekliği yardımın
+    // büyümesine izin verilen alandan düşülmez; mağaza / AI sağ-detay
+    // düzeninde gerçek `detail_h` düşülür.
     let help_height = if app.show_help {
         let reserved = 1 + 1 + CONTENT_MIN_HEIGHT + if show_detail { 2 } else { 0 } + 1;
-        let reserved = if app.store_tab {
+        let reserved = if app.store_tab || tool_detail_side {
             1 + 1 + CONTENT_MIN_HEIGHT + detail_h + 1
         } else {
             reserved
@@ -413,6 +455,22 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
         } else {
             draw_settings_panel(f, app, area);
         }
+    } else if wide && tool_detail_side_layout(true, area.width, app.selected_tool_has_ai_actions())
+    {
+        // Mağaza sağ-detay düzeninin araç karşılığı: sekme | liste | detay | aksiyon.
+        let panels = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Length(CATEGORY_PANEL_WIDTH),
+                Constraint::Min(20),
+                Constraint::Length(TOOL_DETAIL_PANEL_WIDTH),
+                Constraint::Length(TOOL_ACTIONS_PANEL_WIDTH),
+            ])
+            .split(area);
+        draw_categories(f, app, panels[0]);
+        draw_tools(f, app, panels[1]);
+        draw_tool_detail_info(f, app, panels[2], true);
+        draw_tool_actions(f, app, panels[3]);
     } else if wide {
         let panels = Layout::default()
             .direction(Direction::Horizontal)
@@ -1043,8 +1101,8 @@ fn draw_store_detail_panel(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
-    // Geniş mağazada detay sağ paneldedir; alt şerit boş bırakılır.
-    if app.store_tab && area.height == 0 {
+    // Geniş mağaza / AI araç sağ-detayında alt şerit boş bırakılır.
+    if area.height == 0 {
         return;
     }
     let lang = app.ui_lang();
@@ -1063,43 +1121,39 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
         .selected_tool()
         .map(|e| e.has_ai_actions())
         .unwrap_or(false);
-    if show_actions && area.width >= TOOL_ACTIONS_SIDE_MIN_WIDTH {
+    if show_actions {
+        // Dar/orta: detay | aksiyon her zaman yatay (alt alta istiflenmez).
+        let action_w = TOOL_ACTIONS_PANEL_WIDTH
+            .min(area.width / 2)
+            .min(area.width.saturating_sub(16))
+            .max(12.min(area.width / 2));
         let panels = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([
-                Constraint::Min(20),
-                Constraint::Length(TOOL_ACTIONS_PANEL_WIDTH),
-            ])
+            .constraints([Constraint::Min(12), Constraint::Length(action_w)])
             .split(area);
-        draw_tool_detail_info(f, app, panels[0]);
+        draw_tool_detail_info(f, app, panels[0], false);
         draw_tool_actions(f, app, panels[1]);
         return;
     }
 
-    if show_actions {
-        // Dar detay: aksiyonlar bilgi satırlarının ardından inline listelenir
-        // (görünürlük Tab/a gerektirmez; odak Right/Tab ile ToolActions'a gider).
-        let lines = tool_detail_lines_with_actions(app, area);
-        let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
-            Block::default()
-                .borders(Borders::TOP)
-                .title(format!(" {} ", lang.t(Msg::ToolDetail))),
-        );
-        f.render_widget(detail, area);
-        return;
-    }
-
-    draw_tool_detail_info(f, app, area);
+    draw_tool_detail_info(f, app, area, false);
 }
 
-fn draw_tool_detail_info(f: &mut Frame, app: &App, area: Rect) {
+fn draw_tool_detail_info(f: &mut Frame, app: &App, area: Rect, side_panel: bool) {
     let lang = app.ui_lang();
+    let pal = palette(app);
     let lines = tool_detail_info_lines(app, area);
-    let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
+    let block = if side_panel {
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(pal.muted))
+            .title(format!(" {} ", lang.t(Msg::ToolDetail)))
+    } else {
         Block::default()
             .borders(Borders::TOP)
-            .title(format!(" {} ", lang.t(Msg::ToolDetail))),
-    );
+            .title(format!(" {} ", lang.t(Msg::ToolDetail)))
+    };
+    let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(block);
     f.render_widget(detail, area);
 }
 
@@ -1175,55 +1229,6 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         )));
     }
 
-    lines
-}
-
-fn tool_detail_lines_with_actions<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
-    let mut lines = tool_detail_info_lines(app, area);
-    let Some(entry) = app.selected_tool() else {
-        return lines;
-    };
-    if !entry.has_ai_actions() {
-        return lines;
-    }
-    let inner_w = area.width.saturating_sub(4) as usize;
-    let pal = palette(app);
-    lines.push(Line::from(Span::styled(
-        "Aksiyonlar:",
-        Style::default()
-            .fg(Color::DarkGray)
-            .add_modifier(Modifier::BOLD),
-    )));
-    for (i, action) in entry.actions.iter().enumerate() {
-        let selected = i == app.tool_action_index;
-        let focused = selected && app.focus == PanelFocus::ToolActions;
-        let style = if focused {
-            Style::default()
-                .fg(pal.accent_on)
-                .bg(pal.accent)
-                .add_modifier(Modifier::BOLD)
-        } else if selected {
-            Style::default().fg(pal.accent)
-        } else {
-            Style::default().fg(pal.text)
-        };
-        let prefix = if selected { "▶ " } else { "  " };
-        let cmd = if action.args.is_empty() {
-            entry.executable.clone()
-        } else {
-            format!("{} {}", entry.executable, action.args.join(" "))
-        };
-        lines.push(Line::from(vec![
-            Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
-            Span::styled(
-                truncate(
-                    &format!("{} · {}", action.label, cmd),
-                    inner_w.saturating_sub(2),
-                ),
-                style,
-            ),
-        ]));
-    }
     lines
 }
 
@@ -1928,6 +1933,25 @@ mod tests {
     #[test]
     fn truncate_keeps_short_text() {
         assert_eq!(truncate("htop", 10), "htop");
+    }
+
+    #[test]
+    fn tool_detail_side_matches_store_threshold() {
+        assert!(!tool_detail_side_layout(true, 100, true));
+        assert!(tool_detail_side_layout(true, 110, true));
+        assert!(!tool_detail_side_layout(true, 110, false));
+        assert!(!tool_detail_side_layout(false, 120, true));
+        let side = click_areas((120, 30), false, false, true);
+        let bottom = click_areas((120, 30), false, false, false);
+        assert!(side.tool_detail_side);
+        assert!(!bottom.tool_detail_side);
+        // Sağ panelde alt şerit kalkar → içerik alanı büyür.
+        assert!(side.content_height > bottom.content_height);
+        assert_eq!(
+            side.tools_end_x,
+            120 - TOOL_DETAIL_PANEL_WIDTH - TOOL_ACTIONS_PANEL_WIDTH
+        );
+        assert_eq!(bottom.tools_end_x, 120);
     }
 
     #[test]
