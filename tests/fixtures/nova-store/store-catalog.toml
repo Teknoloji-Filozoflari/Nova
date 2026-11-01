@@ -1,0 +1,58 @@
+# Nova-Store signed catalog fixture (tests only).
+
+[[apps]]
+id = "fixture-htop"
+name = "htop"
+category = "Sistem"
+description = "Fixture: distro PM (trust A)."
+source = "https://example.org/htop"
+license = "GPL-2.0-or-later"
+executable = "htop"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "htop"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman -S htop"
+
+[[apps]]
+id = "fixture-rg"
+name = "ripgrep"
+category = "Dosya ve Arama"
+description = "Fixture: project archive + sig (trust B)."
+source = "https://example.org/rg"
+license = "MIT"
+executable = "rg"
+install_method = "download_archive"
+version = "1.0.0"
+download_url = "https://example.org/rg-1.0.0.tar.gz"
+checksum = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+checksum_type = "sha256"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+[apps.signature]
+kind = "minisign"
+signature_url = "https://example.org/rg-1.0.0.tar.gz.minisig"
+public_key = "RWQaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+[[apps]]
+id = "fixture-ripgrep-cargo"
+name = "ripgrep-cargo"
+category = "Dosya ve Arama"
+description = "Fixture: cargo registry (trust C)."
+source = "https://example.org/rg-cargo"
+license = "MIT"
+executable = "rg"
+install_method = "cargo"
+install_command = ["cargo", "install", "ripgrep"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "cargo install ripgrep"
+
+[[apps]]
+id = "fixture-manual"
+name = "Manual App"
+category = "Günlük"
+description = "Fixture: manual docs only (trust D)."
+source = "https://example.org/manual"
+license = "MIT"
+executable = "manual-app"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "See upstream docs."

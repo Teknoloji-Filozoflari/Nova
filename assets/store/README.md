@@ -26,11 +26,15 @@ okuyup birleştirir.
 | `daily.toml` | Günlük |
 
 Yeni uygulama: doğru kategori dosyasına `[[apps]]` ekleyip yeniden derleyin.
+Uzun vadede katalog sahipliği `Teknoloji-Filozoflari/Nova-Store` deposuna
+taşınır; Nova yalnızca **imzası doğrulanmış** yayınları kabul eder
+(`store::remote`, `assets/keys/nova-store-catalog.pub`).
 
 ## Şema notları
 
 - `supported_platforms`: `linux-x64`, `linux-aarch64`
 - `artifacts`: `[[apps.artifacts]]` ile mimariye özel URL/checksum
-- `signature`: isteğe bağlı upstream imza (minisign | cosign | gpg | attestation)
+- `signature`: isteğe bağlı upstream imza (minisign | cosign | gpg | attestation) — trust class **B**
 - Kurulum yöntemleri: `manual`, `download_archive`, `pipx`, `npm`, `cargo`, `brew`, `apt`, `dnf`, `pacman`, `uv`
+- Trust class: **A** distro (apt/dnf/pacman), **B** proje ikili+imza, **C** kayıt defteri, **D** manuel
 

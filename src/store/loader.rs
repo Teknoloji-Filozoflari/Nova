@@ -150,6 +150,15 @@ pub fn load_builtin_store() -> Result<Store, Box<dyn std::error::Error>> {
     Store::from_entries(apps).map_err(|e| e.into())
 }
 
+/// Uygulama açılışı için mağaza kataloğu.
+///
+/// Önce diskteki son **imzası doğrulanmış** Nova-Store kopyasını dener;
+/// yoksa veya imza bozulmuşsa gömülü `assets/store` kullanılır. Uzak
+/// ağ çağrısı yapmaz — bkz. [`crate::store::remote`].
+pub fn load_store() -> Store {
+    crate::store::remote::load_trusted_store()
+}
+
 #[cfg(test)]
 mod tests {
     use super::{load_builtin_store, BUILTIN_STORE_SOURCES, STORE_CATEGORIES};

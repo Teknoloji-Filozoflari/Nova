@@ -128,21 +128,24 @@ fn store_tab_narrow_layout_stacks_categories_over_apps() {
 fn store_detail_shows_trust_badge() {
     let mut app = app();
     app.select_store_tab();
-    // AI kategorisindeki ilk kayıtlar manual → detayda "manual".
+    // AI kategorisindeki ilk kayıtlar pipx/npm → trust class C.
     let lines = render(&app, 150, 42);
     let text = all_text(&lines);
     assert!(text.contains("Güven:"), "detayda Güven satırı yok");
     assert!(
-        text.contains("manual") || text.contains("hash"),
-        "hash / manual güven bilgisi detayda görünmeli"
+        text.contains("C —")
+            || text.contains("D —")
+            || text.contains("A —")
+            || text.contains("B —"),
+        "A/B/C/D güven sınıfı detayda görünmeli: {text}"
     );
-    // Liste satırında [manual]/[hash] rozeti olmamalı.
+    // Liste satırında eski [manual]/[hash] rozeti olmamalı.
     assert!(
         !text.contains("[manual]") && !text.contains("[hash]") && !text.contains("[hash+sig]"),
         "liste rozetleri kaldırılmış olmalı"
     );
 
-    // Dosya ve Arama: ripgrep gibi download_archive → detayda hash.
+    // Dosya ve Arama: ripgrep gibi download_archive (imzasız) → D + hash.
     let target = nova::store::STORE_CATEGORIES
         .iter()
         .position(|c| *c == "Dosya ve Arama")
@@ -154,7 +157,7 @@ fn store_detail_shows_trust_badge() {
     assert!(!text.contains("[hash]"), "liste satırında [hash] olmamalı");
     assert!(text.contains("Güven:"), "detayda Güven satırı yok");
     assert!(
-        text.contains("yalnızca SHA-256") || text.contains("hash —"),
-        "hash güven açıklaması yok"
+        text.contains("D —") || text.contains("B —") || text.contains("(hash"),
+        "arşiv güven sınıfı/bütünlük detayda görünmeli"
     );
 }

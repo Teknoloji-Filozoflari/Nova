@@ -58,7 +58,7 @@ pub const DETAIL_ROWS: u16 = 8;
 ///
 /// Geniş terminalde detay sağ panele taşınır; bu yükseklik yalnızca
 /// dar/orta düzende alt şerit için kullanılır.
-pub const STORE_DETAIL_ROWS: u16 = 12;
+pub const STORE_DETAIL_ROWS: u16 = 13;
 
 /// Liste panellerindeki `Borders::ALL` üst/alt kenarlık kalınlığı (satır).
 pub const LIST_BORDER: u16 = 1;
@@ -1256,20 +1256,27 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         Span::styled(method_line, Style::default().fg(Color::Yellow)),
     ]));
 
-    // Güven rozeti: hash+sig / hash / manual.
-    let trust = entry.trust_level();
-    let trust_color = match trust {
-        crate::store::trust::TrustLevel::HashAndSignature => Color::Green,
-        crate::store::trust::TrustLevel::HashOnly => Color::Cyan,
-        crate::store::trust::TrustLevel::Manual => Color::DarkGray,
+    // Güven sınıfı: A/B/C/D (distro / proje+imza / kayıt defteri / manuel).
+    let trust_class = entry.trust_class();
+    let trust_color = match trust_class {
+        crate::store::trust::TrustClass::A => Color::Green,
+        crate::store::trust::TrustClass::B => Color::Cyan,
+        crate::store::trust::TrustClass::C => Color::Yellow,
+        crate::store::trust::TrustClass::D => Color::DarkGray,
     };
     lines.push(Line::from(vec![
         Span::styled("Güven: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            format!("{} — {}", trust.badge(), trust.label()),
-            Style::default().fg(trust_color),
-        ),
+        Span::styled(entry.trust_display(), Style::default().fg(trust_color)),
     ]));
+    if let Some(note) = trust_class.risk_note() {
+        lines.push(Line::from(vec![
+            Span::styled("Risk: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                truncate(note, inner_w.saturating_sub(7)),
+                Style::default().fg(Color::Yellow),
+            ),
+        ]));
+    }
 
     if entry.install_method.is_package_manager() {
         let cmd = resolved_plan
