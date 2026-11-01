@@ -27,6 +27,7 @@
 //! `include_str!` ile yüklenir.
 
 pub mod github;
+pub mod host;
 pub mod http;
 pub mod install;
 pub mod loader;
@@ -69,7 +70,7 @@ pub const STORE_CATEGORIES: &[&str] = &[
 pub const STORE_TAB_LABEL: &str = "Mağaza";
 
 /// Kurulum yöntemi.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum InstallMethod {
     /// Kullanıcının resmî kurulum yönergelerini takip etmesi gerekir.
