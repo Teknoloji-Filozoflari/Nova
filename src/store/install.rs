@@ -1011,6 +1011,24 @@ mod tests {
     use std::cell::RefCell;
     use std::io::Write;
     use std::rc::Rc;
+    use std::sync::Mutex;
+
+    /// PATH shim `HOME/.local/bin` yazar; paralel testler aynı `rg` adına
+    /// yarışmasın diye HOME değiştiren testler bu kilidi alır.
+    static SHIM_HOME_LOCK: Mutex<()> = Mutex::new(());
+
+    fn with_isolated_home<F: FnOnce()>(f: F) {
+        let _guard = SHIM_HOME_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let dir = temp_dir("shim-home");
+        let old_home = std::env::var_os("HOME");
+        std::env::set_var("HOME", &dir);
+        f();
+        match old_home {
+            Some(h) => std::env::set_var("HOME", h),
+            None => std::env::remove_var("HOME"),
+        }
+        let _ = fs::remove_dir_all(&dir);
+    }
 
     /// Sahte downloader: indirmeyi kaydeder, gerçek ağ erişimi yok.
     struct FakeDownloader {
@@ -1147,6 +1165,9 @@ mod tests {
     }
 
     /// Test kataloğundan indirilebilir bir kayıt üretir.
+    /// Test ikili adı — gerçek `rg` / sistem PATH shim’leriyle çakışmaz.
+    const TEST_EXE: &str = "nova-tst-bin";
+
     fn installable_entry(checksum: &str) -> StoreEntry {
         StoreEntry {
             id: "ornek".into(),
@@ -1155,7 +1176,7 @@ mod tests {
             category: "Günlük".into(),
             source: "https://example.org/".into(),
             license: "MIT".into(),
-            executable: "rg".into(),
+            executable: TEST_EXE.into(),
             install_method: crate::store::InstallMethod::DownloadArchive,
             supported_platforms: vec!["linux-x64".into()],
             checksum: Some(checksum.into()),
@@ -1407,14 +1428,14 @@ mod tests {
 
     #[test]
     fn install_app_rejects_checksum_mismatch_and_installs_nothing() {
-        let payload = make_tar_gz(&[("paket/rg", b"#!/bin/sh\n", true)]);
+        let payload = make_tar_gz(&[(&format!("paket/{TEST_EXE}"), b"#!/bin/sh\n" as &[u8], true)]);
         let entry = installable_entry(&"0".repeat(64));
         let dest = crate::store::test_store_dir().join("test-checksum");
         let downloader = FakeDownloader::with_payload(payload);
         let err = install_app(&entry, &dest, &downloader).unwrap_err();
         assert!(matches!(err, InstallError::Download(_)), "hata: {err}");
         assert!(
-            !dest.join("bin/rg").exists(),
+            !dest.join("bin").join(TEST_EXE).exists(),
             "checksum uyuşmazlığında hiçbir dosya kurulmamalı"
         );
         let _ = fs::remove_dir_all(&dest);
@@ -1422,33 +1443,55 @@ mod tests {
 
     #[test]
     fn install_app_succeeds_and_places_executable_in_bin() {
-        let payload = make_tar_gz(&[("paket/rg", b"#!/bin/sh\necho rg\n", true)]);
-        let sum = hex(&Sha256::digest(&payload));
-        let entry = installable_entry(&sum);
-        let dest = crate::store::test_store_dir().join("test-success");
-        let downloader = FakeDownloader::with_payload(payload);
-        let outcome = install_app(&entry, &dest, &downloader).unwrap();
-        assert_eq!(outcome.app_id, "ornek");
-        let store_bin = dest.join("bin/rg");
-        assert!(store_bin.is_file(), "store bin yazılmalı");
-        // PATH shim ~/.local/bin/rg olabilir; yoksa store yolu kalır.
-        assert!(
-            outcome.executable_path.is_file(),
-            "outcome path: {}",
-            outcome.executable_path.display()
-        );
-        assert!(
-            outcome.executable_path == store_bin
-                || outcome
-                    .executable_path
-                    .ends_with(std::path::Path::new(".local/bin/rg")),
-            "beklenen store veya ~/.local/bin shim, got {}",
-            outcome.executable_path.display()
-        );
-        assert!(outcome.summary.contains("başarıyla"));
-        // Geçici çalışma alanı temizlenmeli.
-        assert!(!dest.join(".nova-work").exists());
-        let _ = fs::remove_dir_all(&dest);
+        with_isolated_home(|| {
+            let payload = make_tar_gz(&[(
+                &format!("paket/{TEST_EXE}"),
+                b"#!/bin/sh\necho ok\n" as &[u8],
+                true,
+            )]);
+            let sum = hex(&Sha256::digest(&payload));
+            let entry = installable_entry(&sum);
+            let dest = crate::store::test_store_dir().join("test-success");
+            let downloader = FakeDownloader::with_payload(payload);
+            let outcome = install_app(&entry, &dest, &downloader).unwrap();
+            assert_eq!(outcome.app_id, "ornek");
+            let store_bin = dest.join("bin").join(TEST_EXE);
+            assert!(store_bin.is_file(), "store bin yazılmalı");
+            // PATH shim ~/.local/bin/<exe> olabilir; yoksa store yolu kalır.
+            let shim_suffix = PathBuf::from(".local/bin").join(TEST_EXE);
+            assert!(
+                outcome.executable_path == store_bin
+                    || outcome.executable_path.ends_with(&shim_suffix),
+                "beklenen store veya ~/.local/bin shim, got {}",
+                outcome.executable_path.display()
+            );
+            // Shim hedefi store bin’e işaret etmeli (dangling değil).
+            if outcome.executable_path != store_bin {
+                let target = fs::read_link(&outcome.executable_path)
+                    .unwrap_or_else(|_| outcome.executable_path.clone());
+                let resolved = if target.is_absolute() {
+                    target
+                } else {
+                    outcome
+                        .executable_path
+                        .parent()
+                        .unwrap_or(Path::new("."))
+                        .join(target)
+                };
+                assert!(
+                    resolved == store_bin
+                        || resolved.canonicalize().ok() == store_bin.canonicalize().ok(),
+                    "shim {} → {} store bin’e gitmeli",
+                    outcome.executable_path.display(),
+                    resolved.display()
+                );
+            }
+            assert!(outcome.summary.contains("başarıyla"));
+            // Geçici çalışma alanı temizlenmeli.
+            assert!(!dest.join(".nova-work").exists());
+            let _ = crate::store::path::remove_path_shim(TEST_EXE);
+            let _ = fs::remove_dir_all(&dest);
+        });
     }
 
     #[test]
@@ -1465,16 +1508,20 @@ mod tests {
 
     #[test]
     fn install_app_uses_the_entry_download_url() {
-        let payload = make_tar_gz(&[("paket/rg", b"#!/bin/sh\n", true)]);
-        let sum = hex(&Sha256::digest(&payload));
-        let entry = installable_entry(&sum);
-        let dest = crate::store::test_store_dir().join("test-url");
-        let downloader = FakeDownloader::with_payload(payload);
-        install_app(&entry, &dest, &downloader).unwrap();
-        let calls = downloader.calls.borrow();
-        assert_eq!(calls.len(), 1);
-        assert_eq!(calls[0].0, "https://example.org/ornek.tar.gz");
-        let _ = fs::remove_dir_all(&dest);
+        with_isolated_home(|| {
+            let payload =
+                make_tar_gz(&[(&format!("paket/{TEST_EXE}"), b"#!/bin/sh\n" as &[u8], true)]);
+            let sum = hex(&Sha256::digest(&payload));
+            let entry = installable_entry(&sum);
+            let dest = crate::store::test_store_dir().join("test-url");
+            let downloader = FakeDownloader::with_payload(payload);
+            install_app(&entry, &dest, &downloader).unwrap();
+            let calls = downloader.calls.borrow();
+            assert_eq!(calls.len(), 1);
+            assert_eq!(calls[0].0, "https://example.org/ornek.tar.gz");
+            let _ = crate::store::path::remove_path_shim(TEST_EXE);
+            let _ = fs::remove_dir_all(&dest);
+        });
     }
 
     #[test]
@@ -1541,43 +1588,46 @@ mod tests {
     fn install_release_uses_the_resolved_url_and_checksum() {
         // Canlı çözümlemede gelen adres/özet, gömülü katalogdakinden farklı
         // olabilir; kurulum **çözümlenen** değerleri kullanmalıdır.
-        let payload = make_tar_gz(&[("paket/rg", b"#!/bin/sh\n", true)]);
-        let sum = hex(&Sha256::digest(&payload));
-        let release = crate::store::manifest::ResolvedRelease {
-            version: "2.0.0".into(),
-            download_url: "https://example.org/yeni.tar.gz".into(),
-            checksum: sum.clone(),
-            checksum_url: "https://example.org/yeni.sha256".into(),
-        };
-        let mut entry = installable_entry(&"0".repeat(64));
-        entry.download_url = Some("https://example.org/eski.tar.gz".into());
+        with_isolated_home(|| {
+            let payload =
+                make_tar_gz(&[(&format!("paket/{TEST_EXE}"), b"#!/bin/sh\n" as &[u8], true)]);
+            let sum = hex(&Sha256::digest(&payload));
+            let release = crate::store::manifest::ResolvedRelease {
+                version: "2.0.0".into(),
+                download_url: "https://example.org/yeni.tar.gz".into(),
+                checksum: sum.clone(),
+                checksum_url: "https://example.org/yeni.sha256".into(),
+            };
+            let mut entry = installable_entry(&"0".repeat(64));
+            entry.download_url = Some("https://example.org/eski.tar.gz".into());
 
-        let dest = crate::store::test_store_dir().join("test-release");
-        let downloader = FakeDownloader::with_payload(payload);
-        let outcome = install_release(&entry, &dest, &release, &downloader).unwrap();
-        let store_bin = dest.join("bin/rg");
-        assert!(store_bin.is_file());
-        assert!(
-            outcome.executable_path == store_bin
-                || outcome
-                    .executable_path
-                    .ends_with(std::path::Path::new(".local/bin/rg")),
-            "got {}",
-            outcome.executable_path.display()
-        );
+            let dest = crate::store::test_store_dir().join("test-release");
+            let downloader = FakeDownloader::with_payload(payload);
+            let outcome = install_release(&entry, &dest, &release, &downloader).unwrap();
+            let store_bin = dest.join("bin").join(TEST_EXE);
+            assert!(store_bin.is_file());
+            let shim_suffix = PathBuf::from(".local/bin").join(TEST_EXE);
+            assert!(
+                outcome.executable_path == store_bin
+                    || outcome.executable_path.ends_with(&shim_suffix),
+                "got {}",
+                outcome.executable_path.display()
+            );
 
-        let calls = downloader.calls.borrow();
-        assert_eq!(calls.len(), 1);
-        assert_eq!(
-            calls[0].0, "https://example.org/yeni.tar.gz",
-            "canlı çözümlenen adres kullanılmalı"
-        );
-        let _ = fs::remove_dir_all(&dest);
+            let calls = downloader.calls.borrow();
+            assert_eq!(calls.len(), 1);
+            assert_eq!(
+                calls[0].0, "https://example.org/yeni.tar.gz",
+                "canlı çözümlenen adres kullanılmalı"
+            );
+            let _ = crate::store::path::remove_path_shim(TEST_EXE);
+            let _ = fs::remove_dir_all(&dest);
+        });
     }
 
     #[test]
     fn install_release_rejects_a_mismatched_checksum() {
-        let payload = make_tar_gz(&[("paket/rg", b"#!/bin/sh\n", true)]);
+        let payload = make_tar_gz(&[(&format!("paket/{TEST_EXE}"), b"#!/bin/sh\n" as &[u8], true)]);
         let release = crate::store::manifest::ResolvedRelease {
             version: "2.0.0".into(),
             download_url: "https://example.org/yeni.tar.gz".into(),
@@ -1589,7 +1639,7 @@ mod tests {
         let downloader = FakeDownloader::with_payload(payload);
         let err = install_release(&entry, &dest, &release, &downloader).unwrap_err();
         assert!(matches!(err, InstallError::Download(_)), "hata: {err}");
-        assert!(!dest.join("bin/rg").exists());
+        assert!(!dest.join("bin").join(TEST_EXE).exists());
         let _ = fs::remove_dir_all(&dest);
     }
 }
