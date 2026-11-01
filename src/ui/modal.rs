@@ -83,7 +83,46 @@ pub fn draw(f: &mut Frame, app: &App) {
             latest,
             release,
         } => draw_update_confirm(f, area, current, latest, release),
+        Modal::StoreInstalledMenu { name, index, .. } => {
+            draw_store_installed_menu(f, area, name, *index)
+        }
     }
+}
+
+fn draw_store_installed_menu(f: &mut Frame, screen: Rect, name: &str, index: usize) {
+    let width = 56.min(screen.width.saturating_sub(MODAL_MARGIN * 2));
+    let options = ["Kaldır / uninstall", "Güncelleme denetle (U)"];
+    let mut lines = vec![
+        Line::from(Span::styled(
+            format!("'{name}' kurulu — ne yapılsın?"),
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )),
+        Line::from(""),
+    ];
+    for (i, label) in options.iter().enumerate() {
+        let selected = i == index;
+        lines.push(Line::from(Span::styled(
+            format!("{} {label}", if selected { "▶" } else { " " }),
+            if selected {
+                Style::default()
+                    .fg(Color::Black)
+                    .bg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            },
+        )));
+    }
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        "↑↓ seç   Enter onayla   Esc vazgeç",
+        Style::default().fg(Color::DarkGray),
+    )));
+    let area = modal_area(screen, width, lines.len() as u16);
+    let inner = frame(f, area, "Kurulu uygulama");
+    f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
 /// Güncelleme onay ekranını çizer.

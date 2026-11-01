@@ -601,21 +601,38 @@ pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome,
     } else {
         PmIoMode::Captured
     };
-    run_package_manager_argv(entry, &plan, false, io)
+    run_package_manager_argv(entry, &plan, PmOperation::Install, io)
 }
 
-/// Önceden çözülmüş PM argv’sini çalıştırır (kurulum veya güncelleme).
+/// Paket yöneticisi işlemi türü.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PmOperation {
+    /// Kurulum.
+    Install,
+    /// Güncelleme.
+    Upgrade,
+    /// Kaldırma.
+    Uninstall,
+}
+
+/// Önceden çözülmüş PM argv’sini çalıştırır (kurulum, güncelleme veya kaldırma).
 pub fn run_package_manager_argv(
     entry: &StoreEntry,
     plan: &InstallPlan,
-    is_upgrade: bool,
+    op: PmOperation,
     io: PmIoMode,
 ) -> Result<InstallOutcome, InstallError> {
     let argv = &plan.argv;
-    if is_upgrade {
-        host::validate_upgrade_command(plan.method, argv).map_err(InstallError::Security)?;
-    } else {
-        validate_install_command(plan.method, argv).map_err(InstallError::Security)?;
+    match op {
+        PmOperation::Upgrade => {
+            host::validate_upgrade_command(plan.method, argv).map_err(InstallError::Security)?;
+        }
+        PmOperation::Uninstall => {
+            host::validate_uninstall_command(plan.method, argv).map_err(InstallError::Security)?;
+        }
+        PmOperation::Install => {
+            validate_install_command(plan.method, argv).map_err(InstallError::Security)?;
+        }
     }
     let program = &argv[0];
     let args = &argv[1..];
@@ -706,10 +723,10 @@ pub fn run_package_manager_argv(
         .1
         .unwrap_or_else(|| PathBuf::from(&entry.executable));
     let mut summary = {
-        let verb = if is_upgrade {
-            "güncellendi"
-        } else {
-            "kuruldu"
+        let verb = match op {
+            PmOperation::Upgrade => "güncellendi",
+            PmOperation::Uninstall => "kaldırıldı",
+            PmOperation::Install => "kuruldu",
         };
         format!(
             "'{}' {verb} ({}): {rendered}",
@@ -717,6 +734,17 @@ pub fn run_package_manager_argv(
             plan.method.short_label()
         )
     };
+    if op == PmOperation::Uninstall {
+        let _ = crate::store::path::remove_path_shim(&entry.executable);
+        return Ok(InstallOutcome {
+            app_id: entry.id.clone(),
+            app_name: entry.name.clone(),
+            version: entry.version.clone().unwrap_or_default(),
+            executable_path,
+            install_dir,
+            summary,
+        });
+    }
     // Yeni kabuklarda `which qwen` bulunsun diye ~/.local/bin shim.
     match crate::store::path::shim_installed_executable(&entry.executable, &executable_path) {
         Ok(shim) => {
@@ -764,7 +792,43 @@ pub fn upgrade_via_package_manager(
     } else {
         PmIoMode::Captured
     };
-    run_package_manager_argv(entry, &install, true, io)
+    run_package_manager_argv(entry, &install, PmOperation::Upgrade, io)
+}
+
+/// Arşivle kurulan uygulamayı kullanıcı alanından kaldırır.
+pub fn uninstall_archive_app(entry: &StoreEntry) -> Result<InstallOutcome, InstallError> {
+    let Some(dir) = crate::store::store_app_dir(&entry.id) else {
+        return Err(InstallError::Internal(
+            "kurulum dizini belirlenemedi ($HOME bulunamadı)".into(),
+        ));
+    };
+    if dir.exists() {
+        fs::remove_dir_all(&dir).map_err(|e| {
+            InstallError::Permission(format!("'{}' silinemedi: {e}", dir.display()))
+        })?;
+    }
+    let _ = crate::store::path::remove_path_shim(&entry.executable);
+    Ok(InstallOutcome {
+        app_id: entry.id.clone(),
+        app_name: entry.name.clone(),
+        version: entry.version.clone().unwrap_or_default(),
+        executable_path: PathBuf::from(&entry.executable),
+        install_dir: dir,
+        summary: format!("'{}' kullanıcı alanı kurulumundan kaldırıldı.", entry.name),
+    })
+}
+
+/// Host’a göre PM kaldırma planını çalıştırır.
+pub fn uninstall_via_package_manager(
+    entry: &StoreEntry,
+    plan: &InstallPlan,
+) -> Result<InstallOutcome, InstallError> {
+    let io = if plan.needs_tty_suspend() {
+        PmIoMode::Inherited
+    } else {
+        PmIoMode::Captured
+    };
+    run_package_manager_argv(entry, plan, PmOperation::Uninstall, io)
 }
 
 /// `entry` uygulamasını **canlı çözülmüş sürümden** kurar veya günceller.

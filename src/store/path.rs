@@ -125,6 +125,29 @@ pub fn ensure_path_shim(exe_name: &str, source: &Path) -> Result<PathBuf, String
     Ok(shim)
 }
 
+/// Nova’nın yazdığı `~/.local/bin/<exe>` symlink’ini kaldırır.
+///
+/// Yalnızca sembolik bağlar silinir; düz dosyalara dokunulmaz.
+pub fn remove_path_shim(exe_name: &str) -> Result<(), String> {
+    let name = exe_name.trim();
+    if name.is_empty() || name.contains('/') || name.contains(char::is_whitespace) {
+        return Err(format!("geçersiz executable adı: '{exe_name}'"));
+    }
+    let Some(bin_dir) = user_local_bin_dir() else {
+        return Ok(());
+    };
+    let shim = bin_dir.join(name);
+    match fs::symlink_metadata(&shim) {
+        Ok(meta) if meta.file_type().is_symlink() => {
+            fs::remove_file(&shim).map_err(|e| format!("'{shim:?}' silinemedi: {e}"))?;
+            Ok(())
+        }
+        Ok(_) => Ok(()),
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(err) => Err(format!("'{shim:?}' okunamadı: {err}")),
+    }
+}
+
 /// Kurulum sonrası: çözülen ikiliyi shim’le; yol yoksa atla.
 ///
 /// Hata kurulumu bozmaz; çağıran özet metnine not ekleyebilir.

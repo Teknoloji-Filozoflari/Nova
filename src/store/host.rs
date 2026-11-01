@@ -447,6 +447,163 @@ pub fn upgrade_argv(method: InstallMethod, install_argv: &[String]) -> Option<Ve
     }
 }
 
+/// Kurulum argv’sinden kaldırma argv’si üretir.
+pub fn uninstall_argv(method: InstallMethod, install_argv: &[String]) -> Option<Vec<String>> {
+    if install_argv.is_empty() {
+        return None;
+    }
+    match method {
+        InstallMethod::Pipx => {
+            let pkg = package_token(install_argv, "install")?;
+            Some(vec!["pipx".into(), "uninstall".into(), pkg])
+        }
+        InstallMethod::Uv => {
+            let pkg = uv_package_name(install_argv)?;
+            Some(vec!["uv".into(), "tool".into(), "uninstall".into(), pkg])
+        }
+        InstallMethod::Npm => {
+            let pkg = package_token(install_argv, "install")
+                .or_else(|| package_token(install_argv, "i"))?;
+            Some(vec!["npm".into(), "uninstall".into(), "-g".into(), pkg])
+        }
+        InstallMethod::Brew => {
+            let formula = package_token(install_argv, "install")?;
+            Some(vec!["brew".into(), "uninstall".into(), formula])
+        }
+        InstallMethod::Apt => {
+            let pkg = sys_package_name(install_argv)?;
+            let mut out = Vec::new();
+            if install_argv.first().map(String::as_str) == Some("sudo") {
+                out.push("sudo".into());
+            }
+            out.extend(["apt".into(), "remove".into(), "-y".into(), pkg]);
+            Some(out)
+        }
+        InstallMethod::Dnf => {
+            let pkg = sys_package_name(install_argv)?;
+            let mut out = Vec::new();
+            if install_argv.first().map(String::as_str) == Some("sudo") {
+                out.push("sudo".into());
+            }
+            out.extend(["dnf".into(), "remove".into(), "-y".into(), pkg]);
+            Some(out)
+        }
+        InstallMethod::Pacman => {
+            let pkg = sys_package_name(install_argv)?;
+            let mut out = Vec::new();
+            if install_argv.first().map(String::as_str) == Some("sudo") {
+                out.push("sudo".into());
+            }
+            out.extend(["pacman".into(), "-R".into(), "--noconfirm".into(), pkg]);
+            Some(out)
+        }
+        InstallMethod::Cargo => {
+            let pkg = cargo_package_name(install_argv)?;
+            Some(vec!["cargo".into(), "uninstall".into(), pkg])
+        }
+        InstallMethod::Manual | InstallMethod::DownloadArchive => None,
+    }
+}
+
+/// Kaldırma argv doğrulaması.
+pub fn validate_uninstall_command(method: InstallMethod, argv: &[String]) -> Result<(), String> {
+    if argv.is_empty() {
+        return Err("uninstall argv boş".into());
+    }
+    let program = argv[0].as_str();
+    match method {
+        InstallMethod::Pipx
+            if program == "pipx" && argv.get(1).map(String::as_str) == Some("uninstall") =>
+        {
+            Ok(())
+        }
+        InstallMethod::Uv
+            if program == "uv"
+                && argv.get(1).map(String::as_str) == Some("tool")
+                && argv.get(2).map(String::as_str) == Some("uninstall") =>
+        {
+            Ok(())
+        }
+        InstallMethod::Npm
+            if program == "npm" && argv.get(1).map(String::as_str) == Some("uninstall") =>
+        {
+            Ok(())
+        }
+        InstallMethod::Brew
+            if program == "brew" && argv.get(1).map(String::as_str) == Some("uninstall") =>
+        {
+            Ok(())
+        }
+        InstallMethod::Cargo
+            if program == "cargo" && argv.get(1).map(String::as_str) == Some("uninstall") =>
+        {
+            Ok(())
+        }
+        InstallMethod::Apt => {
+            let (prog, rest) = if program == "sudo" {
+                (argv.get(1).map(String::as_str), &argv[2..])
+            } else {
+                (Some(program), &argv[1..])
+            };
+            if prog != Some("apt") {
+                return Err("apt bekleniyor".into());
+            }
+            if rest.first().map(String::as_str) != Some("remove") {
+                return Err("apt remove bekleniyor".into());
+            }
+            Ok(())
+        }
+        InstallMethod::Dnf => {
+            let (prog, rest) = if program == "sudo" {
+                (argv.get(1).map(String::as_str), &argv[2..])
+            } else {
+                (Some(program), &argv[1..])
+            };
+            if prog != Some("dnf") {
+                return Err("dnf bekleniyor".into());
+            }
+            if rest.first().map(String::as_str) != Some("remove") {
+                return Err("dnf remove bekleniyor".into());
+            }
+            Ok(())
+        }
+        InstallMethod::Pacman => {
+            let (prog, rest) = if program == "sudo" {
+                (argv.get(1).map(String::as_str), &argv[2..])
+            } else {
+                (Some(program), &argv[1..])
+            };
+            if prog != Some("pacman") {
+                return Err("pacman bekleniyor".into());
+            }
+            if rest.first().map(String::as_str) != Some("-R") {
+                return Err("pacman -R bekleniyor".into());
+            }
+            Ok(())
+        }
+        _ => Err(format!(
+            "'{}' için uninstall argv geçersiz: {}",
+            method.short_label(),
+            format_install_command(argv)
+        )),
+    }
+}
+
+/// Host’a göre seçilmiş kurulum planından kaldırma planı.
+pub fn resolve_uninstall_plan(
+    entry: &StoreEntry,
+    host: &HostTools,
+    os: HostOs,
+) -> Option<InstallPlan> {
+    let install = resolve_install_plan(entry, host, os)?;
+    let argv = uninstall_argv(install.method, &install.argv)?;
+    validate_uninstall_command(install.method, &argv).ok()?;
+    Some(InstallPlan {
+        method: install.method,
+        argv,
+    })
+}
+
 /// apt/dnf/pacman/brew/npm “outdated” çıktılarından paket adı kümeleri.
 #[derive(Debug, Clone, Default)]
 pub struct OutdatedPackages {

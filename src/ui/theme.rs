@@ -54,7 +54,7 @@ impl UiTheme {
         }
     }
 
-    /// Sonraki tema (döngüsel).
+    /// Sonraki tema (döngüsel; geriye dönük / test).
     pub fn next(self) -> Self {
         match self {
             Self::Default => Self::Light,
@@ -64,7 +64,12 @@ impl UiTheme {
         }
     }
 
-    /// Tüm temalar (test / döngü).
+    /// Listede seçim için sıra numarası.
+    pub fn index(self) -> usize {
+        Self::all().iter().position(|t| *t == self).unwrap_or(0)
+    }
+
+    /// Tüm temalar (seçici panel / test).
     pub fn all() -> &'static [Self] {
         &[Self::Default, Self::Light, Self::Forest, Self::Amber]
     }
@@ -89,6 +94,9 @@ pub struct ThemePalette {
     pub error: Color,
     /// Arama vurgusu.
     pub search: Color,
+    /// Panel/arka plan boyası. `None` = terminal varsayılanı (koyu temalar).
+    /// Açık temada boyanır; aksi hâlde siyah metin koyu emülatörde kaybolur.
+    pub surface: Option<Color>,
 }
 
 impl UiTheme {
@@ -99,41 +107,47 @@ impl UiTheme {
                 accent: Color::Cyan,
                 accent_on: Color::Black,
                 text: Color::White,
-                muted: Color::DarkGray,
+                muted: Color::Gray,
                 success: Color::Green,
                 warn: Color::Yellow,
                 error: Color::Red,
                 search: Color::Yellow,
+                surface: None,
             },
+            // Açık tema: yüzey boyanır; metin koyu kalır. Yüzey yoksa bile
+            // kategori etiketleri için yeterince kontrastlı muted kullanılır.
             Self::Light => ThemePalette {
                 accent: Color::Blue,
                 accent_on: Color::White,
                 text: Color::Black,
-                muted: Color::Gray,
+                muted: Color::DarkGray,
                 success: Color::Green,
                 warn: Color::Magenta,
                 error: Color::Red,
                 search: Color::Blue,
+                surface: Some(Color::Rgb(236, 240, 245)),
             },
             Self::Forest => ThemePalette {
                 accent: Color::Green,
                 accent_on: Color::Black,
                 text: Color::White,
-                muted: Color::DarkGray,
+                muted: Color::Gray,
                 success: Color::LightGreen,
                 warn: Color::Yellow,
                 error: Color::Red,
                 search: Color::LightGreen,
+                surface: None,
             },
             Self::Amber => ThemePalette {
                 accent: Color::Yellow,
                 accent_on: Color::Black,
                 text: Color::White,
-                muted: Color::DarkGray,
+                muted: Color::Gray,
                 success: Color::Green,
                 warn: Color::LightYellow,
                 error: Color::Red,
                 search: Color::Yellow,
+                surface: None,
             },
         }
     }
