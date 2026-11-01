@@ -34,16 +34,28 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 /// Mağaza kategorileri (kısa ve anlaşılır).
+///
+/// tuiui / awesome-tuis kapsamına yaklaşır; mevcut Türkçe adlar korunur:
+/// Dashboards→Sistem, Development→Geliştirme, Editors→Editörler,
+/// File Managers→Dosya ve Arama, Docker/LXC/K8s→Konteyner,
+/// Messaging→Mesajlaşma, Multimedia→Medya, Productivity→Verimlilik,
+/// Games→Oyunlar, Miscellaneous→Günlük. Git/Ağ/Veritabanı/Güvenlik Nova’ya özgüdür.
 pub const STORE_CATEGORIES: &[&str] = &[
     "AI",
     "Git",
     "Dosya ve Arama",
+    "Geliştirme",
+    "Editörler",
     "Sistem",
     "Ağ",
     "Konteyner",
     "Veritabanı",
     "Güvenlik",
     "Medya",
+    "Mesajlaşma",
+    "Verimlilik",
+    "Oyunlar",
+    "Web",
     "Günlük",
 ];
 
