@@ -6,12 +6,12 @@
 //!    sistem dizinlerine yazma yok. Uzaktan betik shell üzerinden
 //!    çalıştırılmaz (`curl | sh` yok). SHA-256 doğrulanır; arşiv yol geçişi
 //!    korumalıdır.
-//! 2. **Paket yöneticisi (`pipx`/`npm`/`cargo`/`brew`/`apt`)**: katalogdaki
-//!    `install_command` argv'si (veya host’a göre `install_notes`
+//! 2. **Paket yöneticisi (`pipx`/`npm`/`cargo`/`brew`/`apt`/`dnf`/`uv`)**:
+//!    katalogdaki `install_command` argv'si (veya host’a göre `install_notes`
 //!    alternatifinden seçilen komut), kullanıcı onayından sonra **kabuksuz**
-//!    çalıştırılır. `sh -c` / `curl | bash` kabul edilmez. `apt` için
-//!    `sudo` argv'nin parçası olabilir; parola/TTY gerekirse kurulum
-//!    anlaşılır hata ile düşer (sessiz yükseltme yok).
+//!    çalıştırılır. `sh -c` / `curl | bash` kabul edilmez. `apt`/`dnf` için
+//!    `sudo` argv'nin parçası olabilir; parola gerekiyorsa TUI askıya alınır
+//!    ve komut gerçek TTY ile çalışır (sessiz yükseltme yok).
 //!
 //! Testlerde gerçek ağ veya dosya sistemi erişimi olmadan davranışı sınamak
 //! için [`Downloader`] ve [`Installer`] trait'leri taklit edilebilir.
@@ -23,7 +23,7 @@ use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::io::Read;
 use std::path::{Component, Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 /// Bir arşivden çıkarılacak en fazla dosya sayısı (zip bomb koruması).
 const MAX_ENTRIES: usize = 10_000;
@@ -484,12 +484,20 @@ pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
             plan.method.short_label(),
             entry.executable
         ));
-        if plan.method == InstallMethod::Apt {
-            actions.push(
-                "apt sistem paket yöneticisidir; sudo parola/TTY isterse kurulum \
-                 başarısız olabilir — o zaman komutu bir terminalde çalıştırın."
-                    .into(),
-            );
+        if plan.method.needs_elevated_tty() {
+            if plan.needs_tty_suspend() {
+                actions.push(
+                    "sudo parola gerekecek: onaydan sonra Nova kısa süre TUI’yi \
+                     bırakır, parolayı bu terminalde sorar, sonra geri döner."
+                        .into(),
+                );
+            } else if plan.uses_sudo() {
+                actions.push(
+                    "sudo kimlik bilgisi önbellekte / NOPASSWD; arka planda \
+                     kabuksuz çalıştırılacak."
+                        .into(),
+                );
+            }
         }
         if let Some(notes) = entry.install_notes.as_deref() {
             let alt = notes.lines().take(3).collect::<Vec<_>>().join(" · ");
@@ -557,12 +565,24 @@ pub fn install_app(
     install_with_source(entry, dest_dir, &source, &version, downloader)
 }
 
+/// PM sürecinin stdio bağlama biçimi.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PmIoMode {
+    /// stdout/stderr yakalanır (pipx/npm/cargo/brew ve önbellekli sudo).
+    Captured,
+    /// stdin/stdout/stderr miras alınır (sudo parola / gerçek TTY).
+    Inherited,
+}
+
 /// Katalog / host planındaki argv'yi kabuksuz çalıştırır.
 ///
 /// Kullanıcı onayı **çağıran** tarafta alınmış olmalıdır. `curl | bash`,
 /// `sh -c` ve benzeri kalıplar [`validate_install_command`] ile reddedilir.
 /// Host’ta birden fazla seçenek varsa [`resolve_entry_install_plan`] ile
 /// OS tercihine göre komut seçilir.
+///
+/// TTY gerektiren planlar için çağıran önce TUI’yi askıya almalı ve
+/// [`PmIoMode::Inherited`] geçirmelidir.
 pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome, InstallError> {
     if !entry.install_method.is_package_manager() {
         return Err(InstallError::Security(format!(
@@ -576,7 +596,12 @@ pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome,
             entry.name
         ))
     })?;
-    run_package_manager_argv(entry, &plan, false)
+    let io = if plan.needs_tty_suspend() {
+        PmIoMode::Inherited
+    } else {
+        PmIoMode::Captured
+    };
+    run_package_manager_argv(entry, &plan, false, io)
 }
 
 /// Önceden çözülmüş PM argv’sini çalıştırır (kurulum veya güncelleme).
@@ -584,6 +609,7 @@ pub fn run_package_manager_argv(
     entry: &StoreEntry,
     plan: &InstallPlan,
     is_upgrade: bool,
+    io: PmIoMode,
 ) -> Result<InstallOutcome, InstallError> {
     let argv = &plan.argv;
     if is_upgrade {
@@ -596,7 +622,7 @@ pub fn run_package_manager_argv(
 
     // sudo dışındaki programın PATH'te olması gerekir; yoksa anlaşılır hata.
     let lookup = if program == "sudo" {
-        argv.get(1).map(String::as_str).unwrap_or("apt")
+        argv.get(1).map(String::as_str).unwrap_or(plan.method.short_label())
     } else {
         program.as_str()
     };
@@ -612,33 +638,61 @@ pub fn run_package_manager_argv(
     }
 
     let rendered = format_install_command(argv);
-    let output = Command::new(program)
-        .args(args)
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .output()
-        .map_err(|e| InstallError::Internal(format!("'{rendered}' başlatılamadı: {e}")))?;
+    let mut cmd = Command::new(program);
+    cmd.args(args);
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let detail = if !stderr.trim().is_empty() {
-            stderr.trim().to_string()
-        } else if !stdout.trim().is_empty() {
-            stdout.trim().to_string()
-        } else {
-            format!("çıkış kodu {:?}", output.status.code())
-        };
-        // apt/sudo TTY/parola gibi durumları kullanıcıya açıkça söyle.
-        let hint = if plan.method == InstallMethod::Apt {
-            " (sudo parola veya etkileşimli onay gerekebilir; komutu bir terminalde deneyin)"
-        } else {
-            ""
-        };
-        return Err(InstallError::Internal(format!(
-            "'{rendered}' başarısız{hint}: {detail}"
-        )));
-    }
+    let status = match io {
+        PmIoMode::Captured => {
+            // `output()` stdout/stderr’i yakalar; parola istenen sudo için uygun değil.
+            let output = cmd
+                .stdin(Stdio::null())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .output()
+                .map_err(|e| InstallError::Internal(format!("'{rendered}' başlatılamadı: {e}")))?;
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let detail = if !stderr.trim().is_empty() {
+                    stderr.trim().to_string()
+                } else if !stdout.trim().is_empty() {
+                    stdout.trim().to_string()
+                } else {
+                    format!("çıkış kodu {:?}", output.status.code())
+                };
+                let hint = if plan.method.needs_elevated_tty() || plan.uses_sudo() {
+                    " (sudo parola veya TTY gerekebilir; Nova onayda TUI’yi bırakır — \
+                      gerekirse komutu ayrı bir terminalde deneyin)"
+                } else {
+                    ""
+                };
+                return Err(InstallError::Internal(format!(
+                    "'{rendered}' başarısız{hint}: {detail}"
+                )));
+            }
+            output.status
+        }
+        PmIoMode::Inherited => {
+            // `status()` stdio’yu korur; parola istemi /dev/tty veya inherit ile çalışır.
+            if attach_controlling_tty(&mut cmd).is_err() {
+                cmd.stdin(Stdio::inherit())
+                    .stdout(Stdio::inherit())
+                    .stderr(Stdio::inherit());
+            }
+            let status = cmd
+                .status()
+                .map_err(|e| InstallError::Internal(format!("'{rendered}' başlatılamadı: {e}")))?;
+            if !status.success() {
+                return Err(InstallError::Internal(format!(
+                    "'{rendered}' başarısız (çıkış kodu {:?}). sudo parola reddedildiyse \
+                     veya paket yoksa komutu bir terminalde deneyin.",
+                    status.code()
+                )));
+            }
+            status
+        }
+    };
+    let _ = status;
 
     let install_dir = crate::store::store_app_dir(&entry.id).unwrap_or_else(|| PathBuf::from("."));
     let executable_path = crate::detection::resolve(&entry.executable)
@@ -659,19 +713,34 @@ pub fn run_package_manager_argv(
     })
 }
 
+/// Controlling TTY’yi (`/dev/tty`) sürecin stdio’suna bağlar.
+fn attach_controlling_tty(cmd: &mut Command) -> Result<(), ()> {
+    use std::fs::OpenOptions;
+    let tty = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open("/dev/tty")
+        .map_err(|_| ())?;
+    let stdout = tty.try_clone().map_err(|_| ())?;
+    let stderr = tty.try_clone().map_err(|_| ())?;
+    cmd.stdin(Stdio::from(tty))
+        .stdout(Stdio::from(stdout))
+        .stderr(Stdio::from(stderr));
+    Ok(())
+}
+
 /// `U` ile bulunan PM güncelleme planını çalıştırır.
 pub fn upgrade_via_package_manager(
     entry: &StoreEntry,
     plan: &host::PmUpdatePlan,
 ) -> Result<InstallOutcome, InstallError> {
-    run_package_manager_argv(
-        entry,
-        &InstallPlan {
-            method: plan.method,
-            argv: plan.argv.clone(),
-        },
-        true,
-    )
+    let install = plan.as_install_plan();
+    let io = if install.needs_tty_suspend() {
+        PmIoMode::Inherited
+    } else {
+        PmIoMode::Captured
+    };
+    run_package_manager_argv(entry, &install, true, io)
 }
 
 /// `entry` uygulamasını **canlı çözülmüş sürümden** kurar veya günceller.
