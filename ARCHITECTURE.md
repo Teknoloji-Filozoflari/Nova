@@ -25,7 +25,7 @@ Katalog modeli UI'dan bağımsızdır: `catalog` ve `catalog::loader` modülleri
 | `catalog::loader` | Gömülü katalog (TOML, `include_str!`), ayrıştırma, kullanıcı dosyasıyla `id` üzerinden birleştirme | `catalog`, `config` |
 | `launcher` | Başlatma orkestrasyonu: istek → adapter → ayrık süreç | `catalog`, `error`, `which` |
 | `launcher::request` | `LaunchRequest` ve çalışma dizini doğrulaması (yan etkisiz; `from_entry_with_project` etkin projeyi geçersiz kılar) | `catalog`, `error` |
-| `launcher::terminal` | `TerminalAdapter` trait'i ve Konsole adapteri (yalnızca argüman üretir) | `launcher::request`, `error` |
+| `launcher::terminal` | `TerminalAdapter` trait'i ve emülatör adapterleri (`$TERMINAL` + bilinen liste; yalnızca argüman üretir) | `launcher::request`, `error` |
 | `detection` | PATH **ve mağaza `bin` dizinleri** üzerinden kurulum durumunu belirleme (üç durumlu) | `which`, `store` |
 | `store` | Mağaza kataloğu modeli, kategori listesi, katalog doğrulama kuralları, kurulum dizini çözümü | `serde` |
 | `store::loader` | Gömülü mağaza kataloğu (`assets/store.toml`, `include_str!`) ve doğrulaması | `store` |
@@ -207,7 +207,7 @@ Bu ayrımın amacı, testlerin gerçek bir Konsole açmadan tüm yolu sınaması
 
 Yeni bir emülatör eklemek `TerminalAdapter` trait'ini uygulayan bir struct yazmak ve `TERMINALS` listesine bir satır eklemekten ibarettir. Dinamik yükleme, harici yapılandırma veya plugin keşfi yoktur — bu, Faz 2 kapsamı dışında bırakılan bilinçli bir sadeleştirmedir.
 
-`TERMINALS: &[&dyn TerminalAdapter]` sırayla denenir; ilk `which` ile bulunan adapter seçilir. Hiçbiri bulunamazsa hata, **aranan** komut adlarını içerir.
+`preferred` boşken önce `$TERMINAL` (basename bilinen bir adapterse) denenir; sonra `TERMINALS` sırayla `which` ile aranır. Hiçbiri bulunamazsa hata, **aranan** komut adlarını içerir.
 
 ### Konsole adapteri ve doğrulanmış argüman sırası
 
@@ -406,8 +406,8 @@ etiketidir.
 
 - `S` modalı, `prefs.preferred_terminal` ve `prefs.default_working_dir` değerlerini
   düzenler; `config.toml` ve `state.toml` yollarını gösterir.
-- Terminal adı boş (varsayılan Konsole) veya `konsole` olmalıdır; desteklenmeyen
-  adapter seçimi hata verir.
+- Terminal adı boş (otomatik: `$TERMINAL` sonra bilinen liste) veya desteklenen
+  bir emülatör adı olmalıdır; desteklenmeyen adapter seçimi hata verir.
 - Çalışma dizini normalize edilir ve var olan bir dizin olduğu doğrulanır.
   Ayar ekranı dizin oluşturmaz.
 - Ayarlar tek bir atomik state yazımıyla saklanır. Yazma başarısız olursa önceki
@@ -466,7 +466,7 @@ kullanıcıya durum satırında açıklanır.
 
 ## Bilinen Eksiklikler (Faz 5 sonu)
 
-- **Yalnızca Konsole destekleniyor.** `TERMINALS` tek girdi içerir; ayarlarda başka emülatör seçimi reddedilir. Yeni emülatör eklemek adapter + bir satır kayıt işidir.
+- **Terminal seçimi çoklu emülatör.** Otomatik sıra: `$TERMINAL` → xdg-terminal-exec → kitty → alacritty → wezterm → gnome-terminal → konsole → foot → xterm → tmux. Ayarlarda bu adlardan biri seçilebilir; bilinmeyen `$TERMINAL` basename sessizce yok sayılır.
 - **Sekme açıldığı doğrulanmıyor.** Mesaj bilinçli olarak "istendi" der; IPC ile sekme izleme yok.
 - **`background` / `detached` çalıştırma biçimleri yok**; reddedilir.
 - **Form aracı düzenleme yok.** Var olan özel araç düzenlenemez; silinip yeniden eklenir.

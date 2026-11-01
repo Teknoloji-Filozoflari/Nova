@@ -819,7 +819,7 @@ fn draw_settings(
         ]));
     }
     lines.push(Line::from(Span::styled(
-        "Şu an yalnızca Konsole desteklenir; boş terminal alanı varsayılanı kullanır.",
+        "Boş = otomatik ($TERMINAL, xdg-terminal-exec, kitty, …). Desteklenen adları yazabilirsin.",
         Style::default().fg(Color::DarkGray),
     )));
     lines.push(Line::from(vec![

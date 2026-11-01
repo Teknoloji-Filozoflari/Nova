@@ -86,7 +86,8 @@ pub struct StateFile {
 /// Kalıcı tercihler.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Prefs {
-    /// Desteklenen terminal emülatörleri arasında tercih (ör. `"konsole"`).
+    /// Desteklenen terminal emülatörleri arasında tercih (ör. `"kitty"`).
+    /// `None`/boş: `$TERMINAL`, sonra bilinen emülatör listesi.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub preferred_terminal: Option<String>,
     /// `current`/`home` yerine kullanılacak varsayılan çalışma dizini.

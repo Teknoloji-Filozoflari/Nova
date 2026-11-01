@@ -1387,7 +1387,7 @@ impl App {
                 .prefs
                 .preferred_terminal
                 .clone()
-                .unwrap_or_else(|| "konsole".into()),
+                .unwrap_or_default(),
             default_working_dir: self
                 .state
                 .file
@@ -2711,12 +2711,13 @@ impl App {
         let terminal = preferred_terminal.trim();
         let preferred_terminal = if terminal.is_empty() {
             None
-        } else if terminal.eq_ignore_ascii_case("konsole") {
-            Some("konsole".to_string())
+        } else if let Some(adapter) = crate::launcher::find_adapter_by_name(terminal) {
+            Some(adapter.executable().to_string())
         } else {
-            return Err(
-                "Şu an yalnızca Konsole destekleniyor (boş bırakmak da Konsole'u seçer).".into(),
-            );
+            return Err(format!(
+                "Desteklenmeyen terminal '{terminal}' (desteklenen: {}; boş = otomatik).",
+                crate::launcher::supported_executables_list()
+            ));
         };
 
         let default_working_dir = if default_working_dir.trim().is_empty() {
