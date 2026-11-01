@@ -11,7 +11,7 @@ readme = "README.md"
 ratatui = "0.28"
 crossterm = "0.28"
 serde = { version = "1", features = ["derive"] }
-toml = "0.8"
+toml = "1.1"
 which = "8.0.6"
 # Mağaza kurulumu: SHA-256 doğrulama, güvenli tar.gz çıkarma ve HTTP indirme.
 sha2 = "0.10"
