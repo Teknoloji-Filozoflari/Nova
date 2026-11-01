@@ -1,9 +1,11 @@
-# Sürümleme ve paketleme (öneri)
+# Sürümleme ve paketleme
 
-Bu belge Nova için **önerilen** sürümleme ve dağıtım akışını tanımlar. Hiçbir
-adım otomatik olarak yapılmaz ve burada yazılan hiçbir komut yayın adı
-doğrulamaz; yayın (crates.io, AUR, distro paketleri, GitHub release) açık
-onay olmadan yapılmamalıdır.
+Bu belge Nova sürümleme ve dağıtım akışını tanımlar. crates.io / AUR / distro
+paketleri hâlâ açık onay ister. **GitHub Releases** ikili yayınları
+`.github/workflows/release.yml` ile `v*.*.*` etiketlerinde (veya elle
+`gh release`) üretilir; varlık adı
+`nova-vX.Y.Z-x86_64-unknown-linux-gnu.tar.gz` + `SHA256SUMS.txt` olmalıdır
+(Ayarlar→Güncelle / `pick_linux_asset` bunları seçer).
 
 ## Sürüm numarası
 
@@ -40,20 +42,21 @@ onay olmadan yapılmamalıdır.
   isteğe bağlı) ve `$XDG_CONFIG_HOME/nova/state.toml` (Nova yazar); XDG
   değişkeni tanımlı değilse `~/.config/nova/` kullanılır. Hiçbiri ikili ile
   birlikte dağıtılmaz.
-- Gerekli çalışma zamanı bağımlılığı: `konsole` (yalnızca yeni sekmede
-  başlatma için; `command_help` türleri ayrıca `less` veya `more` ister).
-- Hedef platform: Linux. macOS/Windows desteklenmiyor (denenmedi ve
-  Konsole adapteri yok).
+- Gerekli çalışma zamanı bağımlılığı: desteklenen bir terminal backend’i
+  (`$TERMINAL` / xdg-terminal-exec / kitty / alacritty / wezterm /
+  gnome-terminal / konsole / foot / xterm / tmux); `command_help` türleri
+  ayrıca `less` veya `more` ister.
+- Hedef platform: Linux x86_64. macOS/Windows desteklenmiyor.
 
-## Paketleme seçenekleri (hiçbiri doğrulanmadı)
+## Paketleme seçenekleri
 
 | Yol | Ne gerekir | Durum |
 |-----|-----------|-------|
-| Kaynaktan derleme (`cargo build --release`) | Rust araç zinciri | Bu depoda doğrulanan tek yol |
+| Kaynaktan derleme (`cargo build --release`) | Rust araç zinciri | Doğrulandı |
+| GitHub release (ikili) | `v*` etiket + `release.yml` veya `gh release`; tar.gz içinde `nova` | `v0.1.0` ile başladı |
 | `cargo install --path .` | Rust araç zinciri | Denenmedi |
-| crates.io | Lisans metinleri, `license` alanı, yayın onayı | Yapılmadı; yayın onayı bekliyor |
+| crates.io | Lisans metinleri, `license` alanı, yayın onayı | Yapılmadı |
 | AUR / distro paketi | Paketçi, lisans, kaynak tarball | Yapılmadı; paket adı yok |
-| GitHub release (ikili) | Etiket, imza/checksum, lisans | Yapılmadı |
 
 Distro adları (CachyOS, Debian 13, Pardus) yalnızca **hedef** olarak anılır;
 burada hiçbir paket adı veya kurulum komutu doğrulanmamıştır.
@@ -61,9 +64,7 @@ burada hiçbir paket adı veya kurulum komutu doğrulanmamıştır.
 ## Bağımlılık bakımı
 
 - `Cargo.lock` depoda tutulur (ikili uygulama).
-- Güvenlik denetimi (`cargo-audit` gibi araçlar) bu ortamda kurulu değildi ve
-  **çalıştırılmadı**; CI'ya eklenmesi önerilir. `.github/workflows/ci.yml`
-  yalnızca fmt/clippy/test çalıştırır ve o dosya da GitHub'a itilmediği için
-  hiç çalıştırılmamıştır.
+- CI (`.github/workflows/ci.yml`): fmt, clippy, test; ayrıca `cargo audit` +
+  `cargo deny check` ve haftalık zamanlama. Dependabot Cargo/Actions açar.
 - Yeni bağımlılık eklerken: gerçekten gerekli mi, lisansı projenin lisansıyla
   uyumlu mu, MSRV'yi yükseltiyor mu?
