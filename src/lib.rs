@@ -18,6 +18,7 @@ pub mod detection;
 pub mod error;
 pub mod event;
 pub mod file_picker;
+pub mod i18n;
 pub mod launcher;
 pub mod media_launcher;
 pub mod store;
