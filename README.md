@@ -1,526 +1,232 @@
 # Nova
 
-Nova, Linux'ta sık kullanılan terminal uygulamalarını ve komut satırı
-araçlarını kategorilere ayıran, açıklayan, aratan ve seçilen aracı **yeni bir
-Konsole sekmesinde** başlatmayı isteyen küçük bir TUI launcher'dır.
+<p align="center">
+  <strong>Linux terminal araçlarını keşfet, düzenle ve yeni bir Konsole sekmesinde başlat.</strong>
+</p>
 
-> **Durum:** Faz 5 (test, uyumluluk, yayın hazırlığı) tamamlandı; ancak proje
-> henüz yayımlanmadı. Nova MIT veya Apache-2.0 lisanslarından biriyle
-> kullanılabilir (bkz. [Lisans](#lisans)).
+<p align="center">
+  <a href="LICENSE-MIT"><img alt="MIT lisansı" src="https://img.shields.io/badge/lisans-MIT-blue?style=flat-square"></a>
+  <a href="LICENSE-APACHE"><img alt="Apache 2.0 lisansı" src="https://img.shields.io/badge/lisans-Apache--2.0-blue?style=flat-square"></a>
+  <img alt="Platform: Linux" src="https://img.shields.io/badge/platform-Linux-333?style=flat-square&logo=linux">
+  <img alt="Rust 2021" src="https://img.shields.io/badge/Rust-2021-orange?style=flat-square&logo=rust">
+</p>
 
-## Nova nedir, ne değildir
+Nova, sık kullanılan komut satırı araçlarını tek bir klavye odaklı arayüzde
+kategorilere ayırır. Araçları ara, favorilerine ekle, kurulum durumlarını gör
+ve seçtiğini Nova'nın oturumu açık kalırken yeni bir Konsole sekmesinde
+başlat.
 
-**Nedir:**
+> Nova geliştirme aşamasındadır. Hazır paket veya yayımlanmış ikili dosya
+> bulunmuyor; şu anda kaynak koddan derlenir.
 
-- Terminal araçlarının (opencode, btop, fzf, rg, duf…) katalogu üzerinde klavyeyle
-  gezinen, arayan, favorileyen bir başlatıcı.
-- Doğrulanabilir yayın özeti (SHA-256) olan araçları **kullanıcı alanına** indirip
-  kuran bir mağaza.
-- Kataloğu koddan ayrı tutan (TOML) ve kullanıcının kendi araçlarını eklemesine
-  izin veren bir yapı.
+## İçindekiler
 
-**Değildir:**
-
-- Araçların yerine geçmez; `btop`, `yazi`, `lazygit` gibi programları yeniden
-  yazmaz, işlevlerini içine kopyalamaz.
-- Sistem paket yöneticisi değildir: `sudo`/root istemez, sistem dizinlerine
-  yazmaz, `apt`/`pacman`/`dnf` çağırmaz. Yalnızca kullanıcı alanına kurar.
-- Güvenlik kanalı yoktur: indirilen betikleri `curl | sh` gibi kabuk üzerinden
-  çalıştırmaz. Dosyayı indirir, **SHA-256 özetini doğrular**, sonra güvenli
-  biçimde çıkarır.
-- Genel amaçlı bir görev yöneticisi, dosya yöneticisi ya da terminal emülatörü
-  değildir.
-- Konsole dışındaki terminal emülatörlerini şu an kullanmaz (bkz. [Bilinen
-  sınırlamalar](#bilinen-sınırlamalar)).
+- [Özellikler](#özellikler)
+- [Hızlı başlangıç](#hızlı-başlangıç)
+- [Klavye kısayolları](#klavye-kısayolları)
+- [Mağaza ve kurulum](#mağaza-ve-kurulum)
+- [Dosya seçici](#dosya-seçici)
+- [Yapılandırma ve kullanıcı verileri](#yapılandırma-ve-kullanıcı-verileri)
+- [Güvenlik](#güvenlik)
+- [Bilinen sınırlamalar](#bilinen-sınırlamalar)
+- [Katkıda bulunma](#katkıda-bulunma)
+- [Lisans](#lisans)
 
 ## Özellikler
 
-- Sekiz kategorili, katalogdan okunan araç listesi; arama, favoriler, başlatma
-  geçmişi.
-- Kurulum durumu (`✓` kurulu, `✗` kurulu değil, `?` kontrol edilemedi) yalnızca
-  `PATH` taranarak belirlenir; hiçbir araç tespit için çalıştırılmaz.
-- `Enter` ile araç yeni Konsole sekmesinde **istenir**; Nova'nın kendi oturumu
-  açık kalır.
-- Araç başına çalışma dizini (`home`, `custom`, `project`); oturumluk proje
-  dizini seçicisi.
-- Kullanıcı yapılandırması (`config.toml`) ile gömülü kataloğun `id` bazında
-  birleşmesi; Nova'nın yazdığı ayrı durum dosyası (`state.toml`).
-- Nova içinden yeni özel araç ekleme (doğrulama + gözden geçirme ekranı).
-- **Mağaza**: sol paneldeki sekme listesinin son satırıdır; oradan seçilince
-  ekran üç sütuna döner (kategoriler | mağaza kategorileri | uygulamalar).
-  Doğrulanabilir yayın özeti olan uygulamalar SHA-256 doğrulamasıyla kullanıcı
-  alanına kurulur, diğerleri resmî kurulum yönergesini gösterir.
-- **Canlı sürüm takibi**: mağazada `U` ile GitHub Releases denetimi; yeni
-  sürümler gösterilir ve güncellenebilir.
-- Dar terminal desteği (tek sütun, minimum ekranlar) ve panik durumunda
-  terminali geri yükleme.
+- **Araç kataloğu:** AI, Git, dosya ve arama, sistem, ağ, Docker, yardımcılar
+  ve özel araç kategorileri.
+- **Arama ve kişiselleştirme:** araç ara, favorileri ve başlatma geçmişini
+  yönet, özel araçlar ekle, proje dizinlerini kaydet.
+- **Durum bilgisi:** araçların kurulu olup olmadığı <code>PATH</code> ve Nova mağaza
+  dizinleri kontrol edilerek belirlenir; tespit sırasında araçlar çalıştırılmaz.
+- **Mağaza:** uygulama kataloğundan ayrı bir liste. Doğrulanabilir SHA-256
+  özeti olan yayınlar kullanıcı alanına kurulabilir; diğer uygulamalar için
+  resmî kurulum yönergeleri gösterilir.
+- **Dosya seçici:** resim veya videoyu seçip ayarladığın uygulamayla aç.
+- **Klavye ve fare:** ana ekrandaki kategori ve araç listelerinde tıklama ve
+  kaydırma desteği; dar terminal pencerelerine uyumlu arayüz.
+- **Türkçe arayüz:** kategori adları kısa ve kolay taranır.
 
-## Gereksinimler
+Nova bir terminal emülatörü veya sistem paket yöneticisi değildir. Mevcut
+araçları yeniden yazmaz; onları bulmayı ve başlatmayı kolaylaştırır.
 
-| Gereksinim | Durum |
-|------------|-------|
-| Linux | Hedef platform. macOS/Windows desteklenmiyor ve denenmedi. |
-| Rust araç zinciri (`cargo`, `rustc`) | Bu depoda **1.99.1** ile derlendi ve test edildi. |
-| Asgari Rust sürümü | **Belirlenmedi.** `Cargo.toml` bir MSRV bildirmiyor; yalnızca Rust 1.99.1 ile derleme ve test yapıldı. |
-| `konsole` (KDE Konsole) | Yeni sekmede başlatma için gerekli. |
-| `less` (yoksa `more`) | Yalnızca `command_help` türündeki araçların metnini göstermek için. |
+## Hızlı başlangıç
 
-`konsole` yoksa Nova açılır ve gezinmeyi destekler; yalnızca başlatma istekleri
-`Desteklenen bir terminal emülatörü bulunamadı (aranan: konsole)…` hatasıyla
-reddedilir.
+### Gereksinimler
 
-## Derleme ve çalıştırma
+- Linux
+- Rust araç zinciri (<code>cargo</code>, <code>rustc</code>)
+- Araçları yeni sekmede başlatmak için KDE Konsole (<code>konsole</code>)
+- Katalogdaki kullanım metinlerini sayfalı görüntülemek için <code>less</code> veya
+  <code>more</code> (isteğe bağlı)
 
-```bash
-cargo build            # debug
-cargo run              # derleyip çalıştır
+Konsole olmadan arayüzü açıp katalogda gezebilirsin; araç başlatma isteği
+Konsole bulunmadığında hata verir.
 
-cargo build --release  # ./target/release/nova
-```
+### Kaynaktan derleme
 
-Doğrulama komutları (CI iş akışı bu üçünü tanımlar):
+~~~~bash
+git clone https://github.com/Teknoloji-Filozoflari/Nova.git
+cd Nova
+cargo run
+~~~~
 
-```bash
-cargo fmt --check
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test
-```
+Optimizasyonlu ikili dosya oluşturmak için:
 
-Son doğrulama sonuçları bu belgenin proje sahibi tarafından güncellenir; test
-sayısı ve sonuçları için ilgili faz raporuna bakın.
-
-### Dağıtıma özgü notlar
-
-Bu bölüm her dağıtım için **ayrı** tutulur; genel adımlar yukarıdadır.
-Aşağıdaki paket adları ve komutlar bu projede **doğrulanmadı** (yalnızca hedef
-dağıtımlar olarak listelenmiştir, denenmemiş komut yazılmaz):
-
-- **CachyOS (Arch tabanlı):** hedef. Paket adları doğrulanmadı.
-- **Debian 13:** hedef. Paket adları doğrulanmadı.
-- **Pardus (Debian tabanlı):** hedef. Paket adları doğrulanmadı.
-
-Nova'da dağıtıma özgü kod yolu veya hack **yoktur**; varsayımlar yalnızca POSIX
-araçları (`$HOME`, `PATH`, `konsole`, `less`/`more`) ve KDE Konsole'dur.
+~~~~bash
+cargo build --release
+./target/release/nova
+~~~~
 
 ## Klavye kısayolları
 
+Ana ekrandaki temel kısayollar:
+
 | Tuş | İşlev |
-|-----|-------|
-| `Esc` | Yardım açıksa kapatır → aramadaysa aramayı iptal eder → hiçbiri yoksa çıkar |
-| `q` | Çıkar (arama modunda `q` harf olarak yazılır) |
-| `↑`/`↓` veya `j`/`k` | Seçimde gezinir; bekleyen durum mesajını temizler |
-| `←`/`→` veya `h`/`l` | Kategori / araç paneli arasında geçiş |
-| `Tab` | Kategori panelindeyse araç paneline geçer, araç panelindeyse seçili aracı başlatır |
-| `Enter` | Aynı davranış: kategorideyse araç paneline geçer, araçtaysa başlatır |
-| `/` | Arama başlatır (araç paneli odaklanır) |
-| `f`/`F` | Seçili aracı favorilere ekler/çıkarır (yalnızca araç panelinde) |
-| `c`/`C` | Yalnızca favorileri gösterir |
-| `r`/`R` | Başlatma geçmişini gösterir (içinde `X` + onay temizler) |
-| `p`/`P` | Proje dizini seçicisi (içinde `A` ekle, `D` listeden çıkar, `Enter` etkinleştir) |
-| `s`/`S` | Varsayılan terminali ve çalışma dizinini düzenler; dosya yollarını gösterir |
-| `m`/`M` | Mağaza sekmesine atlar (kısayol; asıl yol sol paneldeki "Mağaza" satırı) — bkz. [Mağaza](#mağaza) |
-| `u`/`U` | Nova güncellemelerini denetler; mağaza sekmesindeyken mağaza uygulamalarının canlı sürümlerini denetler |
-| `o`/`O` | Dosya seçici (seçilen dosya medya uygulamasıyla açılır) |
-| `n`/`N` | Yeni özel araç formu |
-| `d`/`D` | Özel aracı siler (onay ister) |
-| `?` | Klavye yardımı, dosya yolları ve etkin çalışma dizini |
+| --- | --- |
+| <code>↑</code> / <code>↓</code>, <code>j</code> / <code>k</code> | Listede gezin |
+| <code>←</code> / <code>→</code>, <code>h</code> / <code>l</code>, <code>Tab</code> | Paneller arasında geç |
+| <code>Enter</code> | Kategoriye geç veya seçili aracı başlat |
+| <code>/</code> | Ara |
+| <code>f</code> | Seçili aracı favorilere ekle veya çıkar |
+| <code>c</code> | Yalnızca favorileri göster veya tüm listeye dön |
+| <code>r</code> | Başlatma geçmişini aç |
+| <code>p</code> | Proje dizinlerini yönet |
+| <code>s</code> | Ayarları aç |
+| <code>m</code> | Mağaza sekmesine geç |
+| <code>u</code> | Nova'yı güncellemeyi denetle; mağaza sekmesindeyken mağaza uygulamalarını denetle |
+| <code>o</code> | Dosya seçiciyi aç |
+| <code>n</code> | Özel araç ekle |
+| <code>d</code> | Seçili özel aracı sil |
+| <code>?</code> | Yardımı göster |
+| <code>Esc</code>, <code>q</code> | Ekrana göre kapat veya çık |
 
-Modal açıkken ana ekran tuşları çalışmaz: `n`, `d`, `c`, `q` gibi harfler metin
-alanına yazılır veya yok sayılır. Onay ekranlarında `Enter` onaylar, `Esc` ve
-`n` vazgeçer.
+Onay pencerelerinde <code>Enter</code> işlemi onaylar, <code>Esc</code> vazgeçer.
+Arama etkinken <code>q</code> arama metnine yazılır; <code>Esc</code> aramayı
+iptal eder.
 
-Ayarlar ekranında terminal olarak `konsole` seçilebilir veya alan boş bırakılarak
-varsayılan kullanılabilir. Çalışma dizini mutlak yol, göreli yol ya da `~/...`
-biçiminde girilebilir; kayıt öncesi mevcut bir dizin olduğu doğrulanır. Nova
-eksik dizin oluşturmaz. Ayarlar ve katalog dosyalarının tam yolları aynı
-ekranda gösterilir. Yalnızca Konsole desteklendiği için başka terminal adları
-kabul edilmez.
+## Araç kataloğu
 
-Dar terminalde (70 sütundan dar) kategori paneli gizlenir; `h`/`←` odak
-değiştirmez, durum satırı terminali genişletmeyi önerir.
+Varsayılan araçlar <code>assets/catalog.toml</code> dosyasından yüklenir. Katalog,
+uygulama açıklamalarını, çalıştırma biçimini ve varsa güvenli kullanım
+örneklerini içerir. Araçlar yeni Konsole sekmesinde başlatılır; Nova'nın
+ana oturumu açık kalır.
 
-## Konsole entegrasyonu
+Nova, katalog girdilerindeki kurulum durumunu çalıştırılabilir dosyayı
+arayarak belirler. MiniMax Code için <code>mcode</code>, <code>PATH</code>'e ek olarak
+Linux'taki <code>~/.minimax-code/bin/mcode</code> konumunda da aranır.
 
-Nova, seçilen aracı şu biçimde yeni bir sekmede açar:
+Kendi araçlarını [yapılandırma dosyasına](#yapılandırma-ve-kullanıcı-verileri)
+ekleyebilir veya ana ekranda <code>n</code> tuşuyla oluşturabilirsin. Özel araçlar Nova
+tarafından doğrulanıp gözden geçirme ekranında gösterildikten sonra kaydedilir.
 
-```
-konsole --new-tab --workdir <dizin> -e <program> <argümanlar…>
-```
+## Mağaza ve kurulum
 
-- Program ve argümanlar **ayrı ayrı** verilir (`std::process::Command`); kabuk
-  yoktur, tek bir komut dizesi birleştirilmez.
-- Konsole süreci **ayrı** başlatılır; tüm stdio `null`'a bağlanır. Nova'nın
-  terminali bundan etkilenmez.
-- Çalışma dizini Nova tarafından doğrulanır (`--workdir` geçersizse Konsole
-  sessizce ev dizinine döner); geçersizse Nova hiçbir şey göndermez.
-- Durum satırı `… başlatılması istendi …` der. Bu **yalnızca isteğin
-  gönderildiğini** bildirir; sekmenin açıldığı Nova tarafından doğrulanamaz.
+Mağaza, araç kataloğundan ayrı olan <code>assets/store.toml</code> kataloğunu kullanır.
+<code>m</code> tuşuyla mağaza sekmesine geç; kategorilerde gezin, uygulama ara ve
+uygulamanın kaynağını, lisansını, sürümünü ve kurulum yöntemini incele.
 
-Yalnızca `terminal` çalıştırma biçimi (yeni sekme) uygulanır. `background` /
-`detached` türündeki girdiler bu sürümde reddedilir. Başka bir emülatör eklemek
-için `src/launcher/terminal.rs` içindeki adapter arayüzüne yeni bir adapter
-yazılması gerekir (mimari bunu açık bırakır; bugün yalnızca Konsole vardır).
+Mağazada iki kurulum yolu vardır:
 
-### Doğrulanmış / doğrulanmamış
+| Yöntem | Davranış |
+| --- | --- |
+| Doğrulanabilir arşiv | Nova arşivi indirir, upstream'in yayımladığı SHA-256 özetiyle doğrular ve kullanıcı alanına çıkarır. |
+| Elle kurulum | Nova kurulum yapmaz; resmî kurulum yönergelerini gösterir. |
 
-Bu depoda **gerçek ortamda** (Arch/CachyOS, Konsole 26.08.2, Wayland, PTY
-üzerinden) gözlemlenenler:
+Her kurulumdan önce onay istenir. Nova <code>sudo</code> veya root kullanmaz, sistem
+dizinlerine yazmaz ve indirdiği betikleri kabuk üzerinden çalıştırmaz.
+Kurulumlar varsayılan olarak <code>~/.local/share/nova/store/</code> altında tutulur;
+<code>NOVA_STORE_DIR</code> ile mağaza dizinini değiştirebilirsin.
 
-| Senaryo | Sonuç | Yöntem |
-|---------|-------|--------|
-| Kurulu bir TUI aracı için başlatma isteği | Konsole süreci başlatıldı, Nova açık kaldı, `q` ile normal çıkış | Gerçek `konsole` |
-| Proje diziniyle başlatma komutu | `konsole --new-tab --workdir <proje> -e <program>` (bayrakla kaydeden sahte `konsole` ile argüman kaydı) | Sahte `konsole` |
-| Eksik komut | Hiçbir süreç başlatılmadan açık hata | PTY |
-| `konsole` yok (`PATH`'te yok) | Açık hata, Nova açık kalır, `q` ile çıkış | PTY |
-| Bozuk `config.toml` | Alt ekrana girmeden hata, çıkış kodu 1 | PTY |
-| Terminal penceresi kapanması | Nova asılı kalmaz | PTY |
+Mağazada <code>U</code> tuşu canlı sürüm denetimini başlatır. Sonuçlar önbelleğe alınır;
+denetim kullanıcı isteğiyle çalışır, otomatik değildir. Yeni sürüm bulunursa
+kurulumdan önce ayrıca onay istenir. Mağaza kataloğunun kendisi Nova ile
+güncellenir; uzaktan katalog indirilmez.
 
-**Doğrulanmamış** (iddia edilmez): sekmenin gerçekten açıldığı ve aracın içinde
-çalıştığı; Debian 13 ve Pardus'ta derleme; asgari Rust sürümü; herhangi bir
-paket adı.
+## Dosya seçici
 
-## Katalog ve kullanıcı yapılandırması
+<code>o</code> tuşuyla dosya seçiciyi aç. <code>↑</code> / <code>↓</code> veya
+<code>j</code> / <code>k</code> ile seçim yap; <code>→</code> / <code>l</code> dizine girer,
+<code>←</code> / <code>h</code> üst dizine çıkar. <code>Enter</code> seçili resmi veya videoyu
+ayarlarda belirtilen uygulamayla açar.
 
-İki ayrı dosya vardır:
+Resim ve video uygulamalarını <code>s</code> ayarlarından belirle. Dosya seçici dosyaları
+silmez, taşımaz veya yeniden adlandırmaz. Açma işlemi kabuk kullanmadan
+yürütülür; Nova yalnızca uygulama sürecinin başlatıldığını doğrulayabilir.
 
-| Dosya | Sahibi | İçerik |
-|-------|--------|--------|
-| `assets/catalog.toml` (ikiliye gömülü) | Uygulama | Varsayılan katalog; güncellemeyle değişebilir |
-| `$XDG_CONFIG_HOME/nova/config.toml` (isteğe bağlı; yoksa `~/.config/nova/config.toml`) | **Sen** (elle) | Araç tanımları, `[ui]` ayarları |
-| `$XDG_CONFIG_HOME/nova/state.toml` (yoksa `~/.config/nova/state.toml`) | **Nova** | Favoriler, geçmiş, gizlenen araçlar, formla eklenen araçlar, proje dizinleri, `[prefs]` |
+## Yapılandırma ve kullanıcı verileri
 
-`XDG_CONFIG_HOME` yalnızca mutlak ve boş olmayan bir yol olduğunda kullanılır;
-tanımsız, boş veya göreli ise Nova `$HOME/.config/nova/` konumuna döner.
+| Dosya | Amaç |
+| --- | --- |
+| <code>~/.config/nova/config.toml</code> | Elle düzenlenen araç ayarları ve özel katalog girdileri |
+| <code>~/.config/nova/state.toml</code> | Nova'nın yönettiği favoriler, geçmiş, proje dizinleri ve tercihler |
 
-Nova, elle yazdığın `config.toml` dosyasını **yeniden yazmaz**. Arayüzden
-yapılan değişiklikler yalnızca `state.toml` dosyasına gider.
+<code>XDG_CONFIG_HOME</code> tanımlıysa dosyalar onun altındaki <code>nova/</code> dizinine
+yerleştirilir. Nova, elle düzenlenen <code>config.toml</code> dosyasını üzerine yazmaz;
+arayüzden kaydedilen durum <code>state.toml</code> içinde tutulur. Bozuk durum dosyası
+silinmeden yedeklenir ve kullanıcıya uyarı gösterilir.
 
-### Birleştirme kuralları
+Örnek: var olan bir aracı favorilemek veya özel bir komut eklemek:
 
-- İki kaynak `id` alanına göre birleşir: aynı `id` her ikisinde varsa dolu
-  kullanıcı alanı kazanır, boş alanlar varsayılandan gelir.
-- Yalnızca kullanıcı dosyasında olan `id` yeni araç olarak eklenir
-  (`Özel Araçlar` kategorisi bunun içindir).
-- Aynı `id` kullanıcı dosyasında iki kez geçerse açık hata verilir.
-
-Örnek `config.toml`:
-
-```toml
-[ui]
-recent_limit = 20        # 0 = varsayılan (20); 100 üzeri 100'e kırpılır
-
+~~~~toml
 [[tools]]
-id = "btop"              # mevcut aracı favori yap; diğer alanlar varsayılandan
+id = "btop"
 favorite = true
 
 [[tools]]
-id = "sunucu-uretim"
-name = "Üretim sunucusu"
-category = "Docker ve Sunucu"
+id = "sunucu-gelistirme"
+name = "Geliştirme sunucusu"
+category = "Özel Araçlar"
 executable = "ssh"
 args = ["user@host.example"]
-description = "Üretim sunucusuna bağlanır"
+description = "Geliştirme sunucusuna bağlanır"
 launch_kind = "custom_command"
+~~~~
 
-[[tools]]
-id = "opencode"
-working_directory = "project"
-working_dir_path = "/path/to/project"
-```
+Program ve argümanlar ayrı değerler olarak iletilir. <code>args</code> içinde kabuk
+genişletmesi, boru veya yönlendirme yapılmaz. Katalog şeması ve birleştirme
+kuralları için [mimari belgesine](ARCHITECTURE.md) bak.
 
-### Doğrulama kuralları
+## Güvenlik
 
-- `category` yalnızca şu sekiz değerden biri olabilir (bilinmeyen değerde
-  geçerli liste mesajda verilir): `AI ve Kodlama`, `Git ve Geliştirici
-  Araçları`, `Dosya Yönetimi ve Arama`, `Sistem ve Kaynak Kullanımı`,
-  `Ağ ve Bağlantı`, `Docker ve Sunucu`, `Günlük Terminal Yardımcıları`,
-  `Özel Araçlar`.
-- `executable` bir **program adıdır** (`ssh`); yol (`/usr/bin/ssh`) reddedilir.
-- `args` öğeleri boş olmayan ayrı argümanlardır; `|`, `>`, `$VAR` genişletilmez.
-- `launch_kind = "command_help"` için `help_text` zorunludur.
-- `custom` / `project` çalışma dizini için `working_dir_path` zorunludur.
-
-Bozuk `config.toml` sessizce yok sayılmaz: Nova alt ekrana geçmeden, dosya adı
-ve satır/sütun içeren bir hata yazar ve çıkış kodu 1 ile biter.
-
-Cloudflare örneği `config.toml` içinden özelleştirilebilir. Aynı `id` ile
-`executable` ve `args` alanlarını vererek programı, veri miktarını veya süre
-sınırını değiştirebilirsin. Varsayılan komut `curl` ile 25 MB indirir ve
-ortalama indirme hızını yazar.
-
-### Başlatma türleri (`launch_kind`)
-
-| Değer | Davranış | Örnek |
-|-------|----------|-------|
-| `interactive` (varsayılan) | Araç olduğu gibi yeni sekmede başlatılır | opencode, btop, fzf |
-| `command_help` | Araç **çalıştırılmaz**; katalogdaki sabit `help_text` sayfalayıcıda gösterilir | rg, fd, jq, curl |
-| `shell_integration_info` | Araç çalıştırılmaz; kabuk/git entegrasyonu bilgisi gösterilir | atuin, delta |
-| `custom_command` | Katalogdaki `executable` + `args` çalıştırılır | SSH profilleri |
-
-`help_text` asla `--help` çalıştırılarak üretilmez. `command_help` /
-`shell_integration_info` metinleri geçici bir dosyaya yazılıp sayfalayıcıya
-(`less`, yoksa `more`) geçirilir. Her istek için geçici dizinde özel bir
-`0700` klasör ve içinde `0600` izinli `help.txt` dosyası oluşturulur; mevcut
-dosyalar takip edilmez.
-Konsole isteği asenkron işlediğinden, Nova'nın dahili sayfalayıcı modu metni
-gösterir ve sayfalayıcı kapandıktan sonra dosyayı siler. Konsole dahili modu
-başlatamazsa artık dosya ve klasör geçici dizinde kalabilir.
-
-### Çalışma dizini
-
-| Değer | Anlamı |
-|-------|--------|
-| `current` (veya boş) | Ev dizini (`$HOME`) |
-| `home` | Ev dizini |
-| `custom` / `project` | `working_dir_path` içindeki dizin. Oturumda etkin bir proje dizini varsa `project` için o dizin kullanılır. |
-
-Yol mutlak ve var olan bir dizin olmalıdır; değilse başlatma reddedilir. Nova
-asla sessizce ev dizinine düşmez.
-
-### `state.toml`
-
-```toml
-favorites = ["curl", "btop"]
-
-[[recents]]                # en yeni önce, en fazla recent_limit kayıt
-id = "btop"
-name = "btop"
-at = 1761750000            # UNIX saniye
-status = "request_sent"    # veya "rejected"
-
-hidden_tools = ["sshd-baglantim"]
-project_dirs = ["/path/to/project"]
-
-[prefs]
-recent_limit = 20
-# default_working_dir = "/path/to/workspace"
-# preferred_terminal = "konsole"
-```
-
-- **Yazma güvenliği:** aynı dizinde benzersiz bir geçici dosya `0600` izinleri
-  ve çakışmayı önleyen oluşturma ile açılır, `sync_all` ile diske indirilir,
-  sonra `state.toml` adına yeniden adlandırılır. Var olan `config.toml`
-  değiştirilmez.
-- **Bozuk dosya:** silinmez; `state.toml.bozuk-<unix>` olarak yedeklenir ve
-  uygulama boş durumla açılır. Tek bir bozuk özel araç kaydı yalnızca kendisini
-  düşürür.
-- **Favoriler** `id` ile saklanır; katalogdan kalkan aracın kimliği listede
-  kalır.
-- **Geçmiş** Enter ile yapılan başlatma denemelerini yazar. `request_sent`,
-  terminale isteğin gönderildiğini; `rejected` ise denemenin reddedildiğini
-  belirtir. İstek gönderilmiş olması harici uygulamanın sağlıklı çalıştığını
-  kanıtlamaz. Eski kayıtlarda durum alanı yoksa `request_sent` kabul edilir.
-- **Proje dizinleri** kalıcıdır, etkin seçim oturumluktur; yol oluşturulmaz.
-
-## Özel araçlar
-
-`n` ile açılan form: görünen ad, açıklama, kategori, program, argümanlar, çalışma
-dizini ve çalıştırma türü. `←`/`→` ile `etkileşimli` veya `özel komut` seçilir.
-`Enter` doğrular; doğruysa gözden geçirme ekranında kaydedilecek tam
-kayıt gösterilir, `Enter` ile `state.toml` dosyasına yazılır, `Esc` ile forma
-dönülür.
-
-- Ad ve program boş olamaz; program boşluk veya `/` içeremez.
-- Argümanlar yalnızca boşlukla ayrılır; tırnak, `*`, `$HOME` ve boru
-  yorumlanmaz, olduğu gibi tek argüman olarak geçer.
-- Çalışma dizini boş bırakılırsa ev dizini kullanılır.
-- `etkileşimli` tür bu formda argüman kabul etmez; `özel komut` argümanları
-  kabuksuz ve ayrı ayrı geçirir. Kullanım metni ve kabuk entegrasyonu bilgi
-  türleri ek metin gerektirdiği için `config.toml` içinde tanımlanır.
-- Gözden geçirme ekranı çalışacak programı, argümanları, dizini ve türü gösterir.
-  Özel program Nova tarafından doğrulanmaz ve kendi kullanıcı yetkilerinle
-  çalışır; Nova shell çalıştırmaz, programı kurmaz veya güncellemez.
-- Var olan özel araç düzenlenemez (silip yeniden eklenir).
-- `config.toml` araçları Nova'da "silinince" dosyadan silinmez, `hidden_tools`
-  içine eklenir.
-
-## Mağaza
-
-Mağaza, uygulama kataloğundan **ayrı** bir listedir (`assets/store.toml`) ve
-ayrı bir ekran (modal) değildir: **sol paneldeki sekme listesinin son satırıdır.**
-Sekme seçildiğinde ekran üç sütuna döner:
-
-```
-┌ Kategoriler ────────┐ ┌ Mağaza Kategorileri ┐ ┌ Dosya ve Arama ──────┐
-│▶ AI                 │ │▶ AI            (3) │ │ ▶ ✓ ripgrep (rg)     │
-│  Git                │ │  Git           (1) │ │   ✓ fzf              │
-│  …                  │ │  Dosya ve Arama(4)│ │   · eza              │
-│  Mağaza (19)        │ │  Sistem       (2) │ │   · bat              │
-└─────────────────────┘ └───────────────────┘ └──────────────────────┘
-```
-
-- **Sol sütun** her zaman sekme listesidir: sekiz araç kategorisi ve en altta
-  "Mağaza".
-- **Orta sütun** mağaza kategorilerini, **sağ sütun** o kategorideki
-  uygulamaları gösterir. Altta mağaza detayı yer alır (sürüm, kurulum durumu,
-  canlı takip, kaynak, lisans).
-- `m` tuşu doğrudan mağaza sekmesine atlar (kısayoldur; asıl yol sekme
-  listesidir). `h`/`l` (ya da `←`/`→`) paneller arasında gezinir, `↑`/`↓`
-  seçimi taşır.
-- Dar terminalde üç sütun yan yana sığmaz; mağaza kategorileri üste,
-  uygulamalar alta yerleşir.
-
-Uygulamalar kategoriye ve ada göre aranabilir (`/`); detay ekranında ne işe
-yaradığı, kaynağı, lisansı, sürümü, kurulu olup olmadığı ve desteklenen kurulum
-yöntemi gösterilir.
-
-### İki kurulum yöntemi
-
-| Yöntem | Anlamı | Nova ne yapar |
-|--------|--------|---------------|
-| `download_archive` | Upstream doğrulanabilir bir yayın özeti yayımlıyor | İndirir, **SHA-256 özetini doğrular**, güvenle çıkarır, kullanıcı alanına kurar |
-| `manual` | Upstream doğrulanabilir özet yayımlamıyor | Kurulum yapmaz; resmî kurulum yönergesini gösterir |
-
-`download_archive` kaydı **mutlaka** `download_url` ve `checksum` içermelidir;
-eksik bir kayıt katalog yüklenirken reddedilir. Böylece "Kur" düğmesi yalnızca
-gerçekten doğrulanabilir bir indirme için görünür.
-
-### Şu anda indirilebilir olan uygulamalar
-
-| Uygulama | Sürüm | Platform |
-|----------|-------|----------|
-| [ripgrep](https://github.com/BurntSushi/ripgrep) | 15.2.0 | linux-x64 (musl) |
-| [fzf](https://github.com/junegunn/fzf) | 0.74.5 | linux-x64 |
-| [eza](https://github.com/eza-community/eza) | 0.23.5 | linux-x64 (musl) |
-| [lazygit](https://github.com/jesseduffield/lazygit) | 0.66.2 | linux-x64 |
-| [lazydocker](https://github.com/jesseduffield/lazydocker) | 0.25.2 | linux-x64 |
-| [duf](https://github.com/muesli/duf) | 0.9.1 | linux-x64 |
-
-Özetler upstream'in kendi yayın checksum dosyalarından alınmıştır
-(ripgrep/fzf için `SHA256SUMS`, lazygit/lazydocker/duf için `checksums.txt`,
-eza için yayın notları) ve Nova tarafından **indirilen dosyanın özetiyle
-karşılaştırılarak** doğrulanır.
-
-### Kurulum akışı
-
-1. Mağazada uygulama seçilir, `Enter` ile **onay** istenir (uygulama, sürüm,
-   kaynak, hedef dizin ve yapılacak işlemler gösterilir).
-2. Arşiv indirilir. İndirme arka planda yürür; Nova'nın ana döngüsü
-   kilitlenmez, durum satırında ilerleme görünür.
-3. **SHA-256 özeti doğrulanır.** Uyuşmazlıkta kurulum durur ve **hiçbir dosya
-   yazılmaz**.
-4. Arşiv geçici bir dizine çıkarılır: mutlak yollar ve `..` bileşenleri
-   reddedilir, sembolik bağ oluşturulmaz, girdi sayısı ve toplam boyut
-   sınırlıdır.
-5. Çalıştırılabilir dosya bulunur ve `~/.local/share/nova/store/<id>/bin/`
-   altına `0755` izniyle yerleştirilir. Geçici dosyalar silinir.
-
-Kurulum tamamen kullanıcı alanındadır: `sudo`/root yok, sistem dizinlerine
-yazılmaz, sistem paket yöneticisi çağrılmaz, indirilen betik kabuk üzerinden
-çalıştırılmaz. `NOVA_STORE_DIR` ortam değişkeniyle mağaza dizini
-taşınabilir/taşınabilir-kurulum için değiştirilebilir.
-
-Mağazadan kurulan uygulama, PATH'te olmasa bile Nova'da "kurulu" görünür:
-tespit sırasında mağazanın `bin` dizinleri de taranır.
-
-### Canlı sürüm takibi
-
-Mağaza sekmesinde `U` tuşu **canlı sürüm denetimi** yapar: izlenen her uygulamanın
-GitHub deposundaki en güncel yayını sorgulanır ve yeni sürüm varsa mağaza
-detayında "yeni sürüm X → Y" olarak gösterilir. `Enter` ile güncelleme
-onaylanır.
-
-Bu, "uzaktan gelen katalog" **değildir**. Güvenlik modeli şöyledir:
-
-| Ne | Nerden gelir | Değiştirilebilir mi |
-|-----|--------------|---------------------|
-| Hangi depo izlenecek | Gömülü `assets/store.toml` | Hayır — kullanıcı değiştiremez, ağ da değiştiremez |
-| Arşiv dosyasının adı | Gömülü katalog | Hayır |
-| En güncel sürüm | GitHub Releases API | Yalnızca ipucu |
-| SHA-256 özeti | **Upstream'in kendi** checksum dosyası (ya da yayın notları) | Hayır |
-
-Yani ağdan gelen veri yalnızca "şu sürümü kontrol et" demektir; çalıştırılacak
-dosyanın bütünlüğü upstream'in yayımladığı özetle korunur. Upstream özeti
-değiştirilmeden tek bir bayt bile kurulamaz.
-
-Mağaza kataloğu ise **gömülü kalır**; Nova'nın kendi deposundan uzaktan
-okunmaz. Yeni bir mağaza uygulaması eklemek Nova'nın güncellenmesiyle olur,
-sürüm numarasının tazeliği ise `U` tuşu ve önbellek döngüsüyle sağlanır. Bu,
-bütünlüğün tek bir güvenlik sınırından (upstream özeti) geçmesini korumak için
-bilinçli bir tercihtir.
-
-Denetim sonuçları `~/.local/share/nova/store/manifest-cache.toml` dosyasında
-6 saat saklanır; önbellek tazeyse API'ye hiç gidilmez — hız sınırı koruması
-buradan gelir. Tekrarlı denetimler ayrıca `ETag` ile **koşullu** yapılır ve
-`304 Not Modified` döndüğünde gövde indirilmez; ancak `304` yanıtları da
-sınırdan düştüğü için tekrarlar ücretsiz sayılmaz.
-
-GitHub'ın kimliksiz API sınırı IP başına saatte 60 istektir. Sınıra takılırsanız
-`GITHUB_TOKEN` ortam değişkenini ayarlayarak kimlikli isteklerle (saatte 5000)
-sınırı yükseltebilirsiniz; Nova bu değişkeni kendiliğinden kullanır.
-
-## Güvenlik modeli
-
-- Program ve argümanlar **ayrı ayrı** geçirilir; kullanıcı girdisinden kabuk
-  komutu birleştirilmez. Kabuk (`sh -c`) hiç çalıştırılmaz.
-- `sudo` kullanılmaz, sistem dosyaları değiştirilmez.
-- Mağaza kurulumu **yalnızca kullanıcı alanına** yapılır; hedef dizin
-  `$HOME` altında ya da Nova'nın kendi veri dizininde olmalıdır, aksi hâlde
-  güvenlik hatasıyla reddedilir.
-- İndirilen arşiv **doğrulanmadan** çalıştırılmaz ve hiçbir yere yazılmaz.
-- Arşiv çıkarımı yol geçişi (path traversal), sembolik bağ ve aşırı boyut
-  denemelerine karşı korumalıdır.
-- Katalogdaki sabit metinler dışında hiçbir program Nova tarafından
-  "bilgi toplamak için" çalıştırılmaz.
-- Kalıcı kullanıcı verisi `$XDG_CONFIG_HOME/nova/state.toml` dosyasına (değişken
-  yoksa `~/.config/nova/state.toml`) özel izinlerle yazılır. Yardım metni için
-  Nova ayrıca `0600` izinli geçici dosya oluşturur;
-  dahili sayfalayıcı bunu kapatınca dosyayı siler. Kullanıcı onayıyla eksik
-  çalışma dizini de oluşturulabilir.
-
-**Sınır:** Nova, kullanıcının yazdığı programın güvenli olduğunu kanıtlamaz;
-o program senin kullanıcı yetkilerinle çalışır. Sekme açıldıktan sonra ne
-olduğu Nova'nın denetiminde değildir. Aynı şekilde mağaza, upstream
-checksum'ının **doğru** olduğunu varsayar; Nova yalnızca indirilen dosyanın
-o özetle birebir eşleştiğini doğrular.
+- Nova shell komutu birleştirmez; programı ve argümanlarını ayrı ayrı başlatır.
+- Araç tespiti için programları çalıştırmaz.
+- Mağaza arşivlerini kurulumdan önce SHA-256 özetiyle doğrular ve güvenli
+  biçimde çıkarır.
+- Doğrulanabilir kurulum yöntemi olmayan mağaza uygulamalarını otomatik
+  kurmaz.
+- Sistem dizinlerine yazmaz ve yönetici yetkisi istemez.
+- Özel araçlar mevcut kullanıcı yetkileriyle çalışır. Nova özel komutların
+  güvenli olduğunu garanti etmez.
 
 ## Bilinen sınırlamalar
 
-- Yalnızca **Konsole** desteklenir; kitty/alacritty/gnome-terminal vb. kurulu
-  olsa bile `konsole` aranır ve yoksa başlatma reddedilir.
-- Sekmenin açıldığı **doğrulanmaz**; mesaj "istendi" der.
-- `background` / `detached` başlatma yoktur.
-- Mağaza kataloğu **canlı takip edilen** uygulamalar için GitHub Releases
-  üzerinden denetlenebilir; ancak denetim **kullanıcı isteğine bağlıdır**,
-  otomatik olarak yapılmaz. Denetim 6 saatlik önbellekle sınırlıdır.
-- GitHub'ın kimliksiz API sınırı IP başına saatte 60 istektir; sınıra
-  takılırsanız `GITHUB_TOKEN` ayarlayın (Nova bunu kendiliğinden kullanır).
-- Mağazadaki 13 uygulama `manual` yöntemdedir (upstream doğrulanabilir özet
-  yayımlamıyor); onlar için resmî yönerge gösterilir, kurulum yapılmaz.
-- `config.toml` içindeki `[ui] theme` alanı okunur ama **henüz uygulanmaz**
-  (tek tema vardır).
-- **Asgari Rust sürümü doğrulanmadı** (bkz. Gereksinimler); yalnızca 1.99.1
-  ile test edildi.
-- Terminal penceresi Nova çalışırken kapatılırsa Nova beklemeden çıkar, ancak
-  alt ekrandan çıkış dizisi yazılamaz (tty yok); bu bir çökme/panik değildir.
-- Konsole dahili sayfalayıcıyı başlatamazsa `command_help` geçici dosyası ve
-  özel klasörü geçici dizinde kalabilir; dosya `0600`, klasör `0700` olur.
-- `Özel Araçlar` varsayılan katalogda boştur; araçlar `config.toml` veya Nova
-  içinden eklenir.
-- Cloudflare örneği en fazla 25 MB indirir; `config.toml` üzerinden komut ve
-  veri miktarı değiştirilebilir.
-- Özel araç formu tek satır kabul eder; boşluk içeren yol yazılamaz.
-- Arama alaka sıralaması ve fare desteği yoktur.
-- Dağıtım paketi, crates.io/AUR yayını ve ikili dağıtımı **henüz yoktur**.
-- Güvenlik denetimi (`cargo-audit` vb.) bu ortamda çalıştırılmadı.
+- Hedef platform Linux'tur; yalnızca KDE Konsole ile araç başlatma desteklenir.
+- Hazır dağıtım paketi veya ikili yayın henüz yoktur.
+- Nova'nın güncelleme ekranı vardır, ancak proje için resmî yayın kaynağı
+  tanımlanmadığından Nova kendini otomatik güncelleyemez.
+- Tema tercihi kaydedilir; arayüz şu anda tek görsel tema kullanır. Varsayılan
+  AI CLI tercihi de saklanır ancak başlatma akışını henüz değiştirmez.
+- Fare desteği ana ekrandaki listeler içindir; ayarlar ve diğer pencerelerde
+  klavye kullanılır.
 
-## Katkı
+## Geliştirici kontrolleri
 
-- Ayrıntılar: [CONTRIBUTING.md](CONTRIBUTING.md).
-- Değişiklikten önce [ARCHITECTURE.md](ARCHITECTURE.md) dosyasındaki modül
-  sınırlarını ve tasarım kararlarını okuyun.
-- Katkı göndermeden önce: `cargo fmt --check`, `cargo clippy --all-targets
-  --all-features -- -D warnings`, `cargo test`.
-- Yeni bağımlılık eklerken gerekçesini ve MSRV etkisini yazın.
-- Hata ve özellik bildirimi için `.github/ISSUE_TEMPLATE/`; katkı açıklaması
-  için `.github/PULL_REQUEST_TEMPLATE.md` kullanılabilir.
-- Katkı göndererek katkınızın Nova'nın [MIT](LICENSE-MIT) ve
-  [Apache-2.0](LICENSE-APACHE) lisansları altında dağıtılmasına izin vermiş
-  olursunuz; ayrıntılar için [CONTRIBUTING.md](CONTRIBUTING.md) dosyasına bakın.
+Değişiklik göndermeden önce:
+
+~~~~bash
+cargo fmt --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test
+~~~~
+
+Katkı süreci için [CONTRIBUTING.md](CONTRIBUTING.md), modül sınırları ve
+tasarım kararları için [ARCHITECTURE.md](ARCHITECTURE.md) dosyasını incele.
+Hata veya özellik isteğini [GitHub Issues](https://github.com/Teknoloji-Filozoflari/Nova/issues)
+üzerinden paylaşabilirsin.
 
 ## Lisans
 
-Nova çift lisanslıdır: kullanıcılar [MIT](LICENSE-MIT) veya
-[Apache-2.0](LICENSE-APACHE) koşullarından birini seçebilir. Cargo metadata'sı
-`MIT OR Apache-2.0` olarak tanımlıdır. Ayrıntılar için [LICENSE.md](LICENSE.md)
-dosyasına bakın.
+Nova, tercihine göre [MIT](LICENSE-MIT) veya
+[Apache License 2.0](LICENSE-APACHE) altında kullanılabilir.
