@@ -20,6 +20,8 @@ tar = "0.4"
 ureq = { version = "3", default-features = false, features = ["rustls", "gzip"] }
 # GitHub Releases API yanıtının okunması (canlı sürüm takibi).
 serde_json = "1"
+# rustls transitif; 1.9+ edition2024 ister — Rust 1.83 CI ile uyum için pin.
+zeroize = "=1.8.1"
 
 [dev-dependencies]
 # Gerçek terminal/Konsole başlatmayan testler için ek paket gerekmiyor; sahte

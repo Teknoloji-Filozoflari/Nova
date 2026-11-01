@@ -1429,10 +1429,23 @@ impl App {
     pub fn filtered_store_apps(&self) -> Vec<&StoreEntry> {
         let category = self.selected_store_category();
         let searching = !self.search_query.is_empty();
+        let host_arch = crate::store::CpuArch::host();
+        let matches_arch = |e: &&StoreEntry| match host_arch {
+            Some(arch) => e.supports_arch(arch),
+            None => true,
+        };
         if searching {
-            self.store.search(&self.search_query)
+            self.store
+                .search(&self.search_query)
+                .into_iter()
+                .filter(matches_arch)
+                .collect()
         } else {
-            self.store.by_category(category)
+            self.store
+                .by_category(category)
+                .into_iter()
+                .filter(matches_arch)
+                .collect()
         }
     }
 
@@ -1527,33 +1540,20 @@ impl App {
                 .as_deref()
                 .unwrap_or("resmî kurulum yönergelerini takip edin");
             self.status_message = format!("'{}' için {note}", entry.name);
-        } else if entry.install_method.is_package_manager() {
-            let plan = crate::store::install::resolve_entry_install_plan(entry).unwrap_or(
-                crate::store::host::InstallPlan {
-                    method: entry.install_method,
-                    argv: entry.install_command.clone().unwrap_or_default(),
-                },
-            );
-            let cmd = plan.rendered();
-            self.modal = modal::Modal::Confirm {
-                question: format!(
-                    "'{}' kurulsun mu? Komut ({}) — kabuksuz çalışır: {cmd} \
-                     Enter onaylar, Esc vazgeçer.",
-                    entry.name,
-                    plan.method.short_label()
-                ),
-                action: modal::ConfirmAction::InstallStoreApp {
-                    id: entry.id.clone(),
-                    name: entry.name.clone(),
-                },
-            };
         } else {
+            if let Some(arch) = crate::store::CpuArch::host() {
+                if !entry.supports_arch(arch) {
+                    self.status_message = format!(
+                        "'{}' bu mimaride ({}) desteklenmiyor.",
+                        entry.name,
+                        arch.as_str()
+                    );
+                    return;
+                }
+            }
+            let confirm = crate::store::install::prepare_confirmation(entry);
             self.modal = modal::Modal::Confirm {
-                question: format!(
-                    "'{}' (id: {}) uygulaması indirilip SHA-256 ile doğrulanıp \
-                     kullanıcı alanına kurulsun mu? Enter onaylar, Esc vazgeçer.",
-                    entry.name, entry.id
-                ),
+                question: confirm.question_text(),
                 action: modal::ConfirmAction::InstallStoreApp {
                     id: entry.id.clone(),
                     name: entry.name.clone(),
@@ -1594,6 +1594,16 @@ impl App {
                 .unwrap_or("resmî kurulum yönergelerini takip edin");
             self.status_message = format!("'{}' için Nova kurulum yapmıyor. {note}", entry.name);
             return;
+        }
+        if let Some(arch) = crate::store::CpuArch::host() {
+            if !entry.supports_arch(arch) {
+                self.status_message = format!(
+                    "'{}' bu mimaride ({}) desteklenmiyor.",
+                    entry.name,
+                    arch.as_str()
+                );
+                return;
+            }
         }
 
         let (tx, rx) = mpsc::channel();
@@ -2066,17 +2076,26 @@ impl App {
             self.status_message = "Sürüm denetimi zaten sürüyor.".into();
             return;
         }
+        let host_arch = crate::store::CpuArch::host();
         let sources: Vec<(String, ReleaseSource)> = self
             .store
             .entries()
             .iter()
-            .filter_map(|e| e.release.as_ref().map(|r| (e.id.clone(), r.clone())))
+            .filter(|e| host_arch.is_none_or(|a| e.supports_arch(a)))
+            .filter_map(|e| {
+                let src = match host_arch {
+                    Some(arch) => e.release_source_for(arch),
+                    None => e.release.clone(),
+                }?;
+                Some((e.id.clone(), src))
+            })
             .collect();
         let pm_entries: Vec<StoreEntry> = self
             .store
             .entries()
             .iter()
             .filter(|e| e.install_method.is_package_manager())
+            .filter(|e| host_arch.is_none_or(|a| e.supports_arch(a)))
             .cloned()
             .collect();
         let installed_ids: std::collections::BTreeSet<String> = self
