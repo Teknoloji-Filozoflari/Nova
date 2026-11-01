@@ -490,7 +490,7 @@ kullanıcıya durum satırında açıklanır.
 - **Mağazada 6 uygulama indirilebilir.** Kalan 13 kayıt `manual` yöntemdedir; upstream doğrulanabilir SHA-256 özeti yayımlamadığı için "Kur" eylemi sunulmaz.
 - **Tek çalıştırılabilir dosya kurulur.** Arşivdeki man sayfaları, tamamlayıcılar ve ek belgeler kurulmaz; yalnızca katalogdaki `executable` yerleştirilir.
 - **Güncelleme sağlayıcısı GitHub Releases’a bağlıdır** (`Teknoloji-Filozoflari/Nova`). Ayarlar→Güncelle / `U` denetimi durumu durum satırında ve modalda gösterir (`denetleniyor` / `yayın yok` / `güncel` / `yeni sürüm` / `hata`). Yayın yoksa (`404`) “ikili yayın yok” sonucudur — `cargo`/kaynak güncellemesi yapılmaz. Uygun Linux ikilisi varsa kullanıcı onayından sonra `~/.local/bin/nova` kurulur.
-- **Güvenlik denetimi çalıştırılmadı** (`cargo-audit`/`cargo-deny` bu ortamda kurulu değildi).
+- **Bağımlılık güvenliği CI'da.** `cargo audit` ve `cargo deny check` (bkz. `deny.toml`) her PR/push'ta ve haftalık zamanlamada çalışır; Dependabot Cargo ve Actions güncellemelerini açar.
 
 ## Proje Dizinini Geçersiz Kılma (Faz 5)
 
