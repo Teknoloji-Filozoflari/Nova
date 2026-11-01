@@ -1,0 +1,96 @@
+# Nova araç kataloğu — files
+#
+# Kategori: "Dosya Yönetimi ve Arama"
+# `assets/catalog/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez; özelleştirme: ~/.config/nova/config.toml
+
+[[tools]]
+id = "spf"
+name = "spf"
+category = "Dosya Yönetimi ve Arama"
+executable = "spf"
+description = "Hızlı, klavye odaklı terminal dosya yöneticisi."
+examples = ["spf"]
+
+[[tools]]
+id = "yazi"
+name = "Yazi"
+category = "Dosya Yönetimi ve Arama"
+executable = "yazi"
+description = "Görsel önizlemeli, hızlı terminal dosya yöneticisi."
+examples = ["yazi"]
+
+[[tools]]
+id = "gdu"
+name = "gdu"
+category = "Dosya Yönetimi ve Arama"
+executable = "gdu"
+description = "Disk kullanımını etkileşimli gezerek incele; duf'a alternatif."
+alternative_to = "duf"
+examples = ["gdu"]
+
+[[tools]]
+id = "fzf"
+name = "fzf"
+category = "Dosya Yönetimi ve Arama"
+executable = "fzf"
+description = "Bulanık arama aracı; tek başına çalışır, Ctrl+T/Ctrl+R/Alt+C kısayolları için kabuk entegrasyonu gerekir."
+examples = ["fzf"]
+
+[[tools]]
+id = "rg"
+name = "ripgrep (rg)"
+category = "Dosya Yönetimi ve Arama"
+executable = "rg"
+description = "Çok hızlı dosya içeriği arama aracı."
+launch_kind = "command_help"
+help_text = """
+ripgrep (rg) — dosya içeriğinde arama
+
+  rg <desen>                 Geçerli dizinde ara
+  rg -i <desen>              Büyük/küçük harf duyarsız ara
+  rg -l <desen>              Yalnızca eşleşen dosya adlarını yaz
+  rg -g '*.rs' <desen>       Yalnızca eşleşen dosyalarda ara
+  rg -C 3 <desen>            Eşleşme çevresinde 3 satır göster
+  rg --hidden <desen>        Gizli dosyalara da bak
+
+Nova ripgrep'i bu sekmeye kendiliğinden bir desen vermeden başlatmaz;
+kullanmak için terminalde yukarıdaki komutlardan birini yaz.
+"""
+examples = ["rg <desen>", "rg -i <desen>", "rg -l <desen>"]
+
+[[tools]]
+id = "fd"
+name = "fd"
+category = "Dosya Yönetimi ve Arama"
+executable = "fd"
+description = "Dosya adlarında hızlı arama; `find`e daha kolay alternatif."
+launch_kind = "command_help"
+help_text = """
+fd — dosya adında arama
+
+  fd <desen>                 Adı desenle eşleşen dosyaları bul
+  fd -e rs                   Uzantısı .rs olan dosyaları bul
+  fd -t d <desen>            Yalnızca dizinleri ara
+  fd -x <komut>              Her sonuç için komut çalıştır
+  fd --hidden <desen>        Gizli dosyalara da bak
+
+Nova fd'yi argümansız başlatmaz; terminalde yukarıdaki komutlardan birini yaz.
+"""
+examples = ["fd <desen>", "fd -e rs", "fd -t d <desen>"]
+
+[[tools]]
+id = "bat"
+name = "bat"
+category = "Dosya Yönetimi ve Arama"
+executable = "bat"
+description = "Sözdizimi renklendirmeli dosya görüntüleyici."
+examples = ["bat dosya.txt"]
+
+[[tools]]
+id = "eza"
+name = "eza"
+category = "Dosya Yönetimi ve Arama"
+executable = "eza"
+description = "Renkli ve simgeli dizin listesi; `ls`ye modern alternatif."
+examples = ["eza", "eza -la"]

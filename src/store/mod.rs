@@ -1,8 +1,9 @@
 //! Mağaza kataloğu modülü.
 //!
-//! Mağaza kataloğu, uygulamanın mevcut araç kataloğundan (`assets/catalog.toml`)
-//! **ayrı** tutulur. Mağaza, henüz Nova'ya eklenmemiş ancak Nova'nın
-//! kullanıcı alına kurabileceği uygulamaların listesi tutar.
+//! Mağaza kataloğu, uygulamanın mevcut araç kataloğundan
+//! (`assets/catalog/*.toml`) **ayrı** tutulur. Mağaza, henüz Nova'ya
+//! eklenmemiş ancak Nova'nın kullanıcı alanına kurabileceği uygulamaların
+//! listesini tutar.
 //!
 //! Mağaza kaydı aşağıdaki alanları taşır:
 //!
@@ -25,8 +26,8 @@
 //! - `install_notes` — alternatifler ve resmî URL (özellikle `manual`)
 //! - `signature` — isteğe bağlı upstream imza (minisign/cosign/gpg/attestation)
 //!
-//! Katalog verisi UI koduna gömülmez; ayrı `assets/store.toml` dosyasından
-//! `include_str!` ile yüklenir.
+//! Katalog verisi UI koduna gömülmez; ayrı `assets/store/*.toml` dosyalarından
+//! (kategoriye göre) `include_str!` ile yüklenir.
 
 pub mod github;
 pub mod host;

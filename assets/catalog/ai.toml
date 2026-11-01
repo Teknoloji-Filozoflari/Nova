@@ -1,0 +1,41 @@
+# Nova araç kataloğu — ai
+#
+# Kategori: "AI ve Kodlama"
+# `assets/catalog/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez; özelleştirme: ~/.config/nova/config.toml
+
+[[tools]]
+id = "opencode"
+name = "OpenCode"
+category = "AI ve Kodlama"
+executable = "opencode"
+description = "Terminalde çalışan açık kaynaklı yapay zekâ kodlama asistanı."
+examples = ["opencode", "opencode --help"]
+setup_info = "Kullanmak için terminalde 'opencode' yazın; ilk çalıştırmada kimlik doğrulama istenir."
+
+[[tools]]
+id = "codex"
+name = "OpenAI Codex CLI"
+category = "AI ve Kodlama"
+executable = "codex"
+description = "OpenAI'nin terminal tabanlı kodlama ajanı."
+examples = ["codex", "codex --help"]
+setup_info = "Kullanmak için terminalde 'codex' yazın; ilk çalıştırmada kimlik doğrulama istenir."
+
+[[tools]]
+id = "claude"
+name = "Claude Code"
+category = "AI ve Kodlama"
+executable = "claude"
+description = "Anthropic'in terminal tabanlı kodlama asistanı."
+examples = ["claude", "claude --help"]
+setup_info = "Kullanmak için terminalde 'claude' yazın; ilk çalıştırmada kimlik doğrulama istenir."
+
+[[tools]]
+id = "minimax-code"
+name = "MiniMax Code"
+category = "AI ve Kodlama"
+executable = "mcode"
+description = "MiniMax'ın terminalde çalışan kodlama asistanı."
+examples = ["mcode"]
+setup_info = "Linux'ta PATH'te veya ~/.minimax-code/bin/mcode konumunda bulunur."

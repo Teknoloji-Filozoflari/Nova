@@ -1,0 +1,702 @@
+# Nova mağaza kataloğu — daily
+#
+# Kategori: "Günlük"
+# `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
+
+[[apps]]
+id = "tldr"
+name = "tldr"
+category = "Günlük"
+description = "Komutların kısa ve örnekli kullanım özetlerini gösterir."
+source = "https://github.com/tldr-pages/tldr"
+license = "MIT"
+executable = "tldr"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "tldr"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """npm: npm install -g tldr\npipx: pipx install tldr\nbrew: brew install tldr\napt: sudo apt install tldr\npacman: sudo pacman -S tldr\nResmî: https://github.com/tldr-pages/tldr#install"""
+
+[[apps]]
+id = "jq"
+name = "jq"
+category = "Günlük"
+description = "JSON sorgulama ve biçimlendirme aracı."
+source = "https://github.com/jqlang/jq"
+license = "MIT"
+executable = "jq"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "jq"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """apt: sudo apt install jq\nbrew: brew install jq\npacman: sudo pacman -S jq\nResmî: https://jqlang.github.io/jq/download/"""
+
+[[apps]]
+id = "yq"
+name = "yq"
+category = "Günlük"
+description = "YAML, JSON ve TOML sorgulama ve dönüştürme aracı."
+source = "https://github.com/mikefarah/yq"
+license = "MIT"
+executable = "yq"
+install_method = "brew"
+install_command = ["brew", "install", "yq"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """brew: brew install yq\ngo: go install github.com/mikefarah/yq/v4@latest\nResmî: https://github.com/mikefarah/yq#install"""
+
+[[apps]]
+id = "sd"
+name = "sd"
+category = "Günlük"
+description = "Sezgisel find & replace; sed alternatifi."
+source = "https://github.com/chmln/sd"
+license = "MIT"
+executable = "sd"
+install_method = "cargo"
+install_command = ["cargo", "install", "sd"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """cargo: cargo install sd\nbrew: brew install sd\nResmî: https://github.com/chmln/sd#installation"""
+
+[[apps]]
+id = "choose"
+name = "choose"
+category = "Günlük"
+description = "İnsan dostu cut/awk alternatifi."
+source = "https://github.com/theryangeary/choose"
+license = "GPL-3.0"
+executable = "choose"
+install_method = "cargo"
+install_command = ["cargo", "install", "choose"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """cargo: cargo install choose\nbrew: brew install choose-rust\nResmî: https://github.com/theryangeary/choose"""
+
+[[apps]]
+id = "xsv"
+name = "xsv"
+category = "Günlük"
+description = "Hızlı CSV komut satırı araç seti."
+source = "https://github.com/BurntSushi/xsv"
+license = "MIT/Unlicense"
+executable = "xsv"
+install_method = "cargo"
+install_command = ["cargo", "install", "xsv"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """cargo: cargo install xsv\nbrew: brew install xsv\nResmî: https://github.com/BurntSushi/xsv"""
+
+[[apps]]
+id = "pandoc"
+name = "pandoc"
+category = "Günlük"
+description = "Evrensel belge dönüştürücü."
+source = "https://pandoc.org/"
+license = "GPL-2.0"
+executable = "pandoc"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "pandoc"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """apt: sudo apt install pandoc\nbrew: brew install pandoc\npacman: sudo pacman -S pandoc\nResmî: https://pandoc.org/installing.html"""
+
+[[apps]]
+id = "tree"
+name = "tree"
+category = "Günlük"
+description = "Dizin yapısını ağaç olarak listeler."
+source = "https://oldmanprogrammer.net/source.php?dir=projects/tree"
+license = "GPL-2.0"
+executable = "tree"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "tree"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """apt: sudo apt install tree\nbrew: brew install tree\nResmî paket yöneticinizden tree paketini kurun.\npacman: sudo pacman -S tree"""
+
+[[apps]]
+id = "rsync"
+name = "rsync"
+category = "Günlük"
+description = "Hızlı dosya senkronizasyon ve yedekleme aracı."
+source = "https://rsync.samba.org/"
+license = "GPL-3.0"
+executable = "rsync"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "rsync"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """apt: sudo apt install rsync\nbrew: brew install rsync\npacman: sudo pacman -S rsync\nResmî: https://rsync.samba.org/"""
+
+[[apps]]
+id = "unzip"
+name = "unzip"
+category = "Günlük"
+description = "ZIP arşivlerini açma aracı."
+source = "https://infozip.sourceforge.net/UnZip.html"
+license = "Info-ZIP"
+executable = "unzip"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "unzip"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """apt: sudo apt install unzip\nbrew: brew install unzip\nResmî paket yöneticinizden unzip paketini kurun.\npacman: sudo pacman -S unzip"""
+
+
+# ---------------------------------------------------------------------------
+# Katalog genişletme (tuiui / awesome-tuis esinli)
+# Kategoriler: Paneller, Ekran Koruyucular + mevcut gruplara ek uygulamalar
+# Tercih: Arch pacman; alternatifler install_notes içinde
+# ---------------------------------------------------------------------------
+
+[[apps]]
+id = "arttime"
+name = "arttime"
+category = "Günlük"
+description = "ASCII sanat + saat/zamanlayıcı."
+source = "https://github.com/poetaman/arttime"
+license = "GPL-3.0"
+executable = "arttime"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "Resmî: https://github.com/poetaman/arttime\ncurl kurulum betiği sürüm notlarında."
+
+[[apps]]
+id = "bluetuith"
+name = "bluetuith"
+category = "Günlük"
+description = "Bluetooth yöneticisi TUI."
+source = "https://github.com/darkhz/bluetuith"
+license = "MIT"
+executable = "bluetuith"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "bluetuith"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S bluetuith\nResmî: https://github.com/darkhz/bluetuith"
+
+[[apps]]
+id = "impala"
+name = "impala"
+category = "Günlük"
+description = "Wi-Fi TUI (iwd)."
+source = "https://github.com/pythops/impala"
+license = "GPL-3.0"
+executable = "impala"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "impala"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S impala\nResmî: https://github.com/pythops/impala"
+
+[[apps]]
+id = "netscanner"
+name = "netscanner"
+category = "Günlük"
+description = "Ağ tarama TUI."
+source = "https://github.com/Chleba/netscanner"
+license = "MIT"
+executable = "netscanner"
+install_method = "cargo"
+install_command = ["cargo", "install", "netscanner"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "cargo: cargo install netscanner\nResmî: https://github.com/Chleba/netscanner"
+
+[[apps]]
+id = "diskonaut"
+name = "diskonaut"
+category = "Günlük"
+description = "Disk alanı terminal haritası."
+source = "https://github.com/imsnif/diskonaut"
+license = "MIT"
+executable = "diskonaut"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "diskonaut"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S diskonaut\ncargo: cargo install diskonaut\nResmî: https://github.com/imsnif/diskonaut"
+
+[[apps]]
+id = "dua-cli"
+name = "dua"
+category = "Günlük"
+description = "Disk kullanım analizcisi (etkileşimli)."
+source = "https://github.com/Byron/dua-cli"
+license = "MIT"
+executable = "dua"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "dua-cli"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S dua-cli\ncargo: cargo install dua-cli\nResmî: https://github.com/Byron/dua-cli"
+
+[[apps]]
+id = "erdtree"
+name = "erdtree"
+category = "Günlük"
+description = "Modern tree + disk kullanımı."
+source = "https://github.com/solidiquis/erdtree"
+license = "MIT"
+executable = "et"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "erdtree"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S erdtree\ncargo: cargo install erdtree\nResmî: https://github.com/solidiquis/erdtree"
+
+[[apps]]
+id = "csvlens"
+name = "csvlens"
+category = "Günlük"
+description = "CSV görüntüleyici TUI."
+source = "https://github.com/YS-L/csvlens"
+license = "MIT"
+executable = "csvlens"
+install_method = "cargo"
+install_command = ["cargo", "install", "csvlens"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "cargo: cargo install csvlens\nbrew: brew install csvlens\nResmî: https://github.com/YS-L/csvlens"
+
+[[apps]]
+id = "vz"
+name = "visiData"
+category = "Günlük"
+description = "Tablo verisi keşif TUI (vd)."
+source = "https://www.visidata.org/"
+license = "GPL-3.0"
+executable = "vd"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "visidata"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S visidata\npipx: pipx install visidata\napt: sudo apt install visidata\nResmî: https://www.visidata.org/"
+
+[[apps]]
+id = "tickrs"
+name = "tickrs"
+category = "Günlük"
+description = "Borsa ticker TUI."
+source = "https://github.com/tarkah/tickrs"
+license = "MIT"
+executable = "tickrs"
+install_method = "cargo"
+install_command = ["cargo", "install", "tickrs"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "cargo: cargo install tickrs\nResmî: https://github.com/tarkah/tickrs"
+
+[[apps]]
+id = "lnk"
+name = "lnav"
+category = "Günlük"
+description = "Gelişmiş günlük dosyası görüntüleyici."
+source = "https://lnav.org/"
+license = "BSD-2-Clause"
+executable = "lnav"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "lnav"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S lnav\napt: sudo apt install lnav\nbrew: brew install lnav\nResmî: https://lnav.org/"
+
+[[apps]]
+id = "multitail"
+name = "multitail"
+category = "Günlük"
+description = "Çoklu günlük kuyruğu."
+source = "https://www.vanheusden.com/multitail/"
+license = "GPL-2.0"
+executable = "multitail"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "multitail"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S multitail\napt: sudo apt install multitail\nbrew: brew install multitail"
+
+[[apps]]
+id = "progress"
+name = "progress"
+category = "Günlük"
+description = "cp/mv/dd ilerleme durumu (eski ad: cv)."
+source = "https://github.com/Xfennec/progress"
+license = "GPL-3.0"
+executable = "progress"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "progress"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S progress\napt: sudo apt install progress\nbrew: brew install progress"
+
+[[apps]]
+id = "pv"
+name = "pv"
+category = "Günlük"
+description = "Pipe Viewer — boru hattı ilerlemesi."
+source = "https://www.ivarch.com/programs/pv.shtml"
+license = "Artistic-2.0"
+executable = "pv"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "pv"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S pv\napt: sudo apt install pv\nbrew: brew install pv"
+
+[[apps]]
+id = "entr"
+name = "entr"
+category = "Günlük"
+description = "Dosya değişince komut çalıştır."
+source = "https://eradman.com/entrproject/"
+license = "ISC"
+executable = "entr"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "entr"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S entr\napt: sudo apt install entr\nbrew: brew install entr"
+
+[[apps]]
+id = "moreutils"
+name = "moreutils"
+category = "Günlük"
+description = "Unix araç kutusu (sponge, ts, parallel...)."
+source = "https://joeyh.name/code/moreutils/"
+license = "GPL-2.0"
+executable = "sponge"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "moreutils"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S moreutils\napt: sudo apt install moreutils\nbrew: brew install moreutils"
+
+[[apps]]
+id = "asciinema"
+name = "asciinema"
+category = "Günlük"
+description = "Terminal oturumu kaydı."
+source = "https://asciinema.org/"
+license = "GPL-3.0"
+executable = "asciinema"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "asciinema"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S asciinema\napt: sudo apt install asciinema\nbrew: brew install asciinema"
+
+[[apps]]
+id = "vhs"
+name = "vhs"
+category = "Günlük"
+description = "Charmbracelet terminal GIF kaydı."
+source = "https://github.com/charmbracelet/vhs"
+license = "MIT"
+executable = "vhs"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "vhs"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S vhs\nbrew: brew install vhs\nResmî: https://github.com/charmbracelet/vhs"
+
+[[apps]]
+id = "ttygif"
+name = "ttygif"
+category = "Günlük"
+description = "ttyrec → GIF dönüştürücü."
+source = "https://github.com/icholy/ttygif"
+license = "MIT"
+executable = "ttygif"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ttygif"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S ttygif\nbrew: brew install ttygif"
+
+[[apps]]
+id = "figlet"
+name = "figlet"
+category = "Günlük"
+description = "ASCII banner üretici."
+source = "http://www.figlet.org/"
+license = "BSD"
+executable = "figlet"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "figlet"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S figlet\napt: sudo apt install figlet\nbrew: brew install figlet"
+
+[[apps]]
+id = "toilet"
+name = "toilet"
+category = "Günlük"
+description = "Renkli ASCII banner (figlet benzeri)."
+source = "http://caca.zoy.org/wiki/toilet"
+license = "WTFPL"
+executable = "toilet"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "toilet"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S toilet\napt: sudo apt install toilet"
+
+[[apps]]
+id = "img2txt"
+name = "img2txt"
+category = "Günlük"
+description = "Görüntüyü ASCII'ye çevir (libcaca)."
+source = "https://caca.zoy.org/"
+license = "WTFPL"
+executable = "img2txt"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "libcaca"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S libcaca\napt: sudo apt install caca-utils"
+
+[[apps]]
+id = "mediainfo"
+name = "mediainfo"
+category = "Günlük"
+description = "Medya dosyası teknik bilgisi."
+source = "https://mediaarea.net/MediaInfo"
+license = "BSD"
+executable = "mediainfo"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "mediainfo"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S mediainfo\napt: sudo apt install mediainfo\nbrew: brew install media-info"
+
+[[apps]]
+id = "exiftool"
+name = "exiftool"
+category = "Günlük"
+description = "Meta veri okuma/yazma."
+source = "https://exiftool.org/"
+license = "GPL-1.0+"
+executable = "exiftool"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "perl-image-exiftool"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S perl-image-exiftool\napt: sudo apt install libimage-exiftool-perl\nbrew: brew install exiftool"
+
+[[apps]]
+id = "qpdf"
+name = "qpdf"
+category = "Günlük"
+description = "PDF dönüştürme ve onarım."
+source = "https://github.com/qpdf/qpdf"
+license = "Apache-2.0"
+executable = "qpdf"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "qpdf"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S qpdf\napt: sudo apt install qpdf\nbrew: brew install qpdf"
+
+[[apps]]
+id = "poppler"
+name = "pdftotext"
+category = "Günlük"
+description = "PDF araçları (poppler)."
+source = "https://poppler.freedesktop.org/"
+license = "GPL-2.0"
+executable = "pdftotext"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "poppler"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S poppler\napt: sudo apt install poppler-utils\nbrew: brew install poppler"
+
+[[apps]]
+id = "imagemagick"
+name = "ImageMagick"
+category = "Günlük"
+description = "Görüntü dönüştürme (magick/convert)."
+source = "https://imagemagick.org/"
+license = "ImageMagick"
+executable = "magick"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "imagemagick"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S imagemagick\napt: sudo apt install imagemagick\nbrew: brew install imagemagick"
+
+[[apps]]
+id = "sox"
+name = "sox"
+category = "Günlük"
+description = "Ses işleme İsviçre çakısı."
+source = "http://sox.sourceforge.net/"
+license = "GPL-2.0"
+executable = "sox"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "sox"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S sox\napt: sudo apt install sox\nbrew: brew install sox"
+
+[[apps]]
+id = "translate-shell"
+name = "trans"
+category = "Günlük"
+description = "Google Translate CLI (translate-shell)."
+source = "https://github.com/soimort/translate-shell"
+license = "Unlicense"
+executable = "trans"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "translate-shell"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S translate-shell\napt: sudo apt install translate-shell\nbrew: brew install translate-shell"
+
+[[apps]]
+id = "dict"
+name = "dict"
+category = "Günlük"
+description = "DICTd sözlük istemcisi."
+source = "https://sourceforge.net/projects/dict/"
+license = "GPL-2.0"
+executable = "dict"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "words"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S words / dictd\napt: sudo apt install dict"
+
+[[apps]]
+id = "wordgrinder"
+name = "wordgrinder"
+category = "Günlük"
+description = "Terminal kelime işlemci."
+source = "https://cowlark.com/wordgrinder/"
+license = "MIT"
+executable = "wordgrinder"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "wordgrinder"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S wordgrinder\napt: sudo apt install wordgrinder"
+
+[[apps]]
+id = "sc-im"
+name = "sc-im"
+category = "Günlük"
+description = "Terminal elektronik tablo (sc iyileştirmesi)."
+source = "https://github.com/andmarti1424/sc-im"
+license = "BSD"
+executable = "sc-im"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "sc-im"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S sc-im\nResmî: https://github.com/andmarti1424/sc-im"
+
+[[apps]]
+id = "ledger"
+name = "ledger"
+category = "Günlük"
+description = "Çift taraflı muhasebe CLI."
+source = "https://www.ledger-cli.org/"
+license = "BSD"
+executable = "ledger"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ledger"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S ledger\napt: sudo apt install ledger\nbrew: brew install ledger"
+
+[[apps]]
+id = "hledger"
+name = "hledger"
+category = "Günlük"
+description = "Hafif muhasebe (Haskell ledger)."
+source = "https://hledger.org/"
+license = "GPL-3.0"
+executable = "hledger"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "hledger"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S hledger\nbrew: brew install hledger\nResmî: https://hledger.org/"
+
+[[apps]]
+id = "timewarrior"
+name = "timew"
+category = "Günlük"
+description = "Zaman takibi (Timewarrior)."
+source = "https://timewarrior.net/"
+license = "MIT"
+executable = "timew"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "timew"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S timew\napt: sudo apt install timewarrior\nResmî: https://timewarrior.net/"
+
+[[apps]]
+id = "watson"
+name = "watson"
+category = "Günlük"
+description = "Zarif zaman takip CLI."
+source = "https://github.com/TailorDev/Watson"
+license = "MIT"
+executable = "watson"
+install_method = "pipx"
+install_command = ["pipx", "install", "watson-time-tracker"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pipx: pipx install watson-time-tracker\npacman: AUR watson\nResmî: https://github.com/TailorDev/Watson"
+
+[[apps]]
+id = "todo-txt"
+name = "todo.sh"
+category = "Günlük"
+description = "todo.txt basit görev listesi."
+source = "https://github.com/todotxt/todo.txt-cli"
+license = "GPL-3.0"
+executable = "todo.sh"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "todo.txt-cli"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S todo.txt-cli\nbrew: brew install todo-txt\nResmî: http://todotxt.org/"
+
+[[apps]]
+id = "task"
+name = "taskwarrior"
+category = "Günlük"
+description = "Güçlü görev yöneticisi (task)."
+source = "https://taskwarrior.org/"
+license = "MIT"
+executable = "task"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "task"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S task\napt: sudo apt install taskwarrior\nbrew: brew install task\nResmî: https://taskwarrior.org/"
+
+[[apps]]
+id = "nb"
+name = "nb"
+category = "Günlük"
+description = "Terminal not defteri ve bilgi tabanı."
+source = "https://xwmx.github.io/nb/"
+license = "AGPL-3.0"
+executable = "nb"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "nb"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S nb\nbrew: brew install xwmx/taps/nb\nResmî: https://xwmx.github.io/nb/"
+
+[[apps]]
+id = "zk"
+name = "zk"
+category = "Günlük"
+description = "Zettelkasten not CLI."
+source = "https://github.com/zk-org/zk"
+license = "GPL-3.0"
+executable = "zk"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "zk"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S zk\nbrew: brew install zk\nResmî: https://github.com/zk-org/zk"
+
+[[apps]]
+id = "jrnl"
+name = "jrnl"
+category = "Günlük"
+description = "Komut satırı günlük/journal."
+source = "https://jrnl.sh/"
+license = "GPL-3.0"
+executable = "jrnl"
+install_method = "pipx"
+install_command = ["pipx", "install", "jrnl"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pipx: pipx install jrnl\npacman: AUR jrnl\nResmî: https://jrnl.sh/"
+
+[[apps]]
+id = "qsv"
+name = "qsv"
+category = "Günlük"
+description = "CSV/tabular veri işleme araç seti (xsv çatalı)."
+source = "https://github.com/dathere/qsv"
+license = "MIT/Unlicense"
+executable = "qsv"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "qsv"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S qsv\ncargo: cargo install qsv\nbrew: brew install qsv\nResmî: https://github.com/dathere/qsv"
+
+[[apps]]
+id = "miller"
+name = "miller"
+category = "Günlük"
+description = "İsim indeksli CSV/JSON/veri işleme (mlr)."
+source = "https://miller.readthedocs.io/"
+license = "BSD-2-Clause"
+executable = "mlr"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "miller"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S miller\napt: sudo apt install miller\nbrew: brew install miller\nResmî: https://miller.readthedocs.io/"

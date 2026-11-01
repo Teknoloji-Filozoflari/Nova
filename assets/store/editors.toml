@@ -1,0 +1,245 @@
+# Nova mağaza kataloğu — editors
+#
+# Kategori: "Editörler"
+# `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
+
+[[apps]]
+id = "neovim"
+name = "Neovim"
+category = "Editörler"
+description = "Vim'in genişletilebilir modern çatalı."
+source = "https://neovim.io/"
+license = "Apache-2.0"
+executable = "nvim"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "neovim"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """apt: sudo apt install neovim\nbrew: brew install neovim\npacman: sudo pacman -S neovim\nResmî: https://github.com/neovim/neovim/blob/master/INSTALL.md"""
+
+[[apps]]
+id = "helix"
+name = "Helix"
+category = "Editörler"
+description = "Modal, seçim-öncelikli modern terminal editörü."
+source = "https://helix-editor.com/"
+license = "MPL-2.0"
+executable = "hx"
+install_method = "cargo"
+install_command = ["cargo", "install", "--locked", "helix-term"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """brew: brew install helix\ncargo: cargo install --locked helix-term\nResmî: https://docs.helix-editor.com/install.html"""
+
+[[apps]]
+id = "micro"
+name = "micro"
+category = "Editörler"
+description = "Sezgisel, modern terminal metin editörü."
+source = "https://micro-editor.github.io/"
+license = "MIT"
+executable = "micro"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "micro"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """apt: sudo apt install micro\nbrew: brew install micro\ncurl: curl https://getmic.ro | bash\npacman: sudo pacman -S micro\nResmî: https://micro-editor.github.io/"""
+
+[[apps]]
+id = "kakoune"
+name = "Kakoune"
+category = "Editörler"
+description = "Seçim-öncelikli modal kod editörü."
+source = "https://kakoune.org/"
+license = "Unlicense"
+executable = "kakoune"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "kakoune"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """apt: sudo apt install kakoune\nbrew: brew install kakoune\npacman: sudo pacman -S kakoune\nResmî: https://kakoune.org/"""
+
+[[apps]]
+id = "emacs"
+name = "Emacs"
+category = "Editörler"
+description = "Genişletilebilir metin editörü ve uygulama ortamı."
+source = "https://www.gnu.org/software/emacs/"
+license = "GPL-3.0"
+executable = "emacs"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "emacs"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """apt: sudo apt install emacs\nbrew: brew install emacs\npacman: sudo pacman -S emacs\nResmî: https://www.gnu.org/software/emacs/download.html"""
+
+[[apps]]
+id = "vim"
+name = "Vim"
+category = "Editörler"
+description = "Klasik gelişmiş metin editörü."
+source = "https://www.vim.org/"
+license = "Vim"
+executable = "vim"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "vim"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """apt: sudo apt install vim\nbrew: brew install vim\npacman: sudo pacman -S vim\nResmî: https://www.vim.org/download.php"""
+
+# ---------------------------------------------------------------------------
+# Sistem
+# ---------------------------------------------------------------------------
+
+[[apps]]
+id = "frogmouth"
+name = "Frogmouth"
+category = "Editörler"
+description = "Terminal Markdown tarayıcı/okuyucu."
+source = "https://github.com/Textualize/frogmouth"
+license = "MIT"
+executable = "frogmouth"
+install_method = "pipx"
+install_command = ["pipx", "install", "frogmouth"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pipx: pipx install frogmouth\nuv: uv tool install frogmouth\nResmî: https://github.com/Textualize/frogmouth"
+
+[[apps]]
+id = "tilde"
+name = "tilde"
+category = "Editörler"
+description = "Sezgisel terminal metin editörü."
+source = "https://os.ghalkes.nl/tilde/"
+license = "GPL-3.0"
+executable = "tilde"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "tilde"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S tilde\napt: sudo apt install tilde\nResmî: https://os.ghalkes.nl/tilde/"
+
+[[apps]]
+id = "vis"
+name = "vis"
+category = "Editörler"
+description = "vi benzeri yapılandırılabilir editör."
+source = "https://github.com/martanne/vis"
+license = "ISC"
+executable = "vis"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "vis"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S vis\napt: sudo apt install vis\nResmî: https://github.com/martanne/vis"
+
+[[apps]]
+id = "amp-editor"
+name = "amp"
+category = "Editörler"
+description = "Tam özellikli terminal metin editörü."
+source = "https://github.com/jmacdonald/amp"
+license = "GPL-3.0"
+executable = "amp"
+install_method = "cargo"
+install_command = ["cargo", "install", "amp"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "cargo: cargo install amp\nbrew: brew install amp\nResmî: https://github.com/jmacdonald/amp"
+
+[[apps]]
+id = "orbiton"
+name = "orbiton"
+category = "Editörler"
+description = "Yapılandırılabilir terminal editörü (o)."
+source = "https://github.com/xyproto/orbiton"
+license = "BSD-3-Clause"
+executable = "o"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "orbiton"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S orbiton\nResmî: https://github.com/xyproto/orbiton"
+
+[[apps]]
+id = "nano"
+name = "nano"
+category = "Editörler"
+description = "Basit ve yaygın terminal editörü."
+source = "https://www.nano-editor.org/"
+license = "GPL-3.0"
+executable = "nano"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "nano"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S nano\napt: sudo apt install nano\nbrew: brew install nano\nResmî: https://www.nano-editor.org/"
+
+[[apps]]
+id = "joe"
+name = "joe"
+category = "Editörler"
+description = "Joe's Own Editor — kolay öğrenilir."
+source = "https://joe-editor.sourceforge.io/"
+license = "GPL-2.0"
+executable = "joe"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "joe"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S joe\napt: sudo apt install joe\nResmî: https://joe-editor.sourceforge.io/"
+
+[[apps]]
+id = "ne"
+name = "ne"
+category = "Editörler"
+description = "Nice Editor — kullanıcı dostu metin editörü."
+source = "https://ne.di.unimi.it/"
+license = "GPL-3.0"
+executable = "ne"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ne"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S ne\napt: sudo apt install ne\nResmî: https://ne.di.unimi.it/"
+
+[[apps]]
+id = "edi"
+name = "edi"
+category = "Editörler"
+description = "Enlightenment tabanlı metin editörü (CLI odak)."
+source = "https://www.enlightenment.org/"
+license = "BSD"
+executable = "edi"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "edi"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S edi\nResmî: https://www.enlightenment.org/"
+
+[[apps]]
+id = "dhex"
+name = "dhex"
+category = "Editörler"
+description = "Ncurses hex editörü."
+source = "https://www.dettus.net/dhex/"
+license = "GPL-2.0"
+executable = "dhex"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "dhex"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S dhex\napt: sudo apt install dhex\nResmî: https://www.dettus.net/dhex/"
+
+[[apps]]
+id = "hexedit"
+name = "hexedit"
+category = "Editörler"
+description = "Basit hex/binary editörü."
+source = "http://rigaux.org/hexedit.html"
+license = "GPL-2.0"
+executable = "hexedit"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "hexedit"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S hexedit\napt: sudo apt install hexedit\nResmî: http://rigaux.org/hexedit.html"
+
+[[apps]]
+id = "hte"
+name = "HTE"
+category = "Editörler"
+description = "Hex / metin editörü (hte)."
+source = "https://hte.sourceforge.net/"
+license = "GPL-2.0"
+executable = "hte"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "hte"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S hte\nResmî: https://hte.sourceforge.net/"

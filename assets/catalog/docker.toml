@@ -1,0 +1,49 @@
+# Nova araç kataloğu — docker
+#
+# Kategori: "Docker ve Sunucu"
+# `assets/catalog/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez; özelleştirme: ~/.config/nova/config.toml
+
+[[tools]]
+id = "lazydocker"
+name = "lazydocker"
+category = "Docker ve Sunucu"
+executable = "lazydocker"
+description = "Docker konteynerleri, imajları ve günlükleri için terminal arayüzü."
+examples = ["lazydocker"]
+
+[[tools]]
+id = "lazysql"
+name = "lazysql"
+category = "Docker ve Sunucu"
+executable = "lazysql"
+description = "Veritabanlarını gezmek için terminal arayüzü."
+examples = ["lazysql"]
+
+[[tools]]
+id = "ssh"
+name = "SSH bağlantısı"
+category = "Docker ve Sunucu"
+executable = "ssh"
+description = "Uzak sunucuya bağlan. Sunucu, kullanıcı ve seçenekler `~/.config/nova/config.toml` içinde bir `ssh` kaydıyla verilir (örn. args = [\"user@host.example\"])."
+launch_kind = "command_help"
+help_text = """
+ssh — uzak sunucuya bağlanma
+
+  ssh user@host.example              Parola veya anahtarla bağlan
+  ssh -p 2222 user@host.example      Farklı port kullan
+  ssh -i ~/.ssh/anahtar sunucu       Belirli bir anahtar kullan
+
+Nova kendiliğinden bir sunucuya bağlanmaz. Kendi bağlantı profilleriniz için
+~/.config/nova/config.toml dosyasına şu biçimde kayıtlar ekleyin:
+
+[[tools]]
+id = "sunucu-ornek"
+name = "Örnek Sunucu"
+category = "Docker ve Sunucu"
+executable = "ssh"
+args = ["user@host.example"]
+description = "Örnek sunucu bağlantısı"
+launch_kind = "custom_command"
+"""
+examples = ["ssh user@host.example", "ssh -p 2222 user@host.example"]

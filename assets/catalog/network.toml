@@ -1,0 +1,83 @@
+# Nova araç kataloğu — network
+#
+# Kategori: "Ağ ve Bağlantı"
+# `assets/catalog/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez; özelleştirme: ~/.config/nova/config.toml
+
+[[tools]]
+id = "bandwhich"
+name = "bandwhich"
+category = "Ağ ve Bağlantı"
+executable = "bandwhich"
+description = "Ağ bant genişliğini süreç ve bağlantı bazında gösterir. Yerel arayüzleri izlemek için ek izinler gerekebilir."
+examples = ["bandwhich"]
+
+[[tools]]
+id = "trip"
+name = "trippy (trip)"
+category = "Ağ ve Bağlantı"
+executable = "trip"
+description = "Görsel traceroute aracı. Hedef adresi argüman olarak vermek gerekir."
+launch_kind = "command_help"
+help_text = """
+trippy (trip) — görsel traceroute
+
+  trip <hedef>               Hedefe ağ yolunu izle
+  trip --help                Tüm seçenekleri göster
+
+Nova bir hedef adres uydurmaz; kullanmak için terminalde
+  trip example.com
+biçiminde bir komut yaz.
+"""
+examples = ["trip example.com"]
+
+[[tools]]
+id = "cloudflare-speed-test"
+name = "Cloudflare Hız Testi"
+category = "Ağ ve Bağlantı"
+executable = "curl"
+args = ["-fsSL", "--max-time", "20", "-o", "/dev/null", "-w", "Ortalama indirme hızı: %{speed_download} B/s\n", "https://speed.cloudflare.com/__down?bytes=25000000"]
+description = "Cloudflare'dan 25 MB indirir; curl ortalama indirme hızını verir. Program ve argümanlar config.toml ile değiştirilebilir."
+launch_kind = "custom_command"
+handlers = ["less", "more"]
+
+[[tools]]
+id = "mtr"
+name = "mtr"
+category = "Ağ ve Bağlantı"
+executable = "mtr"
+description = "ping ve traceroute'u birleştiren ağ tanılama aracı. Hedef adresi vermek gerekir."
+launch_kind = "command_help"
+help_text = """
+mtr — ağ yol tanılama
+
+  mtr <hedef>                Etkileşimli görünümde hedefe giden yolu izle
+  mtr --report <hedef>       Tek seferlik rapor üret
+  mtr --tcp --port 443 <hedef>  TCP/443 üzerinden ölç
+
+Nova bir hedef uydurmaz; terminalde örneğin
+  mtr example.com
+yaz.
+"""
+examples = ["mtr example.com"]
+
+[[tools]]
+id = "curl"
+name = "curl"
+category = "Ağ ve Bağlantı"
+executable = "curl"
+description = "Veri transfer ve HTTP istek aracı."
+launch_kind = "command_help"
+help_text = """
+curl — veri transfer aracı
+
+  curl https://example.com             İçeriği ekrana yaz
+  curl -I https://example.com          Yalnızca başlıkları göster
+  curl -o dosya.zip <adres>            İndirip dosyaya yaz
+  curl -fsSL <adres> | jq             JSON'u biçimlendir (jq kuruluysa)
+  curl --max-time 10 <adres>           Zaman aşımı ver
+
+Nova curl'ü adres vermeden çalıştırmaz; terminalde yukarıdaki biçimlerden
+birini kullan.
+"""
+examples = ["curl https://example.com", "curl -I https://example.com"]
