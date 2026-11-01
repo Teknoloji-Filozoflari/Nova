@@ -91,12 +91,16 @@ pub fn resolve(cmd: &str) -> (InstalledStatus, Option<PathBuf>) {
     match which::which(trimmed) {
         Ok(path) => (InstalledStatus::Installed, Some(path)),
         Err(which::Error::CannotFindBinaryPath) => {
-            // PATH'te yoksa Nova mağazasından kurulan uygulamalara bak:
-            // mağaza, uygulamayı `<store>/<id>/bin/` altına kurar.
-            match resolve_in_store(trimmed) {
-                Some(path) => (InstalledStatus::Installed, Some(path)),
-                None => (InstalledStatus::Missing, None),
+            // PATH'te yoksa: (1) Nova mağaza bin, (2) yaygın kullanıcı bin
+            // dizinleri (pipx/cargo/npm -g sıkça buraya yazar ama PATH'e
+            // eklenmemiş olabilir).
+            if let Some(path) = resolve_in_store(trimmed) {
+                return (InstalledStatus::Installed, Some(path));
             }
+            if let Some(path) = resolve_in_user_bins(trimmed) {
+                return (InstalledStatus::Installed, Some(path));
+            }
+            (InstalledStatus::Missing, None)
         }
         // Yetki hatası gibi diğer tüm durumlar "kontrol edilemedi" sayılır.
         Err(_) => (InstalledStatus::Unknown, None),
@@ -113,6 +117,29 @@ fn resolve_in_store(cmd: &str) -> Option<PathBuf> {
     let entries = std::fs::read_dir(&store_dir).ok()?;
     for entry in entries.flatten() {
         let candidate = entry.path().join("bin").join(cmd);
+        if let Ok(meta) = std::fs::metadata(&candidate) {
+            if is_executable(&meta) {
+                return Some(candidate);
+            }
+        }
+    }
+    None
+}
+
+/// pipx / cargo / kullanıcı npm öneklerinin sık yazdığı dizinlere bakar.
+///
+/// Bu dizinler bazen oturum PATH'ine eklenmez; kurulum sonrası "kurulu
+/// değil" göstermemek için doğrudan kontrol edilir.
+fn resolve_in_user_bins(cmd: &str) -> Option<PathBuf> {
+    let home = std::env::var_os("HOME").filter(|h| !h.is_empty())?;
+    let home = PathBuf::from(home);
+    let candidates = [
+        home.join(".local").join("bin").join(cmd),
+        home.join(".cargo").join("bin").join(cmd),
+        home.join("bin").join(cmd),
+        home.join(".npm-global").join("bin").join(cmd),
+    ];
+    for candidate in candidates {
         if let Ok(meta) = std::fs::metadata(&candidate) {
             if is_executable(&meta) {
                 return Some(candidate);
@@ -218,6 +245,27 @@ mod tests {
         assert_eq!(status, InstalledStatus::Installed);
         assert_eq!(path, Some(exe));
         let _ = std::fs::remove_dir_all(&app_dir);
+    }
+
+    #[test]
+    fn user_local_bin_is_detected_without_path() {
+        let home = std::env::var_os("HOME")
+            .filter(|h| !h.is_empty())
+            .expect("HOME gerekli");
+        let bin = PathBuf::from(home.as_os_str()).join(".local").join("bin");
+        std::fs::create_dir_all(&bin).unwrap();
+        let exe = bin.join("nova-userbin-probe");
+        std::fs::write(&exe, b"x").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&exe, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        // which::which bulamazsa bile kullanıcı bin'i görünmeli.
+        let (status, path) = resolve("nova-userbin-probe");
+        assert_eq!(status, InstalledStatus::Installed);
+        assert_eq!(path.as_deref(), Some(exe.as_path()));
+        let _ = std::fs::remove_file(&exe);
     }
 
     #[test]

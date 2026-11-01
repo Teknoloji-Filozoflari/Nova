@@ -13,13 +13,15 @@
 //! - `source` — kaynak/proje sayfası
 //! - `license` — lisans bilgisi
 //! - `executable` — executable adı
-//! - `install_method` — kurulum yöntemi ("manual" | "download_archive")
+//! - `install_method` — kurulum yöntemi (`manual` | `download_archive` |
+//!   `pipx` | `npm` | `cargo` | `brew` | `apt`)
 //! - `supported_platforms` — desteklenen platformlar (ör. "linux-x64")
 //! - `checksum` — SHA-256 doğrulama özeti
 //! - `checksum_type` — "sha256" gibi
 //! - `version` — kurulacak sürüm
 //! - `download_url` — indirilecek arşivin `https://` adresi
-//! - `install_notes` — `manual` yöntemde gösterilen resmî yönerge
+//! - `install_command` — paket yöneticisi yöntemlerinde kabuksuz argv
+//! - `install_notes` — alternatifler ve resmî URL (özellikle `manual`)
 //!
 //! Katalog verisi UI koduna gömülmez; ayrı `assets/store.toml` dosyasından
 //! `include_str!` ile yüklenir.
@@ -71,27 +73,72 @@ pub const STORE_TAB_LABEL: &str = "Mağaza";
 #[serde(rename_all = "snake_case")]
 pub enum InstallMethod {
     /// Kullanıcının resmî kurulum yönergelerini takip etmesi gerekir.
-    /// Nova kurulum yapmaz; yalnızca talimat gösterilir.
+    /// Nova kurulum yapmaz; yalnızca talimat gösterilir (`curl | bash` vb.).
     Manual,
     /// Nova indirip kullanıcı alanına çıkarır (checksum doğrulanırsa).
     #[default]
     DownloadArchive,
+    /// `pipx install …` (kullanıcı onayı sonrası, kabuksuz argv).
+    Pipx,
+    /// `npm install -g …` (kullanıcı onayı sonrası, kabuksuz argv).
+    Npm,
+    /// `cargo install …` (kullanıcı onayı sonrası, kabuksuz argv).
+    Cargo,
+    /// `brew install …` (kullanıcı onayı sonrası, kabuksuz argv).
+    Brew,
+    /// `sudo apt install …` (kullanıcı onayı sonrası, kabuksuz argv).
+    Apt,
 }
 
 impl InstallMethod {
-    /// Bu yöntem için "Kur" eylemi sunulabilir mi?
+    /// Bu yöntem için Enter ile "Kur" eylemi sunulabilir mi?
     ///
-    /// Yalnızca [`InstallMethod::DownloadArchive`] için evet; `manual`
-    /// yöntemde Nova kurulum yapmaz, resmî talimatı gösterir.
+    /// `manual` dışındaki tüm yöntemler onay sonrası kurulabilir.
+    /// `curl | bash` kayıtları bilerek `manual` kalır.
     pub fn is_installable(self) -> bool {
+        !matches!(self, InstallMethod::Manual)
+    }
+
+    /// Arşiv indirip SHA-256 ile doğrulayan yöntem mi?
+    pub fn is_archive(self) -> bool {
         matches!(self, InstallMethod::DownloadArchive)
     }
 
-    /// Arayüzde gösterilecek kısa açıklama.
+    /// Paket yöneticisi (pipx/npm/cargo/brew/apt) yöntemi mi?
+    pub fn is_package_manager(self) -> bool {
+        matches!(
+            self,
+            InstallMethod::Pipx
+                | InstallMethod::Npm
+                | InstallMethod::Cargo
+                | InstallMethod::Brew
+                | InstallMethod::Apt
+        )
+    }
+
+    /// Arayüzde gösterilecek kısa etiket (ör. detay satırı).
+    pub fn short_label(self) -> &'static str {
+        match self {
+            InstallMethod::Manual => "manual",
+            InstallMethod::DownloadArchive => "archive",
+            InstallMethod::Pipx => "pipx",
+            InstallMethod::Npm => "npm",
+            InstallMethod::Cargo => "cargo",
+            InstallMethod::Brew => "brew",
+            InstallMethod::Apt => "apt",
+        }
+    }
+
+    /// Arayüzde gösterilecek açıklama.
     pub fn label(self) -> &'static str {
         match self {
             InstallMethod::Manual => "Resmî talimat (Nova kurmuyor)",
             InstallMethod::DownloadArchive => "Nova kullanıcı alanına indirir",
+            InstallMethod::Pipx => "pipx (onaylı komut)",
+            InstallMethod::Npm => "npm (onaylı komut)",
+            InstallMethod::Cargo => "cargo (onaylı komut)",
+            InstallMethod::Brew => "brew (onaylı komut)",
+            InstallMethod::Apt => "apt (onaylı komut)",
         }
     }
 }
@@ -135,7 +182,15 @@ pub struct StoreEntry {
     /// çalıştırmaz, dosyayı indirip doğrular.
     #[serde(default)]
     pub download_url: Option<String>,
-    /// `manual` yöntemde gösterilecek resmî kurulum yönergesi.
+    /// Paket yöneticisi kurulumunda çalıştırılacak argv (kabuk yok).
+    ///
+    /// Örnek: `["pipx", "install", "aider-chat"]` veya
+    /// `["sudo", "apt", "install", "-y", "htop"]`. Yalnızca
+    /// [`InstallMethod::is_package_manager`] yöntemlerinde zorunludur.
+    /// `curl | bash` / `sh -c` burada kabul edilmez.
+    #[serde(default)]
+    pub install_command: Option<Vec<String>>,
+    /// Resmî / alternatif kurulum yönergesi (özellikle `manual`).
     #[serde(default)]
     pub install_notes: Option<String>,
     /// Canlı sürüm takibi için izlenecek GitHub deposu.
@@ -172,6 +227,8 @@ impl Store {
     ///    için Nova "Kur" eylemi sunmaz; böylece eksik metadata nedeniyle
     ///    checksum'siz dosya çalıştırılmaz.
     /// 4. `download_url` yalnızca `https://` şemasında olabilir.
+    /// 5. Paket yöneticisi yöntemleri (`pipx`/`npm`/`cargo`/`brew`/`apt`)
+    ///    geçerli bir [`StoreEntry::install_command`] argv taşımalıdır.
     pub fn from_entries(entries: Vec<StoreEntry>) -> Result<Self, String> {
         if entries.is_empty() {
             return Err("mağaza kataloğu boş olamaz".into());
@@ -192,7 +249,7 @@ impl Store {
                     STORE_CATEGORIES.join(", ")
                 ));
             }
-            if entry.install_method.is_installable() {
+            if entry.install_method.is_archive() {
                 let url = entry.download_url.as_deref().unwrap_or_default();
                 if url.trim().is_empty() {
                     return Err(format!(
@@ -223,6 +280,11 @@ impl Store {
                     }
                     Some(_) => {}
                 }
+            }
+            if entry.install_method.is_package_manager() {
+                let argv = entry.install_command.as_deref().unwrap_or_default();
+                validate_install_command(entry.install_method, argv)
+                    .map_err(|e| format!("'{}' için install_command geçersiz: {e}", entry.id))?;
             }
             // Canlı takip kaynağı varsa kendi kurallarına uymalıdır.
             if let Some(release) = &entry.release {
@@ -347,6 +409,84 @@ pub fn is_sha256_hex(value: &str) -> bool {
     v.len() == 64 && v.chars().all(|c| c.is_ascii_hexdigit())
 }
 
+/// Paket yöneticisi `install_command` argv'sini doğrular.
+///
+/// # Kurallar
+///
+/// - Boş olamaz; her argüman boşluksuz ve boş olmamalıdır.
+/// - Program `sh` / `bash` / `curl` / `wget` / `env` olamaz (sessiz
+///   `curl | bash` yolunu kapatır).
+/// - Yönteme göre ilk program: `pipx` / `npm` / `cargo` / `brew`, veya
+///   `apt` için `apt` ya da `sudo apt …`.
+/// - Argümanlarda tek başına `|` kabul edilmez.
+pub fn validate_install_command(method: InstallMethod, argv: &[String]) -> Result<(), String> {
+    if !method.is_package_manager() {
+        return Err("yalnızca paket yöneticisi yöntemleri install_command taşır".into());
+    }
+    if argv.is_empty() {
+        return Err("install_command boş olamaz".into());
+    }
+    for (i, arg) in argv.iter().enumerate() {
+        if arg.trim().is_empty() {
+            return Err(format!("argv[{i}] boş"));
+        }
+        if arg.contains('\0') {
+            return Err(format!("argv[{i}] geçersiz karakter içeriyor"));
+        }
+        if arg == "|" {
+            return Err("kabuk borusu '|' argv olarak kabul edilmez".into());
+        }
+    }
+    let program = argv[0].as_str();
+    const FORBIDDEN: &[&str] = &["sh", "bash", "zsh", "fish", "curl", "wget", "env"];
+    if FORBIDDEN.contains(&program) {
+        return Err(format!(
+            "program '{program}' güvenlik nedeniyle reddedildi; paket yöneticisi kullanın"
+        ));
+    }
+    match method {
+        InstallMethod::Pipx if program == "pipx" => Ok(()),
+        InstallMethod::Npm if program == "npm" => Ok(()),
+        InstallMethod::Cargo if program == "cargo" => Ok(()),
+        InstallMethod::Brew if program == "brew" => Ok(()),
+        InstallMethod::Apt if program == "apt" => Ok(()),
+        InstallMethod::Apt if program == "sudo" => {
+            if argv.get(1).map(String::as_str) != Some("apt") {
+                return Err("sudo sonrası program 'apt' olmalıdır".into());
+            }
+            Ok(())
+        }
+        InstallMethod::Pipx
+        | InstallMethod::Npm
+        | InstallMethod::Cargo
+        | InstallMethod::Brew
+        | InstallMethod::Apt => Err(format!(
+            "'{}' yöntemi için program '{program}' beklenmiyor",
+            method.short_label()
+        )),
+        InstallMethod::Manual | InstallMethod::DownloadArchive => unreachable!(),
+    }
+}
+
+/// Onay ve durum satırında göstermek üzere argv'yi güvenli biçimde birleştirir.
+///
+/// Kabuk çalıştırmaz; yalnızca görüntüleme içindir. Argümanlar boşluk
+/// içeriyorsa tek tırnakla sarmalanır.
+pub fn format_install_command(argv: &[String]) -> String {
+    argv.iter()
+        .map(|a| {
+            if a.chars()
+                .any(|c| c.is_whitespace() || "\"'`$&|;<>()".contains(c))
+            {
+                format!("'{a}'")
+            } else {
+                a.clone()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 /// Testler için mağaza dizinini geçici bir konuma sabitler.
 ///
 /// `NOVA_STORE_DIR` ortam değişkeni süreç boyunca **bir kez** ayarlanır.
@@ -383,7 +523,29 @@ mod tests {
             checksum_type: Some("sha256".into()),
             version: Some("1.0.0".into()),
             download_url: Some("https://example.org/a.tar.gz".into()),
+            install_command: None,
             install_notes: None,
+            release: None,
+        }
+    }
+
+    fn pipx_entry(id: &str) -> StoreEntry {
+        StoreEntry {
+            id: id.into(),
+            name: id.into(),
+            description: "d".into(),
+            category: "Günlük".into(),
+            source: "https://example.org/".into(),
+            license: "MIT".into(),
+            executable: id.into(),
+            install_method: InstallMethod::Pipx,
+            supported_platforms: vec!["linux-x64".into()],
+            checksum: None,
+            checksum_type: None,
+            version: None,
+            download_url: None,
+            install_command: Some(vec!["pipx".into(), "install".into(), format!("{id}-pkg")]),
+            install_notes: Some(format!("pipx: pipx install {id}-pkg")),
             release: None,
         }
     }
@@ -442,6 +604,55 @@ mod tests {
     fn manual_entries_are_not_installable() {
         assert!(!InstallMethod::Manual.is_installable());
         assert!(InstallMethod::DownloadArchive.is_installable());
+        assert!(InstallMethod::Pipx.is_installable());
+        assert!(InstallMethod::Apt.is_package_manager());
+        assert!(!InstallMethod::DownloadArchive.is_package_manager());
+        assert!(InstallMethod::DownloadArchive.is_archive());
+    }
+
+    #[test]
+    fn package_manager_entry_requires_valid_command() {
+        let mut entry = pipx_entry("x");
+        entry.install_command = None;
+        let err = Store::from_entries(vec![entry.clone()]).unwrap_err();
+        assert!(err.contains("install_command"), "{err}");
+
+        entry.install_command = Some(vec!["curl".into(), "https://x".into()]);
+        let err = Store::from_entries(vec![entry.clone()]).unwrap_err();
+        assert!(
+            err.contains("reddedildi") || err.contains("beklenmiyor"),
+            "{err}"
+        );
+
+        entry.install_command = Some(vec!["pipx".into(), "install".into(), "x-pkg".into()]);
+        assert!(Store::from_entries(vec![entry]).is_ok());
+    }
+
+    #[test]
+    fn apt_command_may_use_sudo_apt() {
+        let mut entry = pipx_entry("htop");
+        entry.install_method = InstallMethod::Apt;
+        entry.install_command = Some(vec![
+            "sudo".into(),
+            "apt".into(),
+            "install".into(),
+            "-y".into(),
+            "htop".into(),
+        ]);
+        assert!(Store::from_entries(vec![entry]).is_ok());
+    }
+
+    #[test]
+    fn format_install_command_quotes_risky_args() {
+        let formatted = format_install_command(&[
+            "npm".into(),
+            "install".into(),
+            "-g".into(),
+            "@scope/pkg".into(),
+        ]);
+        assert_eq!(formatted, "npm install -g @scope/pkg");
+        let quoted = format_install_command(&["echo".into(), "a b".into()]);
+        assert!(quoted.contains("'a b'"), "{quoted}");
     }
 
     #[test]

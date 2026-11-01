@@ -63,7 +63,8 @@ description = "Terminalde LLM ile çift programlama; Claude ve GPT ile kod düze
 source = "https://aider.chat"
 license = "Apache-2.0"
 executable = "aider"
-install_method = "manual"
+install_method = "pipx"
+install_command = ["pipx", "install", "aider-chat"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install aider-chat\npip: python3 -m pip install aider-chat\nResmî: https://aider.chat/"""
 
@@ -75,7 +76,8 @@ description = "Anthropic'in terminal tabanlı kodlama asistanı."
 source = "https://code.claude.com"
 license = "Proprietary"
 executable = "claude"
-install_method = "manual"
+install_method = "npm"
+install_command = ["npm", "install", "-g", "@anthropic-ai/claude-code"]
 supported_platforms = ["linux-x64"]
 install_notes = """npm: npm install -g @anthropic-ai/claude-code\nResmî: https://code.claude.com/"""
 
@@ -87,7 +89,8 @@ description = "OpenAI'nin terminal tabanlı kodlama ajanı."
 source = "https://github.com/openai/codex"
 license = "Apache-2.0"
 executable = "codex"
-install_method = "manual"
+install_method = "npm"
+install_command = ["npm", "install", "-g", "@openai/codex"]
 supported_platforms = ["linux-x64"]
 install_notes = """npm: npm install -g @openai/codex\nResmî: https://github.com/openai/codex#installation"""
 
@@ -99,7 +102,8 @@ description = "Google Gemini için resmi terminal kodlama istemcisi."
 source = "https://github.com/google-gemini/gemini-cli"
 license = "Apache-2.0"
 executable = "gemini"
-install_method = "manual"
+install_method = "npm"
+install_command = ["npm", "install", "-g", "@google/gemini-cli"]
 supported_platforms = ["linux-x64"]
 install_notes = """npm: npm install -g @google/gemini-cli\nResmî: https://github.com/google-gemini/gemini-cli"""
 
@@ -111,7 +115,8 @@ description = "Simon Willison'ın çok modellli komut satırı LLM aracı."
 source = "https://llm.datasette.io"
 license = "Apache-2.0"
 executable = "llm"
-install_method = "manual"
+install_method = "pipx"
+install_command = ["pipx", "install", "llm"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install llm\nuv: uv tool install llm\nResmî: https://llm.datasette.io/en/stable/setup.html"""
 
@@ -123,7 +128,8 @@ description = "Terminalde çalışan açık kaynaklı yapay zekâ kodlama asista
 source = "https://opencode.ai"
 license = "MIT"
 executable = "opencode"
-install_method = "manual"
+install_method = "npm"
+install_command = ["npm", "install", "-g", "opencode-ai"]
 supported_platforms = ["linux-x64"]
 install_notes = """npm: npm install -g opencode-ai\ncurl: curl -fsSL https://opencode.ai/install | bash\nResmî: https://opencode.ai/"""
 
@@ -135,7 +141,8 @@ description = "Charmbracelet'in terminal AI kodlama ajanı."
 source = "https://github.com/charmbracelet/crush"
 license = "MIT"
 executable = "crush"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "charmbracelet/tap/crush"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install charmbracelet/tap/crush\ngo: go install github.com/charmbracelet/crush@latest\nResmî: https://github.com/charmbracelet/crush"""
 
@@ -171,7 +178,8 @@ description = "Continue.dev açık kaynak kod asistanının CLI istemcisi."
 source = "https://continue.dev"
 license = "Apache-2.0"
 executable = "cn"
-install_method = "manual"
+install_method = "npm"
+install_command = ["npm", "i", "-g", "@continuedev/cli"]
 supported_platforms = ["linux-x64"]
 install_notes = """npm: npm i -g @continuedev/cli\nResmî: https://docs.continue.dev/"""
 
@@ -183,7 +191,8 @@ description = "Alibaba Qwen modelleri için terminal kodlama istemcisi."
 source = "https://github.com/QwenLM/qwen-code"
 license = "Apache-2.0"
 executable = "qwen"
-install_method = "manual"
+install_method = "npm"
+install_command = ["npm", "install", "-g", "@qwen-code/qwen-code"]
 supported_platforms = ["linux-x64"]
 install_notes = """npm: npm install -g @qwen-code/qwen-code\nResmî: https://github.com/QwenLM/qwen-code"""
 
@@ -195,7 +204,8 @@ description = "Sourcegraph'in terminal odaklı AI kodlama ajanı."
 source = "https://ampcode.com"
 license = "Proprietary"
 executable = "amp"
-install_method = "manual"
+install_method = "npm"
+install_command = ["npm", "install", "-g", "@sourcegraph/amp"]
 supported_platforms = ["linux-x64"]
 install_notes = """npm: npm install -g @sourcegraph/amp\nResmî: https://ampcode.com/"""
 
@@ -231,7 +241,8 @@ description = "Rust ile yazılmış hızlı Git terminal arayüzü."
 source = "https://github.com/extrawurst/gitui"
 license = "MIT"
 executable = "gitui"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "gitui"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install gitui\nbrew: brew install gitui\napt: sudo apt install gitui\nResmî: https://github.com/extrawurst/gitui#installation"""
 
@@ -243,7 +254,8 @@ description = "GitHub için resmi komut satırı aracı (PR, issue, Actions)."
 source = "https://cli.github.com/"
 license = "MIT"
 executable = "gh"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "gh"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install gh\napt: sudo apt install gh\nResmî: https://cli.github.com/"""
 
@@ -267,7 +279,8 @@ description = "Git diff'lerini renkli ve okunaklı gösterir; genellikle git yap
 source = "https://github.com/dandavison/delta"
 license = "MIT"
 executable = "delta"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "git-delta"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install git-delta\ncargo: cargo install git-delta\napt: sudo apt install git-delta\nResmî: https://github.com/dandavison/delta#installation"""
 
@@ -279,7 +292,8 @@ description = "ncurses tabanlı metin kipinde Git arayüzü."
 source = "https://jonas.github.io/tig/"
 license = "GPL-2.0"
 executable = "tig"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "tig"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install tig\nbrew: brew install tig\nResmî: https://jonas.github.io/tig/INSTALL.html"""
 
@@ -353,7 +367,8 @@ description = "Sözdizimi renklendirmeli dosya görüntüleyici."
 source = "https://github.com/sharkdp/bat"
 license = "MIT/Apache-2.0"
 executable = "bat"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "bat"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install bat\napt: sudo apt install bat  # ikili adı bazen batcat\ncargo: cargo install bat\nResmî: https://github.com/sharkdp/bat#installation"""
 
@@ -365,7 +380,8 @@ description = "Kullanıcı dostu, hızlı dosya bulucu; find alternatifi."
 source = "https://github.com/sharkdp/fd"
 license = "MIT/Apache-2.0"
 executable = "fd"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "fd-find"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install fd\napt: sudo apt install fd-find  # ikili adı bazen fdfind\ncargo: cargo install fd-find\nResmî: https://github.com/sharkdp/fd#installation"""
 
@@ -377,7 +393,8 @@ description = "Rust ile yazılmış hızlı terminal dosya yöneticisi."
 source = "https://github.com/sxyazi/yazi"
 license = "MIT"
 executable = "yazi"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "--locked", "yazi-fm", "yazi-cli"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install --locked yazi-fm yazi-cli\nbrew: brew install yazi\nResmî: https://yazi-rs.github.io/docs/installation"""
 
@@ -389,7 +406,8 @@ description = "Vim tuşlarıyla çalışan Python dosya yöneticisi."
 source = "https://github.com/ranger/ranger"
 license = "GPL-3.0"
 executable = "ranger"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "ranger"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install ranger-fm\napt: sudo apt install ranger\nbrew: brew install ranger\nResmî: https://ranger.github.io/"""
 
@@ -401,7 +419,8 @@ description = "Hafif ve hızlı terminal dosya yöneticisi."
 source = "https://github.com/jarun/nnn"
 license = "BSD-2-Clause"
 executable = "nnn"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "nnn"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install nnn\nbrew: brew install nnn\nResmî: https://github.com/jarun/nnn#installation"""
 
@@ -413,7 +432,8 @@ description = "Go ile yazılmış terminal dosya yöneticisi."
 source = "https://github.com/gokcehan/lf"
 license = "MIT"
 executable = "lf"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "lf"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install lf\ngo: go install github.com/gokcehan/lf@latest\nResmî: https://github.com/gokcehan/lf#installation"""
 
@@ -425,7 +445,8 @@ description = "Klasik iki panelli terminal dosya yöneticisi."
 source = "https://midnight-commander.org/"
 license = "GPL-3.0"
 executable = "mc"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "mc"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install mc\nbrew: brew install midnight-commander\nResmî: https://midnight-commander.org/"""
 
@@ -437,7 +458,8 @@ description = "Dizin ağacını etkileşimli gezen dosya gezgini."
 source = "https://github.com/Canop/broot"
 license = "MIT"
 executable = "broot"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "--locked", "broot"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install --locked broot\nbrew: brew install broot\nResmî: https://dystroy.org/broot/install/"""
 
@@ -449,7 +471,8 @@ description = "Modern ve güzel terminal dosya yöneticisi."
 source = "https://github.com/yorukot/superfile"
 license = "MIT"
 executable = "spf"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "superfile"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install superfile\nResmî: https://github.com/yorukot/superfile#installation"""
 
@@ -461,7 +484,8 @@ description = "Disk kullanımını ağaç olarak gösteren du alternatifi."
 source = "https://github.com/bootandy/dust"
 license = "Apache-2.0"
 executable = "dust"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "du-dust"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install du-dust\nbrew: brew install dust\nResmî: https://github.com/bootandy/dust#installation"""
 
@@ -473,7 +497,8 @@ description = "Hızlı disk kullanım analizcisi (ncdu benzeri)."
 source = "https://github.com/dundee/gdu"
 license = "MIT"
 executable = "gdu"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "gdu"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install gdu\ngo: go install github.com/dundee/gdu/v5/cmd/gdu@latest\nResmî: https://github.com/dundee/gdu#installation"""
 
@@ -485,7 +510,8 @@ description = "ncurses disk kullanım analizcisi."
 source = "https://dev.yorhel.nl/ncdu"
 license = "MIT"
 executable = "ncdu"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "ncdu"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install ncdu\nbrew: brew install ncdu\nResmî: https://dev.yorhel.nl/ncdu/"""
 
@@ -501,7 +527,8 @@ description = "Hesapsız, çevrimdışı TUI API istemcisi (Postman alternatifi)
 source = "https://github.com/Julien-cpsn/ATAC"
 license = "MIT"
 executable = "atac"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "atac"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install atac\nbrew: brew install atac\nResmî: https://github.com/Julien-cpsn/ATAC#installation"""
 
@@ -513,7 +540,8 @@ description = "Terminalde yaşayan güçlü HTTP istemcisi."
 source = "https://github.com/darrenburns/posting"
 license = "MIT"
 executable = "posting"
-install_method = "manual"
+install_method = "pipx"
+install_command = ["pipx", "install", "posting"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install posting\nuv: uv tool install posting\nResmî: https://github.com/darrenburns/posting"""
 
@@ -525,7 +553,8 @@ description = "İnsan dostu HTTP istemcisi."
 source = "https://httpie.io/"
 license = "BSD-3-Clause"
 executable = "http"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "httpie"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install httpie\npipx: pipx install httpie\napt: sudo apt install httpie\nResmî: https://httpie.io/docs/cli/installation"""
 
@@ -537,7 +566,8 @@ description = "Rust ile yazılmış hızlı HTTPie dostu HTTP istemcisi."
 source = "https://github.com/ducaale/xh"
 license = "MIT"
 executable = "xh"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "xh"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install xh\nbrew: brew install xh\nResmî: https://github.com/ducaale/xh#installation"""
 
@@ -549,7 +579,8 @@ description = "Etkileşimli terminal JSON görüntüleyici ve işleyici."
 source = "https://github.com/antonmedv/fx"
 license = "MIT"
 executable = "fx"
-install_method = "manual"
+install_method = "npm"
+install_command = ["npm", "install", "-g", "fx"]
 supported_platforms = ["linux-x64"]
 install_notes = """npm: npm install -g fx\nbrew: brew install fx\nResmî: https://fx.wtf/"""
 
@@ -561,7 +592,8 @@ description = "jq ifadelerini denemek için TUI oyun alanı."
 source = "https://github.com/noahgorstein/jqp"
 license = "MIT"
 executable = "jqp"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "jqp"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install jqp\ngo: go install github.com/noahgorstein/jqp@latest\nResmî: https://github.com/noahgorstein/jqp#installation"""
 
@@ -573,7 +605,8 @@ description = "Etkileşimli HTTPS ara sunucusu ve trafik inceleme aracı."
 source = "https://www.mitmproxy.org"
 license = "MIT"
 executable = "mitmproxy"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "mitmproxy"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install mitmproxy\nbrew: brew install mitmproxy\napt: sudo apt install mitmproxy\nResmî: https://docs.mitmproxy.org/stable/overview-installation/"""
 
@@ -585,7 +618,8 @@ description = "Komut satırı kıyaslama aracı."
 source = "https://github.com/sharkdp/hyperfine"
 license = "MIT/Apache-2.0"
 executable = "hyperfine"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "hyperfine"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install hyperfine\nbrew: brew install hyperfine\napt: sudo apt install hyperfine\nResmî: https://github.com/sharkdp/hyperfine#installation"""
 
@@ -597,7 +631,8 @@ description = "Kod satırı ve dil istatistikleri sayacı."
 source = "https://github.com/XAMPPRocky/tokei"
 license = "MIT/Apache-2.0"
 executable = "tokei"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "tokei"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install tokei\nbrew: brew install tokei\nResmî: https://github.com/XAMPPRocky/tokei#installation"""
 
@@ -609,7 +644,8 @@ description = "Komut çalıştırıcı; Makefile'a modern alternatif."
 source = "https://github.com/casey/just"
 license = "CC0-1.0"
 executable = "just"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "just"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install just\nbrew: brew install just\napt: sudo apt install just\nResmî: https://github.com/casey/just#installation"""
 
@@ -621,7 +657,8 @@ description = "Dosya değişikliklerinde komut çalıştıran izleyici."
 source = "https://github.com/watchexec/watchexec"
 license = "Apache-2.0"
 executable = "watchexec"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "watchexec-cli"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install watchexec-cli\nbrew: brew install watchexec\nResmî: https://github.com/watchexec/watchexec#install"""
 
@@ -633,7 +670,8 @@ description = "Dizine özel ortam değişkenlerini otomatik yükler."
 source = "https://direnv.net/"
 license = "MIT"
 executable = "direnv"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "direnv"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install direnv\nbrew: brew install direnv\nResmî: https://direnv.net/docs/installation.html"""
 
@@ -645,7 +683,8 @@ description = "Çoklu dil sürüm yöneticisi (asdf alternatifi)."
 source = "https://mise.jdx.dev/"
 license = "MIT"
 executable = "mise"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "mise"]
 supported_platforms = ["linux-x64"]
 install_notes = """curl: curl https://mise.run | sh\nbrew: brew install mise\nResmî: https://mise.jdx.dev/getting-started.html"""
 
@@ -657,7 +696,8 @@ description = "Astral'ın çok hızlı Python paket ve proje yöneticisi."
 source = "https://github.com/astral-sh/uv"
 license = "MIT/Apache-2.0"
 executable = "uv"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "uv"]
 supported_platforms = ["linux-x64"]
 install_notes = """curl: curl -LsSf https://astral.sh/uv/install.sh | sh\nbrew: brew install uv\npip: pip install uv\nResmî: https://docs.astral.sh/uv/getting-started/installation/"""
 
@@ -669,7 +709,8 @@ description = "Çok hızlı Python linter ve biçimlendirici."
 source = "https://github.com/astral-sh/ruff"
 license = "MIT"
 executable = "ruff"
-install_method = "manual"
+install_method = "pipx"
+install_command = ["pipx", "install", "ruff"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install ruff\nuv: uv tool install ruff\nbrew: brew install ruff\nResmî: https://docs.astral.sh/ruff/installation/"""
 
@@ -681,7 +722,8 @@ description = "Kabuk betiği statik analiz aracı."
 source = "https://www.shellcheck.net/"
 license = "GPL-3.0"
 executable = "shellcheck"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "shellcheck"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install shellcheck\nbrew: brew install shellcheck\nResmî: https://github.com/koalaman/shellcheck#installing"""
 
@@ -693,7 +735,8 @@ description = "GitHub Actions iş akışlarını yerelde çalıştırır."
 source = "https://github.com/nektos/act"
 license = "MIT"
 executable = "act"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "act"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install act\nResmî: https://nektosact.com/installation/"""
 
@@ -709,7 +752,8 @@ description = "Vim'in genişletilebilir modern çatalı."
 source = "https://neovim.io/"
 license = "Apache-2.0"
 executable = "nvim"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "neovim"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install neovim\nbrew: brew install neovim\nResmî: https://github.com/neovim/neovim/blob/master/INSTALL.md"""
 
@@ -721,7 +765,8 @@ description = "Modal, seçim-öncelikli modern terminal editörü."
 source = "https://helix-editor.com/"
 license = "MPL-2.0"
 executable = "hx"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "--locked", "helix-term"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install helix\ncargo: cargo install --locked helix-term\nResmî: https://docs.helix-editor.com/install.html"""
 
@@ -733,7 +778,8 @@ description = "Sezgisel, modern terminal metin editörü."
 source = "https://micro-editor.github.io/"
 license = "MIT"
 executable = "micro"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "micro"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install micro\nbrew: brew install micro\ncurl: curl https://getmic.ro | bash\nResmî: https://micro-editor.github.io/"""
 
@@ -745,7 +791,8 @@ description = "Seçim-öncelikli modal kod editörü."
 source = "https://kakoune.org/"
 license = "Unlicense"
 executable = "kakoune"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "kakoune"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install kakoune\nbrew: brew install kakoune\nResmî: https://kakoune.org/"""
 
@@ -757,7 +804,8 @@ description = "Genişletilebilir metin editörü ve uygulama ortamı."
 source = "https://www.gnu.org/software/emacs/"
 license = "GPL-3.0"
 executable = "emacs"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "emacs"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install emacs\nbrew: brew install emacs\nResmî: https://www.gnu.org/software/emacs/download.html"""
 
@@ -769,7 +817,8 @@ description = "Klasik gelişmiş metin editörü."
 source = "https://www.vim.org/"
 license = "Vim"
 executable = "vim"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "vim"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install vim\nbrew: brew install vim\nResmî: https://www.vim.org/download.php"""
 
@@ -805,7 +854,8 @@ description = "CPU, bellek, disk ve ağ kullanımını grafik olarak izler."
 source = "https://github.com/aristocratos/btop"
 license = "Apache-2.0"
 executable = "btop"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "btop"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install btop\nbrew: brew install btop\nResmî: https://github.com/aristocratos/btop#installation"""
 
@@ -817,7 +867,8 @@ description = "Etkileşimli süreç izleyici; top alternatifi."
 source = "https://htop.dev/"
 license = "GPL-2.0"
 executable = "htop"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "htop"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install htop\nbrew: brew install htop\ndnf: sudo dnf install htop\nResmî: https://htop.dev/"""
 
@@ -829,7 +880,8 @@ description = "Özelleştirilebilir grafik süreç/sistem monitörü (btm)."
 source = "https://github.com/ClementTsang/bottom"
 license = "MIT"
 executable = "btm"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "bottom"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install bottom\nbrew: brew install bottom\nResmî: https://github.com/ClementTsang/bottom#installation"""
 
@@ -841,7 +893,8 @@ description = "Çok panelli sistem izleyici; top/htop alternatifi."
 source = "https://github.com/nicolargo/glances"
 license = "LGPL-3.0"
 executable = "glances"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "glances"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install glances\napt: sudo apt install glances\nbrew: brew install glances\nResmî: https://glances.readthedocs.io/en/latest/install.html"""
 
@@ -853,7 +906,8 @@ description = "Modern, kullanıcı dostu ps alternatifi."
 source = "https://github.com/dalance/procs"
 license = "MIT"
 executable = "procs"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "procs"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install procs\nbrew: brew install procs\nResmî: https://github.com/dalance/procs#installation"""
 
@@ -865,7 +919,8 @@ description = "Hızlı sistem bilgisi / neofetch tarzı özet."
 source = "https://github.com/fastfetch-cli/fastfetch"
 license = "MIT"
 executable = "fastfetch"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "fastfetch"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install fastfetch\nbrew: brew install fastfetch\nResmî: https://github.com/fastfetch-cli/fastfetch#installation"""
 
@@ -877,7 +932,8 @@ description = "AMD, Intel ve NVIDIA GPU süreç monitörü."
 source = "https://github.com/Syllo/nvtop"
 license = "GPL-3.0"
 executable = "nvtop"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "nvtop"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install nvtop\nbrew: brew install nvtop\nResmî: https://github.com/Syllo/nvtop#nvtop-installation"""
 
@@ -889,7 +945,8 @@ description = "Linux çekirdek yöneticisi ve etkinlik monitörü."
 source = "https://github.com/orhun/kmon"
 license = "GPL-3.0"
 executable = "kmon"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "kmon"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install kmon\nbrew: brew install kmon\nResmî: https://github.com/orhun/kmon#installation"""
 
@@ -913,7 +970,8 @@ description = "Grafik metriklerle terminal sistem monitörü."
 source = "https://github.com/bvaisvil/zenith"
 license = "MIT"
 executable = "zenith"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "--locked", "zenith"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install --locked zenith\nbrew: brew install zenith\nResmî: https://github.com/bvaisvil/zenith#installation"""
 
@@ -929,7 +987,8 @@ description = "Ağ bant genişliğini süreç ve bağlantı bazında gösterir. 
 source = "https://github.com/imsnif/bandwhich"
 license = "MIT"
 executable = "bandwhich"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "bandwhich"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install bandwhich\nbrew: brew install bandwhich\nResmî: https://github.com/imsnif/bandwhich#installation"""
 
@@ -941,7 +1000,8 @@ description = "Veri transfer ve HTTP istek aracı."
 source = "https://curl.se/"
 license = "curl"
 executable = "curl"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "curl"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install curl\nbrew: brew install curl\nResmî: https://curl.se/docs/install.html"""
 
@@ -953,7 +1013,8 @@ description = "ping ve traceroute'u birleştiren ağ tanılama aracı. Hedef adr
 source = "https://github.com/traviscross/mtr"
 license = "GPL-2.0"
 executable = "mtr"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "mtr"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install mtr\nbrew: brew install mtr\nResmî: https://github.com/traviscross/mtr"""
 
@@ -965,7 +1026,8 @@ description = "Grafikli ping; birden fazla hostu görsel izler."
 source = "https://github.com/orf/gping"
 license = "MIT"
 executable = "gping"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "gping"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install gping\ncargo: cargo install gping\nResmî: https://github.com/orf/gping#installation"""
 
@@ -977,7 +1039,8 @@ description = "Kullanıcı dostu DNS istemcisi; dig alternatifi."
 source = "https://github.com/ogham/dog"
 license = "EUPL-1.2"
 executable = "dog"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "dog"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install dog\ncargo: cargo install dog\nResmî: https://github.com/ogham/dog#installation"""
 
@@ -989,7 +1052,8 @@ description = "Ağ keşif ve güvenlik tarama aracı."
 source = "https://nmap.org/"
 license = "Nmap"
 executable = "nmap"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "nmap"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install nmap\nbrew: brew install nmap\nResmî: https://nmap.org/download.html"""
 
@@ -1001,7 +1065,8 @@ description = "Wireshark/tshark için terminal arayüzü."
 source = "https://github.com/gcla/termshark"
 license = "MIT"
 executable = "termshark"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "termshark"]
 supported_platforms = ["linux-x64"]
 install_notes = """go: go install github.com/gcla/termshark/v2/cmd/termshark@latest\nbrew: brew install termshark\nResmî: https://github.com/gcla/termshark#installation"""
 
@@ -1013,7 +1078,8 @@ description = "mtr benzeri modern ağ tanılama aracı (trip)."
 source = "https://github.com/fujiapple852/trippy"
 license = "Apache-2.0"
 executable = "trip"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "trippy"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install trippy\nbrew: brew install trippy\nResmî: https://trippy.cli.rs/"""
 
@@ -1025,7 +1091,8 @@ description = "Dosya indirme aracı."
 source = "https://www.gnu.org/software/wget/"
 license = "GPL-3.0"
 executable = "wget"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "wget"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install wget\nbrew: brew install wget\nResmî: https://www.gnu.org/software/wget/"""
 
@@ -1037,7 +1104,8 @@ description = "Çok protokolü destekleyen indirme yardımcısı."
 source = "https://aria2.github.io/"
 license = "GPL-2.0"
 executable = "aria2c"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "aria2"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install aria2\nbrew: brew install aria2\nResmî: https://aria2.github.io/"""
 
@@ -1073,7 +1141,8 @@ description = "Kubernetes kümelerini yönetmek için terminal panosu."
 source = "https://k9scli.io/"
 license = "Apache-2.0"
 executable = "k9s"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "k9s"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install k9s\nResmî: https://k9scli.io/topics/install/"""
 
@@ -1085,7 +1154,8 @@ description = "Konteynerler için top benzeri metrik arayüzü."
 source = "https://github.com/bcicen/ctop"
 license = "MIT"
 executable = "ctop"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "ctop"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install ctop\nResmî: https://github.com/bcicen/ctop#installation"""
 
@@ -1097,7 +1167,8 @@ description = "Konteyner imaj katmanlarını keşfeder."
 source = "https://github.com/wagoodman/dive"
 license = "MIT"
 executable = "dive"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "dive"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install dive\nResmî: https://github.com/wagoodman/dive#installation"""
 
@@ -1121,7 +1192,8 @@ description = "Podman için resmi terminal kullanıcı arayüzü."
 source = "https://github.com/containers/podman-tui"
 license = "Apache-2.0"
 executable = "podman-tui"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "podman-tui"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install podman-tui\nResmî: https://github.com/containers/podman-tui#installation"""
 
@@ -1133,7 +1205,8 @@ description = "Kubernetes paket yöneticisi."
 source = "https://helm.sh/"
 license = "Apache-2.0"
 executable = "helm"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "helm"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install helm\ncurl: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash\nResmî: https://helm.sh/docs/intro/install/"""
 
@@ -1145,7 +1218,8 @@ description = "Kubernetes komut satırı aracı."
 source = "https://kubernetes.io/docs/reference/kubectl/"
 license = "Apache-2.0"
 executable = "kubectl"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "kubectl"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install kubectl\nResmî: https://kubernetes.io/docs/tasks/tools/"""
 
@@ -1157,7 +1231,8 @@ description = "Docker konteyner yönetimi için hafif TUI."
 source = "https://github.com/mrjackwills/oxker"
 license = "MIT"
 executable = "oxker"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "oxker"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install oxker\nResmî: https://github.com/mrjackwills/oxker"""
 
@@ -1185,7 +1260,8 @@ description = "Terminal için SQL IDE."
 source = "https://github.com/tconbeer/harlequin"
 license = "MIT"
 executable = "harlequin"
-install_method = "manual"
+install_method = "pipx"
+install_command = ["pipx", "install", "harlequin"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install harlequin\nuv: uv tool install harlequin\nResmî: https://harlequin.sh/"""
 
@@ -1197,7 +1273,8 @@ description = "Postgres, MySQL ve SQLite için veritabanı TUI."
 source = "https://github.com/achristmascarl/rainfrog"
 license = "MIT"
 executable = "rainfrog"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "rainfrog"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install rainfrog\nbrew: brew install rainfrog\nResmî: https://github.com/achristmascarl/rainfrog#installation"""
 
@@ -1209,7 +1286,8 @@ description = "Otomatik tamamlama özellikli PostgreSQL istemcisi."
 source = "https://github.com/dbcli/pgcli"
 license = "BSD-3-Clause"
 executable = "pgcli"
-install_method = "manual"
+install_method = "pipx"
+install_command = ["pipx", "install", "pgcli"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install pgcli\nbrew: brew install pgcli\nResmî: https://www.pgcli.com/"""
 
@@ -1221,7 +1299,8 @@ description = "Otomatik tamamlama özellikli MySQL/MariaDB istemcisi."
 source = "https://github.com/dbcli/mycli"
 license = "BSD-3-Clause"
 executable = "mycli"
-install_method = "manual"
+install_method = "pipx"
+install_command = ["pipx", "install", "mycli"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install mycli\nbrew: brew install mycli\nResmî: https://www.mycli.net/"""
 
@@ -1233,7 +1312,8 @@ description = "SQLite komut satırı kabuğu."
 source = "https://www.sqlite.org/"
 license = "Public Domain"
 executable = "sqlite3"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "sqlite3"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install sqlite3\nbrew: brew install sqlite\nResmî: https://www.sqlite.org/download.html"""
 
@@ -1245,7 +1325,8 @@ description = "Çoklu veritabanı için evrensel SQL CLI."
 source = "https://github.com/xo/usql"
 license = "MIT"
 executable = "usql"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "usql"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install usql\ngo: go install github.com/xo/usql@latest\nResmî: https://github.com/xo/usql#installing"""
 
@@ -1257,7 +1338,8 @@ description = "Çok platformlu TUI veritabanı yönetim aracı."
 source = "https://github.com/TaKO8Ki/gobang"
 license = "MIT"
 executable = "gobang"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "--locked", "gobang"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install --locked gobang\nResmî: https://github.com/TaKO8Ki/gobang#installation"""
 
@@ -1273,7 +1355,8 @@ description = "Basit, modern ve güvenli dosya şifreleme aracı."
 source = "https://github.com/FiloSottile/age"
 license = "BSD-3-Clause"
 executable = "age"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "age"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install age\nbrew: brew install age\ngo: go install filippo.io/age/cmd/...@latest\nResmî: https://github.com/FiloSottile/age#installation"""
 
@@ -1285,7 +1368,8 @@ description = "Mozilla/CNCF sırları şifreleme aracı (YAML/JSON/ENV)."
 source = "https://github.com/getsops/sops"
 license = "MPL-2.0"
 executable = "sops"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "sops"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install sops\nResmî: https://github.com/getsops/sops#install"""
 
@@ -1297,7 +1381,8 @@ description = "GnuPG için terminal kullanıcı arayüzü."
 source = "https://github.com/orhun/gpg-tui"
 license = "MIT"
 executable = "gpg-tui"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "gpg-tui"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install gpg-tui\nbrew: brew install gpg-tui\nResmî: https://github.com/orhun/gpg-tui#installation"""
 
@@ -1309,7 +1394,8 @@ description = "Unix parola yöneticisi (the standard unix password manager)."
 source = "https://www.passwordstore.org/"
 license = "GPL-2.0"
 executable = "pass"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "pass"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install pass\nbrew: brew install pass\nResmî: https://www.passwordstore.org/"""
 
@@ -1321,7 +1407,8 @@ description = "HashiCorp Vault komut satırı istemcisi."
 source = "https://www.vaultproject.io/"
 license = "BUSL-1.1"
 executable = "vault"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "vault"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install vault\nResmî: https://developer.hashicorp.com/vault/install"""
 
@@ -1333,7 +1420,8 @@ description = "Konteyner, FS ve Git deposu güvenlik tarayıcısı."
 source = "https://trivy.dev/"
 license = "Apache-2.0"
 executable = "trivy"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "trivy"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install trivy\nResmî: https://trivy.dev/latest/getting-started/installation/"""
 
@@ -1345,7 +1433,8 @@ description = "Linux ikili dosyalarını analiz eden TUI."
 source = "https://github.com/orhun/binsider"
 license = "MIT/Apache-2.0"
 executable = "binsider"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "binsider"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install binsider\nResmî: https://binsider.dev/"""
 
@@ -1361,7 +1450,8 @@ description = "Spotify için ncurses istemcisi."
 source = "https://github.com/hrkfdn/ncspot"
 license = "BSD-2-Clause"
 executable = "ncspot"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "ncspot"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install ncspot\nbrew: brew install ncspot\nResmî: https://github.com/hrkfdn/ncspot#installation"""
 
@@ -1373,7 +1463,8 @@ description = "Hafif ncurses müzik çalar."
 source = "https://cmus.github.io/"
 license = "GPL-2.0"
 executable = "cmus"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "cmus"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install cmus\nbrew: brew install cmus\nResmî: https://github.com/cmus/cmus"""
 
@@ -1385,7 +1476,8 @@ description = "Özgür, açık kaynaklı medya oynatıcı (CLI/TUI dostu)."
 source = "https://mpv.io/"
 license = "GPL-2.0"
 executable = "mpv"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "mpv"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install mpv\nbrew: brew install mpv\nResmî: https://mpv.io/installation/"""
 
@@ -1397,7 +1489,8 @@ description = "Ses/video dönüştürme ve işleme araç seti."
 source = "https://ffmpeg.org/"
 license = "LGPL/GPL"
 executable = "ffmpeg"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "ffmpeg"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install ffmpeg\nbrew: brew install ffmpeg\nResmî: https://ffmpeg.org/download.html"""
 
@@ -1409,7 +1502,8 @@ description = "YouTube ve diğer sitelerden video/ses indirme aracı."
 source = "https://github.com/yt-dlp/yt-dlp"
 license = "Unlicense"
 executable = "yt-dlp"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "yt-dlp"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install yt-dlp\nbrew: brew install yt-dlp\napt: sudo apt install yt-dlp\nResmî: https://github.com/yt-dlp/yt-dlp#installation"""
 
@@ -1421,7 +1515,8 @@ description = "Konsol tabanlı ses görselleştirici."
 source = "https://github.com/karlstav/cava"
 license = "MIT"
 executable = "cava"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "cava"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install cava\nbrew: brew install cava\nResmî: https://github.com/karlstav/cava#installing"""
 
@@ -1437,7 +1532,8 @@ description = "E-posta için zarif terminal istemcisi."
 source = "https://aerc-mail.org/"
 license = "MIT"
 executable = "aerc"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "aerc"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install aerc\nbrew: brew install aerc\nResmî: https://aerc-mail.org/"""
 
@@ -1449,7 +1545,8 @@ description = "Mutt'un gelişmiş e-posta istemcisi çatalı."
 source = "https://neomutt.org/"
 license = "GPL-2.0"
 executable = "neomutt"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "neomutt"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install neomutt\nbrew: brew install neomutt\nResmî: https://neomutt.org/"""
 
@@ -1461,7 +1558,8 @@ description = "Hafif ve genişletilebilir IRC / sohbet istemcisi."
 source = "https://weechat.org/"
 license = "GPL-3.0"
 executable = "weechat"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "weechat"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install weechat\nbrew: brew install weechat\nResmî: https://weechat.org/download/"""
 
@@ -1473,7 +1571,8 @@ description = "Modüler IRC istemcisi."
 source = "https://irssi.org/"
 license = "GPL-2.0"
 executable = "irssi"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "irssi"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install irssi\nbrew: brew install irssi\nResmî: https://irssi.org/download/"""
 
@@ -1485,7 +1584,8 @@ description = "Mastodon için TUI istemcisi."
 source = "https://github.com/RasmusLindroth/tut"
 license = "MIT"
 executable = "tut"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "tut"]
 supported_platforms = ["linux-x64"]
 install_notes = """go: go install github.com/RasmusLindroth/tut@latest\nbrew: brew install tut\nResmî: https://github.com/RasmusLindroth/tut#installing"""
 
@@ -1521,7 +1621,8 @@ description = "E-posta için CLI; MUA ile birlikte kullanılabilir."
 source = "https://github.com/pimalaya/himalaya"
 license = "MIT"
 executable = "himalaya"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "himalaya"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install himalaya\nbrew: brew install himalaya\nResmî: https://github.com/pimalaya/himalaya#installation"""
 
@@ -1537,7 +1638,8 @@ description = "Terminal çoğullayıcı; oturum, pencere ve panel yönetimi."
 source = "https://github.com/tmux/tmux"
 license = "ISC"
 executable = "tmux"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "tmux"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install tmux\nbrew: brew install tmux\nResmî: https://github.com/tmux/tmux/wiki/Installing"""
 
@@ -1549,7 +1651,8 @@ description = "Kullanıcı dostu terminal çalışma alanı / çoğullayıcı."
 source = "https://zellij.dev/"
 license = "MIT"
 executable = "zellij"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "--locked", "zellij"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install --locked zellij\nbrew: brew install zellij\nResmî: https://zellij.dev/documentation/installation"""
 
@@ -1561,7 +1664,8 @@ description = "Terminalde Markdown okuyucu."
 source = "https://github.com/charmbracelet/glow"
 license = "MIT"
 executable = "glow"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "glow"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install glow\ngo: go install github.com/charmbracelet/glow@latest\nResmî: https://github.com/charmbracelet/glow#installation"""
 
@@ -1573,7 +1677,8 @@ description = "Markdown ile terminal sunumları."
 source = "https://github.com/maaslalani/slides"
 license = "MIT"
 executable = "slides"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "slides"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install slides\ngo: go install github.com/maaslalani/slides@latest\nResmî: https://github.com/maaslalani/slides#installation"""
 
@@ -1585,7 +1690,8 @@ description = "Taskwarrior için terminal panosu."
 source = "https://github.com/kdheepak/taskwarrior-tui"
 license = "MIT"
 executable = "taskwarrior-tui"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "taskwarrior-tui"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install taskwarrior-tui\nbrew: brew install taskwarrior-tui\nResmî: https://kdheepak.com/taskwarrior-tui/"""
 
@@ -1597,7 +1703,8 @@ description = "Takvim ve yapılacaklar için metin arayüzü."
 source = "https://calcurse.org/"
 license = "BSD-2-Clause"
 executable = "calcurse"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "calcurse"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install calcurse\nbrew: brew install calcurse\nResmî: https://calcurse.org/"""
 
@@ -1609,7 +1716,8 @@ description = "Etkileşimli cheatsheet aracı."
 source = "https://github.com/denisidoro/navi"
 license = "Apache-2.0"
 executable = "navi"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "--locked", "navi"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install navi\ncargo: cargo install --locked navi\nResmî: https://github.com/denisidoro/navi#installation"""
 
@@ -1621,7 +1729,8 @@ description = "Senkronize, aranabilir kabuk geçmişi."
 source = "https://atuin.sh/"
 license = "MIT"
 executable = "atuin"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "atuin"]
 supported_platforms = ["linux-x64"]
 install_notes = """curl: curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh\nbrew: brew install atuin\nResmî: https://docs.atuin.sh/guide/installation/"""
 
@@ -1633,7 +1742,8 @@ description = "Akıllı cd; sık kullanılan dizinlere hızlı atlar."
 source = "https://github.com/ajeetdsouza/zoxide"
 license = "MIT"
 executable = "zoxide"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "zoxide"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install zoxide --locked\nbrew: brew install zoxide\napt: sudo apt install zoxide\nResmî: https://github.com/ajeetdsouza/zoxide#installation"""
 
@@ -1645,7 +1755,8 @@ description = "Hızlı, özelleştirilebilir kabuk istemi."
 source = "https://starship.rs/"
 license = "ISC"
 executable = "starship"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "starship"]
 supported_platforms = ["linux-x64"]
 install_notes = """curl: curl -sS https://starship.rs/install.sh | sh\nbrew: brew install starship\nResmî: https://starship.rs/guide/#%F0%9F%9A%80-installation"""
 
@@ -1657,7 +1768,8 @@ description = "Kişisel bilgi panosu; widget'larla terminal dashboard."
 source = "https://wtfutil.com/"
 license = "MPL-2.0"
 executable = "wtfutil"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "wtfutil"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install wtfutil\nResmî: https://wtfutil.com/"""
 
@@ -1669,7 +1781,8 @@ description = "Kabuk betikleri için güzel etkileşimli istemler."
 source = "https://github.com/charmbracelet/gum"
 license = "MIT"
 executable = "gum"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "gum"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install gum\ngo: go install github.com/charmbracelet/gum@latest\nResmî: https://github.com/charmbracelet/gum#installation"""
 
@@ -1685,7 +1798,8 @@ description = "Klasik roguelike zindan oyunu."
 source = "https://www.nethack.org/"
 license = "NGPL"
 executable = "nethack"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "nethack-console"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install nethack-console\nbrew: brew install nethack\nResmî: https://www.nethack.org/"""
 
@@ -1697,7 +1811,8 @@ description = "Terminal Tetris (bastard tetris)."
 source = "https://fph.altervista.org/prog/bastet.html"
 license = "GPL-3.0"
 executable = "bastet"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "bastet"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install bastet\nResmî: https://fph.altervista.org/prog/bastet.html"""
 
@@ -1709,7 +1824,8 @@ description = "Terminalde 2048 oyunu."
 source = "https://github.com/tiehuis/2048-cli"
 license = "MIT"
 executable = "2048"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "2048"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install 2048\nbrew: brew install 2048-cli\nResmî: https://github.com/tiehuis/2048-cli"""
 
@@ -1721,7 +1837,8 @@ description = "Matrix yağmuru ekran efekti."
 source = "https://github.com/abishekvashok/cmatrix"
 license = "GPL-3.0"
 executable = "cmatrix"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "cmatrix"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install cmatrix\nbrew: brew install cmatrix\nResmî: https://github.com/abishekvashok/cmatrix"""
 
@@ -1733,7 +1850,8 @@ description = "ASCII akvaryum ekran koruyucusu."
 source = "https://robobunny.com/projects/asciiquarium/html/"
 license = "GPL-2.0"
 executable = "asciiquarium"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "asciiquarium"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install asciiquarium\napt: sudo apt install asciiquarium\nResmî: https://robobunny.com/projects/asciiquarium/html/"""
 
@@ -1745,7 +1863,8 @@ description = "Terminal yılan oyunu."
 source = "https://github.com/alexdantas/nSnake"
 license = "GPL-3.0"
 executable = "nsnake"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "nsnake"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install nsnake\nResmî: https://github.com/alexdantas/nSnake"""
 
@@ -1761,7 +1880,8 @@ description = "Metin tabanlı web tarayıcı."
 source = "https://github.com/tats/w3m"
 license = "w3m"
 executable = "w3m"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "w3m"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install w3m\nbrew: brew install w3m\nResmî: https://w3m.sourceforge.net/"""
 
@@ -1773,7 +1893,8 @@ description = "Klasik metin kipinde web tarayıcı."
 source = "https://lynx.invisible-island.net/"
 license = "GPL-2.0"
 executable = "lynx"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "lynx"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install lynx\nbrew: brew install lynx\nResmî: https://lynx.invisible-island.net/"""
 
@@ -1785,7 +1906,8 @@ description = "Modern web'i terminalde gösteren tarayıcı."
 source = "https://www.brow.sh/"
 license = "LGPL-2.1"
 executable = "browsh"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "browsh"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install browsh\nResmî: https://www.brow.sh/"""
 
@@ -1797,7 +1919,8 @@ description = "RSS/Atom besleme okuyucusu."
 source = "https://newsboat.org/"
 license = "MIT"
 executable = "newsboat"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "newsboat"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install newsboat\nbrew: brew install newsboat\nResmî: https://newsboat.org/"""
 
@@ -1809,7 +1932,8 @@ description = "Terminalde görüntü gösterici (ASCII/ANSI)."
 source = "https://hpjansson.org/chafa/"
 license = "LGPL-3.0"
 executable = "chafa"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "chafa"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install chafa\nbrew: brew install chafa\nResmî: https://hpjansson.org/chafa/"""
 
@@ -1821,7 +1945,8 @@ description = "DuckDuckGo komut satırı arama aracı."
 source = "https://github.com/jarun/ddgr"
 license = "GPL-3.0"
 executable = "ddgr"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "ddgr"]
 supported_platforms = ["linux-x64"]
 install_notes = """pipx: pipx install ddgr\nbrew: brew install ddgr\napt: sudo apt install ddgr\nResmî: https://github.com/jarun/ddgr#installation"""
 
@@ -1837,7 +1962,8 @@ description = "Komutların kısa ve örnekli kullanım özetlerini gösterir."
 source = "https://github.com/tldr-pages/tldr"
 license = "MIT"
 executable = "tldr"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "tldr"]
 supported_platforms = ["linux-x64"]
 install_notes = """npm: npm install -g tldr\npipx: pipx install tldr\nbrew: brew install tldr\napt: sudo apt install tldr\nResmî: https://github.com/tldr-pages/tldr#install"""
 
@@ -1849,7 +1975,8 @@ description = "JSON sorgulama ve biçimlendirme aracı."
 source = "https://github.com/jqlang/jq"
 license = "MIT"
 executable = "jq"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "jq"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install jq\nbrew: brew install jq\nResmî: https://jqlang.github.io/jq/download/"""
 
@@ -1861,7 +1988,8 @@ description = "YAML, JSON ve TOML sorgulama ve dönüştürme aracı."
 source = "https://github.com/mikefarah/yq"
 license = "MIT"
 executable = "yq"
-install_method = "manual"
+install_method = "brew"
+install_command = ["brew", "install", "yq"]
 supported_platforms = ["linux-x64"]
 install_notes = """brew: brew install yq\ngo: go install github.com/mikefarah/yq/v4@latest\nResmî: https://github.com/mikefarah/yq#install"""
 
@@ -1873,7 +2001,8 @@ description = "Sezgisel find & replace; sed alternatifi."
 source = "https://github.com/chmln/sd"
 license = "MIT"
 executable = "sd"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "sd"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install sd\nbrew: brew install sd\nResmî: https://github.com/chmln/sd#installation"""
 
@@ -1885,7 +2014,8 @@ description = "İnsan dostu cut/awk alternatifi."
 source = "https://github.com/theryangeary/choose"
 license = "GPL-3.0"
 executable = "choose"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "choose"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install choose\nbrew: brew install choose-rust\nResmî: https://github.com/theryangeary/choose"""
 
@@ -1897,7 +2027,8 @@ description = "Hızlı CSV komut satırı araç seti."
 source = "https://github.com/BurntSushi/xsv"
 license = "MIT/Unlicense"
 executable = "xsv"
-install_method = "manual"
+install_method = "cargo"
+install_command = ["cargo", "install", "xsv"]
 supported_platforms = ["linux-x64"]
 install_notes = """cargo: cargo install xsv\nbrew: brew install xsv\nResmî: https://github.com/BurntSushi/xsv"""
 
@@ -1909,7 +2040,8 @@ description = "Evrensel belge dönüştürücü."
 source = "https://pandoc.org/"
 license = "GPL-2.0"
 executable = "pandoc"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "pandoc"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install pandoc\nbrew: brew install pandoc\nResmî: https://pandoc.org/installing.html"""
 
@@ -1921,7 +2053,8 @@ description = "Dizin yapısını ağaç olarak listeler."
 source = "https://oldmanprogrammer.net/source.php?dir=projects/tree"
 license = "GPL-2.0"
 executable = "tree"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "tree"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install tree\nbrew: brew install tree\nResmî paket yöneticinizden tree paketini kurun."""
 
@@ -1933,7 +2066,8 @@ description = "Hızlı dosya senkronizasyon ve yedekleme aracı."
 source = "https://rsync.samba.org/"
 license = "GPL-3.0"
 executable = "rsync"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "rsync"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install rsync\nbrew: brew install rsync\nResmî: https://rsync.samba.org/"""
 
@@ -1945,7 +2079,8 @@ description = "ZIP arşivlerini açma aracı."
 source = "https://infozip.sourceforge.net/UnZip.html"
 license = "Info-ZIP"
 executable = "unzip"
-install_method = "manual"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "unzip"]
 supported_platforms = ["linux-x64"]
 install_notes = """apt: sudo apt install unzip\nbrew: brew install unzip\nResmî paket yöneticinizden unzip paketini kurun."""
 

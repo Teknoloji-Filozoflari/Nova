@@ -836,14 +836,38 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ),
     ]));
 
-    // 6. Kurulum yöntemi.
+    // 6. Kurulum yöntemi (tuiui benzeri: durum · yöntem).
+    let method_line = if entry.install_method.is_installable() {
+        format!(
+            "{} · {}",
+            if status == crate::detection::InstalledStatus::Installed {
+                "kurulu"
+            } else {
+                "kurulabilir"
+            },
+            entry.install_method.short_label()
+        )
+    } else {
+        entry.install_method.label().to_string()
+    };
     lines.push(Line::from(vec![
         Span::styled("Kurulum: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            entry.install_method.label(),
-            Style::default().fg(Color::Yellow),
-        ),
+        Span::styled(method_line, Style::default().fg(Color::Yellow)),
     ]));
+    if let Some(argv) = entry.install_command.as_ref() {
+        if entry.install_method.is_package_manager() {
+            lines.push(Line::from(vec![
+                Span::styled("Komut: ", Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    truncate(
+                        &crate::store::format_install_command(argv),
+                        inner_w.saturating_sub(8),
+                    ),
+                    Style::default().fg(Color::White),
+                ),
+            ]));
+        }
+    }
 
     // 7. Kaynak ve lisans.
     lines.push(Line::from(vec![
@@ -870,12 +894,14 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ),
     ]));
 
-    // 9. Kullanıcıya ne yapılacağını söyleyen satır.
+    // 9. Kullanıcıya ne yapılacağını söyleyen satır (tuiui: Enter: Install).
     lines.push(Line::from(Span::styled(
         if has_update {
             "Enter: güncelle   U: sürümleri denetle"
-        } else if entry.install_method.is_installable() {
-            "Enter: kurulum onayı   U: sürümleri denetle"
+        } else if entry.install_method.is_package_manager() {
+            "Enter: Install   U: sürümleri denetle"
+        } else if entry.install_method.is_archive() {
+            "Enter: Install (arşiv)   U: sürümleri denetle"
         } else {
             "Enter: resmî talimat   U: sürümleri denetle"
         },
@@ -1004,7 +1030,7 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
                 if tight {
                     "↑↓ · Enter · ?"
                 } else {
-                    "↑↓ uygulama   ←/h kategori   Enter kur   U denetle   ? yardım"
+                    "↑↓ uygulama   ←/h kategori   Enter Install   U denetle   ? yardım"
                 }
             }
         }
@@ -1111,7 +1137,7 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
     // görünümü farklı bir gezinme düzeni sunduğu için tek satırlık tablo
     // yetersiz kalır.
     if app.store_tab {
-        lines.push(help_line(&[("Mağaza", "↑↓ kategori · Enter kur/güncelle")]));
+        lines.push(help_line(&[("Mağaza", "↑↓ · Enter Install / güncelle")]));
         lines.push(help_line(&[("U", "Mağazada sürüm denetle")]));
     }
     let (config_line, state_line, workdir_line) = help_info_lines(app);
