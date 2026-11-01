@@ -31,13 +31,19 @@ impl UiTheme {
         }
     }
 
-    /// Türkçe etiket.
+    /// Türkçe etiket (geriye dönük).
     pub fn label(self) -> &'static str {
+        self.label_for(crate::i18n::Language::Tr)
+    }
+
+    /// Dile göre tema etiketi.
+    pub fn label_for(self, lang: crate::i18n::Language) -> &'static str {
+        use crate::i18n::Msg;
         match self {
-            Self::Default => "Varsayılan",
-            Self::Light => "Açık",
-            Self::Forest => "Orman",
-            Self::Amber => "Amber",
+            Self::Default => lang.t(Msg::ThemeDefault),
+            Self::Light => lang.t(Msg::ThemeLight),
+            Self::Forest => lang.t(Msg::ThemeForest),
+            Self::Amber => lang.t(Msg::ThemeAmber),
         }
     }
 

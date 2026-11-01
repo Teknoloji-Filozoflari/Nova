@@ -9,6 +9,7 @@
 - [ ] `cargo fmt --check`
 - [ ] `cargo clippy --locked --all-targets --all-features -- -D warnings`
 - [ ] `cargo test --locked`
+- [ ] Bağımlılık/`deny.toml` değiştiyse: `cargo audit` ve `cargo deny check`
 - [ ] README veya mimari belgeleri gerektiğinde güncellendi
 
 ## İnceleme notları

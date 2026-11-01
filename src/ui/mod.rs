@@ -19,7 +19,8 @@ pub use theme::{ThemePalette, UiTheme};
 use crate::app::{App, PanelFocus};
 use crate::catalog::{short_category_name, CATEGORIES};
 use crate::detection::InstalledStatus;
-use crate::store::{SETTINGS_TAB_LABEL, STORE_CATEGORIES, STORE_TAB_LABEL};
+use crate::i18n::Msg;
+use crate::store::STORE_CATEGORIES;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -53,7 +54,10 @@ pub const DETAIL_ROWS: u16 = 8;
 ///
 /// Mağaza detayı araç detayından daha fazla bilgi taşır (sürüm, canlı takip,
 /// kurulum yöntemi); bu yüzden biraz daha yüksektir.
-pub const STORE_DETAIL_ROWS: u16 = 11;
+pub const STORE_DETAIL_ROWS: u16 = 12;
+
+/// Liste panellerindeki `Borders::ALL` üst/alt kenarlık kalınlığı (satır).
+pub const LIST_BORDER: u16 = 1;
 
 /// Fare tıklama testi için hesaplanan düzen alanları. `ui::draw` ile aynı
 /// eşikleri kullandığı iki kod yolu senkron kalır.
@@ -107,9 +111,11 @@ pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickA
     let content_bottom = h.saturating_sub(detail_h + 1 + help_height);
     let content_height = content_bottom.saturating_sub(content_top);
     let category_end_x = if wide { CATEGORY_PANEL_WIDTH } else { w };
-    // Dar modda mağaza kategorileri içerik alanının üstünde durur.
-    let store_category_rows =
-        (STORE_CATEGORIES.len() as u16 + 2).min(content_height.saturating_sub(3));
+    // Dar modda mağaza kategorileri içerik alanının üstünde durur (+2 kenarlık).
+    // `draw_store_content` ile aynı: uygulama listesine en az 3 satır bırak.
+    let store_category_rows = (STORE_CATEGORIES.len() as u16 + 2)
+        .min(content_height.saturating_sub(3))
+        .max(1);
     ClickAreas {
         content_top,
         content_height,
@@ -118,6 +124,47 @@ pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickA
         store_category_end_x: CATEGORY_PANEL_WIDTH + STORE_CATEGORY_PANEL_WIDTH,
         store_category_end_y: content_top + store_category_rows,
     }
+}
+
+/// Nova her karede `ListState`i `offset = 0` ile yeniden kurar; ratatui
+/// tek satırlık öğelerde seçili satırı görünür tutmak için kaydırmayı
+/// şöyle seçer. Fare isabet hesabı aynı formülü kullanmalıdır.
+pub fn list_scroll_offset(selected: usize, inner_height: u16, len: usize) -> usize {
+    let h = inner_height as usize;
+    if h == 0 || len == 0 {
+        return 0;
+    }
+    let max_off = len.saturating_sub(h);
+    if selected >= h {
+        (selected + 1).saturating_sub(h).min(max_off)
+    } else {
+        0
+    }
+}
+
+/// Kenarlıklı liste panelinde tıklanan satırın öğe indeksini döner.
+///
+/// Üst/alt kenarlık ve listenin seçime göre kaydırılmış penceresi hesaba
+/// katılır. Kenarlığa veya boş satıra tıklanınca `None`.
+pub fn list_index_at_y(
+    y: u16,
+    panel_top: u16,
+    panel_height: u16,
+    selected: usize,
+    len: usize,
+) -> Option<usize> {
+    if panel_height <= 2 || len == 0 {
+        return None;
+    }
+    let inner_top = panel_top.saturating_add(LIST_BORDER);
+    let inner_h = panel_height.saturating_sub(2 * LIST_BORDER);
+    if y < inner_top || y >= inner_top.saturating_add(inner_h) {
+        return None;
+    }
+    let visual = (y - inner_top) as usize;
+    let offset = list_scroll_offset(selected, inner_h, len);
+    let idx = offset + visual;
+    (idx < len).then_some(idx)
 }
 
 // Düzen eşikleri birbirini mantıksal olarak izlemeli; ihlal derleme hatasıdır.
@@ -143,7 +190,7 @@ pub fn truncate(text: &str, max: usize) -> String {
 pub fn message_color(message: &str) -> Color {
     if message.starts_with('✓') {
         Color::Green
-    } else if message.starts_with("Hata:") {
+    } else if crate::i18n::Language::is_error_message(message) {
         Color::Red
     } else {
         Color::Yellow
@@ -154,7 +201,7 @@ pub fn message_color(message: &str) -> Color {
 fn message_symbol(message: &str) -> Option<&'static str> {
     if message.starts_with('✓') {
         Some("✓")
-    } else if message.starts_with("Hata:") {
+    } else if crate::i18n::Language::is_error_message(message) {
         Some("✗")
     } else {
         None
@@ -266,6 +313,7 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn draw_search(f: &mut Frame, app: &App, area: Rect) {
+    let lang = app.ui_lang();
     let (text, style) = if app.search_active || !app.search_query.is_empty() {
         (
             format!("/ {}", app.search_query),
@@ -273,12 +321,12 @@ fn draw_search(f: &mut Frame, app: &App, area: Rect) {
         )
     } else if area.width < TIGHT_HINT_WIDTH {
         (
-            "/ ara  c favori  ?".to_string(),
+            lang.t(Msg::SearchHintTight).to_string(),
             Style::default().fg(Color::DarkGray),
         )
     } else {
         (
-            "/ ara   c favoriler   ? yardım".to_string(),
+            lang.t(Msg::SearchHintWide).to_string(),
             Style::default().fg(Color::DarkGray),
         )
     };
@@ -291,7 +339,7 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
         draw_store_content(f, app, area, wide);
     } else if app.settings_tab {
         if wide {
-            if app.theme_picker_open {
+            if app.settings_side_picker_open() {
                 let panels = Layout::default()
                     .direction(Direction::Horizontal)
                     .constraints([
@@ -302,7 +350,11 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
                     .split(area);
                 draw_categories(f, app, panels[0]);
                 draw_settings_panel(f, app, panels[1]);
-                draw_theme_picker(f, app, panels[2]);
+                if app.language_picker_open {
+                    draw_language_picker(f, app, panels[2]);
+                } else {
+                    draw_theme_picker(f, app, panels[2]);
+                }
             } else {
                 let panels = Layout::default()
                     .direction(Direction::Horizontal)
@@ -314,14 +366,18 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
                 draw_categories(f, app, panels[0]);
                 draw_settings_panel(f, app, panels[1]);
             }
-        } else if app.theme_picker_open {
+        } else if app.settings_side_picker_open() {
             let half = (area.height / 2).max(3);
             let panels = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([Constraint::Length(half), Constraint::Min(3)])
                 .split(area);
             draw_settings_panel(f, app, panels[0]);
-            draw_theme_picker(f, app, panels[1]);
+            if app.language_picker_open {
+                draw_language_picker(f, app, panels[1]);
+            } else {
+                draw_theme_picker(f, app, panels[1]);
+            }
         } else {
             draw_settings_panel(f, app, area);
         }
@@ -419,6 +475,7 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
         .collect();
 
     // Mağaza, ardından Ayarlar.
+    let lang = app.ui_lang();
     let store_count = app.store.entries().len();
     let store_selected = app.store_tab;
     let store_focused = store_selected && app.focus == PanelFocus::Category;
@@ -435,7 +492,7 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
         Style::default().fg(pal.text)
     };
     let store_label = truncate(
-        &format!("{STORE_TAB_LABEL} ({store_count})"),
+        &format!("{} ({store_count})", lang.t(Msg::Store)),
         area.width.saturating_sub(6) as usize,
     );
     items.push(ListItem::new(Line::from(vec![
@@ -464,7 +521,7 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
             Style::default().add_modifier(Modifier::BOLD),
         ),
         Span::styled(
-            truncate(SETTINGS_TAB_LABEL, area.width.saturating_sub(6) as usize),
+            truncate(lang.t(Msg::Settings), area.width.saturating_sub(6) as usize),
             settings_style,
         ),
     ])));
@@ -481,32 +538,47 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .border_style(border)
-                .title(" Kategoriler "),
+                .title(format!(" {} ", lang.t(Msg::Categories))),
         )
         .highlight_style(Style::default());
     let mut state = ListState::default().with_selected(Some(app.selected_tab_index()));
     f.render_stateful_widget(list, area, &mut state);
 }
 
-/// Ayarlar sekmesi: Güncelle + Tema düğmeleri.
+/// Ayarlar sekmesi: Güncelle + Tema + Dil.
 fn draw_settings_panel(f: &mut Frame, app: &App, area: Rect) {
     let pal = palette(app);
+    let lang = app.ui_lang();
     let theme = app.ui_theme();
     let theme_hint = if app.theme_picker_open {
-        format!("Şu an: {} — sağ panelden seç", theme.label())
+        format!("{} — {}", theme.label_for(lang), lang.t(Msg::ThemeHintOpen))
     } else {
         format!(
-            "Şu an: {} ({}) — Enter ile seçenekler",
-            theme.label(),
-            theme.id()
+            "{} ({}) — {}",
+            theme.label_for(lang),
+            theme.id(),
+            lang.t(Msg::ThemeHintClosed)
+        )
+    };
+    let language = app.ui_lang();
+    let language_hint = if app.language_picker_open {
+        format!(
+            "{} — {}",
+            language.native_name(),
+            lang.t(Msg::LanguageHintOpen)
+        )
+    } else {
+        format!(
+            "{} ({}) — {}",
+            language.native_name(),
+            language.id(),
+            lang.t(Msg::LanguageHintClosed)
         )
     };
     let actions = [
-        (
-            "Güncelle",
-            "GitHub Releases ikilisi — tema için cargo rebuild gerekir",
-        ),
-        ("Tema", theme_hint.as_str()),
+        (lang.t(Msg::Update), lang.t(Msg::UpdateHint)),
+        (lang.t(Msg::Theme), theme_hint.as_str()),
+        (lang.t(Msg::Language), language_hint.as_str()),
     ];
     let items: Vec<ListItem> = actions
         .iter()
@@ -542,7 +614,7 @@ fn draw_settings_panel(f: &mut Frame, app: &App, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .border_style(border)
-                .title(" Ayarlar "),
+                .title(format!(" {} ", lang.t(Msg::Settings))),
         )
         .highlight_style(Style::default());
     let mut state = ListState::default().with_selected(Some(app.settings_action_index));
@@ -552,6 +624,7 @@ fn draw_settings_panel(f: &mut Frame, app: &App, area: Rect) {
 /// Tema seçici yan paneli (Ayarlar → Tema).
 fn draw_theme_picker(f: &mut Frame, app: &App, area: Rect) {
     let pal = palette(app);
+    let lang = app.ui_lang();
     let current = app.ui_theme();
     let items: Vec<ListItem> = UiTheme::all()
         .iter()
@@ -574,7 +647,7 @@ fn draw_theme_picker(f: &mut Frame, app: &App, area: Rect) {
             ListItem::new(Line::from(vec![
                 Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
                 Span::styled(mark, Style::default().fg(pal.accent)),
-                Span::styled(format!("{} ({})", theme.label(), theme.id()), style),
+                Span::styled(format!("{} ({})", theme.label_for(lang), theme.id()), style),
             ]))
         })
         .collect();
@@ -588,10 +661,60 @@ fn draw_theme_picker(f: &mut Frame, app: &App, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .border_style(border)
-                .title(" Tema seç "),
+                .title(format!(" {} ", lang.t(Msg::ThemePickTitle))),
         )
         .highlight_style(Style::default());
     let mut state = ListState::default().with_selected(Some(app.theme_picker_index));
+    f.render_stateful_widget(list, area, &mut state);
+}
+
+/// Dil seçici yan paneli (Ayarlar → Dil).
+fn draw_language_picker(f: &mut Frame, app: &App, area: Rect) {
+    let pal = palette(app);
+    let lang = app.ui_lang();
+    let current = lang;
+    let items: Vec<ListItem> = crate::i18n::Language::all()
+        .iter()
+        .enumerate()
+        .map(|(i, language)| {
+            let selected = i == app.language_picker_index;
+            let focused = selected && app.focus == PanelFocus::LanguagePicker;
+            let style = if focused {
+                Style::default()
+                    .fg(pal.accent_on)
+                    .bg(pal.accent)
+                    .add_modifier(Modifier::BOLD)
+            } else if selected {
+                Style::default().fg(pal.accent)
+            } else {
+                Style::default().fg(pal.text)
+            };
+            let mark = if *language == current { "● " } else { "○ " };
+            let prefix = if selected { "▶ " } else { "  " };
+            ListItem::new(Line::from(vec![
+                Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
+                Span::styled(mark, Style::default().fg(pal.accent)),
+                Span::styled(
+                    format!("{} ({})", language.native_name(), language.id()),
+                    style,
+                ),
+            ]))
+        })
+        .collect();
+    let border = if app.focus == PanelFocus::LanguagePicker {
+        Style::default().fg(pal.accent)
+    } else {
+        Style::default().fg(pal.muted)
+    };
+    let list = List::new(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(border)
+                .title(format!(" {} ", lang.t(Msg::LanguagePickTitle))),
+        )
+        .highlight_style(Style::default());
+    let mut state = ListState::default().with_selected(Some(app.language_picker_index));
     f.render_stateful_widget(list, area, &mut state);
 }
 
@@ -641,7 +764,7 @@ fn draw_store_categories(f: &mut Frame, app: &App, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .border_style(border)
-                .title(" Mağaza Kategorileri "),
+                .title(format!(" {} ", app.ui_lang().t(Msg::StoreCategories))),
         )
         .highlight_style(Style::default());
     let mut state = ListState::default().with_selected(Some(app.store_category_index));
@@ -680,11 +803,24 @@ fn draw_store_apps(f: &mut Frame, app: &App, area: Rect) {
                 ("· ", Style::default().fg(Color::DarkGray))
             };
 
-            let name = truncate(&entry.name, inner_width.saturating_sub(6));
+            let trust = entry.trust_level();
+            let trust_badge = format!("[{}]", trust.badge());
+            let trust_style = match trust {
+                crate::store::trust::TrustLevel::HashAndSignature => {
+                    Style::default().fg(Color::Green)
+                }
+                crate::store::trust::TrustLevel::HashOnly => Style::default().fg(Color::Cyan),
+                crate::store::trust::TrustLevel::Manual => Style::default().fg(Color::DarkGray),
+            };
+            // Ad + rozet sığacak şekilde kısaltılır.
+            let badge_budget = trust_badge.len() + 1;
+            let name = truncate(&entry.name, inner_width.saturating_sub(6 + badge_budget));
             ListItem::new(Line::from(vec![
                 Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
                 Span::styled(marker, marker_style),
                 Span::styled(name, style),
+                Span::raw(" "),
+                Span::styled(trust_badge, trust_style),
             ]))
         })
         .collect();
@@ -808,7 +944,7 @@ fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
             tools.len()
         )
     } else if app.favorite_only {
-        format!(" ★ Favoriler ({}) ", tools.len())
+        format!(" ★ {} ({}) ", app.ui_lang().t(Msg::Favorites), tools.len())
     } else {
         format!(
             " {} ({}) ",
@@ -940,13 +1076,14 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
             Style::default().fg(Color::DarkGray),
         ))]
     };
+    let lang = app.ui_lang();
     let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
         Block::default()
             .borders(Borders::TOP)
             .title(if app.store_tab {
-                " Mağaza Detay "
+                format!(" {} ", lang.t(Msg::StoreDetail))
             } else {
-                " Detay "
+                format!(" {} ", lang.t(Msg::ToolDetail))
             }),
     );
     f.render_widget(detail, area);
@@ -960,7 +1097,7 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
 fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     let Some(entry) = app.selected_store_app() else {
         return vec![Line::from(Span::styled(
-            "Mağazada seçili uygulama yok.",
+            app.ui_lang().t(Msg::NoStoreApp),
             Style::default().fg(Color::DarkGray),
         ))];
     };
@@ -1070,6 +1207,22 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         Span::styled("Kurulum: ", Style::default().fg(Color::DarkGray)),
         Span::styled(method_line, Style::default().fg(Color::Yellow)),
     ]));
+
+    // Güven rozeti: hash+sig / hash / manual.
+    let trust = entry.trust_level();
+    let trust_color = match trust {
+        crate::store::trust::TrustLevel::HashAndSignature => Color::Green,
+        crate::store::trust::TrustLevel::HashOnly => Color::Cyan,
+        crate::store::trust::TrustLevel::Manual => Color::DarkGray,
+    };
+    lines.push(Line::from(vec![
+        Span::styled("Güven: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            format!("{} — {}", trust.badge(), trust.label()),
+            Style::default().fg(trust_color),
+        ),
+    ]));
+
     if entry.install_method.is_package_manager() {
         let cmd = resolved_plan
             .as_ref()
@@ -1183,7 +1336,7 @@ fn draw_status(f: &mut Frame, app: &App, area: Rect) {
                 Line::from(spans)
             }
             None => Line::from(Span::styled(
-                "Mağaza kategorisinde uygulama yok.",
+                app.ui_lang().t(Msg::EmptyStoreCategory),
                 Style::default().fg(Color::DarkGray),
             )),
         }
@@ -1284,18 +1437,19 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
 
     // Yardım paneli terminal yüksekliğine göre kısalır; satırlar alana sığmazsa
     // taşmak yerine kırpılır.
+    let lang = app.ui_lang();
     let full = help_full_lines(app);
     let compact = vec![help_line(&[
-        ("↑↓", "Gezin"),
-        ("←→", "Panel"),
-        ("/", "Ara"),
-        ("Enter", "Başlat"),
-        ("F", "Favori"),
-        ("N", "Yeni araç"),
-        ("R", "Geçmiş"),
-        ("P", "Proje"),
-        ("M", "Mağaza"),
-        ("?", "Yardım"),
+        ("↑↓", lang.t(Msg::HelpNavigate)),
+        ("←→", lang.t(Msg::HelpPanel)),
+        ("/", lang.t(Msg::HelpSearch)),
+        ("Enter", lang.t(Msg::HelpLaunch)),
+        ("F", lang.t(Msg::HelpFavorite)),
+        ("N", lang.t(Msg::HelpNewTool)),
+        ("R", lang.t(Msg::HelpRecents)),
+        ("P", lang.t(Msg::HelpProject)),
+        ("M", lang.t(Msg::Store)),
+        ("?", lang.t(Msg::HelpHelp)),
     ])];
 
     let mut lines = if app.show_help && narrow {
@@ -1317,7 +1471,9 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
     let capacity = area.height.saturating_sub(1) as usize;
     lines.truncate(capacity.max(1));
 
-    let block = Block::default().borders(Borders::TOP).title(" Klavye ");
+    let block = Block::default()
+        .borders(Borders::TOP)
+        .title(format!(" {} ", lang.t(Msg::Keyboard)));
     let para = Paragraph::new(lines)
         .block(block)
         .wrap(Wrap { trim: true })
@@ -1332,39 +1488,50 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
 /// listelenir. Dosya yolları da burada gösterilir; kullanıcı yapılandırmayı
 /// aramadan bulabilir.
 fn help_full_lines(app: &App) -> Vec<Line<'static>> {
+    let lang = app.ui_lang();
     let mut lines = vec![
         help_line(&[
-            ("↑↓/jk", "Gezin"),
-            ("←→/hl", "Panel"),
-            ("Tab", "Panel değiştir"),
-            ("/", "Ara"),
+            ("↑↓/jk", lang.t(Msg::HelpNavigate)),
+            ("←→/hl", lang.t(Msg::HelpPanel)),
+            ("Tab", lang.t(Msg::HelpSwitchPanel)),
+            ("/", lang.t(Msg::HelpSearch)),
         ]),
         help_line(&[
-            ("Enter", "Başlat / bilgi"),
-            ("Esc", "Aramayı kapat"),
-            ("?", "Yardımı kapat"),
-        ]),
-        help_line(&[("F", "Favori"), ("C", "Yalnızca favoriler")]),
-        help_line(&[
-            ("N", "Yeni özel araç"),
-            ("D", "Aracı sil/gizle"),
-            ("R", "Son kullanılanlar"),
-            ("P", "Proje dizinleri"),
-            ("S", "Ayarlar"),
+            ("Enter", lang.t(Msg::HelpLaunchInfo)),
+            ("Esc", lang.t(Msg::HelpCloseSearch)),
+            ("?", lang.t(Msg::HelpHelp)),
         ]),
         help_line(&[
-            ("M", "Mağaza sekmesi"),
-            ("U", "Güncellemeyi denetle"),
-            ("O", "Dosya seçici"),
+            ("F", lang.t(Msg::HelpFavorite)),
+            ("C", lang.t(Msg::HelpFavOnly)),
         ]),
-        help_line(&[("Q", "Çıkış"), ("Ctrl+C", "Çıkış")]),
+        help_line(&[
+            ("N", lang.t(Msg::HelpNewTool)),
+            ("D", lang.t(Msg::HelpDeleteTool)),
+            ("R", lang.t(Msg::HelpRecents)),
+            ("P", lang.t(Msg::HelpProjects)),
+            ("S", lang.t(Msg::HelpSettings)),
+        ]),
+        help_line(&[
+            ("M", lang.t(Msg::HelpStoreTab)),
+            ("U", lang.t(Msg::HelpUpdateCheck)),
+            ("O", lang.t(Msg::HelpFilePicker)),
+            ("A", lang.t(Msg::HelpDefaultAi)),
+        ]),
+        help_line(&[
+            ("Q", lang.t(Msg::HelpQuit)),
+            ("Ctrl+C", lang.t(Msg::HelpQuit)),
+        ]),
     ];
     // Mağaza sekmesinin kendi tuşları ayrı satırda anlatılır; sekme
     // görünümü farklı bir gezinme düzeni sunduğu için tek satırlık tablo
     // yetersiz kalır.
     if app.store_tab {
-        lines.push(help_line(&[("Mağaza", "↑↓ · Enter Install / güncelle")]));
-        lines.push(help_line(&[("U", "Mağazada sürüm denetle")]));
+        lines.push(help_line(&[(
+            lang.t(Msg::Store),
+            lang.t(Msg::HelpStoreNav),
+        )]));
+        lines.push(help_line(&[("U", lang.t(Msg::HelpStoreUpdate))]));
     }
     let (config_line, state_line, workdir_line) = help_info_lines(app);
     lines.push(config_line);
@@ -1378,23 +1545,25 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
 /// Yükseklik sınırlı olduğu için kırpma kaçınılmaz; bu sıralama kırpılan
 /// kısmın en az kritik tuşlar olmasını sağlar.
 fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
-    let entries: [(&'static str, &'static str); 16] = [
-        ("↑↓", "Gezin"),
-        ("←→", "Panel"),
-        ("/", "Ara"),
-        ("Enter", "Başlat"),
-        ("?", "Yardım"),
-        ("F", "Favori"),
-        ("P", "Proje dizini"),
-        ("S", "Ayarlar"),
-        ("R", "Son kullanılanlar"),
-        ("N", "Yeni araç"),
-        ("D", "Aracı sil"),
-        ("M", "Mağaza"),
-        ("U", "Güncellemeyi denetle"),
-        ("O", "Dosya seçici"),
-        ("C", "Yalnızca favoriler"),
-        ("Q", "Çıkış"),
+    let lang = app.ui_lang();
+    let entries: [(&'static str, &'static str); 17] = [
+        ("↑↓", lang.t(Msg::HelpNavigate)),
+        ("←→", lang.t(Msg::HelpPanel)),
+        ("/", lang.t(Msg::HelpSearch)),
+        ("Enter", lang.t(Msg::HelpLaunch)),
+        ("?", lang.t(Msg::HelpHelp)),
+        ("F", lang.t(Msg::HelpFavorite)),
+        ("P", lang.t(Msg::HelpProject)),
+        ("S", lang.t(Msg::HelpSettings)),
+        ("R", lang.t(Msg::HelpRecents)),
+        ("N", lang.t(Msg::HelpNewTool)),
+        ("D", lang.t(Msg::HelpDeleteTool)),
+        ("M", lang.t(Msg::Store)),
+        ("U", lang.t(Msg::HelpUpdateCheck)),
+        ("O", lang.t(Msg::HelpFilePicker)),
+        ("A", lang.t(Msg::HelpDefaultAi)),
+        ("C", lang.t(Msg::HelpFavOnly)),
+        ("Q", lang.t(Msg::HelpQuit)),
     ];
     let mut lines: Vec<Line<'static>> = entries
         .iter()
@@ -1414,6 +1583,7 @@ fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
 fn help_info_lines(app: &App) -> (Line<'static>, Line<'static>, Line<'static>) {
     // Dinamik satırlar: yollar ve etkin yol. Uzun yollar karakter sayılarak
     // yalnızca görsel sığdırma için kesilir; bilgi kaybı yalnızca ekrandadır.
+    let lang = app.ui_lang();
     let mut info = Vec::new();
     for (key, value) in [
         ("config", &app.config_path_display),
@@ -1428,12 +1598,15 @@ fn help_info_lines(app: &App) -> (Line<'static>, Line<'static>, Line<'static>) {
         &app.state.active_project,
         &app.state.prefs().default_working_dir,
     ) {
-        (Some(p), _) => format!("{} (etkin proje)", p.display()),
-        (None, Some(d)) => format!("{d} (varsayılan)"),
+        (Some(p), _) => format!("{} ({})", p.display(), lang.t(Msg::ActiveProject)),
+        (None, Some(d)) => format!("{d} ({})", lang.t(Msg::DefaultLabel)),
         (None, None) => app.home_dir.display().to_string(),
     };
     info.push(Line::from(vec![
-        Span::styled("çalışma dizini: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            format!("{}: ", lang.t(Msg::WorkingDir)),
+            Style::default().fg(Color::DarkGray),
+        ),
         Span::styled(workdir, Style::default().fg(Color::Gray)),
     ]));
     let mut it = info.into_iter();
@@ -1477,6 +1650,28 @@ mod tests {
     #[test]
     fn truncate_keeps_short_text() {
         assert_eq!(truncate("htop", 10), "htop");
+    }
+
+    #[test]
+    fn list_scroll_offset_keeps_selection_visible() {
+        assert_eq!(list_scroll_offset(0, 5, 20), 0);
+        assert_eq!(list_scroll_offset(4, 5, 20), 0);
+        assert_eq!(list_scroll_offset(5, 5, 20), 1);
+        assert_eq!(list_scroll_offset(19, 5, 20), 15);
+        assert_eq!(list_scroll_offset(0, 5, 3), 0);
+        assert_eq!(list_scroll_offset(2, 5, 3), 0);
+    }
+
+    #[test]
+    fn list_index_at_y_skips_border_and_uses_scroll() {
+        // panel_top=2, height=10 → inner 3..=10 (8 satır)
+        assert_eq!(list_index_at_y(2, 2, 10, 0, 20), None); // üst kenarlık
+        assert_eq!(list_index_at_y(3, 2, 10, 0, 20), Some(0));
+        assert_eq!(list_index_at_y(4, 2, 10, 0, 20), Some(1));
+        assert_eq!(list_index_at_y(11, 2, 10, 0, 20), None); // alt kenarlık
+                                                             // Seçili 10 → offset 3; görünür ilk satır index 3
+        assert_eq!(list_index_at_y(3, 2, 10, 10, 20), Some(3));
+        assert_eq!(list_index_at_y(10, 2, 10, 10, 20), Some(10));
     }
 
     #[test]

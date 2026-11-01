@@ -1,11 +1,11 @@
 name: CI
 
-# Not: Bu iş akışı yazıldığı ortamda GitHub'a itilmediği için
-# ÇALIŞTIRILMAMIŞTIR. Yerelde aynı üç komut çalıştırıldı ve geçti.
-
 on:
   push:
   pull_request:
+  # Lockfile değişmese de yeni RustSec uyarılarını yakala.
+  schedule:
+    - cron: "17 6 * * 1"
 
 permissions:
   contents: read
@@ -21,3 +21,16 @@ jobs:
       - run: cargo fmt --check
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
       - run: cargo test --locked
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit,cargo-deny
+      - name: cargo audit
+        run: cargo audit
+      - name: cargo deny
+        run: cargo deny check

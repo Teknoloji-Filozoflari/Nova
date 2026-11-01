@@ -88,6 +88,7 @@ mod tests {
             ]),
             install_notes: None,
             release: None,
+            signature: None,
         }
     }
 

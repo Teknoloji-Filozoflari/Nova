@@ -1,0 +1,42 @@
+# Bağımlılık politikası: `cargo deny check` (CI security işi).
+# https://embarkstudios.github.io/cargo-deny/
+
+[graph]
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+]
+all-features = true
+
+[advisories]
+# Doğrudan bağımlılıklar için unmaintained/unsound fail; transitive uyarı kalır.
+unmaintained = "workspace"
+unsound = "workspace"
+yanked = "deny"
+
+[licenses]
+confidence-threshold = 0.8
+# Nova MIT OR Apache-2.0; ağaçtaki mevcut OSI/permissive lisanslar.
+allow = [
+    "0BSD",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MIT",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

@@ -356,8 +356,8 @@ pub fn verify_checksum(file: &Path, expected: &str) -> Result<(), InstallError> 
 ///
 /// - **Yol geçişi (path traversal)**: `..` bileşeni içeren veya mutlak yola
 ///   çıkan girdiler reddedilir; çıkarma `dest` dışına çıkamaz.
-/// - **Sembolik bağ**: sembolik ve hard link girdileri oluşturulmaz
-///   (dışarıya bağlantı kurma saldırısı engellenir).
+/// - **Sembolik bağ**: sembolik ve hard link girdileri **reddedilir**
+///   (dışarıya bağlantı / zip-slip kaçış yolu engellenir).
 /// - **Kaynak tüketimi**: girdi sayısı ve toplam boyut sınırlıdır.
 /// - Dosya izinleri korunur; çalıştırılabilir biti kaybolmaz.
 pub fn extract_archive(src: &Path, dest: &Path) -> Result<(), InstallError> {
@@ -395,10 +395,13 @@ pub fn extract_archive(src: &Path, dest: &Path) -> Result<(), InstallError> {
             .map_err(|e| InstallError::Archive(format!("geçersiz arşiv yolu: {e}")))?
             .into_owned();
 
-        // Sembolik bağ ve hard link oluşturulmaz.
+        // Sembolik bağ ve hard link reddedilir (zip-slip / escape yolu).
         let kind = entry.header().entry_type();
         if kind.is_symlink() || kind.is_hard_link() {
-            continue;
+            return Err(InstallError::Security(format!(
+                "arşiv sembolik/hard link içeriyor (reddedildi): '{}'",
+                path.display()
+            )));
         }
 
         let target = safe_join(&root, &path)?;
@@ -704,6 +707,14 @@ pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
         }
         actions
             .push("Kurulan dosyalar install-manifest.toml ile izlenir; kaldırma geri alır.".into());
+        let trust = entry.trust_level();
+        actions.push(format!("Güven: {} ({})", trust.badge(), trust.label()));
+        if let Some(sig) = &entry.signature {
+            actions.push(format!(
+                "Upstream imza ({}) mümkünse doğrulanacak.",
+                sig.kind.label()
+            ));
+        }
         (
             full_command,
             entry.install_method.short_label().to_string(),
@@ -711,7 +722,6 @@ pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
             false,
         )
     };
-
     InstallConfirmation {
         app_name: entry.name.clone(),
         version: entry.version.clone().unwrap_or_default(),
@@ -1179,6 +1189,23 @@ fn install_with_source(
         // 3) SHA-256 doğrula — uyuşmazlık kurulumu keser.
         verify_checksum(&downloaded, &source.checksum)?;
 
+        // 3b) Upstream imza — araç varsa doğrula, yoksa atla (when possible).
+        let signature_note = match crate::store::signature::verify_signature_when_possible(
+            &downloaded,
+            entry.signature.as_ref(),
+            version,
+            &work_dir,
+            downloader,
+        )? {
+            crate::store::signature::SignatureCheck::Verified => {
+                Some("upstream imza doğrulandı".to_string())
+            }
+            crate::store::signature::SignatureCheck::SkippedMissingTool(tool) => {
+                Some(format!("upstream imza atlandı ({tool} PATH'te yok)"))
+            }
+            crate::store::signature::SignatureCheck::NotRequested => None,
+        };
+
         // 4) Güvenli çıkarma.
         extract_archive(&downloaded, &staging_dir)?;
 
@@ -1216,6 +1243,10 @@ fn install_with_source(
             entry.name,
             final_path.display()
         );
+        if let Some(note) = signature_note {
+            summary.push_str(" · ");
+            summary.push_str(&note);
+        }
         match crate::store::path::shim_installed_executable(&entry.executable, &final_path) {
             Ok(shim) => {
                 executable_path = shim;
@@ -1448,6 +1479,7 @@ mod tests {
             install_command: None,
             install_notes: None,
             release: None,
+            signature: None,
         }
     }
 
@@ -1470,6 +1502,7 @@ mod tests {
             install_command: Some(argv.into_iter().map(str::to_string).collect()),
             install_notes: Some("not".into()),
             release: None,
+            signature: None,
         }
     }
 
@@ -1571,6 +1604,28 @@ mod tests {
         let _ = fs::remove_dir_all(&dir);
     }
 
+    /// Klasik zip-slip: `../` ile hedef kök dışına yazma denemesi.
+    #[test]
+    fn extract_archive_rejects_zip_slip() {
+        let dir = temp_dir("zipslip");
+        let archive = dir.join("a.tar.gz");
+        let raw = make_tar(&[("safe/file", b"x", false)]);
+        let malicious = gzip(&patch_entry_name(
+            &raw,
+            "safe/file",
+            "safe/../../zipslip-escaped",
+        ));
+        fs::write(&archive, &malicious).unwrap();
+        let dest = dir.join("cikarilan");
+        let err = extract_archive(&archive, &dest).unwrap_err();
+        assert!(matches!(err, InstallError::Security(_)), "hata: {err}");
+        assert!(
+            !dir.join("zipslip-escaped").exists(),
+            "zip-slip hedef dışına yazmamalı"
+        );
+        let _ = fs::remove_dir_all(&dir);
+    }
+
     #[test]
     fn extract_archive_rejects_absolute_paths() {
         let dir = temp_dir("mutlak");
@@ -1584,6 +1639,47 @@ mod tests {
         assert!(
             !Path::new("/etc/kotu").exists(),
             "sistem dizinine yazılmamalı"
+        );
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn extract_archive_rejects_symlink_entries() {
+        let dir = temp_dir("symlink");
+        let archive = dir.join("a.tar.gz");
+        let mut builder = tar::Builder::new(Vec::new());
+        let mut header = tar::Header::new_gnu();
+        header.set_entry_type(tar::EntryType::Symlink);
+        header.set_size(0);
+        header.set_mode(0o777);
+        header.set_cksum();
+        builder
+            .append_link(&mut header, "escape-link", "/etc/passwd")
+            .expect("symlink girdisi");
+        // Yanına zararsız bir dosya da koy; link önce gelince tüm çıkarma kesilmeli.
+        let mut file_header = tar::Header::new_gnu();
+        file_header.set_size(1);
+        file_header.set_mode(0o644);
+        file_header.set_cksum();
+        builder
+            .append_data(&mut file_header, "paket/ok", &b"x"[..])
+            .expect("dosya");
+        let raw = builder.into_inner().expect("tar");
+        fs::write(&archive, gzip(&raw)).unwrap();
+        let dest = dir.join("cikarilan");
+        let err = extract_archive(&archive, &dest).unwrap_err();
+        assert!(matches!(err, InstallError::Security(_)), "hata: {err}");
+        assert!(
+            format!("{err}").contains("link"),
+            "sembolik/hard link mesajı beklenir: {err}"
+        );
+        assert!(
+            !dest.join("escape-link").exists(),
+            "symlink oluşturulmamalı"
+        );
+        assert!(
+            !dest.join("paket/ok").exists(),
+            "link reddi sonrası devam edilmemeli"
         );
         let _ = fs::remove_dir_all(&dir);
     }

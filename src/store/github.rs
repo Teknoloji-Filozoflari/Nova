@@ -31,12 +31,9 @@ use crate::store::manifest::{
     parse_checksum_file, ConditionalRelease, ReleaseProvider, ReleaseSource, ResolvedRelease,
 };
 use serde::Deserialize;
-use std::time::Duration;
 
 /// GitHub API kök adresi.
 const API_ROOT: &str = "https://api.github.com";
-/// Tek bir isteğin zaman sınırı.
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(45);
 
 /// Koşullu bir metin isteğinin sonucu.
 #[derive(Debug, Clone)]
@@ -123,11 +120,8 @@ impl GitHubReleaseProvider {
 
     /// Belirtilen token ile çözümleyici oluşturur.
     pub fn with_token(token: Option<String>) -> Self {
-        let config = ureq::Agent::config_builder()
-            .timeout_global(Some(REQUEST_TIMEOUT))
-            .build();
         Self {
-            agent: config.into(),
+            agent: crate::store::net::secure_agent(),
             token,
         }
     }
@@ -143,9 +137,7 @@ impl GitHubReleaseProvider {
     /// Bir `https://` adresinden metin indirir; `ETag` ile koşullu istek
     /// atabilir.
     fn get_text_conditional(&self, url: &str, etag: Option<&str>) -> Result<TextFetch, String> {
-        if !url.starts_with("https://") {
-            return Err(format!("yalnızca https:// adresleri okunabilir: '{url}'"));
-        }
+        crate::store::net::require_https(url)?;
         let mut request = self.agent.get(url);
         if let Some(token) = &self.token {
             request = request.header("Authorization", &format!("Bearer {token}"));
@@ -161,7 +153,12 @@ impl GitHubReleaseProvider {
             return Ok(TextFetch::NotModified);
         }
         if status == 403 {
-            let body = response.body_mut().read_to_string().unwrap_or_default();
+            let body = response
+                .body_mut()
+                .with_config()
+                .limit(crate::store::net::MAX_TEXT_BYTES)
+                .read_to_string()
+                .unwrap_or_default();
             if body.contains("rate limit") {
                 return Err(
                     "GitHub API hız sınırına ulaşıldı. 'GITHUB_TOKEN' ortam değişkenini \
@@ -175,6 +172,14 @@ impl GitHubReleaseProvider {
         if !(200..300).contains(&status) {
             return Err(format!("'{url}' sunucusu {status} yanıtı verdi"));
         }
+        if let Some(len) = response.body().content_length() {
+            if len > crate::store::net::MAX_TEXT_BYTES {
+                return Err(format!(
+                    "'{url}' yanıtı çok büyük: {len} bayt (sınır {})",
+                    crate::store::net::MAX_TEXT_BYTES
+                ));
+            }
+        }
         let etag = response
             .headers()
             .get("etag")
@@ -182,6 +187,8 @@ impl GitHubReleaseProvider {
             .map(|v| v.to_string());
         let text = response
             .body_mut()
+            .with_config()
+            .limit(crate::store::net::MAX_TEXT_BYTES)
             .read_to_string()
             .map_err(|e| format!("'{url}' okunamadı: {e}"))?;
         Ok(TextFetch::Body { text, etag })

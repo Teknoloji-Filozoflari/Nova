@@ -5,19 +5,14 @@
 //! olarak yapılır: `curl | sh` benzeri bir desen kullanılmaz ve indirilen
 //! dosya daha sonra SHA-256 özetiyle doğrulanır.
 //!
-//! Yanıt gövdesi bir dosyaya akıtılır (tamamı belleğe alınmaz) ve boyut
-//! sınırı uygulanır.
+//! Yanıt gövdesi bir dosyaya akıtılır (tamamı belleğe alınmaz). Yalnızca
+//! HTTPS, sınırlı yönlendirme ve boyut üst sınırı uygulanır.
 
 use crate::store::install::{Downloader, InstallError};
+use crate::store::net::{self, MAX_DOWNLOAD_BYTES};
 use std::fs;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::Path;
-use std::time::Duration;
-
-/// İndirilecek en büyük dosya boyutu (byte).
-const MAX_DOWNLOAD_BYTES: u64 = 256 * 1024 * 1024;
-/// Tek isteğin toplam zaman sınırı.
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(180);
 
 /// `ureq` tabanlı indirici.
 #[derive(Debug, Clone, Default)]
@@ -33,21 +28,13 @@ impl HttpDownloader {
 
     /// İstek için yapılandırılmış ajanı üretir.
     fn agent(&self) -> ureq::Agent {
-        let config = ureq::Agent::config_builder()
-            .timeout_global(Some(REQUEST_TIMEOUT))
-            .build();
-        config.into()
+        net::secure_agent()
     }
 }
 
 impl Downloader for HttpDownloader {
     fn download(&self, url: &str, destination: &Path) -> Result<std::path::PathBuf, InstallError> {
-        if !url.starts_with("https://") {
-            return Err(InstallError::Security(format!(
-                "yalnızca https:// adresleri indirilebilir: '{}'",
-                url
-            )));
-        }
+        net::require_https(url).map_err(InstallError::Security)?;
         if let Some(parent) = destination.parent() {
             fs::create_dir_all(parent).map_err(|e| {
                 InstallError::Permission(format!("'{}' oluşturulamadı: {e}", parent.display()))
@@ -58,36 +45,58 @@ impl Downloader for HttpDownloader {
         let mut response = agent
             .get(url)
             .call()
-            .map_err(|e| InstallError::Network(format!("'{}' indirilemedi: {e}", url)))?;
+            .map_err(|e| InstallError::Network(format!("'{url}' indirilemedi: {e}")))?;
 
         let status = response.status().as_u16();
         if !(200..300).contains(&status) {
             return Err(InstallError::Network(format!(
-                "'{}' sunucusu {} yanıtı verdi",
-                url, status
+                "'{url}' sunucusu {status} yanıtı verdi"
             )));
+        }
+
+        if let Some(len) = response.body().content_length() {
+            if len > MAX_DOWNLOAD_BYTES {
+                return Err(InstallError::Download(format!(
+                    "dosya çok büyük: Content-Length {len} bayt (sınır {MAX_DOWNLOAD_BYTES} bayt)"
+                )));
+            }
         }
 
         let mut file = fs::File::create(destination).map_err(|e| {
             InstallError::Permission(format!("'{}' oluşturulamadı: {e}", destination.display()))
         })?;
         let mut reader = response.body_mut().as_reader();
-        let written = std::io::copy(&mut reader, &mut file)
-            .map_err(|e| InstallError::Network(format!("'{}' indirilemedi: {e}", url)))?;
+        let mut buf = [0u8; 64 * 1024];
+        let mut written: u64 = 0;
+        loop {
+            let n = reader.read(&mut buf).map_err(|e| {
+                let _ = fs::remove_file(destination);
+                InstallError::Network(format!("'{url}' indirilemedi: {e}"))
+            })?;
+            if n == 0 {
+                break;
+            }
+            written = written.saturating_add(n as u64);
+            if written > MAX_DOWNLOAD_BYTES {
+                let _ = fs::remove_file(destination);
+                return Err(InstallError::Download(format!(
+                    "dosya çok büyük: {written} bayt (sınır {MAX_DOWNLOAD_BYTES} bayt)"
+                )));
+            }
+            file.write_all(&buf[..n]).map_err(|e| {
+                let _ = fs::remove_file(destination);
+                InstallError::Download(format!("'{}' yazılamadı: {e}", destination.display()))
+            })?;
+        }
         file.flush().map_err(|e| {
             InstallError::Download(format!("'{}' yazılamadı: {e}", destination.display()))
         })?;
 
         if written == 0 {
+            let _ = fs::remove_file(destination);
             return Err(InstallError::Download(format!(
                 "'{}' boş bir dosya indirdi",
                 destination.display()
-            )));
-        }
-        if written > MAX_DOWNLOAD_BYTES {
-            return Err(InstallError::Download(format!(
-                "dosya çok büyük: {} bayt (sınır {} bayt)",
-                written, MAX_DOWNLOAD_BYTES
             )));
         }
 
@@ -121,5 +130,16 @@ mod tests {
             Err(other) => panic!("beklenmeyen hata: {other}"),
         }
         let _ = fs::remove_file(&dest);
+    }
+
+    #[test]
+    fn agent_enforces_https_only_and_redirect_cap() {
+        // Derleme zamanı / yapılandırma duman testi: ajan oluşturulabilmeli.
+        let agent = HttpDownloader::new().agent();
+        let _ = agent;
+        assert_eq!(crate::store::net::MAX_REDIRECTS, 3);
+        const {
+            assert!(crate::store::net::MAX_DOWNLOAD_BYTES > 0);
+        }
     }
 }

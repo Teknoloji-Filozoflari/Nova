@@ -1,12 +1,16 @@
-# Lisans
+# SPDX-License-Identifier: MIT OR Apache-2.0
 
-Nova, aşağıdaki lisanslardan **biri seçilerek** kullanılabilir:
+Nova, **MIT OR Apache-2.0** SPDX ifadesi altında çift lisanslıdır. Kullanıcı
+(veya dağıtımcı) iki lisanstan **birini seçerek** kullanabilir; ikisini birden
+yerine getirmesi gerekmez.
 
-- [MIT Lisansı](LICENSE-MIT)
-- [Apache Lisansı, Sürüm 2.0](LICENSE-APACHE)
+- [MIT License](LICENSE-MIT)
+- [Apache License, Version 2.0](LICENSE-APACHE)
 
-Cargo paket metadata'sı aynı seçimi `MIT OR Apache-2.0` olarak bildirir. Bu,
-kullanıcının iki lisanstan birinin koşullarını seçebileceği anlamına gelir.
+`Cargo.toml` içindeki `license = "MIT OR Apache-2.0"` alanı aynı SPDX
+ifadesini paket metadata'sı olarak bildirir. Bu dosya (`LICENSE.md`) yalnızca
+seçimi açıklar; yasal metinler `LICENSE-MIT` ve `LICENSE-APACHE` dosyalarındadır.
+Tek bir `LICENSE` dosyasında tek lisans metni yoktur — bilinçli olarak.
 
-Lisans metinleri projenin kapsamındaki Nova kodu ve belgeleri içindir. Üçüncü
-taraf bağımlılıkları kendi lisans koşullarına tabidir.
+Lisans metinleri projenin kendi Nova kodu ve belgelerini kapsar. Üçüncü taraf
+bağımlılıkları kendi lisans koşullarına tabidir.

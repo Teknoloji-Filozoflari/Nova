@@ -265,15 +265,45 @@ impl Drop for PathOverride {
     }
 }
 
+/// `$TERMINAL` ortamını test süresince temizler / ayarlar.
+struct TerminalEnvGuard {
+    previous: Option<OsString>,
+}
+
+impl TerminalEnvGuard {
+    fn clear() -> Self {
+        let previous = std::env::var_os("TERMINAL");
+        std::env::remove_var("TERMINAL");
+        Self { previous }
+    }
+
+    fn set(value: &str) -> Self {
+        let previous = std::env::var_os("TERMINAL");
+        std::env::set_var("TERMINAL", value);
+        Self { previous }
+    }
+}
+
+impl Drop for TerminalEnvGuard {
+    fn drop(&mut self) {
+        match &self.previous {
+            Some(v) => std::env::set_var("TERMINAL", v),
+            None => std::env::remove_var("TERMINAL"),
+        }
+    }
+}
+
 #[test]
-fn missing_konsole_gives_a_clear_error_and_no_process_is_spawned() {
+fn missing_emulator_gives_a_clear_error_and_no_process_is_spawned() {
     let _env = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let _path = PathOverride::empty();
+    let _clear_terminal = TerminalEnvGuard::clear();
 
     let err = select_adapter(None).err().expect("emülatör bulunmamalıydı");
     let msg = err.to_string();
     assert!(msg.contains("terminal emülatörü bulunamadı"), "{msg}");
-    assert!(msg.contains("konsole"), "aranan emülatör adı yok: {msg}");
+    assert!(msg.contains("kitty"), "aranan emülatör adı yok: {msg}");
+    assert!(msg.contains("tmux"), "aranan emülatör adı yok: {msg}");
 
     // Tam başlatma akışı da spawna kadar gelmemeli.
     let entry = entry_with("sh", &[], WorkingDirectory::Home, LaunchMode::Terminal);
@@ -292,6 +322,7 @@ fn missing_konsole_gives_a_clear_error_and_no_process_is_spawned() {
 fn preferred_konsole_that_is_not_installed_is_not_replaced_silently() {
     let _env = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let _path = PathOverride::empty();
+    let _clear_terminal = TerminalEnvGuard::clear();
 
     let err = select_adapter(Some("konsole"))
         .err()
@@ -302,17 +333,67 @@ fn preferred_konsole_that_is_not_installed_is_not_replaced_silently() {
 }
 
 #[test]
+fn terminal_env_prefers_known_emulator_before_path_scan() {
+    let _env = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    // Yalnızca sahte bir "kitty" ikilisi PATH'te olsun; listedeki diğerleri yok.
+    let bin = std::env::temp_dir().join(format!(
+        "nova-term-bin-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&bin).unwrap();
+    let kitty = bin.join("kitty");
+    std::fs::write(&kitty, b"#!/bin/sh\n").unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = std::fs::metadata(&kitty).unwrap().permissions();
+        perms.set_mode(0o755);
+        std::fs::set_permissions(&kitty, perms).unwrap();
+    }
+    let previous_path = std::env::var_os("PATH");
+    std::env::set_var("PATH", &bin);
+    let _term = TerminalEnvGuard::set("kitty");
+
+    let (path, adapter) = select_adapter(None).expect("$TERMINAL=kitty çözülmeli");
+    assert_eq!(adapter.executable(), "kitty");
+    assert_eq!(path, kitty);
+
+    match previous_path {
+        Some(p) => std::env::set_var("PATH", p),
+        None => std::env::remove_var("PATH"),
+    }
+    let _ = std::fs::remove_dir_all(&bin);
+}
+
+#[test]
 fn unsupported_preferred_terminal_names_supported_ones() {
-    let err = select_adapter(Some("kitty"))
+    let err = select_adapter(Some("urxvt"))
         .err()
         .expect("desteklenmeyen tercih reddedilmeliydi");
     let msg = err.to_string();
-    assert!(msg.contains("kitty"), "{msg}");
+    assert!(msg.contains("urxvt"), "{msg}");
     assert!(msg.contains("desteklenmiyor"), "{msg}");
     assert!(
-        msg.contains("konsole"),
+        msg.contains("kitty") && msg.contains("konsole"),
         "desteklenenler listelenmeli: {msg}"
     );
+}
+
+#[test]
+fn preferred_kitty_is_accepted_as_supported() {
+    let _env = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let _path = PathOverride::empty();
+    let err = select_adapter(Some("kitty"))
+        .err()
+        .expect("kurulu olmayan kitty açık hata vermeli");
+    let msg = err.to_string();
+    assert!(msg.contains("bulunamadı"), "{msg}");
+    assert!(msg.contains("kitty"), "{msg}");
+    assert!(!msg.contains("desteklenmiyor"), "{msg}");
 }
 
 #[test]
@@ -400,12 +481,12 @@ fn launcher_reports_spawn_call_as_request_not_confirmation() {
     let outcome = launch_with(&entry, &home(), &spawner).unwrap();
     assert_eq!(spawner.calls.borrow().len(), 1);
     let (program, args) = &spawner.calls.borrow()[0];
-    assert!(program
-        .file_name()
-        .unwrap()
-        .to_string_lossy()
-        .contains("konsole"));
-    assert!(args.contains(&"--new-tab".to_string()));
+    let name = program.file_name().unwrap().to_string_lossy();
+    assert!(
+        nova::launcher::find_adapter_by_name(name.as_ref()).is_some(),
+        "bilinen emülatör beklenirdi: {name}"
+    );
+    assert!(!args.is_empty());
     assert_eq!(outcome.emulator_pid, 1);
     assert!(outcome.message().contains("istendi"));
 }

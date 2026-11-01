@@ -34,6 +34,12 @@
 #                     checksum_asset_pattern
 #                     Checksum dosyasının adı; {version} sürümle değişir.
 #                     Verilmezse özet yayın notlarından okunur.
+#   signature         İsteğe bağlı upstream imza (download_archive).
+#                     kind             minisign | cosign | gpg | attestation
+#                     signature_url    İmza dosyasının https:// adresi ({version} olabilir)
+#                     public_key       minisign/gpg anahtarı veya cosign --key
+#                     identity/issuer  cosign/attestation OIDC alanları
+#                     UI rozeti: hash+sig. Doğrulama, ilgili CLI PATH'teyse yapılır.
 #
 # Canlı takip "uzaktan gelen katalog" değildir: depo ve dosya adı desenleri
 # burada sabittir, ağdan yalnızca sürüm ipucu gelir. Çalıştırılacak dosyanın
@@ -5194,3 +5200,306 @@ install_method = "pipx"
 install_command = ["pipx", "install", "litecli"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pipx: pipx install litecli\nResmî: https://litecli.com/"
+
+# ---------------------------------------------------------------------------
+# Store tools batch (jless…llmfit gaps)
+# ---------------------------------------------------------------------------
+
+[[apps]]
+id = "jless"
+name = "jless"
+category = "Dosya ve Arama"
+description = "JSON için etkileşimli komut satırı sayfalayıcı."
+source = "https://github.com/PaulJuliusMartinez/jless"
+license = "MIT"
+executable = "jless"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "jless"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S jless\ncargo: cargo install jless\nbrew: brew install jless\nResmî: https://github.com/PaulJuliusMartinez/jless"
+
+[[apps]]
+id = "ast-grep"
+name = "ast-grep"
+category = "Geliştirme"
+description = "AST tabanlı yapısal kod arama, lint ve yeniden yazma (sg)."
+source = "https://ast-grep.github.io/"
+license = "MIT"
+executable = "sg"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ast-grep"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S ast-grep\ncargo: cargo install ast-grep --locked\nnpm: npm install -g @ast-grep/cli\nbrew: brew install ast-grep\nResmî: https://ast-grep.github.io/"
+
+[[apps]]
+id = "jj"
+name = "jj"
+category = "Git"
+description = "Jujutsu: Git uyumlu, basit ve güçlü sürüm kontrol sistemi."
+source = "https://github.com/jj-vcs/jj"
+license = "Apache-2.0"
+executable = "jj"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "jujutsu"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S jujutsu\ncargo: cargo install --locked --bin jj jj-cli\nbrew: brew install jj\nResmî: https://jj-vcs.github.io/jj/"
+
+[[apps]]
+id = "difftastic"
+name = "difftastic"
+category = "Git"
+description = "Sözdizimi bilen yapısal diff aracı (difft)."
+source = "https://difftastic.wilfred.me.uk/"
+license = "MIT"
+executable = "difft"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "difftastic"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S difftastic\ncargo: cargo install difftastic\nbrew: brew install difftastic\nResmî: https://difftastic.wilfred.me.uk/"
+
+[[apps]]
+id = "actionlint"
+name = "actionlint"
+category = "Geliştirme"
+description = "GitHub Actions workflow dosyaları için statik denetleyici."
+source = "https://github.com/rhysd/actionlint"
+license = "MIT"
+executable = "actionlint"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "actionlint"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S actionlint\ngo: go install github.com/rhysd/actionlint/cmd/actionlint@latest\nbrew: brew install actionlint\nResmî: https://github.com/rhysd/actionlint"
+
+[[apps]]
+id = "osv-scanner"
+name = "osv-scanner"
+category = "Güvenlik"
+description = "OSV veritabanı ile bağımlılık güvenlik açığı tarayıcısı."
+source = "https://github.com/google/osv-scanner"
+license = "Apache-2.0"
+executable = "osv-scanner"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "osv-scanner"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S osv-scanner\nbrew: brew install osv-scanner\ngo: go install github.com/google/osv-scanner/cmd/osv-scanner@latest\nResmî: https://google.github.io/osv-scanner/"
+
+[[apps]]
+id = "gitleaks"
+name = "gitleaks"
+category = "Güvenlik"
+description = "Git depolarında sızdırılmış sır ve anahtar tarayıcısı."
+source = "https://github.com/gitleaks/gitleaks"
+license = "MIT"
+executable = "gitleaks"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "gitleaks"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S gitleaks\nbrew: brew install gitleaks\nResmî: https://github.com/gitleaks/gitleaks"
+
+[[apps]]
+id = "grype"
+name = "grype"
+category = "Güvenlik"
+description = "Konteyner imajı ve dosya sistemi güvenlik açığı tarayıcısı (Anchore)."
+source = "https://github.com/anchore/grype"
+license = "Apache-2.0"
+executable = "grype"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "grype"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S grype / AUR\nbrew: brew install grype\nResmî: https://github.com/anchore/grype"
+
+[[apps]]
+id = "syft"
+name = "syft"
+category = "Güvenlik"
+description = "Konteyner ve dosya sistemlerinden SBOM üretici (Anchore)."
+source = "https://github.com/anchore/syft"
+license = "Apache-2.0"
+executable = "syft"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "syft"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S syft\nbrew: brew install syft\nResmî: https://github.com/anchore/syft"
+
+[[apps]]
+id = "cosign"
+name = "cosign"
+category = "Güvenlik"
+description = "Sigstore ile konteyner ve artefakt imzalama / doğrulama."
+source = "https://github.com/sigstore/cosign"
+license = "Apache-2.0"
+executable = "cosign"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "cosign"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S cosign\nbrew: brew install cosign\ngo: go install github.com/sigstore/cosign/v2/cmd/cosign@latest\nResmî: https://docs.sigstore.dev/cosign/system_config/installation/"
+
+[[apps]]
+id = "doggo"
+name = "doggo"
+category = "Ağ"
+description = "İnsan dostu komut satırı DNS istemcisi."
+source = "https://github.com/mr-karan/doggo"
+license = "GPL-3.0"
+executable = "doggo"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "doggo"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S doggo\nbrew: brew install doggo\ngo: go install github.com/mr-karan/doggo/cmd/doggo@latest\nResmî: https://github.com/mr-karan/doggo"
+
+[[apps]]
+id = "oha"
+name = "oha"
+category = "Ağ"
+description = "HTTP yük üreteci (rakyll/hey esinli, TUI)."
+source = "https://github.com/hatoo/oha"
+license = "MIT"
+executable = "oha"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "oha"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S oha\ncargo: cargo install oha\nbrew: brew install oha\nResmî: https://github.com/hatoo/oha"
+
+[[apps]]
+id = "rustscan"
+name = "rustscan"
+category = "Ağ"
+description = "Hızlı modern port tarayıcı."
+source = "https://github.com/bee-san/RustScan"
+license = "GPL-3.0"
+executable = "rustscan"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "rustscan"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S rustscan\ncargo: cargo install rustscan\nbrew: brew install rustscan\nResmî: https://github.com/bee-san/RustScan"
+
+[[apps]]
+id = "ouch"
+name = "ouch"
+category = "Dosya ve Arama"
+description = "Arşiv sıkıştırma / açma için kullanıcı dostu CLI."
+source = "https://github.com/ouch-org/ouch"
+license = "MIT"
+executable = "ouch"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ouch"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S ouch\ncargo: cargo install ouch\nbrew: brew install ouch\nResmî: https://github.com/ouch-org/ouch"
+
+[[apps]]
+id = "qsv"
+name = "qsv"
+category = "Günlük"
+description = "CSV/tabular veri işleme araç seti (xsv çatalı)."
+source = "https://github.com/dathere/qsv"
+license = "MIT/Unlicense"
+executable = "qsv"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "qsv"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S qsv\ncargo: cargo install qsv\nbrew: brew install qsv\nResmî: https://github.com/dathere/qsv"
+
+[[apps]]
+id = "miller"
+name = "miller"
+category = "Günlük"
+description = "İsim indeksli CSV/JSON/veri işleme (mlr)."
+source = "https://miller.readthedocs.io/"
+license = "BSD-2-Clause"
+executable = "mlr"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "miller"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S miller\napt: sudo apt install miller\nbrew: brew install miller\nResmî: https://miller.readthedocs.io/"
+
+[[apps]]
+id = "iredis"
+name = "iredis"
+category = "Veritabanı"
+description = "Otomatik tamamlamalı Redis terminal istemcisi."
+source = "https://github.com/laixintao/iredis"
+license = "BSD-3-Clause"
+executable = "iredis"
+install_method = "pipx"
+install_command = ["pipx", "install", "iredis"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pipx: pipx install iredis\nuv: uv tool install iredis\npacman: sudo pacman -S iredis / AUR\nResmî: https://github.com/laixintao/iredis"
+
+[[apps]]
+id = "restic"
+name = "restic"
+category = "Verimlilik"
+description = "Hızlı, güvenli ve verimli yedekleme aracı."
+source = "https://restic.net/"
+license = "BSD-2-Clause"
+executable = "restic"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "restic"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S restic\napt: sudo apt install restic\nbrew: brew install restic\nResmî: https://restic.readthedocs.io/en/stable/020_installation.html"
+
+[[apps]]
+id = "borg"
+name = "borg"
+category = "Verimlilik"
+description = "Tekilleştirmeli, sıkıştırmalı ve şifreli yedekleme (BorgBackup)."
+source = "https://www.borgbackup.org/"
+license = "BSD-3-Clause"
+executable = "borg"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "borg"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S borg\napt: sudo apt install borgbackup\nbrew: brew install borgbackup\nResmî: https://borgbackup.readthedocs.io/"
+
+[[apps]]
+id = "rclone"
+name = "rclone"
+category = "Dosya ve Arama"
+description = "Bulut depolama için rsync benzeri senkronizasyon."
+source = "https://rclone.org/"
+license = "MIT"
+executable = "rclone"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "rclone"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S rclone\napt: sudo apt install rclone\nbrew: brew install rclone\nResmî: https://rclone.org/install/"
+
+[[apps]]
+id = "croc"
+name = "croc"
+category = "Ağ"
+description = "Bilgisayarlar arası kolay ve güvenli dosya transferi."
+source = "https://github.com/schollz/croc"
+license = "MIT"
+executable = "croc"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "croc"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S croc\nbrew: brew install croc\nResmî: https://github.com/schollz/croc"
+
+[[apps]]
+id = "khal"
+name = "khal"
+category = "Verimlilik"
+description = "CalDAV tabanlı komut satırı takvim uygulaması."
+source = "https://lostpackets.de/khal/"
+license = "MIT"
+executable = "khal"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "khal"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S khal\npipx: pipx install khal\napt: sudo apt install khal\nbrew: brew install khal\nResmî: https://lostpackets.de/khal/"
+
+[[apps]]
+id = "llmfit"
+name = "llmfit"
+category = "AI"
+description = "Donanıma göre hangi yerel LLM modellerinin çalışacağını önerir (TUI)."
+source = "https://github.com/AlexsJones/llmfit"
+license = "MIT"
+executable = "llmfit"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "llmfit"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S llmfit\nuv: uv tool install -U llmfit\nbrew: brew install llmfit\nResmî: https://www.llmfit.org/"

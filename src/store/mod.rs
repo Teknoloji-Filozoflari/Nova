@@ -23,6 +23,7 @@
 //! - `artifacts` — mimariye özel arşiv URL/checksum/release desenleri
 //! - `install_command` — paket yöneticisi yöntemlerinde kabuksuz argv
 //! - `install_notes` — alternatifler ve resmî URL (özellikle `manual`)
+//! - `signature` — isteğe bağlı upstream imza (minisign/cosign/gpg/attestation)
 //!
 //! Katalog verisi UI koduna gömülmez; ayrı `assets/store.toml` dosyasından
 //! `include_str!` ile yüklenir.
@@ -33,9 +34,12 @@ pub mod http;
 pub mod install;
 pub mod loader;
 pub mod manifest;
+pub mod net;
 pub mod path;
 pub mod platform;
+pub mod signature;
 pub mod sync;
+pub mod trust;
 
 pub use platform::CpuArch;
 
@@ -270,6 +274,13 @@ pub struct StoreEntry {
     /// gelir. `None` ise bu uygulama canlı olarak takip edilmez.
     #[serde(default)]
     pub release: Option<manifest::ReleaseSource>,
+    /// Upstream imza üstverisi (SHA-256 ötesinde, mümkünse doğrulanır).
+    ///
+    /// Yalnızca `download_archive` kayıtlarında anlamlıdır. UI'da
+    /// `hash+sig` rozeti üretir; kurulumda araç PATH'teyse imza da
+    /// doğrulanır.
+    #[serde(default)]
+    pub signature: Option<trust::SignatureSpec>,
 }
 
 impl StoreEntry {
@@ -405,6 +416,18 @@ impl Store {
                 release.validate().map_err(|e| {
                     format!("'{}' için canlı sürüm kaynağı geçersiz: {e}", entry.id)
                 })?;
+            }
+            if let Some(signature) = &entry.signature {
+                if !entry.install_method.is_archive() {
+                    return Err(format!(
+                        "'{}' için signature yalnızca download_archive kayıtlarında \
+                         kullanılabilir",
+                        entry.id
+                    ));
+                }
+                signature
+                    .validate()
+                    .map_err(|e| format!("'{}' için signature geçersiz: {e}", entry.id))?;
             }
         }
         Ok(Self { entries })
@@ -774,6 +797,7 @@ mod tests {
             install_command: None,
             install_notes: None,
             release: None,
+            signature: None,
         }
     }
 
@@ -796,6 +820,7 @@ mod tests {
             install_command: Some(vec!["pipx".into(), "install".into(), format!("{id}-pkg")]),
             install_notes: Some(format!("pipx: pipx install {id}-pkg")),
             release: None,
+            signature: None,
         }
     }
 
