@@ -18,6 +18,16 @@ pub enum UiTheme {
     Forest,
     /// Amber/turuncu vurgu.
     Amber,
+    /// Okyanus mavisi vurgu.
+    Ocean,
+    /// Gece / derin mavi.
+    Midnight,
+    /// Gül / magenta vurgu.
+    Rose,
+    /// Arduvaz / soğuk gri.
+    Slate,
+    /// Kızıl vurgu.
+    Crimson,
 }
 
 impl UiTheme {
@@ -28,6 +38,11 @@ impl UiTheme {
             Self::Light => "acik",
             Self::Forest => "orman",
             Self::Amber => "amber",
+            Self::Ocean => "okyanus",
+            Self::Midnight => "gece",
+            Self::Rose => "gul",
+            Self::Slate => "arduvaz",
+            Self::Crimson => "kizil",
         }
     }
 
@@ -44,6 +59,11 @@ impl UiTheme {
             Self::Light => lang.t(Msg::ThemeLight),
             Self::Forest => lang.t(Msg::ThemeForest),
             Self::Amber => lang.t(Msg::ThemeAmber),
+            Self::Ocean => lang.t(Msg::ThemeOcean),
+            Self::Midnight => lang.t(Msg::ThemeMidnight),
+            Self::Rose => lang.t(Msg::ThemeRose),
+            Self::Slate => lang.t(Msg::ThemeSlate),
+            Self::Crimson => lang.t(Msg::ThemeCrimson),
         }
     }
 
@@ -56,18 +76,20 @@ impl UiTheme {
             "acik" | "açık" | "light" => Self::Light,
             "orman" | "forest" | "yesil" | "yeşil" => Self::Forest,
             "amber" | "turuncu" => Self::Amber,
+            "okyanus" | "ocean" | "deniz" => Self::Ocean,
+            "gece" | "midnight" | "night" => Self::Midnight,
+            "gul" | "gül" | "rose" | "magenta" => Self::Rose,
+            "arduvaz" | "slate" | "gri" => Self::Slate,
+            "kizil" | "kızıl" | "crimson" | "red" => Self::Crimson,
             _ => Self::Default,
         }
     }
 
     /// Sonraki tema (döngüsel; geriye dönük / test).
     pub fn next(self) -> Self {
-        match self {
-            Self::Default => Self::Light,
-            Self::Light => Self::Forest,
-            Self::Forest => Self::Amber,
-            Self::Amber => Self::Default,
-        }
+        let all = Self::all();
+        let i = self.index();
+        all[(i + 1) % all.len()]
     }
 
     /// Listede seçim için sıra numarası.
@@ -77,7 +99,17 @@ impl UiTheme {
 
     /// Tüm temalar (seçici panel / test).
     pub fn all() -> &'static [Self] {
-        &[Self::Default, Self::Light, Self::Forest, Self::Amber]
+        &[
+            Self::Default,
+            Self::Light,
+            Self::Forest,
+            Self::Amber,
+            Self::Ocean,
+            Self::Midnight,
+            Self::Rose,
+            Self::Slate,
+            Self::Crimson,
+        ]
     }
 }
 
@@ -155,6 +187,61 @@ impl UiTheme {
                 search: Color::Yellow,
                 surface: None,
             },
+            Self::Ocean => ThemePalette {
+                accent: Color::LightCyan,
+                accent_on: Color::Black,
+                text: Color::White,
+                muted: Color::Gray,
+                success: Color::LightGreen,
+                warn: Color::Yellow,
+                error: Color::LightRed,
+                search: Color::LightBlue,
+                surface: None,
+            },
+            Self::Midnight => ThemePalette {
+                accent: Color::LightBlue,
+                accent_on: Color::Black,
+                text: Color::White,
+                muted: Color::DarkGray,
+                success: Color::Green,
+                warn: Color::Yellow,
+                error: Color::Red,
+                search: Color::LightBlue,
+                surface: Some(Color::Rgb(12, 18, 32)),
+            },
+            Self::Rose => ThemePalette {
+                accent: Color::Magenta,
+                accent_on: Color::Black,
+                text: Color::White,
+                muted: Color::Gray,
+                success: Color::Green,
+                warn: Color::Yellow,
+                error: Color::LightRed,
+                search: Color::LightMagenta,
+                surface: None,
+            },
+            Self::Slate => ThemePalette {
+                accent: Color::Gray,
+                accent_on: Color::Black,
+                text: Color::White,
+                muted: Color::DarkGray,
+                success: Color::LightGreen,
+                warn: Color::Yellow,
+                error: Color::Red,
+                search: Color::White,
+                surface: Some(Color::Rgb(28, 32, 38)),
+            },
+            Self::Crimson => ThemePalette {
+                accent: Color::LightRed,
+                accent_on: Color::Black,
+                text: Color::White,
+                muted: Color::Gray,
+                success: Color::Green,
+                warn: Color::Yellow,
+                error: Color::Red,
+                search: Color::LightRed,
+                surface: None,
+            },
         }
     }
 }
@@ -169,10 +256,13 @@ mod tests {
             assert_eq!(UiTheme::parse(theme.id()), *theme);
             assert!(!theme.label().is_empty());
         }
-        assert_eq!(
-            UiTheme::Default.next().next().next().next(),
-            UiTheme::Default
-        );
+        let mut theme = UiTheme::Default;
+        for _ in 0..UiTheme::all().len() {
+            theme = theme.next();
+        }
+        assert_eq!(theme, UiTheme::Default);
         assert_eq!(UiTheme::parse("bilinmeyen"), UiTheme::Default);
+        assert_eq!(UiTheme::parse("okyanus"), UiTheme::Ocean);
+        assert_eq!(UiTheme::parse("gece"), UiTheme::Midnight);
     }
 }

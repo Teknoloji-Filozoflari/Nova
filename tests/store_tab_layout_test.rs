@@ -1,8 +1,8 @@
 //! Mağaza sekmesinin yerleşimini doğrulayan çizim (render) testleri.
 //!
 //! Mağaza, ayrı bir modal değil; ana ekranın sekme listesindeki son satırdır.
-//! Sekme seçildiğinde ekran **üç sütuna** döner: sekme listesi, mağaza
-//! kategorileri ve o kategorideki uygulamalar. Bu testler `TestBackend`
+//! Yeterince geniş terminallerde ekran **dört sütuna** döner: sekme listesi,
+//! mağaza kategorileri, uygulamalar ve sağ detay. Bu testler `TestBackend`
 //! ile çizilmiş arabelleği okur; gerçek bir terminal açılmaz.
 
 use nova::app::App;
@@ -47,8 +47,14 @@ fn store_tab_renders_three_panels() {
         "mağaza kategorileri yok"
     );
     assert!(text.contains("Mağaza Detay"), "mağaza detayı yok");
-    // Üçüncü sütun uygulama listesidir; başlığı seçili kategoriye göre değişir.
+    // Uygulama listesi başlığı seçili kategoriye göre değişir.
     assert!(text.contains("AI ("), "uygulama listesi başlığı yok");
+    // Geniş düzende detay sağ paneldedir (Borders::ALL başlığı).
+    assert!(
+        text.lines()
+            .any(|l| l.contains("Mağaza Detay") && l.contains('─')),
+        "sağ detay paneli kenarlıklı olmalı"
+    );
 }
 
 #[test]
@@ -122,16 +128,21 @@ fn store_tab_narrow_layout_stacks_categories_over_apps() {
 fn store_detail_shows_trust_badge() {
     let mut app = app();
     app.select_store_tab();
-    // AI kategorisindeki ilk kayıtlar manual → "manual" rozeti.
+    // AI kategorisindeki ilk kayıtlar manual → detayda "manual".
     let lines = render(&app, 150, 42);
     let text = all_text(&lines);
     assert!(text.contains("Güven:"), "detayda Güven satırı yok");
     assert!(
         text.contains("manual") || text.contains("hash"),
-        "hash / manual rozeti görünmeli"
+        "hash / manual güven bilgisi detayda görünmeli"
+    );
+    // Liste satırında [manual]/[hash] rozeti olmamalı.
+    assert!(
+        !text.contains("[manual]") && !text.contains("[hash]") && !text.contains("[hash+sig]"),
+        "liste rozetleri kaldırılmış olmalı"
     );
 
-    // Dosya ve Arama: ripgrep gibi download_archive → [hash].
+    // Dosya ve Arama: ripgrep gibi download_archive → detayda hash.
     let target = nova::store::STORE_CATEGORIES
         .iter()
         .position(|c| *c == "Dosya ve Arama")
@@ -140,7 +151,7 @@ fn store_detail_shows_trust_badge() {
     app.store_app_index = 0;
     let lines = render(&app, 150, 42);
     let text = all_text(&lines);
-    assert!(text.contains("[hash]"), "liste satırında [hash] rozeti yok");
+    assert!(!text.contains("[hash]"), "liste satırında [hash] olmamalı");
     assert!(text.contains("Güven:"), "detayda Güven satırı yok");
     assert!(
         text.contains("yalnızca SHA-256") || text.contains("hash —"),

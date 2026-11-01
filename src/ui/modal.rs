@@ -7,7 +7,7 @@
 
 use super::truncate;
 use crate::app::form::{Field, ToolForm, FIELD_ORDER};
-use crate::app::modal::{Modal, UpdateStatus};
+use crate::app::modal::{ConfirmAction, Modal, UpdateStatus};
 use crate::app::state::relative_time;
 use crate::app::App;
 use crate::file_picker::FilePickerState;
@@ -44,7 +44,7 @@ pub fn draw(f: &mut Frame, app: &App) {
     }
     match &app.modal {
         Modal::None => {}
-        Modal::Confirm { question, .. } => draw_confirm(f, area, question),
+        Modal::Confirm { question, action } => draw_confirm(f, area, question, action),
         Modal::ToolForm(form) => draw_form(f, area, form),
         Modal::ToolReview { valid, .. } => draw_review(f, area, valid),
         Modal::ProjectPicker { index } => draw_picker(f, area, app, *index),
@@ -459,11 +459,19 @@ fn wrapped_lines(text: &str, width: u16) -> u16 {
     lines.max(1)
 }
 
-fn draw_confirm(f: &mut Frame, screen: Rect, question: &str) {
-    // Mağaza kurulum onayı çok satırlı (komut, PM, kapsam, sudo, lisans…).
-    let width = 72
-        .min(screen.width.saturating_sub(MODAL_MARGIN * 2))
-        .max(40);
+fn draw_confirm(f: &mut Frame, screen: Rect, question: &str, action: &ConfirmAction) {
+    let store_ops = matches!(
+        action,
+        ConfirmAction::InstallStoreApp { .. }
+            | ConfirmAction::UpdateStoreApp { .. }
+            | ConfirmAction::UninstallStoreApp { .. }
+    );
+    if store_ops && question.contains('\n') {
+        draw_store_confirm(f, screen, question, action);
+        return;
+    }
+
+    let width = 62.min(screen.width.saturating_sub(MODAL_MARGIN * 2));
     let inner_w = width.saturating_sub(2);
     let hint = "Enter: onayla   Esc: vazgeç";
     let content_lines = wrapped_lines(question, inner_w);
@@ -471,7 +479,7 @@ fn draw_confirm(f: &mut Frame, screen: Rect, question: &str) {
         .height
         .saturating_sub(MODAL_MARGIN * 2)
         .saturating_sub(2);
-    let lines = (content_lines + 2).min(max_h.max(6));
+    let lines = (content_lines + 2).min(max_h.max(4));
     let area = modal_area(screen, width, lines);
     let inner = frame(f, area, "Onay gerekli");
     let mut text = vec![Line::from(Span::styled(
@@ -486,6 +494,103 @@ fn draw_confirm(f: &mut Frame, screen: Rect, question: &str) {
             .add_modifier(Modifier::BOLD),
     )));
     f.render_widget(Paragraph::new(text).wrap(Wrap { trim: false }), inner);
+}
+
+/// Mağaza kurulum / güncelleme / kaldırma onayını yapılandırılmış çizer.
+fn draw_store_confirm(f: &mut Frame, screen: Rect, question: &str, action: &ConfirmAction) {
+    let width = 74
+        .min(screen.width.saturating_sub(MODAL_MARGIN * 2))
+        .max(48);
+    let inner_w = width.saturating_sub(4) as usize;
+
+    let (title, accent) = match action {
+        ConfirmAction::InstallStoreApp { .. } => ("Kurulum onayı", Color::Cyan),
+        ConfirmAction::UpdateStoreApp { .. } => ("Güncelleme onayı", Color::Yellow),
+        ConfirmAction::UninstallStoreApp { .. } => ("Kaldırma onayı", Color::Red),
+        _ => ("Onay gerekli", Color::Cyan),
+    };
+
+    let mut lines: Vec<Line> = Vec::new();
+    let raw_lines: Vec<&str> = question.lines().collect();
+    let mut idx = 0usize;
+
+    // İlk satır: başlık sorusu.
+    if let Some(head) = raw_lines.first() {
+        lines.push(Line::from(Span::styled(
+            truncate(head, inner_w),
+            Style::default().fg(accent).add_modifier(Modifier::BOLD),
+        )));
+        lines.push(Line::from(Span::styled(
+            "─".repeat(inner_w.min(48)),
+            Style::default().fg(Color::DarkGray),
+        )));
+        idx = 1;
+    }
+
+    // Orta satırlar: "Etiket: değer" → iki renkli; aksi hâlde soluk gövde.
+    let hint_prefixes = ["Enter ", "Enter:", "Esc "];
+    while idx < raw_lines.len() {
+        let line = raw_lines[idx];
+        idx += 1;
+        if line.is_empty() {
+            lines.push(Line::from(""));
+            continue;
+        }
+        if hint_prefixes.iter().any(|p| line.starts_with(p)) {
+            // Son ipucu satırı aşağıda yeniden eklenir.
+            continue;
+        }
+        if let Some((label, value)) = line.split_once(": ") {
+            let warn = label.eq_ignore_ascii_case("sudo?")
+                || label.eq_ignore_ascii_case("Üçüncü taraf")
+                || label.eq_ignore_ascii_case("Ucuncu taraf");
+            let value_style = if warn {
+                Style::default().fg(Color::Yellow)
+            } else if label.eq_ignore_ascii_case("Komut") {
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD)
+            } else if label.eq_ignore_ascii_case("Güven") || label.eq_ignore_ascii_case("Guven") {
+                Style::default().fg(Color::Green)
+            } else {
+                Style::default().fg(Color::White)
+            };
+            lines.push(Line::from(vec![
+                Span::styled(format!("{label}: "), Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    truncate(value, inner_w.saturating_sub(label.chars().count() + 2)),
+                    value_style,
+                ),
+            ]));
+        } else {
+            lines.push(Line::from(Span::styled(
+                truncate(line, inner_w),
+                Style::default().fg(Color::Gray),
+            )));
+        }
+    }
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        "Enter onaylar    Esc vazgeçer",
+        Style::default().fg(accent).add_modifier(Modifier::BOLD),
+    )));
+
+    let max_h = screen
+        .height
+        .saturating_sub(MODAL_MARGIN * 2)
+        .saturating_sub(2);
+    let height = (lines.len() as u16).min(max_h.max(8));
+    let area = modal_area(screen, width, height);
+    // Kenarlık + başlık.
+    f.render_widget(Clear, area);
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(accent))
+        .title(format!(" {title} "));
+    let inner = block.inner(area);
+    f.render_widget(block, area);
+    f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
 fn draw_form(f: &mut Frame, screen: Rect, form: &ToolForm) {
