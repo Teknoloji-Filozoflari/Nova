@@ -205,9 +205,12 @@ kuralları için [mimari belgesine](ARCHITECTURE.md) bak.
 ## Bilinen sınırlamalar
 
 - Hedef platform Linux'tur; yalnızca KDE Konsole ile araç başlatma desteklenir.
-- Hazır dağıtım paketi veya ikili yayın henüz yoktur; Ayarlar→Güncelle
-  <code>Teknoloji-Filozoflari/Nova</code> GitHub Releases’a bakar. Yayın/ikili
-  yoksa “güncelsiniz” benzeri sonuç döner.
+- Hazır dağıtım paketi veya ikili yayın henüz yoktur. Ayarlar→Güncelle
+  <code>Teknoloji-Filozoflari/Nova</code> GitHub Releases’a bakar ve uygun bir
+  Linux ikilisi varsa onayla <code>~/.local/bin/nova</code> kurar; yayın yoksa
+  bunu açıkça bildirir (sessiz no-op yok). Bu yol <code>git pull</code> /
+  <code>cargo build</code> değildir — main’deki tema/UI (#9 vb.) için kaynak
+  koddan yeniden derlemek gerekir.
 - Tema tercihi (<code>varsayilan</code>, <code>acik</code>, <code>orman</code>,
   <code>amber</code>) kalıcıdır ve Ayarlar→Tema ile değişir. Varsayılan AI CLI
   tercihi de saklanır ancak başlatma akışını henüz değiştirmez.

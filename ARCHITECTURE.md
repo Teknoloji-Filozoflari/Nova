@@ -489,7 +489,7 @@ kullanıcıya durum satırında açıklanır.
 - **GitHub API hız sınırı kimliksiz IP başına saatte 60 istek.** `GITHUB_TOKEN` ile saatte 5000'e yükseltilebilir; 6 saatlik önbellek taze kayıtları ağa hiç çıkarmadığı için sınırı büyük ölçüde azaltır. `ETag` yalnızca bant genişliği tasarrufu sağlar (`304` de sınırdan düşer).
 - **Mağazada 6 uygulama indirilebilir.** Kalan 13 kayıt `manual` yöntemdedir; upstream doğrulanabilir SHA-256 özeti yayımlamadığı için "Kur" eylemi sunulmaz.
 - **Tek çalıştırılabilir dosya kurulur.** Arşivdeki man sayfaları, tamamlayıcılar ve ek belgeler kurulmaz; yalnızca katalogdaki `executable` yerleştirilir.
-- **Güncelleme sağlayıcısı GitHub Releases’a bağlıdır** (`Teknoloji-Filozoflari/Nova`). Yayın yoksa (`404`) güncel kabul edilir; uygun Linux ikilisi varsa kullanıcı onayından sonra `~/.local/bin/nova` kurulur.
+- **Güncelleme sağlayıcısı GitHub Releases’a bağlıdır** (`Teknoloji-Filozoflari/Nova`). Ayarlar→Güncelle / `U` denetimi durumu durum satırında ve modalda gösterir (`denetleniyor` / `yayın yok` / `güncel` / `yeni sürüm` / `hata`). Yayın yoksa (`404`) “ikili yayın yok” sonucudur — `cargo`/kaynak güncellemesi yapılmaz. Uygun Linux ikilisi varsa kullanıcı onayından sonra `~/.local/bin/nova` kurulur.
 - **Güvenlik denetimi çalıştırılmadı** (`cargo-audit`/`cargo-deny` bu ortamda kurulu değildi).
 
 ## Proje Dizinini Geçersiz Kılma (Faz 5)

@@ -894,7 +894,7 @@ impl App {
         self.settings_action_index = 0;
         self.focus = PanelFocus::Tool;
         self.status_message =
-            "Ayarlar: Güncelle (GitHub) veya Tema — Enter ile seçenekleri aç.".into();
+            "Ayarlar: Güncelle = GitHub ikili self-update; Tema = panel. Enter uygular.".into();
     }
 
     /// Sol panelde seçili sekmenin satır indeksi (çizilen liste üzerinden).
@@ -1272,57 +1272,108 @@ impl App {
         }
     }
 
-    /// Nova güncelleme denetimini başlatır (Ayarlar / `U`).
+    /// Nova güncelleme modalını açar ve denetimi hemen çalıştırır (Ayarlar / `U`).
     pub fn start_nova_update_check(&mut self) {
         self.modal = modal::Modal::UpdateCheck {
             status: modal::UpdateStatus::Idle,
             check: None,
             error: None,
         };
+        self.run_nova_update_check();
+    }
+
+    /// GitHub Releases üzerinden Nova ikili self-update denetimini çalıştırır.
+    ///
+    /// Bu yol `cargo build` / kaynak güncellemesi değildir; yalnızca yayınlanmış
+    /// ikili varsa `~/.local/bin/nova` kurulumunu önerir. Sonuç hem modalda hem
+    /// durum satırında görünür (sessiz no-op yok).
+    pub fn run_nova_update_check(&mut self) {
+        if !matches!(self.modal, modal::Modal::UpdateCheck { .. }) {
+            self.modal = modal::Modal::UpdateCheck {
+                status: modal::UpdateStatus::Checking,
+                check: None,
+                error: None,
+            };
+        }
+        if let modal::Modal::UpdateCheck {
+            status,
+            check,
+            error,
+        } = &mut self.modal
+        {
+            *status = modal::UpdateStatus::Checking;
+            *check = None;
+            *error = None;
+        }
+        self.status_message = "Nova güncellemesi denetleniyor (GitHub Releases)…".into();
+
+        let provider = self.update_provider.as_ref();
+        let current = provider.current_version();
+        let fetched = provider.fetch_latest_release();
+
+        let (result, status_msg) = match fetched {
+            Ok(Some(release)) => {
+                let latest = release.version.clone();
+                if release.version > current {
+                    let msg = format!(
+                        "Yeni Nova sürümü: v{latest} (şu an v{current}). Enter ile kurulum onayı."
+                    );
+                    (
+                        UpdateCheck::UpdateAvailable {
+                            current,
+                            latest,
+                            release: Box::new(release),
+                        },
+                        msg,
+                    )
+                } else {
+                    (
+                        UpdateCheck::UpToDate { current: current.clone() },
+                        format!(
+                            "Nova güncel (v{current}). Self-update Releases ikilisidir; tema için cargo rebuild."
+                        ),
+                    )
+                }
+            }
+            Ok(None) => (
+                UpdateCheck::NoPublishedRelease {
+                    current: current.clone(),
+                },
+                format!(
+                    "GitHub’da Nova ikili yayını yok (v{current}). Tema/özellik için main’den cargo rebuild."
+                ),
+            ),
+            Err(e) => {
+                let msg = format!("Güncelleme denetimi başarısız: {e}");
+                (UpdateCheck::Error(e), msg)
+            }
+        };
+
+        if let modal::Modal::UpdateCheck {
+            status,
+            check,
+            error,
+        } = &mut self.modal
+        {
+            match &result {
+                UpdateCheck::Error(e) => {
+                    *error = Some(e.clone());
+                    *check = Some(result);
+                }
+                other => {
+                    *error = None;
+                    *check = Some(other.clone());
+                }
+            }
+            *status = modal::UpdateStatus::Done;
+        }
+        self.status_message = status_msg;
     }
 
     /// Ayarlar sekmesindeki seçili eylemi uygular.
     pub fn activate_settings_action(&mut self) {
         match self.settings_action_index {
-            0 => {
-                self.start_nova_update_check();
-                // Denetimi hemen çalıştır (modal içindeki U ile aynı).
-                if let modal::Modal::UpdateCheck {
-                    status,
-                    check,
-                    error,
-                } = &mut self.modal
-                {
-                    *status = modal::UpdateStatus::Checking;
-                    *check = None;
-                    *error = None;
-                    let provider = self.update_provider.as_ref();
-                    let current = provider.current_version();
-                    match provider.fetch_latest_release() {
-                        Ok(Some(release)) => {
-                            let latest = release.version.clone();
-                            if release.version > current {
-                                *check = Some(UpdateCheck::UpdateAvailable {
-                                    current,
-                                    latest,
-                                    release: Box::new(release),
-                                });
-                            } else {
-                                *check = Some(UpdateCheck::UpToDate { current });
-                            }
-                            *status = modal::UpdateStatus::Done;
-                        }
-                        Ok(None) => {
-                            *check = Some(UpdateCheck::UpToDate { current });
-                            *status = modal::UpdateStatus::Done;
-                        }
-                        Err(e) => {
-                            *error = Some(e);
-                            *status = modal::UpdateStatus::Done;
-                        }
-                    }
-                }
-            }
+            0 => self.start_nova_update_check(),
             _ => self.open_theme_picker(),
         }
     }
@@ -2450,55 +2501,40 @@ impl App {
                 }
                 _ => {}
             },
-            modal::Modal::UpdateCheck {
-                status,
-                check,
-                error,
-            } => match code {
-                KeyCode::Esc => take(modal::Modal::None),
+            modal::Modal::UpdateCheck { check, .. } => match code {
+                KeyCode::Esc => {
+                    self.status_message = "Güncelleme denetimi kapatıldı.".into();
+                    take(modal::Modal::None);
+                }
                 KeyCode::Enter => {
-                    if let Some(UpdateCheck::UpdateAvailable {
-                        current,
-                        latest,
-                        release,
-                    }) = check.clone()
-                    {
+                    // `next` alınmış durumda; sonucu `check` üzerinden oku
+                    // (`self.modal` şu an None).
+                    let available = match check {
+                        Some(UpdateCheck::UpdateAvailable {
+                            current,
+                            latest,
+                            release,
+                        }) => Some((current.clone(), latest.clone(), release.as_ref().clone())),
+                        _ => None,
+                    };
+                    if let Some((current, latest, release)) = available {
                         take(modal::Modal::UpdateConfirm {
                             current,
                             latest,
-                            release: *release,
+                            release,
                         });
+                    } else {
+                        // Idle / güncel / yayın yok / hata: Enter yeniden denetler
+                        // (eski Idle metni Enter diyordu ama hiçbir şey yapmıyordu).
+                        // run_nova_update_check `self.modal`e yazar; apply_modal_key
+                        // sonunda `next` ile ezmemek için take ile yakala.
+                        self.run_nova_update_check();
+                        take(std::mem::replace(&mut self.modal, modal::Modal::None));
                     }
                 }
                 KeyCode::Char('u') | KeyCode::Char('U') => {
-                    *status = modal::UpdateStatus::Checking;
-                    *check = None;
-                    *error = None;
-                    let provider = self.update_provider.as_ref();
-                    let current = provider.current_version();
-                    match provider.fetch_latest_release() {
-                        Ok(Some(release)) => {
-                            let latest = release.version.clone();
-                            if release.version > current {
-                                *check = Some(UpdateCheck::UpdateAvailable {
-                                    current,
-                                    latest,
-                                    release: Box::new(release),
-                                });
-                            } else {
-                                *check = Some(UpdateCheck::UpToDate { current });
-                            }
-                            *status = modal::UpdateStatus::Done;
-                        }
-                        Ok(None) => {
-                            *check = Some(UpdateCheck::UpToDate { current });
-                            *status = modal::UpdateStatus::Done;
-                        }
-                        Err(e) => {
-                            *error = Some(e);
-                            *status = modal::UpdateStatus::Done;
-                        }
-                    }
+                    self.run_nova_update_check();
+                    take(std::mem::replace(&mut self.modal, modal::Modal::None));
                 }
                 _ => {}
             },
@@ -2996,10 +3032,32 @@ mod tests {
         }
     }
 
+    /// Test Nova self-update sağlayıcısı (ağ yok).
+    struct FakeNovaUpdateProvider {
+        current: crate::update::Version,
+        latest: Result<Option<crate::update::GitHubRelease>, String>,
+    }
+
+    impl crate::update::UpdateProvider for FakeNovaUpdateProvider {
+        fn current_version(&self) -> crate::update::Version {
+            self.current.clone()
+        }
+        fn fetch_latest_release(&self) -> Result<Option<crate::update::GitHubRelease>, String> {
+            self.latest.clone()
+        }
+    }
+
+    fn fake_nova_provider_no_release() -> Box<dyn crate::update::UpdateProvider + Send + Sync> {
+        Box::new(FakeNovaUpdateProvider {
+            current: crate::update::Version::parse("0.1.0").unwrap(),
+            latest: Ok(None),
+        })
+    }
+
     /// Gerçek gömülü katalogla oluşturulmuş uygulama.
     ///
     /// Kullanıcının kendi `config.toml` dosyası okunmaz; testler makineye
-    /// göre değişmemeli.
+    /// göre değişmemeli. Nova self-update ağına çıkmaz (sahte sağlayıcı).
     fn sample_app() -> App {
         sample_app_with_category("Sistem ve Kaynak Kullanımı")
     }
@@ -3009,6 +3067,7 @@ mod tests {
         let catalog = Catalog::from_entries(catalog).expect("katalog oluşturulamadı");
         let mut app = App::new(catalog);
         app.category_index = category_index(category);
+        app.update_provider = fake_nova_provider_no_release();
         app
     }
 
@@ -3681,6 +3740,145 @@ mod tests {
         let mut app = sample_app();
         app.handle_key(typed('u')).unwrap();
         assert!(matches!(app.modal, modal::Modal::UpdateCheck { .. }));
+        // Artık Idle'da kalmaz; denetim hemen çalışır ve durum satırı dolar.
+        match &app.modal {
+            modal::Modal::UpdateCheck {
+                status: modal::UpdateStatus::Done,
+                check: Some(UpdateCheck::NoPublishedRelease { .. }),
+                ..
+            } => {}
+            other => panic!("beklenen Done+NoPublishedRelease, geldi: {other:?}"),
+        }
+        assert!(
+            app.status_message.contains("ikili yayını yok")
+                || app.status_message.contains("cargo rebuild"),
+            "mesaj: {}",
+            app.status_message
+        );
+    }
+
+    #[test]
+    fn ayarlar_guncelle_reports_no_release_and_status() {
+        let mut app = sample_app();
+        app.select_settings_tab();
+        app.settings_action_index = 0;
+        app.focus = PanelFocus::Tool;
+        app.activate_settings_action();
+        match &app.modal {
+            modal::Modal::UpdateCheck {
+                status: modal::UpdateStatus::Done,
+                check: Some(UpdateCheck::NoPublishedRelease { current }),
+                error: None,
+            } => {
+                assert_eq!(current.to_string(), "0.1.0");
+            }
+            other => panic!("beklenen yayın-yok sonucu, geldi: {other:?}"),
+        }
+        assert!(
+            app.status_message.contains("ikili yayını yok"),
+            "mesaj: {}",
+            app.status_message
+        );
+    }
+
+    #[test]
+    fn nova_update_check_reports_available_and_up_to_date() {
+        let release = crate::update::GitHubRelease {
+            tag_name: "v0.2.0".into(),
+            version: crate::update::Version::parse("0.2.0").unwrap(),
+            body: "tema".into(),
+            html_url: "https://github.com/Teknoloji-Filozoflari/Nova/releases/tag/v0.2.0".into(),
+            draft: false,
+            prerelease: false,
+            asset_name: Some("nova-x86_64-unknown-linux-gnu.tar.gz".into()),
+            download_url: Some(
+                "https://github.com/Teknoloji-Filozoflari/Nova/releases/download/v0.2.0/nova.tar.gz"
+                    .into(),
+            ),
+        };
+
+        let mut app = sample_app();
+        app.update_provider = Box::new(FakeNovaUpdateProvider {
+            current: crate::update::Version::parse("0.1.0").unwrap(),
+            latest: Ok(Some(release.clone())),
+        });
+        app.start_nova_update_check();
+        match &app.modal {
+            modal::Modal::UpdateCheck {
+                check: Some(UpdateCheck::UpdateAvailable { latest, .. }),
+                ..
+            } => assert_eq!(latest.to_string(), "0.2.0"),
+            other => panic!("beklenen UpdateAvailable, geldi: {other:?}"),
+        }
+        assert!(
+            app.status_message.contains("Yeni Nova sürümü"),
+            "mesaj: {}",
+            app.status_message
+        );
+
+        app.update_provider = Box::new(FakeNovaUpdateProvider {
+            current: crate::update::Version::parse("0.2.0").unwrap(),
+            latest: Ok(Some(release)),
+        });
+        app.run_nova_update_check();
+        match &app.modal {
+            modal::Modal::UpdateCheck {
+                check: Some(UpdateCheck::UpToDate { current }),
+                ..
+            } => assert_eq!(current.to_string(), "0.2.0"),
+            other => panic!("beklenen UpToDate, geldi: {other:?}"),
+        }
+        assert!(
+            app.status_message.contains("güncel"),
+            "mesaj: {}",
+            app.status_message
+        );
+    }
+
+    #[test]
+    fn nova_update_check_reports_error_on_provider_failure() {
+        let mut app = sample_app();
+        app.update_provider = Box::new(FakeNovaUpdateProvider {
+            current: crate::update::Version::parse("0.1.0").unwrap(),
+            latest: Err("ağ yok".into()),
+        });
+        app.start_nova_update_check();
+        match &app.modal {
+            modal::Modal::UpdateCheck {
+                status: modal::UpdateStatus::Done,
+                check: Some(UpdateCheck::Error(msg)),
+                error: Some(err),
+            } => {
+                assert!(msg.contains("ağ yok"));
+                assert!(err.contains("ağ yok"));
+            }
+            other => panic!("beklenen Error, geldi: {other:?}"),
+        }
+        assert!(
+            app.status_message.contains("başarısız"),
+            "mesaj: {}",
+            app.status_message
+        );
+    }
+
+    #[test]
+    fn update_modal_enter_on_idle_like_state_retries_check() {
+        let mut app = sample_app();
+        app.modal = modal::Modal::UpdateCheck {
+            status: modal::UpdateStatus::Idle,
+            check: None,
+            error: None,
+        };
+        app.handle_key(key(crossterm::event::KeyCode::Enter))
+            .unwrap();
+        match &app.modal {
+            modal::Modal::UpdateCheck {
+                status: modal::UpdateStatus::Done,
+                check: Some(UpdateCheck::NoPublishedRelease { .. }),
+                ..
+            } => {}
+            other => panic!("Enter denetimi çalıştırmalıydı, geldi: {other:?}"),
+        }
     }
 
     #[test]

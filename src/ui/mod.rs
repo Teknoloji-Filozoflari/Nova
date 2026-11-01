@@ -502,7 +502,10 @@ fn draw_settings_panel(f: &mut Frame, app: &App, area: Rect) {
         )
     };
     let actions = [
-        ("Güncelle", "GitHub’da yeni Nova sürümü var mı bak ve kur"),
+        (
+            "Güncelle",
+            "GitHub Releases ikilisi — tema için cargo rebuild gerekir",
+        ),
         ("Tema", theme_hint.as_str()),
     ];
     let items: Vec<ListItem> = actions
