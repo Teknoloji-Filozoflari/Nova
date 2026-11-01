@@ -473,13 +473,8 @@ fn draw_store_apps(f: &mut Frame, app: &App, area: Rect) {
             };
             let prefix = if selected { "▶ " } else { "  " };
 
-            // Durum işareti: yeni sürüm varsa ↑, kuruluysa ✓, aksi hâlde ·.
-            let has_update = app.store_update_for(&entry.id).is_some_and(|r| {
-                crate::store::manifest::is_newer(
-                    &r.version,
-                    &entry.version.clone().unwrap_or_default(),
-                )
-            });
+            // Durum işareti: yeni sürüm / PM güncellemesi varsa ↑, kuruluysa ✓.
+            let has_update = app.store_has_pending_update(&entry.id);
             let (marker, marker_style) = if has_update {
                 ("↑ ", Style::default().fg(Color::Yellow))
             } else if app.store_status(&entry.id) == crate::detection::InstalledStatus::Installed {
@@ -775,9 +770,13 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
 
     let inner_w = area.width.saturating_sub(4) as usize;
     let status = app.store_status(&entry.id);
-    let has_update = app.store_update_for(&entry.id).is_some_and(|r| {
-        crate::store::manifest::is_newer(&r.version, &entry.version.clone().unwrap_or_default())
-    });
+    let has_update = app.store_has_pending_update(&entry.id);
+    let pm_update = app.store_pm_update_for(&entry.id);
+    let resolved_plan = if entry.install_method.is_package_manager() {
+        crate::store::install::resolve_entry_install_plan(entry)
+    } else {
+        None
+    };
 
     let mut lines: Vec<Line> = Vec::new();
 
@@ -811,42 +810,59 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ),
     ]));
 
-    // 5. Canlı sürüm takibi.
-    lines.push(Line::from(vec![
-        Span::styled("Canlı takip: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            match app.store_update_for(&entry.id) {
-                Some(release) => {
-                    let current = entry.version.clone().unwrap_or_default();
-                    if crate::store::manifest::is_newer(&release.version, &current) {
-                        format!("yeni sürüm {} → {}", current, release.version)
-                    } else {
-                        format!("güncel ({})", release.version)
-                    }
+    // 5. Canlı sürüm takibi / PM güncelleme.
+    let follow = if let Some(pm) = pm_update {
+        format!(
+            "PM güncelleme ({}) → {}",
+            pm.method.short_label(),
+            pm.rendered()
+        )
+    } else {
+        match app.store_update_for(&entry.id) {
+            Some(release) => {
+                let current = entry.version.clone().unwrap_or_default();
+                if crate::store::manifest::is_newer(&release.version, &current) {
+                    format!("yeni sürüm {} → {}", current, release.version)
+                } else {
+                    format!("güncel ({})", release.version)
                 }
-                None => match app.store_check_errors.get(&entry.id) {
-                    Some(_) => "denetlenemedi".to_string(),
-                    None => match entry.release {
-                        Some(_) => "denetlenmedi (U)".to_string(),
-                        None => "takip edilmiyor".to_string(),
-                    },
+            }
+            None => match app.store_check_errors.get(&entry.id) {
+                Some(_) => "denetlenemedi".to_string(),
+                None => match entry.release {
+                    Some(_) => "denetlenmedi (U)".to_string(),
+                    None if entry.install_method.is_package_manager() => {
+                        "PM: denetlenmedi (U)".to_string()
+                    }
+                    None => "takip edilmiyor".to_string(),
                 },
             },
-            Style::default().fg(Color::Cyan),
-        ),
+        }
+    };
+    lines.push(Line::from(vec![
+        Span::styled("Canlı takip: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(follow, Style::default().fg(Color::Cyan)),
     ]));
 
-    // 6. Kurulum yöntemi (tuiui benzeri: durum · yöntem).
+    // 6. Kurulum yöntemi (host’a göre seçilmiş PM gösterilir).
+    let display_method = resolved_plan
+        .as_ref()
+        .map(|p| p.method)
+        .unwrap_or(entry.install_method);
     let method_line = if entry.install_method.is_installable() {
-        format!(
+        let mut label = format!(
             "{} · {}",
             if status == crate::detection::InstalledStatus::Installed {
                 "kurulu"
             } else {
                 "kurulabilir"
             },
-            entry.install_method.short_label()
-        )
+            display_method.short_label()
+        );
+        if display_method != entry.install_method {
+            label.push_str(&format!(" (katalog: {})", entry.install_method.short_label()));
+        }
+        label
     } else {
         entry.install_method.label().to_string()
     };
@@ -854,15 +870,22 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         Span::styled("Kurulum: ", Style::default().fg(Color::DarkGray)),
         Span::styled(method_line, Style::default().fg(Color::Yellow)),
     ]));
-    if let Some(argv) = entry.install_command.as_ref() {
-        if entry.install_method.is_package_manager() {
+    if entry.install_method.is_package_manager() {
+        let cmd = resolved_plan
+            .as_ref()
+            .map(|p| p.rendered())
+            .or_else(|| {
+                entry
+                    .install_command
+                    .as_ref()
+                    .map(|a| crate::store::format_install_command(a))
+            })
+            .unwrap_or_default();
+        if !cmd.is_empty() {
             lines.push(Line::from(vec![
                 Span::styled("Komut: ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    truncate(
-                        &crate::store::format_install_command(argv),
-                        inner_w.saturating_sub(8),
-                    ),
+                    truncate(&cmd, inner_w.saturating_sub(8)),
                     Style::default().fg(Color::White),
                 ),
             ]));

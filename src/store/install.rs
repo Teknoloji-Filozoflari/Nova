@@ -7,7 +7,8 @@
 //!    çalıştırılmaz (`curl | sh` yok). SHA-256 doğrulanır; arşiv yol geçişi
 //!    korumalıdır.
 //! 2. **Paket yöneticisi (`pipx`/`npm`/`cargo`/`brew`/`apt`)**: katalogdaki
-//!    `install_command` argv'si, kullanıcı onayından sonra **kabuksuz**
+//!    `install_command` argv'si (veya host’a göre `install_notes`
+//!    alternatifinden seçilen komut), kullanıcı onayından sonra **kabuksuz**
 //!    çalıştırılır. `sh -c` / `curl | bash` kabul edilmez. `apt` için
 //!    `sudo` argv'nin parçası olabilir; parola/TTY gerekirse kurulum
 //!    anlaşılır hata ile düşer (sessiz yükseltme yok).
@@ -15,6 +16,7 @@
 //! Testlerde gerçek ağ veya dosya sistemi erişimi olmadan davranışı sınamak
 //! için [`Downloader`] ve [`Installer`] trait'leri taklit edilebilir.
 
+use crate::store::host::{self, HostTools, InstallPlan};
 use crate::store::{format_install_command, validate_install_command, InstallMethod, StoreEntry};
 use sha2::{Digest, Sha256};
 use std::ffi::{OsStr, OsString};
@@ -450,22 +452,39 @@ fn resolve_existing_prefix(path: &Path) -> Option<PathBuf> {
     }
 }
 
+/// Host’a göre seçilmiş kurulum planı (yoksa katalog birincili).
+pub fn resolve_entry_install_plan(entry: &StoreEntry) -> Option<InstallPlan> {
+    host::resolve_install_plan(entry, &HostTools::detect(), host::detect_host_os())
+}
+
 /// Kurulum onay ekranı için bilgi hazırlar.
 pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
     let install_dir = crate::store::store_app_dir(&entry.id).unwrap_or_else(|| PathBuf::from("."));
     let mut actions = Vec::new();
     if entry.install_method.is_package_manager() {
-        let argv = entry.install_command.as_deref().unwrap_or_default();
-        let rendered = format_install_command(argv);
+        let plan = resolve_entry_install_plan(entry).unwrap_or(InstallPlan {
+            method: entry.install_method,
+            argv: entry.install_command.clone().unwrap_or_default(),
+        });
+        let rendered = plan.rendered();
         actions.push(format!(
             "Onay sonrası kabuksuz komut çalıştırılacak: {rendered}"
         ));
+        let host_note = if plan.method != entry.install_method {
+            format!(
+                " (katalog: {}, host: {})",
+                entry.install_method.short_label(),
+                plan.method.short_label()
+            )
+        } else {
+            String::new()
+        };
         actions.push(format!(
-            "Yöntem: {} · executable tespiti: '{}'.",
-            entry.install_method.short_label(),
+            "Yöntem: {}{host_note} · executable tespiti: '{}'.",
+            plan.method.short_label(),
             entry.executable
         ));
-        if entry.install_method == InstallMethod::Apt {
+        if plan.method == InstallMethod::Apt {
             actions.push(
                 "apt sistem paket yöneticisidir; sudo parola/TTY isterse kurulum \
                  başarısız olabilir — o zaman komutu bir terminalde çalıştırın."
@@ -538,10 +557,12 @@ pub fn install_app(
     install_with_source(entry, dest_dir, &source, &version, downloader)
 }
 
-/// Katalogdaki `install_command` argv'sini kabuksuz çalıştırır.
+/// Katalog / host planındaki argv'yi kabuksuz çalıştırır.
 ///
 /// Kullanıcı onayı **çağıran** tarafta alınmış olmalıdır. `curl | bash`,
 /// `sh -c` ve benzeri kalıplar [`validate_install_command`] ile reddedilir.
+/// Host’ta birden fazla seçenek varsa [`resolve_entry_install_plan`] ile
+/// OS tercihine göre komut seçilir.
 pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome, InstallError> {
     if !entry.install_method.is_package_manager() {
         return Err(InstallError::Security(format!(
@@ -549,8 +570,27 @@ pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome,
             entry.name
         )));
     }
-    let argv = entry.install_command.as_deref().unwrap_or_default();
-    validate_install_command(entry.install_method, argv).map_err(InstallError::Security)?;
+    let plan = resolve_entry_install_plan(entry).ok_or_else(|| {
+        InstallError::Internal(format!(
+            "'{}' için host’a uygun kurulum komutu bulunamadı.",
+            entry.name
+        ))
+    })?;
+    run_package_manager_argv(entry, &plan, false)
+}
+
+/// Önceden çözülmüş PM argv’sini çalıştırır (kurulum veya güncelleme).
+pub fn run_package_manager_argv(
+    entry: &StoreEntry,
+    plan: &InstallPlan,
+    is_upgrade: bool,
+) -> Result<InstallOutcome, InstallError> {
+    let argv = &plan.argv;
+    if is_upgrade {
+        host::validate_upgrade_command(plan.method, argv).map_err(InstallError::Security)?;
+    } else {
+        validate_install_command(plan.method, argv).map_err(InstallError::Security)?;
+    }
     let program = &argv[0];
     let args = &argv[1..];
 
@@ -561,8 +601,13 @@ pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome,
         program.as_str()
     };
     if which::which(lookup).is_err() {
+        let alts = entry
+            .install_notes
+            .as_deref()
+            .map(|n| format!(" Alternatifler: {}", n.lines().take(3).collect::<Vec<_>>().join(" · ")))
+            .unwrap_or_default();
         return Err(InstallError::Internal(format!(
-            "'{lookup}' bulunamadı (PATH). Alternatifler için install_notes'a bakın."
+            "'{lookup}' bulunamadı (PATH).{alts}"
         )));
     }
 
@@ -585,7 +630,7 @@ pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome,
             format!("çıkış kodu {:?}", output.status.code())
         };
         // apt/sudo TTY/parola gibi durumları kullanıcıya açıkça söyle.
-        let hint = if entry.install_method == InstallMethod::Apt {
+        let hint = if plan.method == InstallMethod::Apt {
             " (sudo parola veya etkileşimli onay gerekebilir; komutu bir terminalde deneyin)"
         } else {
             ""
@@ -599,6 +644,7 @@ pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome,
     let executable_path = crate::detection::resolve(&entry.executable)
         .1
         .unwrap_or_else(|| PathBuf::from(&entry.executable));
+    let verb = if is_upgrade { "güncellendi" } else { "kuruldu" };
     Ok(InstallOutcome {
         app_id: entry.id.clone(),
         app_name: entry.name.clone(),
@@ -606,11 +652,26 @@ pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome,
         executable_path,
         install_dir,
         summary: format!(
-            "'{}' kuruldu ({}): {rendered}",
+            "'{}' {verb} ({}): {rendered}",
             entry.name,
-            entry.install_method.short_label()
+            plan.method.short_label()
         ),
     })
+}
+
+/// `U` ile bulunan PM güncelleme planını çalıştırır.
+pub fn upgrade_via_package_manager(
+    entry: &StoreEntry,
+    plan: &host::PmUpdatePlan,
+) -> Result<InstallOutcome, InstallError> {
+    run_package_manager_argv(
+        entry,
+        &InstallPlan {
+            method: plan.method,
+            argv: plan.argv.clone(),
+        },
+        true,
+    )
 }
 
 /// `entry` uygulamasını **canlı çözülmüş sürümden** kurar veya günceller.

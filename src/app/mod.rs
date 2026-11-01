@@ -7,6 +7,7 @@ use crate::error::NovaError;
 use crate::event::{Event, EventReader};
 use crate::file_picker::FilePickerState;
 use crate::media_launcher::MediaLauncher;
+use crate::store::host::{self, PmUpdatePlan};
 use crate::store::manifest::{
     self, ConditionalRelease, ReleaseProvider, ReleaseSource, ResolvedRelease,
 };
@@ -83,14 +84,24 @@ pub struct InstallJob {
     receiver: Receiver<Result<crate::store::install::InstallOutcome, String>>,
 }
 
-/// Arka planda süren mağaza canlı sürüm denetimi.
+/// Arka planda süren mağaza canlı sürüm / PM güncelleme denetimi.
 ///
-/// Her uygulama için GitHub Releases sorgusu yapılır; sonuçlar
-/// [`crate::store::manifest::ManifestCache`] içinde önbelleklenir.
+/// GitHub Releases sorgusu + (kurulu) paket yöneticisi outdated taraması.
+/// Release sonuçları [`crate::store::manifest::ManifestCache`] içinde
+/// önbelleklenir.
 #[derive(Debug)]
 pub struct StoreCheckJob {
     /// İşin sonucunu taşıyan kanal.
-    receiver: Receiver<BTreeMap<String, Result<ResolvedRelease, String>>>,
+    receiver: Receiver<StoreCheckOutcome>,
+}
+
+/// `U` denetiminin arka plan sonucu.
+#[derive(Debug, Default)]
+pub struct StoreCheckOutcome {
+    /// GitHub Releases çözümleri.
+    pub releases: BTreeMap<String, Result<ResolvedRelease, String>>,
+    /// Paket yöneticisi güncelleme planları (kurulu + outdated / iyimser).
+    pub pm_updates: BTreeMap<String, PmUpdatePlan>,
 }
 
 pub struct App {
@@ -167,6 +178,8 @@ pub struct App {
     pub store_check_job: Option<StoreCheckJob>,
     /// Canlı denetimle çözülen sürümler (uygulama kimliği → sürüm).
     pub store_updates: BTreeMap<String, ResolvedRelease>,
+    /// `U` sonrası paket yöneticisi güncelleme planları.
+    pub store_pm_updates: BTreeMap<String, PmUpdatePlan>,
     /// Denetlenemeyen uygulamalar ve hataları.
     pub store_check_errors: BTreeMap<String, String>,
     /// Canlı sürüm çözümleyicisi (testlerde sahte olanı verilebilir).
@@ -176,6 +189,12 @@ pub struct App {
     /// `None` ise varsayılan konum kullanılır
     /// (`<store>/manifest-cache.toml`). Testler her teste ayrı bir yol verir.
     pub store_cache_path: Option<PathBuf>,
+    /// Testlerde PM outdated taramasını sabitlemek için.
+    ///
+    /// `Some` ise host komutları çalıştırılmaz; verilen küme kullanılır.
+    pub store_outdated_override: Option<host::OutdatedPackages>,
+    /// Testlerde host PM varlığını sabitlemek için (`None` → gerçek `which`).
+    pub store_host_tools_override: Option<host::HostTools>,
 }
 
 impl App {
@@ -257,9 +276,12 @@ impl App {
             install_job: None,
             store_check_job: None,
             store_updates: BTreeMap::new(),
+            store_pm_updates: BTreeMap::new(),
             store_check_errors: BTreeMap::new(),
             store_release_provider: Arc::new(crate::store::github::GitHubReleaseProvider::new()),
             store_cache_path: None,
+            store_outdated_override: None,
+            store_host_tools_override: None,
         };
         // Mağaza uygulamalarının kurulum durumu başlangıçta bir kez hesaplanır;
         // liste her karede bu önbellekten okur.
@@ -1111,11 +1133,12 @@ impl App {
         };
 
         let update = self.store_update_for(&entry.id).cloned();
-        let has_update = update.as_ref().is_some_and(|r| {
+        let has_archive_update = update.as_ref().is_some_and(|r| {
             manifest::is_newer(&r.version, &entry.version.clone().unwrap_or_default())
         });
+        let pm_update = self.store_pm_update_for(&entry.id).cloned();
 
-        if has_update {
+        if has_archive_update {
             let release = update.expect("güncelleme var");
             self.modal = modal::Modal::Confirm {
                 question: format!(
@@ -1131,6 +1154,21 @@ impl App {
                     version: release.version.clone(),
                 },
             };
+        } else if let Some(pm) = pm_update {
+            let cmd = pm.rendered();
+            self.modal = modal::Modal::Confirm {
+                question: format!(
+                    "'{}' paket yöneticisiyle güncellensin mi? ({}) {cmd} \
+                     Enter onaylar, Esc vazgeçer.",
+                    entry.name,
+                    pm.method.short_label()
+                ),
+                action: modal::ConfirmAction::UpdateStoreApp {
+                    id: entry.id.clone(),
+                    name: entry.name.clone(),
+                    version: format!("pm:{}", pm.hint),
+                },
+            };
         } else if !entry.install_method.is_installable() {
             // curl|bash vb. manual kayıtlarda "Kur" sunulmaz; talimat gösterilir.
             let note = entry
@@ -1139,14 +1177,19 @@ impl App {
                 .unwrap_or("resmî kurulum yönergelerini takip edin");
             self.status_message = format!("'{}' için {note}", entry.name);
         } else if entry.install_method.is_package_manager() {
-            let argv = entry.install_command.as_deref().unwrap_or_default();
-            let cmd = crate::store::format_install_command(argv);
+            let plan = crate::store::install::resolve_entry_install_plan(&entry).unwrap_or(
+                crate::store::host::InstallPlan {
+                    method: entry.install_method,
+                    argv: entry.install_command.clone().unwrap_or_default(),
+                },
+            );
+            let cmd = plan.rendered();
             self.modal = modal::Modal::Confirm {
                 question: format!(
                     "'{}' kurulsun mu? Komut ({}) — kabuksuz çalışır: {cmd} \
                      Enter onaylar, Esc vazgeçer.",
                     entry.name,
-                    entry.install_method.short_label()
+                    plan.method.short_label()
                 ),
                 action: modal::ConfirmAction::InstallStoreApp {
                     id: entry.id.clone(),
@@ -1202,12 +1245,16 @@ impl App {
 
         let (tx, rx) = mpsc::channel();
         let app_name = entry.name.clone();
-        let method = entry.install_method;
 
-        if method.is_package_manager() {
-            let cmd = crate::store::format_install_command(
-                entry.install_command.as_deref().unwrap_or_default(),
+        if entry.install_method.is_package_manager() {
+            let plan = crate::store::install::resolve_entry_install_plan(&entry).unwrap_or(
+                crate::store::host::InstallPlan {
+                    method: entry.install_method,
+                    argv: entry.install_command.clone().unwrap_or_default(),
+                },
             );
+            let cmd = plan.rendered();
+            let method_label = plan.method.short_label().to_string();
             std::thread::spawn(move || {
                 let result = crate::store::install::install_via_package_manager(&entry)
                     .map_err(|e| e.to_string());
@@ -1218,11 +1265,8 @@ impl App {
                 app_name: app_name.clone(),
                 receiver: rx,
             });
-            self.status_message = format!(
-                "'{}' kuruluyor ({}): {cmd}...",
-                app_name,
-                method.short_label()
-            );
+            self.status_message =
+                format!("'{app_name}' kuruluyor ({method_label}): {cmd}...");
             return;
         }
 
@@ -1248,9 +1292,9 @@ impl App {
 
     /// Mağazadaki bir uygulamanın **yeni sürümle** güncellenmesini başlatır.
     ///
-    /// Kurulum, canlı denetimde çözülen adres ve özetle yapılır; yani
-    /// güncellenen dosya da upstream'in bu yayın için yayımladığı SHA-256
-    /// özetiyle doğrulanır.
+    /// İki yol:
+    /// 1. Arşiv / GitHub Releases: canlı denetimde çözülen adres + SHA-256.
+    /// 2. Paket yöneticisi: `U` ile bulunan upgrade argv (pipx/npm/brew/apt/cargo).
     pub fn start_store_update(&mut self, id: &str) {
         if self.install_job.is_some() {
             self.status_message = "Zaten süren bir kurulum var; önce onun bitmesini bekle.".into();
@@ -1260,6 +1304,27 @@ impl App {
             self.status_message = format!("Mağazada '{}' bulunamadı.", id);
             return;
         };
+
+        if let Some(pm) = self.store_pm_updates.get(id).cloned() {
+            let (tx, rx) = mpsc::channel();
+            let app_name = entry.name.clone();
+            let cmd = pm.rendered();
+            let method_label = pm.method.short_label().to_string();
+            std::thread::spawn(move || {
+                let result = crate::store::install::upgrade_via_package_manager(&entry, &pm)
+                    .map_err(|e| e.to_string());
+                let _ = tx.send(result);
+            });
+            self.install_job = Some(InstallJob {
+                app_id: id.to_string(),
+                app_name: app_name.clone(),
+                receiver: rx,
+            });
+            self.status_message =
+                format!("'{app_name}' güncelleniyor ({method_label}): {cmd}...");
+            return;
+        }
+
         let Some(release) = self.store_updates.get(id).cloned() else {
             self.status_message = format!(
                 "'{}' için çözülmüş bir sürüm yok; önce sürümleri denetle (U).",
@@ -1324,6 +1389,7 @@ impl App {
                     &checksum,
                     &download_url,
                 );
+                self.store_pm_updates.remove(&outcome.app_id);
                 self.status_message = format!("✓ {}", outcome.summary);
                 self.refresh_detection();
             }
@@ -1368,11 +1434,10 @@ impl App {
             .unwrap_or(crate::detection::InstalledStatus::Unknown)
     }
 
-    /// Mağazadaki uygulamaların canlı sürümlerini denetler.
+    /// Mağazadaki uygulamaların canlı sürümlerini ve PM güncellemelerini denetler.
     ///
-    /// Denetim arka planda yürür: GitHub Releases sorgusu ana döngüyü
-    /// kilitlemez. Sonuçlar önce önbellekten okunur (taze kayıtlar ağa
-    /// çıkmaz); süresi dolmuş kayıtlar yeniden çözülür ve önbelleğe yazılır.
+    /// Denetim arka planda yürür: GitHub Releases + apt/brew/npm outdated
+    /// (pipx/cargo için kuruluysa iyimser plan). Ana döngü kilitlenmez.
     pub fn check_store_updates(&mut self) {
         if self.store_check_job.is_some() {
             self.status_message = "Sürüm denetimi zaten sürüyor.".into();
@@ -1384,14 +1449,29 @@ impl App {
             .iter()
             .filter_map(|e| e.release.as_ref().map(|r| (e.id.clone(), r.clone())))
             .collect();
-        if sources.is_empty() {
-            self.status_message = "Canlı takip için tanımlı mağaza uygulaması yok.".into();
+        let pm_entries: Vec<StoreEntry> = self
+            .store
+            .entries()
+            .iter()
+            .filter(|e| e.install_method.is_package_manager())
+            .cloned()
+            .collect();
+        let installed_ids: std::collections::BTreeSet<String> = self
+            .store_status
+            .iter()
+            .filter(|(_, s)| **s == crate::detection::InstalledStatus::Installed)
+            .map(|(id, _)| id.clone())
+            .collect();
+        if sources.is_empty() && pm_entries.is_empty() {
+            self.status_message = "Canlı takip veya PM güncellemesi için uygulama yok.".into();
             return;
         }
 
         let (tx, rx) = mpsc::channel();
         let provider = Arc::clone(&self.store_release_provider);
         let cache_path = self.store_cache_path.clone().or_else(manifest::cache_path);
+        let outdated_override = self.store_outdated_override.clone();
+        let host_override = self.store_host_tools_override;
         std::thread::spawn(move || {
             let mut results: BTreeMap<String, Result<ResolvedRelease, String>> = BTreeMap::new();
             let mut cache = cache_path
@@ -1425,27 +1505,37 @@ impl App {
             if let Some(path) = cache_path {
                 let _ = manifest::save_cache(&path, &cache);
             }
-            let _ = tx.send(results);
+
+            let host = host_override.unwrap_or_else(host::HostTools::detect);
+            let os = host::detect_host_os();
+            let outdated =
+                outdated_override.unwrap_or_else(|| host::OutdatedPackages::probe(&host));
+            let pm_updates =
+                host::collect_pm_updates(&pm_entries, &installed_ids, &host, os, &outdated);
+            let _ = tx.send(StoreCheckOutcome {
+                releases: results,
+                pm_updates,
+            });
         });
 
         self.store_check_job = Some(StoreCheckJob { receiver: rx });
-        self.status_message = "Mağaza sürümleri denetleniyor...".into();
+        self.status_message = "Mağaza sürümleri ve PM güncellemeleri denetleniyor...".into();
     }
 
     /// Arka plandaki sürüm denetimini kontrol eder.
     ///
-    /// Sonuç geldiğinde [`App::store_updates`] doldurulur; yeni sürüm bulunan
-    /// uygulamalar sayı ile bildirilir.
+    /// Sonuç geldiğinde [`App::store_updates`] ve [`App::store_pm_updates`]
+    /// doldurulur; yeni sürüm / PM güncellemesi sayı ile bildirilir.
     pub fn poll_store_check(&mut self) {
         let Some(job) = self.store_check_job.take() else {
             return;
         };
         match job.receiver.try_recv() {
-            Ok(results) => {
+            Ok(outcome) => {
                 let mut updates = BTreeMap::new();
                 let mut errors = BTreeMap::new();
                 let mut newer = 0usize;
-                for (id, result) in results {
+                for (id, result) in outcome.releases {
                     match result {
                         Ok(release) => {
                             let current = self
@@ -1463,17 +1553,23 @@ impl App {
                         }
                     }
                 }
+                let pm_count = outcome.pm_updates.len();
                 self.store_updates = updates;
+                self.store_pm_updates = outcome.pm_updates;
                 self.store_check_errors = errors;
-                self.status_message = if newer > 0 {
-                    format!("{newer} mağaza uygulaması için yeni sürüm bulundu.")
-                } else if self.store_check_errors.is_empty() {
-                    "Mağaza uygulamalarının tümü güncel.".into()
-                } else {
-                    format!(
+                self.status_message = match (newer, pm_count) {
+                    (0, 0) if self.store_check_errors.is_empty() => {
+                        "Mağaza uygulamalarının tümü güncel.".into()
+                    }
+                    (0, 0) => format!(
                         "{} uygulama denetlenemedi; diğerleri güncel.",
                         self.store_check_errors.len()
-                    )
+                    ),
+                    (n, 0) => format!("{n} mağaza uygulaması için yeni sürüm bulundu."),
+                    (0, p) => format!("{p} paket yöneticisi güncellemesi bulundu."),
+                    (n, p) => format!(
+                        "{n} yeni sürüm, {p} paket yöneticisi güncellemesi bulundu."
+                    ),
                 };
             }
             Err(TryRecvError::Empty) => {
@@ -1486,9 +1582,29 @@ impl App {
         }
     }
 
-    /// Seçili mağaza uygulaması için bulunan yeni sürüm.
+    /// Seçili mağaza uygulaması için bulunan yeni arşiv sürümü.
     pub fn store_update_for(&self, id: &str) -> Option<&ResolvedRelease> {
         self.store_updates.get(id)
+    }
+
+    /// `U` sonrası paket yöneticisi güncelleme planı.
+    pub fn store_pm_update_for(&self, id: &str) -> Option<&PmUpdatePlan> {
+        self.store_pm_updates.get(id)
+    }
+
+    /// Arşiv veya PM güncellemesi var mı (↑ işareti).
+    pub fn store_has_pending_update(&self, id: &str) -> bool {
+        if let Some(release) = self.store_update_for(id) {
+            let current = self
+                .store
+                .get_by_id(id)
+                .and_then(|e| e.version.clone())
+                .unwrap_or_default();
+            if manifest::is_newer(&release.version, &current) {
+                return true;
+            }
+        }
+        self.store_pm_updates.contains_key(id)
     }
 
     /// Bir aracı Nova görünümünden çıkarır.
@@ -2955,10 +3071,15 @@ mod tests {
         path
     }
 
+    fn quiet_pm_probe(app: &mut App) {
+        app.store_outdated_override = Some(host::OutdatedPackages::empty());
+    }
+
     #[test]
     fn store_update_check_finds_newer_versions() {
         let cache_path = test_cache_path("yeni");
         let mut app = sample_app();
+        quiet_pm_probe(&mut app);
         app.store_cache_path = Some(cache_path.clone());
         app.store_release_provider = Arc::new(FakeProvider::new(vec![(
             "BurntSushi/ripgrep".into(),
@@ -2987,6 +3108,7 @@ mod tests {
     fn store_update_check_reports_unreachable_repos() {
         let cache_path = test_cache_path("hata");
         let mut app = sample_app();
+        quiet_pm_probe(&mut app);
         app.store_cache_path = Some(cache_path.clone());
         app.store_release_provider = Arc::new(FakeProvider::new(vec![(
             "BurntSushi/ripgrep".into(),
@@ -3013,6 +3135,7 @@ mod tests {
     fn store_update_check_uses_the_cache_without_network() {
         let cache_path = test_cache_path("onbellek");
         let mut app = sample_app();
+        quiet_pm_probe(&mut app);
         let provider = Arc::new(FakeProvider::succeeding("99.0.0"));
         app.store_release_provider = provider.clone();
         app.store_cache_path = Some(cache_path.clone());
@@ -3024,6 +3147,7 @@ mod tests {
 
         // İkinci denetim taze önbellekten okumalı; sağlayıcıya gitmemeli.
         let mut app2 = sample_app();
+        quiet_pm_probe(&mut app2);
         app2.store_release_provider = provider.clone();
         app2.store_cache_path = Some(cache_path.clone());
         app2.check_store_updates();
@@ -3080,6 +3204,7 @@ mod tests {
     fn stale_cache_is_revalidated_with_the_etag() {
         let cache_path = test_cache_path("etag");
         let mut app = sample_app();
+        quiet_pm_probe(&mut app);
         let provider = Arc::new(EtagProvider::new());
         app.store_release_provider = provider.clone();
         app.store_cache_path = Some(cache_path.clone());
@@ -3102,6 +3227,7 @@ mod tests {
 
         // İkinci denetim: bayat önbellek, koşullu istek atılmalı.
         let mut app2 = sample_app();
+        quiet_pm_probe(&mut app2);
         app2.store_release_provider = provider.clone();
         app2.store_cache_path = Some(cache_path.clone());
         app2.check_store_updates();
@@ -3130,5 +3256,112 @@ mod tests {
         );
 
         let _ = std::fs::remove_file(&cache_path);
+    }
+
+    #[test]
+    fn store_u_discovers_package_manager_updates() {
+        let cache_path = test_cache_path("pm-u");
+        let mut app = sample_app();
+        app.store_cache_path = Some(cache_path.clone());
+        // GitHub tarafını sessizleştir; yalnızca PM yolunu ölç.
+        app.store_release_provider = Arc::new(FakeProvider::new(vec![]));
+        app.store_host_tools_override =
+            Some(host::HostTools::from_flags(true, false, false, false, false));
+        app.store_status.insert(
+            "htop".into(),
+            crate::detection::InstalledStatus::Installed,
+        );
+        let mut outdated = host::OutdatedPackages::empty();
+        outdated.apt.insert("htop".into());
+        app.store_outdated_override = Some(outdated);
+
+        app.check_store_updates();
+        wait_for_store_check(&mut app);
+
+        let plan = app
+            .store_pm_update_for("htop")
+            .expect("htop PM güncellemesi");
+        assert_eq!(plan.method, crate::store::InstallMethod::Apt);
+        assert!(
+            plan.argv.iter().any(|a| a == "--only-upgrade"),
+            "{:?}",
+            plan.argv
+        );
+        assert!(app.store_has_pending_update("htop"));
+        assert!(
+            app.status_message.contains("paket yöneticisi"),
+            "mesaj: {}",
+            app.status_message
+        );
+        let _ = std::fs::remove_file(&cache_path);
+    }
+
+    #[test]
+    fn store_enter_confirms_pm_update_after_u() {
+        let mut app = sample_app();
+        quiet_pm_probe(&mut app);
+        app.select_store_tab();
+        // htop kategorisine git.
+        if let Some(idx) = STORE_CATEGORIES.iter().position(|c| *c == "Sistem") {
+            app.store_category_index = idx;
+        }
+        let apps = app.filtered_store_apps();
+        let htop_pos = apps.iter().position(|e| e.id == "htop").expect("htop");
+        app.store_app_index = htop_pos;
+        app.store_pm_updates.insert(
+            "htop".into(),
+            host::PmUpdatePlan {
+                method: crate::store::InstallMethod::Apt,
+                argv: vec![
+                    "sudo".into(),
+                    "apt".into(),
+                    "install".into(),
+                    "--only-upgrade".into(),
+                    "-y".into(),
+                    "htop".into(),
+                ],
+                hint: "htop".into(),
+            },
+        );
+        app.select_store_app();
+        match &app.modal {
+            modal::Modal::Confirm { question, action } => {
+                assert!(
+                    question.contains("güncellensin") && question.contains("apt"),
+                    "{question}"
+                );
+                assert!(matches!(
+                    action,
+                    modal::ConfirmAction::UpdateStoreApp { id, .. } if id == "htop"
+                ));
+            }
+            other => panic!("PM güncelleme onayı beklenirdi: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn host_aware_install_confirm_uses_available_pm() {
+        // Katalog birincili brew olan crush; Linux + yalnızca cargo notes’ta
+        // yok → brew kalır. gitui: apt birincil, notes’ta cargo var.
+        // Bu test yalnızca resolve_install_plan birimini app confirm metninde
+        // yansıtır: pipx-only host’ta aider pipx gösterir.
+        let mut app = sample_app();
+        app.select_store_tab();
+        if let Some(idx) = STORE_CATEGORIES.iter().position(|c| *c == "AI") {
+            app.store_category_index = idx;
+        }
+        let apps = app.filtered_store_apps();
+        let pos = apps.iter().position(|e| e.id == "aider").expect("aider");
+        app.store_app_index = pos;
+        app.select_store_app();
+        match &app.modal {
+            modal::Modal::Confirm { question, .. } => {
+                assert!(
+                    question.contains("pipx") && question.contains("aider-chat"),
+                    "{question}"
+                );
+            }
+            other => panic!("kurulum onayı beklenirdi: {other:?}"),
+        }
     }
 }
