@@ -1,0 +1,112 @@
+name: Release
+
+# Etiket `vMAJOR.MINOR.PATCH` (Cargo.toml ile aynı) itildiğinde Linux
+# x86_64 ikilisini paketler ve GitHub Release oluşturur.
+# Ayarlar→Güncelle / `U` bu varlıkları `pick_linux_asset` ile seçer.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Yayımlanacak etiket (ör. v0.1.0); boşsa yalnızca paket dener"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  linux-x86_64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Sürüm bilgisini çöz
+        id: meta
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="v$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name=="nova") | .version')"
+          fi
+          VERSION="${TAG#v}"
+          CARGO_VERSION="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name=="nova") | .version')"
+          if [ "$VERSION" != "$CARGO_VERSION" ]; then
+            echo "::error::Etiket sürümü ($VERSION) Cargo.toml ($CARGO_VERSION) ile uyuşmuyor"
+            exit 1
+          fi
+          TARGET="x86_64-unknown-linux-gnu"
+          ASSET="nova-${TAG}-${TARGET}.tar.gz"
+          {
+            echo "tag=$TAG"
+            echo "version=$VERSION"
+            echo "target=$TARGET"
+            echo "asset=$ASSET"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Release derlemesi
+        run: cargo build --release --locked
+
+      - name: Arşiv ve checksum
+        run: |
+          set -euo pipefail
+          STAGE="dist/nova-${{ steps.meta.outputs.tag }}-${{ steps.meta.outputs.target }}"
+          mkdir -p "$STAGE"
+          install -m 755 target/release/nova "$STAGE/nova"
+          cp LICENSE.md LICENSE-MIT LICENSE-APACHE README.md "$STAGE/"
+          tar -C dist -czf "dist/${{ steps.meta.outputs.asset }}" "$(basename "$STAGE")"
+          (cd dist && sha256sum "${{ steps.meta.outputs.asset }}" > SHA256SUMS.txt)
+          cat dist/SHA256SUMS.txt
+
+      - name: GitHub Release yayimla
+        if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.meta.outputs.tag }}"
+          ASSET="${{ steps.meta.outputs.asset }}"
+          TARGET="${{ steps.meta.outputs.target }}"
+          CHECKSUM="$(cat dist/SHA256SUMS.txt)"
+          {
+            echo "## Nova ${TAG}"
+            echo
+            echo "Linux x86_64 TUI başlatıcı. Arşiv içinde çalıştırılabilir \`nova\` dosyası vardır."
+            echo
+            echo "### Kurulum (kullanıcı alanı)"
+            echo
+            echo '```bash'
+            echo "tar -xzf ${ASSET}"
+            echo "install -m 755 nova-${TAG}-${TARGET}/nova ~/.local/bin/nova"
+            echo '```'
+            echo
+            echo "PATH'te \`~/.local/bin\` olduğundan emin olun. Nova içinden **Ayarlar → Güncelle**"
+            echo "(veya araç sekmesinde \`U\`) sonraki sürümleri aynı Releases kanalından kurabilir."
+            echo
+            echo "### Checksum"
+            echo
+            echo '```'
+            echo "${CHECKSUM}"
+            echo '```'
+            echo
+            echo "Kaynak derleme ve mimari için README / ARCHITECTURE.md bakın."
+            echo "Katalog katkıları: [Nova-Store](https://github.com/Teknoloji-Filozoflari/Nova-Store)."
+          } > dist/RELEASE_NOTES.md
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "dist/${ASSET}" dist/SHA256SUMS.txt --clobber
+          else
+            gh release create "$TAG" \
+              "dist/${ASSET}" \
+              dist/SHA256SUMS.txt \
+              --title "Nova ${TAG}" \
+              --notes-file dist/RELEASE_NOTES.md
+          fi
