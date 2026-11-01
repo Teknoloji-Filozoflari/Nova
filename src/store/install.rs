@@ -6,7 +6,7 @@
 //!    sistem dizinlerine yazma yok. Uzaktan betik shell üzerinden
 //!    çalıştırılmaz (`curl | sh` yok). SHA-256 doğrulanır; arşiv yol geçişi
 //!    korumalıdır.
-//! 2. **Paket yöneticisi (`pipx`/`npm`/`cargo`/`brew`/`apt`/`dnf`/`uv`)**:
+//! 2. **Paket yöneticisi (`pipx`/`npm`/`cargo`/`brew`/`apt`/`dnf`/`pacman`/`uv`)**:
 //!    katalogdaki `install_command` argv'si (veya host’a göre `install_notes`
 //!    alternatifinden seçilen komut), kullanıcı onayından sonra **kabuksuz**
 //!    çalıştırılır. `sh -c` / `curl | bash` kabul edilmez. `apt`/`dnf` için

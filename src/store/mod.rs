@@ -14,7 +14,7 @@
 //! - `license` — lisans bilgisi
 //! - `executable` — executable adı
 //! - `install_method` — kurulum yöntemi (`manual` | `download_archive` |
-//!   `pipx` | `npm` | `cargo` | `brew` | `apt` | `dnf` | `uv`)
+//!   `pipx` | `npm` | `cargo` | `brew` | `apt` | `dnf` | `pacman` | `uv`)
 //! - `supported_platforms` — desteklenen platformlar (ör. "linux-x64")
 //! - `checksum` — SHA-256 doğrulama özeti
 //! - `checksum_type` — "sha256" gibi
@@ -91,6 +91,8 @@ pub enum InstallMethod {
     Apt,
     /// `sudo dnf install …` (kullanıcı onayı sonrası, kabuksuz argv).
     Dnf,
+    /// `sudo pacman -S …` (kullanıcı onayı sonrası, kabuksuz argv).
+    Pacman,
     /// `uv tool install …` (kullanıcı onayı sonrası, kabuksuz argv).
     Uv,
 }
@@ -109,7 +111,7 @@ impl InstallMethod {
         matches!(self, InstallMethod::DownloadArchive)
     }
 
-    /// Paket yöneticisi (pipx/npm/cargo/brew/apt/dnf/uv) yöntemi mi?
+    /// Paket yöneticisi (pipx/npm/cargo/brew/apt/dnf/pacman/uv) yöntemi mi?
     pub fn is_package_manager(self) -> bool {
         matches!(
             self,
@@ -119,13 +121,17 @@ impl InstallMethod {
                 | InstallMethod::Brew
                 | InstallMethod::Apt
                 | InstallMethod::Dnf
+                | InstallMethod::Pacman
                 | InstallMethod::Uv
         )
     }
 
-    /// `sudo` parola / TTY isteyebilecek sistem PM’i mi (apt/dnf)?
+    /// `sudo` parola / TTY isteyebilecek sistem PM’i mi (apt/dnf/pacman)?
     pub fn needs_elevated_tty(self) -> bool {
-        matches!(self, InstallMethod::Apt | InstallMethod::Dnf)
+        matches!(
+            self,
+            InstallMethod::Apt | InstallMethod::Dnf | InstallMethod::Pacman
+        )
     }
 
     /// Arayüzde gösterilecek kısa etiket (ör. detay satırı).
@@ -139,6 +145,7 @@ impl InstallMethod {
             InstallMethod::Brew => "brew",
             InstallMethod::Apt => "apt",
             InstallMethod::Dnf => "dnf",
+            InstallMethod::Pacman => "pacman",
             InstallMethod::Uv => "uv",
         }
     }
@@ -154,6 +161,7 @@ impl InstallMethod {
             InstallMethod::Brew => "brew (onaylı komut)",
             InstallMethod::Apt => "apt (onaylı komut)",
             InstallMethod::Dnf => "dnf (onaylı komut)",
+            InstallMethod::Pacman => "pacman (onaylı komut)",
             InstallMethod::Uv => "uv (onaylı komut)",
         }
     }
@@ -433,7 +441,8 @@ pub fn is_sha256_hex(value: &str) -> bool {
 /// - Program `sh` / `bash` / `curl` / `wget` / `env` olamaz (sessiz
 ///   `curl | bash` yolunu kapatır).
 /// - Yönteme göre ilk program: `pipx` / `npm` / `cargo` / `brew` / `uv`,
-///   veya `apt`/`dnf` için `apt`/`dnf` ya da `sudo apt|dnf …`.
+///   veya `apt`/`dnf`/`pacman` için `apt`/`dnf`/`pacman` ya da
+///   `sudo apt|dnf|pacman …`.
 /// - Argümanlarda tek başına `|` kabul edilmez.
 pub fn validate_install_command(method: InstallMethod, argv: &[String]) -> Result<(), String> {
     if !method.is_package_manager() {
@@ -479,6 +488,13 @@ pub fn validate_install_command(method: InstallMethod, argv: &[String]) -> Resul
             }
             Ok(())
         }
+        InstallMethod::Pacman if program == "pacman" => validate_pacman_sync_argv(argv),
+        InstallMethod::Pacman if program == "sudo" => {
+            if argv.get(1).map(String::as_str) != Some("pacman") {
+                return Err("sudo sonrası program 'pacman' olmalıdır".into());
+            }
+            validate_pacman_sync_argv(&argv[1..])
+        }
         InstallMethod::Uv if program == "uv" => {
             if argv.get(1).map(String::as_str) != Some("tool") {
                 return Err("uv için 'uv tool …' bekleniyor".into());
@@ -495,11 +511,28 @@ pub fn validate_install_command(method: InstallMethod, argv: &[String]) -> Resul
         | InstallMethod::Brew
         | InstallMethod::Apt
         | InstallMethod::Dnf
+        | InstallMethod::Pacman
         | InstallMethod::Uv => Err(format!(
             "'{}' yöntemi için program '{program}' beklenmiyor",
             method.short_label()
         )),
         InstallMethod::Manual | InstallMethod::DownloadArchive => unreachable!(),
+    }
+}
+
+/// `pacman` argv’sinde senkron kurulum/yükseltme (`-S` / `-Sy` / `-Syu` …) var mı?
+fn validate_pacman_sync_argv(argv: &[String]) -> Result<(), String> {
+    // argv[0] == "pacman"
+    let has_sync = argv.iter().skip(1).any(|a| {
+        let s = a.as_str();
+        s == "-S"
+            || s == "--sync"
+            || (s.starts_with('-') && !s.starts_with("--") && s.chars().skip(1).any(|c| c == 'S'))
+    });
+    if has_sync {
+        Ok(())
+    } else {
+        Err("pacman için -S/--sync bekleniyor".into())
     }
 }
 
@@ -678,7 +711,7 @@ mod tests {
     }
 
     #[test]
-    fn dnf_and_uv_commands_validate() {
+    fn dnf_pacman_and_uv_commands_validate() {
         let mut dnf = pipx_entry("htop-dnf");
         dnf.install_method = InstallMethod::Dnf;
         dnf.install_command = Some(vec![
@@ -689,6 +722,23 @@ mod tests {
             "htop".into(),
         ]);
         assert!(Store::from_entries(vec![dnf]).is_ok());
+
+        let mut pacman = pipx_entry("htop-pacman");
+        pacman.install_method = InstallMethod::Pacman;
+        pacman.install_command = Some(vec![
+            "sudo".into(),
+            "pacman".into(),
+            "-S".into(),
+            "--noconfirm".into(),
+            "htop".into(),
+        ]);
+        assert!(Store::from_entries(vec![pacman]).is_ok());
+
+        assert!(validate_install_command(
+            InstallMethod::Pacman,
+            &["sudo".into(), "pacman".into(), "-Q".into(), "htop".into()]
+        )
+        .is_err());
 
         let mut uv = pipx_entry("llm-uv");
         uv.install_method = InstallMethod::Uv;
@@ -705,6 +755,7 @@ mod tests {
             &["uv".into(), "pip".into(), "install".into(), "x".into()]
         )
         .is_err());
+        assert!(InstallMethod::Pacman.needs_elevated_tty());
     }
 
     #[test]
