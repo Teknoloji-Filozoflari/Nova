@@ -84,6 +84,14 @@ pub struct InstallJob {
     receiver: Receiver<Result<crate::store::install::InstallOutcome, String>>,
 }
 
+/// sudo parola isteyen apt/dnf planı — ana döngüde TUI askıya alınarak çalışır.
+#[derive(Debug, Clone)]
+pub struct PendingTtyPm {
+    pub entry: crate::store::StoreEntry,
+    pub plan: host::InstallPlan,
+    pub is_upgrade: bool,
+}
+
 /// Arka planda süren mağaza canlı sürüm / PM güncelleme denetimi.
 ///
 /// GitHub Releases sorgusu + (kurulu) paket yöneticisi outdated taraması.
@@ -174,6 +182,8 @@ pub struct App {
     pub update_provider: Box<dyn UpdateProvider + Send + Sync>,
     /// Arka planda süren mağaza kurulum işi (varsa).
     pub install_job: Option<InstallJob>,
+    /// sudo TTY gerektiren PM kurulum/güncelleme (ana döngüde işlenir).
+    pub pending_tty_pm: Option<PendingTtyPm>,
     /// Arka planda süren canlı sürüm denetimi (varsa).
     pub store_check_job: Option<StoreCheckJob>,
     /// Canlı denetimle çözülen sürümler (uygulama kimliği → sürüm).
@@ -274,6 +284,7 @@ impl App {
             store_status: BTreeMap::new(),
             update_provider: Box::new(crate::update::DefaultUpdateProvider),
             install_job: None,
+            pending_tty_pm: None,
             store_check_job: None,
             store_updates: BTreeMap::new(),
             store_pm_updates: BTreeMap::new(),
@@ -315,6 +326,8 @@ impl App {
             // Arka plandaki kurulum ve sürüm denetimi işlerini kontrol et.
             self.poll_install();
             self.poll_store_check();
+            // sudo parola isteyen apt/dnf: TUI’yi bırakıp gerçek TTY ile çalıştır.
+            self.run_pending_tty_pm(terminal)?;
         }
 
         Ok(())
@@ -1177,7 +1190,7 @@ impl App {
                 .unwrap_or("resmî kurulum yönergelerini takip edin");
             self.status_message = format!("'{}' için {note}", entry.name);
         } else if entry.install_method.is_package_manager() {
-            let plan = crate::store::install::resolve_entry_install_plan(&entry).unwrap_or(
+            let plan = crate::store::install::resolve_entry_install_plan(entry).unwrap_or(
                 crate::store::host::InstallPlan {
                     method: entry.install_method,
                     argv: entry.install_command.clone().unwrap_or_default(),
@@ -1222,11 +1235,13 @@ impl App {
     /// çıkarma ana döngüyü kilitlemez. Sonuç
     /// [`App::poll_install`] ile alınır.
     ///
-    /// `download_archive` ve paket yöneticisi (`pipx`/`npm`/`cargo`/`brew`/`apt`)
-    /// kayıtları kurulabilir; `manual` kayıtlarda resmî talimat gösterilir.
+    /// `download_archive` ve paket yöneticisi (`pipx`/`npm`/`cargo`/`brew`/
+    /// `apt`/`dnf`/`uv`) kayıtları kurulabilir; `manual` kayıtlarda resmî
+    /// talimat gösterilir. sudo parola isteyen apt/dnf planları
+    /// [`App::run_pending_tty_pm`] ile TUI askıda çalışır.
     /// Kurulum her zaman önce onay modalından geçer.
     pub fn start_store_install(&mut self, id: &str) {
-        if self.install_job.is_some() {
+        if self.install_job.is_some() || self.pending_tty_pm.is_some() {
             self.status_message = "Zaten süren bir kurulum var; önce onun bitmesini bekle.".into();
             return;
         }
@@ -1255,9 +1270,25 @@ impl App {
             );
             let cmd = plan.rendered();
             let method_label = plan.method.short_label().to_string();
+            if plan.needs_tty_suspend() {
+                self.pending_tty_pm = Some(PendingTtyPm {
+                    entry,
+                    plan,
+                    is_upgrade: false,
+                });
+                self.status_message =
+                    format!("'{app_name}' kuruluyor ({method_label}, sudo TTY): {cmd}...");
+                return;
+            }
+            let plan_bg = plan.clone();
             std::thread::spawn(move || {
-                let result = crate::store::install::install_via_package_manager(&entry)
-                    .map_err(|e| e.to_string());
+                let result = crate::store::install::run_package_manager_argv(
+                    &entry,
+                    &plan_bg,
+                    false,
+                    crate::store::install::PmIoMode::Captured,
+                )
+                .map_err(|e| e.to_string());
                 let _ = tx.send(result);
             });
             self.install_job = Some(InstallJob {
@@ -1265,8 +1296,7 @@ impl App {
                 app_name: app_name.clone(),
                 receiver: rx,
             });
-            self.status_message =
-                format!("'{app_name}' kuruluyor ({method_label}): {cmd}...");
+            self.status_message = format!("'{app_name}' kuruluyor ({method_label}): {cmd}...");
             return;
         }
 
@@ -1294,9 +1324,10 @@ impl App {
     ///
     /// İki yol:
     /// 1. Arşiv / GitHub Releases: canlı denetimde çözülen adres + SHA-256.
-    /// 2. Paket yöneticisi: `U` ile bulunan upgrade argv (pipx/npm/brew/apt/cargo).
+    /// 2. Paket yöneticisi: `U` ile bulunan upgrade argv
+    ///    (pipx/npm/brew/apt/dnf/uv/cargo).
     pub fn start_store_update(&mut self, id: &str) {
-        if self.install_job.is_some() {
+        if self.install_job.is_some() || self.pending_tty_pm.is_some() {
             self.status_message = "Zaten süren bir kurulum var; önce onun bitmesini bekle.".into();
             return;
         }
@@ -1310,9 +1341,25 @@ impl App {
             let app_name = entry.name.clone();
             let cmd = pm.rendered();
             let method_label = pm.method.short_label().to_string();
+            let plan = pm.as_install_plan();
+            if plan.needs_tty_suspend() {
+                self.pending_tty_pm = Some(PendingTtyPm {
+                    entry,
+                    plan,
+                    is_upgrade: true,
+                });
+                self.status_message =
+                    format!("'{app_name}' güncelleniyor ({method_label}, sudo TTY): {cmd}...");
+                return;
+            }
             std::thread::spawn(move || {
-                let result = crate::store::install::upgrade_via_package_manager(&entry, &pm)
-                    .map_err(|e| e.to_string());
+                let result = crate::store::install::run_package_manager_argv(
+                    &entry,
+                    &plan,
+                    true,
+                    crate::store::install::PmIoMode::Captured,
+                )
+                .map_err(|e| e.to_string());
                 let _ = tx.send(result);
             });
             self.install_job = Some(InstallJob {
@@ -1320,8 +1367,7 @@ impl App {
                 app_name: app_name.clone(),
                 receiver: rx,
             });
-            self.status_message =
-                format!("'{app_name}' güncelleniyor ({method_label}): {cmd}...");
+            self.status_message = format!("'{app_name}' güncelleniyor ({method_label}): {cmd}...");
             return;
         }
 
@@ -1369,29 +1415,7 @@ impl App {
         };
         match job.receiver.try_recv() {
             Ok(Ok(outcome)) => {
-                // Kurulan sürüm artık "bilinen" sürümdür; yeni sürüm
-                // göstergesi söner.
-                let resolved = self.store_updates.get(&outcome.app_id).cloned();
-                let current = self.store.get_by_id(&outcome.app_id).cloned();
-                let checksum = resolved
-                    .as_ref()
-                    .map(|r| r.checksum.clone())
-                    .or_else(|| current.as_ref().and_then(|e| e.checksum.clone()))
-                    .unwrap_or_default();
-                let download_url = resolved
-                    .as_ref()
-                    .map(|r| r.download_url.clone())
-                    .or_else(|| current.as_ref().and_then(|e| e.download_url.clone()))
-                    .unwrap_or_default();
-                self.store.mark_installed(
-                    &outcome.app_id,
-                    &outcome.version,
-                    &checksum,
-                    &download_url,
-                );
-                self.store_pm_updates.remove(&outcome.app_id);
-                self.status_message = format!("✓ {}", outcome.summary);
-                self.refresh_detection();
+                self.apply_install_outcome(outcome);
             }
             Ok(Err(message)) => {
                 self.status_message = format!("Hata: {message}");
@@ -1404,6 +1428,80 @@ impl App {
                 self.status_message = "Hata: kurulum işi beklenmedik şekilde sonlandı.".into();
             }
         }
+    }
+
+    /// Kurulum/güncelleme sonucunu mağaza durumuna işler.
+    fn apply_install_outcome(&mut self, outcome: crate::store::install::InstallOutcome) {
+        let resolved = self.store_updates.get(&outcome.app_id).cloned();
+        let current = self.store.get_by_id(&outcome.app_id).cloned();
+        let checksum = resolved
+            .as_ref()
+            .map(|r| r.checksum.clone())
+            .or_else(|| current.as_ref().and_then(|e| e.checksum.clone()))
+            .unwrap_or_default();
+        let download_url = resolved
+            .as_ref()
+            .map(|r| r.download_url.clone())
+            .or_else(|| current.as_ref().and_then(|e| e.download_url.clone()))
+            .unwrap_or_default();
+        self.store
+            .mark_installed(&outcome.app_id, &outcome.version, &checksum, &download_url);
+        self.store_pm_updates.remove(&outcome.app_id);
+        self.status_message = format!("✓ {}", outcome.summary);
+        self.refresh_detection();
+    }
+
+    /// sudo parola isteyen apt/dnf planını TUI askıda çalıştırır.
+    ///
+    /// Ham mod ve alt ekran bırakılır; komut `/dev/tty` ile çalışır; ardından
+    /// TUI geri kurulur. Parola önbellekteyse bu yol seçilmez (arka plan).
+    pub fn run_pending_tty_pm(
+        &mut self,
+        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    ) -> Result<(), NovaError> {
+        let Some(pending) = self.pending_tty_pm.take() else {
+            return Ok(());
+        };
+        let cmd = pending.plan.rendered();
+        let name = pending.entry.name.clone();
+        let verb = if pending.is_upgrade {
+            "güncelleniyor"
+        } else {
+            "kuruluyor"
+        };
+
+        crate::terminal_guard::suspend_tui()?;
+        println!();
+        println!("Nova — '{name}' {verb}");
+        println!("Komut: {cmd}");
+        println!("sudo parola sorulursa bu terminalde yanıtlayın.");
+        println!();
+
+        let result = crate::store::install::run_package_manager_argv(
+            &pending.entry,
+            &pending.plan,
+            pending.is_upgrade,
+            crate::store::install::PmIoMode::Inherited,
+        );
+
+        println!();
+        match &result {
+            Ok(outcome) => println!("✓ {}", outcome.summary),
+            Err(err) => println!("Hata: {err}"),
+        }
+        println!("Devam etmek için Enter…");
+        let _ = std::io::Write::flush(&mut std::io::stdout());
+        let mut line = String::new();
+        let _ = std::io::BufRead::read_line(&mut std::io::stdin().lock(), &mut line);
+
+        crate::terminal_guard::resume_tui()?;
+        terminal.clear()?;
+
+        match result {
+            Ok(outcome) => self.apply_install_outcome(outcome),
+            Err(err) => self.status_message = format!("Hata: {err}"),
+        }
+        Ok(())
     }
 
     /// Katalogdaki tüm araçların kurulum durumunu yeniden belirler.
@@ -1567,9 +1665,7 @@ impl App {
                     ),
                     (n, 0) => format!("{n} mağaza uygulaması için yeni sürüm bulundu."),
                     (0, p) => format!("{p} paket yöneticisi güncellemesi bulundu."),
-                    (n, p) => format!(
-                        "{n} yeni sürüm, {p} paket yöneticisi güncellemesi bulundu."
-                    ),
+                    (n, p) => format!("{n} yeni sürüm, {p} paket yöneticisi güncellemesi bulundu."),
                 };
             }
             Err(TryRecvError::Empty) => {
@@ -3265,12 +3361,11 @@ mod tests {
         app.store_cache_path = Some(cache_path.clone());
         // GitHub tarafını sessizleştir; yalnızca PM yolunu ölç.
         app.store_release_provider = Arc::new(FakeProvider::new(vec![]));
-        app.store_host_tools_override =
-            Some(host::HostTools::from_flags(true, false, false, false, false));
-        app.store_status.insert(
-            "htop".into(),
-            crate::detection::InstalledStatus::Installed,
-        );
+        app.store_host_tools_override = Some(host::HostTools::from_flags(
+            true, false, false, false, false,
+        ));
+        app.store_status
+            .insert("htop".into(), crate::detection::InstalledStatus::Installed);
         let mut outdated = host::OutdatedPackages::empty();
         outdated.apt.insert("htop".into());
         app.store_outdated_override = Some(outdated);
