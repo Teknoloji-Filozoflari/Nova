@@ -12,16 +12,24 @@
 //! için Türkçe karakterlerde panik oluşmaz.
 
 pub mod modal;
+pub mod theme;
+
+pub use theme::{ThemePalette, UiTheme};
 
 use crate::app::{App, PanelFocus};
 use crate::catalog::{short_category_name, CATEGORIES};
 use crate::detection::InstalledStatus;
-use crate::store::{STORE_CATEGORIES, STORE_TAB_LABEL};
+use crate::store::{SETTINGS_TAB_LABEL, STORE_CATEGORIES, STORE_TAB_LABEL};
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
 use ratatui::Frame;
+
+/// Uygulamanın etkin tema paleti.
+fn palette(app: &App) -> ThemePalette {
+    app.ui_theme().palette()
+}
 
 /// Bu genişliğin altında iki panel yan yana sığmaz.
 pub const WIDE_MIN_WIDTH: u16 = 70;
@@ -222,7 +230,7 @@ pub fn draw(f: &mut Frame, app: &App) {
         ])
         .split(area);
 
-    draw_header(f, chunks[0]);
+    draw_header(f, app, chunks[0]);
     draw_search(f, app, chunks[1]);
     draw_content(f, app, chunks[2], wide);
     if show_detail {
@@ -236,11 +244,12 @@ pub fn draw(f: &mut Frame, app: &App) {
     modal::draw(f, app);
 }
 
-fn draw_header(f: &mut Frame, area: Rect) {
+fn draw_header(f: &mut Frame, app: &App, area: Rect) {
+    let accent = palette(app).accent;
     let title = Paragraph::new(Line::from(Span::styled(
         "Nova",
         Style::default()
-            .fg(Color::Cyan)
+            .fg(accent)
             .add_modifier(Modifier::BOLD),
     )))
     .alignment(Alignment::Center);
@@ -271,6 +280,20 @@ fn draw_search(f: &mut Frame, app: &App, area: Rect) {
 fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
     if app.store_tab {
         draw_store_content(f, app, area, wide);
+    } else if app.settings_tab {
+        if wide {
+            let panels = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([
+                    Constraint::Length(CATEGORY_PANEL_WIDTH),
+                    Constraint::Min(20),
+                ])
+                .split(area);
+            draw_categories(f, app, panels[0]);
+            draw_settings_panel(f, app, panels[1]);
+        } else {
+            draw_settings_panel(f, app, area);
+        }
     } else if wide {
         let panels = Layout::default()
             .direction(Direction::Horizontal)
@@ -321,33 +344,40 @@ fn draw_store_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
 }
 
 fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
-    let mut items: Vec<ListItem> = CATEGORIES
-        .iter()
-        .enumerate()
-        .map(|(i, cat)| {
+    let pal = palette(app);
+    // Yalnızca kurulu araç içeren kategoriler gösterilir (boşlar gizlenir).
+    let mut items: Vec<ListItem> = app
+        .visible_category_indices()
+        .into_iter()
+        .map(|i| {
+            let cat = CATEGORIES[i];
             let count = app
                 .catalog
                 .by_category(cat)
                 .into_iter()
-                .filter(|e| app.matches_search(e) && (!app.favorite_only || e.favorite))
+                .filter(|e| {
+                    e.status == InstalledStatus::Installed
+                        && app.matches_search(e)
+                        && (!app.favorite_only || e.favorite)
+                })
                 .count();
-            let selected = i == app.category_index && !app.store_tab;
+            let selected = i == app.category_index && !app.store_tab && !app.settings_tab;
             let focused = selected && app.focus == PanelFocus::Category;
             let style = if focused {
                 Style::default()
-                    .fg(Color::Black)
-                    .bg(Color::Cyan)
+                    .fg(pal.accent_on)
+                    .bg(pal.accent)
                     .add_modifier(Modifier::BOLD)
             } else if selected {
-                Style::default().fg(Color::Cyan)
+                Style::default().fg(pal.accent)
             } else if count == 0 {
-                Style::default().fg(Color::DarkGray)
+                Style::default().fg(pal.muted)
             } else {
-                Style::default()
+                Style::default().fg(pal.text)
             };
             let prefix = if selected { "▶ " } else { "  " };
             let label = truncate(
-                short_category_name(cat).unwrap_or(cat),
+                &format!("{} ({count})", short_category_name(cat).unwrap_or(cat)),
                 area.width.saturating_sub(6) as usize,
             );
             ListItem::new(Line::from(vec![
@@ -357,22 +387,21 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
         })
         .collect();
 
-    // Mağaza sekmesi listenin **sonunda** yer alır. Seçili olduğunda sağdaki
-    // iki panel mağaza görünümüne dönüşür.
+    // Mağaza, ardından Ayarlar.
     let store_count = app.store.entries().len();
     let store_selected = app.store_tab;
     let store_focused = store_selected && app.focus == PanelFocus::Category;
     let store_style = if store_focused {
         Style::default()
-            .fg(Color::Black)
-            .bg(Color::Cyan)
+            .fg(pal.accent_on)
+            .bg(pal.accent)
             .add_modifier(Modifier::BOLD)
     } else if store_selected {
-        Style::default().fg(Color::Cyan)
+        Style::default().fg(pal.accent)
     } else if store_count == 0 {
-        Style::default().fg(Color::DarkGray)
+        Style::default().fg(pal.muted)
     } else {
-        Style::default()
+        Style::default().fg(pal.text)
     };
     let store_label = truncate(
         &format!("{STORE_TAB_LABEL} ({store_count})"),
@@ -386,8 +415,31 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
         Span::styled(store_label, store_style),
     ])));
 
+    let settings_selected = app.settings_tab;
+    let settings_focused = settings_selected && app.focus == PanelFocus::Category;
+    let settings_style = if settings_focused {
+        Style::default()
+            .fg(pal.accent_on)
+            .bg(pal.accent)
+            .add_modifier(Modifier::BOLD)
+    } else if settings_selected {
+        Style::default().fg(pal.accent)
+    } else {
+        Style::default().fg(pal.text)
+    };
+    items.push(ListItem::new(Line::from(vec![
+        Span::styled(
+            if settings_selected { "▶ " } else { "  " },
+            Style::default().add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            truncate(SETTINGS_TAB_LABEL, area.width.saturating_sub(6) as usize),
+            settings_style,
+        ),
+    ])));
+
     let border = if app.focus == PanelFocus::Category {
-        Style::default().fg(Color::Cyan)
+        Style::default().fg(pal.accent)
     } else {
         Style::default()
     };
@@ -398,6 +450,58 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
             .title(" Kategoriler "),
     );
     let mut state = ListState::default().with_selected(Some(app.selected_tab_index()));
+    f.render_stateful_widget(list, area, &mut state);
+}
+
+/// Ayarlar sekmesi: Güncelle + Tema düğmeleri.
+fn draw_settings_panel(f: &mut Frame, app: &App, area: Rect) {
+    let pal = palette(app);
+    let theme = app.ui_theme();
+    let theme_hint = format!(
+        "Şu an: {} ({}) — Enter ile değiştir",
+        theme.label(),
+        theme.id()
+    );
+    let actions = [
+        ("Güncelle", "GitHub’da yeni Nova sürümü var mı bak ve kur"),
+        ("Tema", theme_hint.as_str()),
+    ];
+    let items: Vec<ListItem> = actions
+        .iter()
+        .enumerate()
+        .map(|(i, (title, hint))| {
+            let selected = i == app.settings_action_index;
+            let focused = selected && app.focus == PanelFocus::Tool;
+            let style = if focused {
+                Style::default()
+                    .fg(pal.accent_on)
+                    .bg(pal.accent)
+                    .add_modifier(Modifier::BOLD)
+            } else if selected {
+                Style::default().fg(pal.accent)
+            } else {
+                Style::default().fg(pal.text)
+            };
+            let prefix = if selected { "▶ " } else { "  " };
+            ListItem::new(Line::from(vec![
+                Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
+                Span::styled(format!("[{title}]  "), style),
+                Span::styled((*hint).to_string(), Style::default().fg(pal.muted)),
+            ]))
+        })
+        .collect();
+    let border = if app.focus == PanelFocus::Tool {
+        Style::default().fg(pal.accent)
+    } else {
+        Style::default()
+    };
+    let list = List::new(items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(border)
+            .title(" Ayarlar "),
+    );
+    let mut state = ListState::default().with_selected(Some(app.settings_action_index));
     f.render_stateful_widget(list, area, &mut state);
 }
 

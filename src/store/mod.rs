@@ -41,10 +41,11 @@ use std::path::{Path, PathBuf};
 /// Mağaza kategorileri (kısa ve anlaşılır).
 ///
 /// tuiui / awesome-tuis kapsamına yaklaşır; mevcut Türkçe adlar korunur:
-/// Dashboards→Sistem, Development→Geliştirme, Editors→Editörler,
+/// Dashboards→Paneller, Development→Geliştirme, Editors→Editörler,
 /// File Managers→Dosya ve Arama, Docker/LXC/K8s→Konteyner,
 /// Messaging→Mesajlaşma, Multimedia→Medya, Productivity→Verimlilik,
-/// Games→Oyunlar, Miscellaneous→Günlük. Git/Ağ/Veritabanı/Güvenlik Nova’ya özgüdür.
+/// Games→Oyunlar, Screensavers→Ekran Koruyucular, Miscellaneous→Günlük.
+/// Git/Ağ/Veritabanı/Güvenlik Nova’ya özgüdür.
 pub const STORE_CATEGORIES: &[&str] = &[
     "AI",
     "Git",
@@ -52,6 +53,7 @@ pub const STORE_CATEGORIES: &[&str] = &[
     "Geliştirme",
     "Editörler",
     "Sistem",
+    "Paneller",
     "Ağ",
     "Konteyner",
     "Veritabanı",
@@ -60,6 +62,7 @@ pub const STORE_CATEGORIES: &[&str] = &[
     "Mesajlaşma",
     "Verimlilik",
     "Oyunlar",
+    "Ekran Koruyucular",
     "Web",
     "Günlük",
 ];
@@ -70,6 +73,9 @@ pub const STORE_CATEGORIES: &[&str] = &[
 /// modal değildir. Bu etiket hem çizimde hem de "hangi sekmedeyim"
 /// sorusunun cevabında kullanılır.
 pub const STORE_TAB_LABEL: &str = "Mağaza";
+
+/// Ayarlar sekmesinin sol panelde görünen adı (Mağaza'nın altında).
+pub const SETTINGS_TAB_LABEL: &str = "Ayarlar";
 
 /// Kurulum yöntemi.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]

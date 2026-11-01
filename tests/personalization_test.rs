@@ -117,6 +117,10 @@ fn focus_tool(app: &mut App, id: &str) {
     app.search_query.clear();
     app.favorite_only = false;
     app.focus = nova::app::PanelFocus::Tool;
+    // Ana liste yalnızca kurulu araçları gösterir; testlerde hedefi kurulu yap.
+    if let Some(entry) = app.catalog.entries_mut().iter_mut().find(|e| e.id == id) {
+        entry.status = InstalledStatus::Installed;
+    }
     // Aranan araç hangi kategorideyse o kategoriyi seç: `filtered_tools`
     // yalnızca seçili kategorinin araçlarını döner.
     if let Some(cat) = app
@@ -242,7 +246,7 @@ fn recents_record_attempts_and_distinguish_rejected_from_sent_requests() {
         "reddedilen deneme kalıcı geçmişe yazılmalı"
     );
 
-    // Eksik komut da başlatılmadan reddedilir ama deneme kaydı kalır.
+    // Kurulu olmayan araç ana listeden düşer (Mağaza’da kalır).
     let mut missing = app_with_state(None, false);
     focus_tool(&mut missing, "curl");
     let entry = missing
@@ -252,15 +256,10 @@ fn recents_record_attempts_and_distinguish_rejected_from_sent_requests() {
         .find(|entry| entry.id == "curl")
         .unwrap();
     entry.status = InstalledStatus::Missing;
-    missing
-        .handle_key(key(crossterm::event::KeyCode::Enter))
-        .unwrap();
-    assert_eq!(missing.state.file.recents.len(), 1);
-    assert_eq!(
-        missing.state.file.recents[0].status,
-        AttemptStatus::Rejected
+    assert!(
+        !missing.filtered_tools().iter().any(|e| e.id == "curl"),
+        "kurulu olmayan curl ana listede görünmemeli"
     );
-    assert!(missing.status_message.contains("kurulu değil"));
 
     // Launcher isteği kabul edince bu durum kaydedilir; harici uygulama
     // çalışıyor iddiası değildir.
@@ -571,6 +570,8 @@ fn settings_save_default_workdir_and_supported_terminal() {
 
     app.handle_key(key(crossterm::event::KeyCode::Char('s')))
         .unwrap();
+    assert!(app.settings_tab, "S Ayarlar sekmesini açmalı");
+    app.open_advanced_settings_modal();
     assert!(matches!(app.modal, modal::Modal::Settings { .. }));
     let settings_text = render_text(&app, 120, 30);
     assert!(settings_text.contains("Ayarlar"));
@@ -608,8 +609,7 @@ fn settings_save_default_workdir_and_supported_terminal() {
 #[test]
 fn settings_refuse_missing_workdir_and_unsupported_terminal_without_changes() {
     let mut app = app_with_state(None, false);
-    app.handle_key(key(crossterm::event::KeyCode::Char('s')))
-        .unwrap();
+    app.open_advanced_settings_modal();
     app.handle_key(key(crossterm::event::KeyCode::Tab)).unwrap();
     let missing = std::env::temp_dir().join(format!(
         "nova-settings-missing-{}-{}",

@@ -25,7 +25,10 @@ pub enum ConfirmAction {
     /// Mağaza uygulamasını kur (kullanıcı alanına).
     InstallStoreApp { id: String, name: String },
     /// Nova güncellemesini kur (kullanıcı alanına).
-    InstallUpdate { version: String },
+    InstallUpdate {
+        version: String,
+        release: Box<crate::update::GitHubRelease>,
+    },
     /// Mağaza uygulamasını canlı çözümlenmiş yeni sürümle güncelle.
     UpdateStoreApp {
         id: String,

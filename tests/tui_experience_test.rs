@@ -22,10 +22,15 @@ fn category_index(name: &str) -> usize {
 /// Uygulamayı gömülü (varsayılan) katalogla oluşturur.
 ///
 /// Kullanıcının gerçek yapılandırma dosyası okunmaz: testler makineye
-/// göre değişmemeli.
+/// göre değişmemeli. Ana liste yalnızca kurulu araçları gösterdiği için
+/// UX testlerinde tüm girdiler kurulu işaretlenir.
 fn app_with_sample() -> App {
     let entries = nova::catalog::loader::builtin_catalog().expect("gömülü katalog okunmalı");
-    App::new(Catalog::from_entries(entries).expect("katalog oluşturulamadı"))
+    let mut app = App::new(Catalog::from_entries(entries).expect("katalog oluşturulamadı"));
+    for entry in app.catalog.entries_mut() {
+        entry.status = InstalledStatus::Installed;
+    }
+    app
 }
 
 fn go_to_category(app: &mut App, name: &str) {
@@ -355,20 +360,20 @@ fn enter_on_missing_tool_is_refused() {
 
     let catalog = Catalog::from_entries(vec![entry]).expect("katalog oluşturulamadı");
     let mut app = App::new(catalog);
-    // Kurulu olmayan araç için istek üretilmediğini kanıtlamak adına
-    // launcher çağrılırsa test patlar.
+    // Kurulu olmayan araç ana listede gizlenir; launcher hiç çağrılmaz.
     app.set_launcher(|_, _, _| panic!("kurulu olmayan araç için başlatma denenmemeli"));
     go_to_category(&mut app, "Özel Araçlar");
+    assert!(
+        app.filtered_tools().is_empty(),
+        "kurulu olmayan araç ana listede görünmemeli"
+    );
     app.handle_key(key(crossterm::event::KeyCode::Enter))
         .unwrap();
     assert!(
-        app.status_message.contains("kurulu değil"),
+        app.status_message.contains("Başlatılacak araç yok")
+            || app.status_message.contains("kurulu değil"),
         "beklenmeyen mesaj: {}",
         app.status_message
-    );
-    assert!(
-        app.status_message.contains("onay"),
-        "kurulum için kullanıcı onayı gerektiği belirtilmeli"
     );
 }
 

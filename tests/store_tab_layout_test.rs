@@ -52,20 +52,19 @@ fn store_tab_renders_three_panels() {
 }
 
 #[test]
-fn store_tab_is_the_last_row_of_the_category_panel() {
+fn store_tab_is_above_settings_in_the_category_panel() {
     let mut app = app();
     app.select_store_tab();
     let lines = render(&app, 150, 42);
+    let text = all_text(&lines);
 
-    // Sol panelin son satırı "Mağaza" etiketini taşır.
-    let store_row = lines
-        .iter()
-        .find(|l| l.contains("Mağaza (") && l.contains("Mağaza"))
-        .expect("Mağaza satırı bulunamadı");
-    assert!(
-        store_row.trim_start().starts_with('│') || store_row.contains("Mağaza ("),
-        "sol panelde Mağaza satırı yok: {store_row}"
-    );
+    assert!(text.contains("Mağaza ("), "sol panelde Mağaza yok");
+    assert!(text.contains("Ayarlar"), "sol panelde Ayarlar yok");
+    app.select_settings_tab();
+    let lines = render(&app, 150, 42);
+    let text = all_text(&lines);
+    assert!(text.contains("[Güncelle]"), "Ayarlar Güncelle düğmesi yok");
+    assert!(text.contains("[Tema]"), "Ayarlar Tema düğmesi yok");
 }
 
 #[test]
