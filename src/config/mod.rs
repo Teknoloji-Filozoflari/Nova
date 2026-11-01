@@ -93,6 +93,21 @@ impl std::fmt::Display for LaunchKind {
     }
 }
 
+/// Katalogda tanımlı bir araç eylemi (AI CLI alt komutları vb.).
+///
+/// `args` kabuksuz argv olarak executable'a eklenir. Boş `args` birincil
+/// açma (interactive) anlamına gelir.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct ToolAction {
+    /// Değişmez eylem kimliği (ör. `open`, `resume`, `logout`, `help`).
+    pub id: String,
+    /// Detay panelinde gösterilecek etiket.
+    pub label: String,
+    /// Programa geçirilecek argümanlar (kabuk yok).
+    #[serde(default)]
+    pub args: Vec<String>,
+}
+
 /// Katalog dosyasındaki tek bir araç (hem gömülü hem kullanıcı dosyası).
 ///
 /// Tüm alanlar `#[serde(default)]` taşır: eski bir yapılandırma yeni bir alan
@@ -153,6 +168,10 @@ pub struct ToolEntry {
     /// gelir; Nova tarafından yürütülmez.
     #[serde(default)]
     pub setup_info: Option<String>,
+    /// İsteğe bağlı eylem listesi (AI araçlarında aç / devam / çıkış / yardım).
+    /// Verilmezse boş; UI yalnızca doluysa aksiyon paneli çizer.
+    #[serde(default)]
+    pub actions: Vec<ToolAction>,
 }
 
 /// Bir katalog girişinin nereden geldiği.
@@ -368,6 +387,30 @@ working_directory = "home"
         assert!(tool.working_dir_path.is_none());
         assert_eq!(tool.executable, "htop", "eski 'command' alanı okunmalı");
         assert_eq!(tool.launch_kind, LaunchKind::Interactive);
+        assert!(tool.actions.is_empty(), "eski kayıtta actions boş olmalı");
+    }
+
+    #[test]
+    fn tool_actions_round_trip_through_toml() {
+        let text = r#"
+[[tools]]
+id = "codex"
+category = "AI ve Kodlama"
+executable = "codex"
+actions = [
+  { id = "open", label = "Aç", args = [] },
+  { id = "resume", label = "Devam et", args = ["resume"] },
+]
+"#;
+        let cfg: UserConfig = toml::from_str(text).unwrap();
+        let tool = &cfg.tools[0];
+        assert_eq!(tool.actions.len(), 2);
+        assert_eq!(tool.actions[0].id, "open");
+        assert!(tool.actions[0].args.is_empty());
+        assert_eq!(tool.actions[1].id, "resume");
+        assert_eq!(tool.actions[1].args, vec!["resume".to_string()]);
+        let back: UserConfig = toml::from_str(&toml::to_string_pretty(&cfg).unwrap()).unwrap();
+        assert_eq!(back.tools[0].actions, tool.actions);
     }
 
     #[test]

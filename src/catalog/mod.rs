@@ -1,7 +1,7 @@
 //! Araç kataloğu modülü.
 //! UI kodundan ayrı tutulan araç tanımları.
 
-use crate::config::{EntryOrigin, LaunchKind, ToolEntry};
+use crate::config::{EntryOrigin, LaunchKind, ToolAction, ToolEntry};
 use crate::detection::{self, InstalledStatus};
 use crate::error::NovaError;
 use crate::launcher::{resolve_directory, FsValidator};
@@ -92,6 +92,8 @@ pub struct CatalogEntry {
     pub examples: Vec<String>,
     /// Kabuk entegrasyonu veya ek kurulum bilgisi. Nova tarafından yürütülmez.
     pub setup_info: Option<String>,
+    /// İsteğe bağlı eylem listesi (AI CLI alt komutları vb.).
+    pub actions: Vec<ToolAction>,
     /// Favori durumu.
     pub favorite: bool,
     /// Çalıştırılabilir dosyanın PATH üzerinden bulunduğu durumda `Some(path)`.
@@ -102,7 +104,31 @@ pub struct CatalogEntry {
     pub origin: EntryOrigin,
 }
 
+/// AI kategorisi kimliği (aksiyon paneli görünürlüğü için).
+pub const AI_CATEGORY: &str = "AI ve Kodlama";
+
 impl CatalogEntry {
+    /// Bu giriş AI kategorisinde ve eylem listesi dolu mu?
+    pub fn has_ai_actions(&self) -> bool {
+        self.category == AI_CATEGORY && !self.actions.is_empty()
+    }
+
+    /// Seçili eylemi bu girişe uygular (başlatma için kopya üretir).
+    ///
+    /// Boş `args` → etkileşimli birincil açma. Dolu `args` → `custom_command`
+    /// ile argv launcher'a geçer (interactive araçlarda gömülü args yok sayılır).
+    pub fn with_action(&self, action: &ToolAction) -> Self {
+        let mut entry = self.clone();
+        if action.args.is_empty() {
+            entry.args.clear();
+            entry.launch_kind = LaunchKind::Interactive;
+        } else {
+            entry.args = action.args.clone();
+            entry.launch_kind = LaunchKind::CustomCommand;
+        }
+        entry
+    }
+
     /// Yeni bir giriş üretir ve çalıştırılabilir dosyanın durumunu hemen belirler.
     ///
     /// Durum her zaman bu yapıcı üzerinden atandığı için hiçbir giriş
@@ -137,6 +163,7 @@ impl CatalogEntry {
             alternative_to: None,
             examples: Vec::new(),
             setup_info: None,
+            actions: Vec::new(),
             favorite,
             status,
             resolved_path,
@@ -231,6 +258,9 @@ impl CatalogEntry {
         }
         if user.setup_info.is_some() {
             self.setup_info = user.setup_info.clone();
+        }
+        if !user.actions.is_empty() {
+            self.actions = user.actions.clone();
         }
         self.favorite = user.favorite;
         self.refresh_status();
@@ -416,6 +446,25 @@ pub fn catalog_entry_from_tool(t: &ToolEntry) -> Result<CatalogEntry, String> {
             ));
         }
     }
+    for (i, action) in t.actions.iter().enumerate() {
+        if action.id.trim().is_empty() {
+            return Err(format!("'{}' actions[{i}] için 'id' boş olamaz", t.id));
+        }
+        if action.label.trim().is_empty() {
+            return Err(format!(
+                "'{}' actions[{i}] ({}) için 'label' boş olamaz",
+                t.id, action.id
+            ));
+        }
+        for arg in &action.args {
+            if arg.is_empty() {
+                return Err(format!(
+                    "'{}' actions[{i}] ({}) için boş bir 'args' öğesi var",
+                    t.id, action.id
+                ));
+            }
+        }
+    }
     if t.launch_kind == LaunchKind::CommandHelp {
         match t.help_text.as_deref() {
             Some(text) if !text.trim().is_empty() => {}
@@ -456,6 +505,7 @@ pub fn catalog_entry_from_tool(t: &ToolEntry) -> Result<CatalogEntry, String> {
     entry.alternative_to = t.alternative_to.clone();
     entry.examples = t.examples.clone();
     entry.setup_info = t.setup_info.clone();
+    entry.actions = t.actions.clone();
     Ok(entry)
 }
 

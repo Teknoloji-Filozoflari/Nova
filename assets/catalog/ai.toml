@@ -3,6 +3,9 @@
 # Kategori: "AI ve Kodlama"
 # `assets/catalog/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez; özelleştirme: ~/.config/nova/config.toml
+#
+# `actions`: AI aracı seçilince detay yanında her zaman görünen eylemler.
+# Boş args = birincil açma (Enter listede de bunu yapar).
 
 [[tools]]
 id = "opencode"
@@ -12,6 +15,12 @@ executable = "opencode"
 description = "Terminalde çalışan açık kaynaklı yapay zekâ kodlama asistanı."
 examples = ["opencode", "opencode --help"]
 setup_info = "Kullanmak için terminalde 'opencode' yazın; ilk çalıştırmada kimlik doğrulama istenir."
+actions = [
+  { id = "open", label = "Aç", args = [] },
+  { id = "resume", label = "Devam et", args = ["-c"] },
+  { id = "logout", label = "Çıkış yap", args = ["auth", "logout"] },
+  { id = "help", label = "Yardım", args = ["--help"] },
+]
 
 [[tools]]
 id = "codex"
@@ -21,6 +30,12 @@ executable = "codex"
 description = "OpenAI'nin terminal tabanlı kodlama ajanı."
 examples = ["codex", "codex --help"]
 setup_info = "Kullanmak için terminalde 'codex' yazın; ilk çalıştırmada kimlik doğrulama istenir."
+actions = [
+  { id = "open", label = "Aç", args = [] },
+  { id = "resume", label = "Devam et", args = ["resume"] },
+  { id = "logout", label = "Çıkış yap", args = ["logout"] },
+  { id = "help", label = "Yardım", args = ["--help"] },
+]
 
 [[tools]]
 id = "claude"
@@ -30,6 +45,12 @@ executable = "claude"
 description = "Anthropic'in terminal tabanlı kodlama asistanı."
 examples = ["claude", "claude --help"]
 setup_info = "Kullanmak için terminalde 'claude' yazın; ilk çalıştırmada kimlik doğrulama istenir."
+actions = [
+  { id = "open", label = "Aç", args = [] },
+  { id = "resume", label = "Devam et", args = ["--resume"] },
+  { id = "logout", label = "Çıkış yap", args = ["auth", "logout"] },
+  { id = "help", label = "Yardım", args = ["--help"] },
+]
 
 [[tools]]
 id = "minimax-code"
@@ -39,3 +60,7 @@ executable = "mcode"
 description = "MiniMax'ın terminalde çalışan kodlama asistanı."
 examples = ["mcode"]
 setup_info = "Linux'ta PATH'te veya ~/.minimax-code/bin/mcode konumunda bulunur."
+actions = [
+  { id = "open", label = "Aç", args = [] },
+  { id = "help", label = "Yardım", args = ["--help"] },
+]
