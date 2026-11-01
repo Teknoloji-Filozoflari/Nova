@@ -7,6 +7,8 @@
 //! [`crate::app::App`]'in onaylanmış eylemlerinden doğar.
 
 use super::form::{ToolForm, ValidTool};
+use crate::file_picker::FilePickerState;
+use crate::update::{GitHubRelease, UpdateCheck, Version};
 use std::path::PathBuf;
 
 /// Onay ekranının neyi onaylattığı.
@@ -20,6 +22,16 @@ pub enum ConfirmAction {
     RemoveProject { path: PathBuf },
     /// Var olmayan çalışma dizinini oluşturup başlatmayı yeniden dene.
     CreateDir { path: PathBuf, tool_id: String },
+    /// Mağaza uygulamasını kur (kullanıcı alanına).
+    InstallStoreApp { id: String, name: String },
+    /// Nova güncellemesini kur (kullanıcı alanına).
+    InstallUpdate { version: String },
+    /// Mağaza uygulamasını canlı çözümlenmiş yeni sürümle güncelle.
+    UpdateStoreApp {
+        id: String,
+        name: String,
+        version: String,
+    },
 }
 
 /// Açık olan modal.
@@ -57,17 +69,61 @@ pub enum Modal {
     },
     /// Geçmiş görünümü (salt okunur; `X` onaylı temizleme).
     History,
-    /// Kullanıcı tercihleri: terminal ve varsayılan çalışma dizini.
+    /// Kullanıcı tercihleri: terminal, çalışma dizini, tema ve varsayılan
+    /// uygulamalar.
     Settings {
         /// Tercih edilen terminal adı.
         preferred_terminal: String,
         /// Varsayılan çalışma dizini.
         default_working_dir: String,
-        /// Odaklı alan (0 terminal, 1 çalışma dizini).
+        /// Arayüz teması.
+        theme: String,
+        /// Varsayılan AI komut satırı aracının katalog kimliği.
+        default_ai_tool: String,
+        /// Resim dosyaları için varsayılan uygulama.
+        default_image_app: String,
+        /// Video dosyaları için varsayılan uygulama.
+        default_video_app: String,
+        /// Odaklı alan (0 terminal, 1 çalışma dizini, 2 tema, 3 AI, 4 resim,
+        /// 5 video).
         focus: usize,
         /// Son doğrulama/kaydetme hatası.
         error: Option<String>,
     },
+    /// Dosya seçici: dizin gezinme ve dosya seçme.
+    FilePicker {
+        /// Dosya seçici durumu.
+        state: FilePickerState,
+    },
+    /// Güncelleme denetimi ve onay.
+    UpdateCheck {
+        /// Denetim durumu.
+        status: UpdateStatus,
+        /// Denetim sonucu.
+        check: Option<UpdateCheck>,
+        /// Hata mesajı.
+        error: Option<String>,
+    },
+    /// Güncelleme onayı.
+    UpdateConfirm {
+        /// Mevcut sürüm.
+        current: Version,
+        /// Yeni sürüm.
+        latest: Version,
+        /// Yayın kaydı.
+        release: GitHubRelease,
+    },
+}
+
+/// Güncelleme denetim durumu.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum UpdateStatus {
+    /// Henüz denetim yapılmadı.
+    Idle,
+    /// Denetim devam ediyor.
+    Checking,
+    /// Denetim tamamlandı.
+    Done,
 }
 
 impl Modal {

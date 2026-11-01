@@ -1,0 +1,357 @@
+# Nova mağaza kataloğu.
+#
+# Bu dosya, Nova'nın kullanıcı alanına kurabileceği ancak henüz Nova ile
+# gelenekleştirilmeemiş uygulamaların listesini tutar. Mağaza kataloğu,
+# uygulamanın mevcut araç kataloğundan (`assets/catalog.toml`) ayrı tutulur.
+#
+# Bu dosya uygulamayla birlikte gelir ve derleme sırasında ikiliye gömülür;
+# kullanıcı bunu düzenlemez. Güncellemeler bu dosyayı değiştirebilir.
+#
+# Alanlar:
+#   id                Zorunlu, benzersiz kimlik (birleştirme anahtarı).
+#   name              Uygulama adı.
+#   description       Türkçe kısa açıklama.
+#   category          STORE_CATEGORIES listesinden biri (aşağıda).
+#   source            Kaynak/proje sayfası.
+#   license           Lisans bilgisi.
+#   executable        Kurulumdan sonra çalıştırılacak executable adı.
+#   install_method    manual | download_archive
+#                     manual: Nova kurulum yapmaz, sadece resmî talimatı gösterir.
+#                     download_archive: Nova indirir, SHA-256 ile doğrular ve
+#                     kullanıcı alanına çıkarır.
+#   supported_platforms Desteklenen platformlar (ör. "linux-x64").
+#   version           Kurulacak sürüm (download_archive için zorunlu).
+#   download_url      İndirilecek arşivin https:// adresi (download_archive için
+#                     zorunlu).
+#   checksum          SHA-256 doğrulama özeti (download_archive için zorunlu).
+#   checksum_type     Checksum türü (ör. "sha256").
+#   install_notes     manual yöntemde gösterilen resmî kurulum yönergesi.
+#   release           Canlı sürüm takibi (GitHub Releases).
+#                     repo             İzlenecek depo ("owner/repo").
+#                     tag_prefix       Sürüm etiketindeki ön ek (ör. "v").
+#                     asset_pattern    Sürüm arşivinin adı; {version} sürümle değişir.
+#                     checksum_asset_pattern
+#                     Checksum dosyasının adı; {version} sürümle değişir.
+#                     Verilmezse özet yayın notlarından okunur.
+#
+# Canlı takip "uzaktan gelen katalog" değildir: depo ve dosya adı desenleri
+# burada sabittir, ağdan yalnızca sürüm ipucu gelir. Çalıştırılacak dosyanın
+# bütünlüğü upstream'in kendi yayımladığı SHA-256 özetiyle korunur.
+#
+# Kategoriler:
+#   AI, Git, Dosya ve Arama, Sistem, Ağ, Konteyner, Veritabanı, Güvenlik, Medya, Günlük
+#
+# Güvenlik: Nova kurulumu yalnızca kullanıcı alanına yapar, `sudo`/root istemez,
+# sistem dizinlerine yazmaz, sistem paket yöneticisini kullanmaz ve varsayılan
+# olarak uzaktan indirilen betikleri shell üzerinden çalıştırmaz.
+#
+# `download_archive` kayıtlarında adres ve SHA-256 özeti birlikte zorunludur:
+# doğrulanamayan bir indirme için "Kur" eylemi sunulmaz. Aşağıdaki özetler
+# upstream'in kendi yayın checksum'larından alınmış ve indirilen dosyanın
+# özetiyle birebir karşılaştırılarak doğrulanmıştır.
+
+# ---------------------------------------------------------------------------
+# AI
+# ---------------------------------------------------------------------------
+
+[[apps]]
+id = "opencode"
+name = "OpenCode"
+category = "AI"
+description = "Terminalde çalışan açık kaynaklı yapay zekâ kodlama asistanı."
+source = "https://opencode.dev/"
+license = "MIT"
+executable = "opencode"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://opencode.dev/docs/"
+
+[[apps]]
+id = "codex"
+name = "OpenAI Codex CLI"
+category = "AI"
+description = "OpenAI'nin terminal tabanlı kodlama ajanı."
+source = "https://github.com/openai/codex"
+license = "MIT"
+executable = "codex"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://github.com/openai/codex#installation"
+
+[[apps]]
+id = "claude"
+name = "Claude Code"
+category = "AI"
+description = "Anthropic'in terminal tabanlı kodlama asistanı."
+source = "https://claude.ai/code"
+license = "Proprietary"
+executable = "claude"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://claude.ai/code"
+
+# ---------------------------------------------------------------------------
+# Git
+# ---------------------------------------------------------------------------
+
+[[apps]]
+id = "lazygit"
+name = "lazygit"
+category = "Git"
+description = "Git işlemleri için klavye odaklı terminal arayüzü."
+source = "https://github.com/jesseduffield/lazygit"
+license = "MIT"
+executable = "lazygit"
+install_method = "download_archive"
+supported_platforms = ["linux-x64"]
+version = "0.66.2"
+download_url = "https://github.com/jesseduffield/lazygit/releases/download/v0.66.2/lazygit_0.66.2_linux_x86_64.tar.gz"
+checksum = "158efc9ddfa1241fab5fb3526bb442c8dc6c4b1904d73213b9e4e93e03c52034"
+checksum_type = "sha256"
+
+# ---------------------------------------------------------------------------
+# Dosya ve Arama
+# ---------------------------------------------------------------------------
+
+[apps.release]
+repo = "jesseduffield/lazygit"
+tag_prefix = "v"
+asset_pattern = "lazygit_{version}_linux_x86_64.tar.gz"
+checksum_asset_pattern = "checksums.txt"
+[[apps]]
+id = "ripgrep"
+name = "ripgrep (rg)"
+category = "Dosya ve Arama"
+description = "Çok hızlı dosya içeriği arama aracı."
+source = "https://github.com/BurntSushi/ripgrep"
+license = "MIT"
+executable = "rg"
+install_method = "download_archive"
+supported_platforms = ["linux-x64"]
+version = "15.2.0"
+download_url = "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz"
+checksum = "33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c"
+checksum_type = "sha256"
+
+[apps.release]
+repo = "BurntSushi/ripgrep"
+asset_pattern = "ripgrep-{version}-x86_64-unknown-linux-musl.tar.gz"
+checksum_asset_pattern = "ripgrep-{version}-x86_64-unknown-linux-musl.tar.gz.sha256"
+[[apps]]
+id = "fzf"
+name = "fzf"
+category = "Dosya ve Arama"
+description = "Bulanık arama aracı; tek başına çalışır, Ctrl+T/Ctrl+R/Alt+C kısayolları için kabuk entegrasyonu gerekir."
+source = "https://github.com/junegunn/fzf"
+license = "MIT"
+executable = "fzf"
+install_method = "download_archive"
+supported_platforms = ["linux-x64"]
+version = "0.74.5"
+download_url = "https://github.com/junegunn/fzf/releases/download/v0.74.5/fzf-0.74.5-linux_amd64.tar.gz"
+checksum = "d47d7f882972c7d674dbbba998ffa4116e68379616ffac7695d0671e9a722c5f"
+checksum_type = "sha256"
+
+[apps.release]
+repo = "junegunn/fzf"
+tag_prefix = "v"
+asset_pattern = "fzf-{version}-linux_amd64.tar.gz"
+checksum_asset_pattern = "fzf_{version}_checksums.txt"
+[[apps]]
+id = "bat"
+name = "bat"
+category = "Dosya ve Arama"
+description = "Sözdizimi renklendirmeli dosya görüntüleyici."
+source = "https://github.com/sharkdp/bat"
+license = "MIT"
+executable = "bat"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://github.com/sharkdp/bat#installation"
+
+[[apps]]
+id = "eza"
+name = "eza"
+category = "Dosya ve Arama"
+description = "Renkli ve simgeli dizin listesi; `ls`ye modern alternatif."
+source = "https://github.com/eza-community/eza"
+license = "MIT"
+executable = "eza"
+install_method = "download_archive"
+supported_platforms = ["linux-x64"]
+version = "0.23.5"
+download_url = "https://github.com/eza-community/eza/releases/download/v0.23.5/eza_x86_64-unknown-linux-musl.tar.gz"
+checksum = "e06eebab74b73d6b7d51a796a353824b001bea82df077706382e100815d28904"
+checksum_type = "sha256"
+
+# ---------------------------------------------------------------------------
+# Sistem
+# ---------------------------------------------------------------------------
+
+[apps.release]
+repo = "eza-community/eza"
+tag_prefix = "v"
+asset_pattern = "eza_x86_64-unknown-linux-musl.tar.gz"
+[[apps]]
+id = "btop"
+name = "btop"
+category = "Sistem"
+description = "CPU, bellek, disk ve ağ kullanımını grafik olarak izler."
+source = "https://github.com/aristocratos/btop"
+license = "Apache-2.0"
+executable = "btop"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://github.com/aristocratos/btop#installation"
+
+[[apps]]
+id = "duf"
+name = "duf"
+category = "Sistem"
+description = "Diskleri ve doluluk oranlarını tablo hâlinde gösterir."
+source = "https://github.com/muesli/duf"
+license = "MIT"
+executable = "duf"
+install_method = "download_archive"
+supported_platforms = ["linux-x64"]
+version = "0.9.1"
+download_url = "https://github.com/muesli/duf/releases/download/v0.9.1/duf_0.9.1_linux_x86_64.tar.gz"
+checksum = "5add851e7062c5e56939abb664705e4d14fa2d06289490aff31d51f153832de7"
+checksum_type = "sha256"
+
+# ---------------------------------------------------------------------------
+# Ağ
+# ---------------------------------------------------------------------------
+
+[apps.release]
+repo = "muesli/duf"
+tag_prefix = "v"
+asset_pattern = "duf_{version}_linux_x86_64.tar.gz"
+checksum_asset_pattern = "checksums.txt"
+[[apps]]
+id = "bandwhich"
+name = "bandwhich"
+category = "Ağ"
+description = "Ağ bant genişliğini süreç ve bağlantı bazında gösterir. Yerel arayüzleri izlemek için ek izinler gerekebilir."
+source = "https://github.com/imsnif/bandwhich"
+license = "MIT"
+executable = "bandwhich"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://github.com/imsnif/bandwhich#installation"
+
+[[apps]]
+id = "curl"
+name = "curl"
+category = "Ağ"
+description = "Veri transfer ve HTTP istek aracı."
+source = "https://curl.se/"
+license = "MIT/X derivate"
+executable = "curl"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://curl.se/docs/install.html"
+
+[[apps]]
+id = "mtr"
+name = "mtr"
+category = "Ağ"
+description = "ping ve traceroute'u birleştiren ağ tanılama aracı. Hedef adresi vermek gerekir."
+source = "https://github.com/traviscross/mtr"
+license = "GPL-2.0"
+executable = "mtr"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://github.com/traviscross/mtr#installation"
+
+# ---------------------------------------------------------------------------
+# Konteyner
+# ---------------------------------------------------------------------------
+
+[[apps]]
+id = "lazydocker"
+name = "lazydocker"
+category = "Konteyner"
+description = "Docker konteynerleri, imajları ve günlükleri için terminal arayüzü."
+source = "https://github.com/jesseduffield/lazydocker"
+license = "MIT"
+executable = "lazydocker"
+install_method = "download_archive"
+supported_platforms = ["linux-x64"]
+version = "0.25.2"
+download_url = "https://github.com/jesseduffield/lazydocker/releases/download/v0.25.2/lazydocker_0.25.2_Linux_x86_64.tar.gz"
+checksum = "0d9dbfc26068b218e7ed84b104748cadc6e3cf733c0afd35465306fb39b9523c"
+checksum_type = "sha256"
+
+# ---------------------------------------------------------------------------
+# Veritabanı
+# ---------------------------------------------------------------------------
+
+[apps.release]
+repo = "jesseduffield/lazydocker"
+tag_prefix = "v"
+asset_pattern = "lazydocker_{version}_Linux_x86_64.tar.gz"
+checksum_asset_pattern = "checksums.txt"
+[[apps]]
+id = "lazysql"
+name = "lazysql"
+category = "Veritabanı"
+description = "Veritabanlarını gezmek için terminal arayüzü."
+source = "https://github.com/jesseduffield/lazysql"
+license = "MIT"
+executable = "lazysql"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://github.com/jesseduffield/lazysql#installation"
+
+# ---------------------------------------------------------------------------
+# Günlük
+# ---------------------------------------------------------------------------
+
+[[apps]]
+id = "tldr"
+name = "tldr"
+category = "Günlük"
+description = "Komutların kısa ve örnekli kullanım özetlerini gösterir."
+source = "https://github.com/tldr-pages/tldr"
+license = "MIT"
+executable = "tldr"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://github.com/tldr-pages/tldr#install"
+
+[[apps]]
+id = "jq"
+name = "jq"
+category = "Günlük"
+description = "JSON sorgulama ve biçimlendirme aracı."
+source = "https://github.com/jqlang/jq"
+license = "MIT"
+executable = "jq"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://jqlang.github.io/jq/download/"
+
+[[apps]]
+id = "yq"
+name = "yq"
+category = "Günlük"
+description = "YAML, JSON ve TOML sorgulama ve dönüştürme aracı."
+source = "https://github.com/mikefarah/yq"
+license = "MIT"
+executable = "yq"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://github.com/mikefarah/yq#install"
+
+[[apps]]
+id = "delta"
+name = "delta"
+category = "Günlük"
+description = "Git diff'lerini renkli ve okunaklı gösterir; genellikle git yapılandırmasına bağlanır."
+source = "https://github.com/dandavison/delta"
+license = "MIT"
+executable = "delta"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "Resmî kurulum yönergesi: https://github.com/dandavison/delta#installation"

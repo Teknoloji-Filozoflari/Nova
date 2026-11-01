@@ -26,7 +26,16 @@ Katalog modeli UI'dan bağımsızdır: `catalog` ve `catalog::loader` modülleri
 | `launcher` | Başlatma orkestrasyonu: istek → adapter → ayrık süreç | `catalog`, `error`, `which` |
 | `launcher::request` | `LaunchRequest` ve çalışma dizini doğrulaması (yan etkisiz; `from_entry_with_project` etkin projeyi geçersiz kılar) | `catalog`, `error` |
 | `launcher::terminal` | `TerminalAdapter` trait'i ve Konsole adapteri (yalnızca argüman üretir) | `launcher::request`, `error` |
-| `detection` | PATH üzerinden kurulum durumunu belirleme (üç durumlu) | `which` |
+| `detection` | PATH **ve mağaza `bin` dizinleri** üzerinden kurulum durumunu belirleme (üç durumlu) | `which`, `store` |
+| `store` | Mağaza kataloğu modeli, kategori listesi, katalog doğrulama kuralları, kurulum dizini çözümü | `serde` |
+| `store::loader` | Gömülü mağaza kataloğu (`assets/store.toml`, `include_str!`) ve doğrulaması | `store` |
+| `store::install` | SHA-256 doğrulama, yol geçişi korumalı arşiv çıkarma, kullanıcı alanı kontrolü, kurulum orkestrasyonu | `store`, `sha2`, `flate2`, `tar` |
+| `store::http` | Gerçek HTTPS indirici (`ureq`); gövdeyi dosyaya akıtır, boyut sınırlar | `store::install`, `ureq` |
+| `store::manifest` | Canlı sürüm takibi: `ReleaseSource`, `ResolvedRelease`, `ReleaseProvider` arayüzü, önbellek (`ETag` + TTL) | `update::Version`, `serde` |
+| `store::github` | GitHub Releases çözümleyicisi: API sorgusu, `ETag` ile koşullu istek, upstream checksum dosyası okuma | `store::manifest`, `serde_json` |
+| `file_picker` | Salt okunur dosya seçici durumu (dizin gezinme, sıralama, seçim) | — |
+| `media_launcher` | Dosyayı yapılandırılmış uygulamayla **kabuksuz** açma (ayrı argüman) | `error` |
+| `update` | Sürüm karşılaştırma (`semver`-uyumlu, yerel), güncelleme sağlayıcı arayüzü | — |
 
 **Kural:** `ui` modülü sadece çizer; iş mantığı içermez. `app` modülü durum tutar, karar verir ve `ui` üzerinden render edilir.
 
@@ -151,12 +160,18 @@ Düzen terminal boyutuna göre üç genişlik moduna ve bir yükseklik eşiğine
 
 | Bölge | Eşik | Davranış |
 |-------|------|----------|
-| Geniş | ≥ `WIDE_MIN_WIDTH` (70) | Kategori solda; araç listesi, detay sağda |
-| Orta | 45–69 | Tek sütun; kategori adı araç paneli başlığında; detay görünür |
+| Geniş | ≥ `WIDE_MIN_WIDTH` (70) | Kategori solda; araç listesi, detay sağda. **Mağaza sekmesinde üç sütun:** sekme listesi (26) + mağaza kategorileri (22) + uygulamalar |
+| Orta | 45–69 | Tek sütun; kategori adı araç paneli başlığında; detay görünür. Mağaza sekmesinde kategoriler üstte, uygulamalar altta |
 | Dar | < 45 (`MEDIUM_MIN_WIDTH`) | Yalnızca araç listesi; detay gizli; durum satırında yol gösterilmez |
 | Sıkı ipucu | < 52 (`TIGHT_HINT_WIDTH`) | Arama/yardım/durum metinleri kısa biçime düşer |
 | Kısa yükseklik | < 14 (`TALL_MIN_HEIGHT`) | Yardım paneli tek satıra iner |
 | Yardım açık | `CONTENT_MIN_HEIGHT` (5) + `HELP_HELP_MAX_HEIGHT` (10) | Panel tuş tablosu, dosya yolları ve çalışma dizini için büyür |
+
+Detay panelinin yüksekliği sekmeye göre değişir: araç detayı 8 satır
+(`DETAIL_ROWS`), mağaza detayı 11 satır (`STORE_DETAIL_ROWS`) — mağaza detayı
+sürüm, canlı takip ve kurulum yöntemi gibi daha fazla alan taşır. Mağaza
+detayı ekrana sığmayacak kadar büyürse içerik alanı korunacak şekilde
+kırpılır; yardım paneli büyürken mağaza sekmesinde içerik alanı daralmaz.
 
 Yardım panelinin yüksekliği iki durumda hesaplanır. Normalde `tall` ise 3 satır, değilse 1 satırdır. `?` ile yardım açıldığında panel `height - (başlık + arama + CONTENT_MIN_HEIGHT + detay + durum)` satır alır, en fazla `HELP_HELP_MAX_HEIGHT` olacak şekilde sınırlanır ve en az 1 satırdır. Böylece araç listesi 5 satırdan aza düşmez, tuş tablosu da kırpılmaz. Yükseklik yettiğinde `help_full_lines` 8 satır basar: 5 tuş satırı + `config`/`state` yolları + çalışma dizini. Dar genişlikte (`< WIDE_MIN_WIDTH`) `help_full_lines_narrow` tek sütunlu, en sık kullanılan tuşları önce veren bir liste kullanır; kırpılma kaçınılmazsa en az kritik tuşlar kesilir. Sıkı genişlikte tek satıra indirme (`short_line`) yalnızca yardım kapalıyken uygulanır — açık bir yardım ekranı tek satıra çökmez. Bu davranışın kırpma geri dönüşü `tests/tui_experience_test.rs` içindeki `help_screen_shows_full_key_table_and_paths_when_open` ve `help_screen_renders_without_panic_on_small_terminals` testleriyle korunur.
 
@@ -443,6 +458,12 @@ kısayolları (`q`, `n`, `d`, `c`, `r`, `p`, `?`) çalışmaz; harfler form alan
 yazılır, onay ekranında tanınmayan tuşlar yok sayılır. Böylece modal içinde
 `q` yazmak uygulamayı kapatmaz — kapanma yalnızca ana ekranda geçerlidir.
 
+**Mağaza bu kuralın dışındadır:** mağaza modal değil, ana ekranın bir sekmesi
+olduğu için ana ekran kısayolları (arama, `U`, gezinme) mağaza sekmesinde de
+çalışır. Yalnızca katalogla ilgili tuşlar (`f` favori, `c` favori filtresi,
+`d` sil/gizle) mağazada karşılığı olmadığı için bilinçli olarak yoksayılır ve
+kullanıcıya durum satırında açıklanır.
+
 ## Bilinen Eksiklikler (Faz 5 sonu)
 
 - **Yalnızca Konsole destekleniyor.** `TERMINALS` tek girdi içerir; ayarlarda başka emülatör seçimi reddedilir. Yeni emülatör eklemek adapter + bir satır kayıt işidir.
@@ -456,18 +477,207 @@ yazılır, onay ekranında tanınmayan tuşlar yok sayılır. Böylece modal iç
 - **`Özel Araçlar` gömülü katalogda boş.** UI boş kategori mesajı gösterir; araçlar kullanıcı dosyasından veya formdan gelir. Gömülü `lazygit`, `Git ve Geliştirici Araçları` kategorisindedir.
 - **SSH için ayrı profil ekranı yok.** Profiller `custom_command` kayıtları olarak TOML'da tanımlanır.
 - **Cloudflare örneği varsayılan olarak 25 MB indirir** ve `curl` ortalama indirme hızını gösterir; `executable` ve `args` kullanıcı `config.toml` dosyasından değiştirilebilir.
-- **Fare desteği yok**, yalnızca klavye (`event` katmanı fare olaylarını yok sayar).
+- **Fare desteği yalnızca ana ekranda.** Kategori/araç panellerinde tıklama ve kaydırma çalışır; mağaza, dosya seçici, ayarlar ve onay modallarında fare olayları yok sayılır.
 - **Arama sıralaması yok.** Sonuçlar katalog sırasındadır; alaka sırasına göre sıralama yapılmaz.
 - **Süreç yeniden sahiplenilmiyor.** Konsole süreci Nova tarafından `wait` edilmez (bilinçli); PID yalnızca raporlama içindir.
 - **Asgari Rust sürümü doğrulanmadı.** Bağımlılıkların `rust-version` alanları ≥1.74 öneriyor; yalnızca 1.99.1 ile derleme/test yapıldı.
 - **`[ui] theme` okunur ama uygulanmaz**; tek tema vardır.
 - **PTY kapanınca alt ekrandan çıkış dizisi yazılamaz.** Terminal (tty) yoksa `leave_alternate_screen` IO hatası verir; hook bunu bilinçli olarak yutar ve Nova panik üretmeden çıkar.
 - **Dağıtım paketi/yayın yok.** Proje MIT OR Apache-2.0 çift lisanslıdır (`LICENSE.md`); crates.io, AUR, distro paketi ve ikili yayın yapılmadı. `docs/VERSIONING.md` akışı önerir.
+- **Mağaza sürüm denetimi kullanıcı isteğine bağlı.** Otomatik denetim yok; kullanıcı mağazada `U` tuşuna bastığında GitHub Releases sorgulanır.
+- **Mağaza kataloğu uzaktan güncellenmiyor.** Katalog gömülü `assets/store.toml` içinde sabittir; canlı akış yalnızca sürüm ipucu getirir. Bu bilinçli bir tasarım kararıdır (bkz. "Canlı Sürüm Takibi → Tasarım kararı").
+- **GitHub API hız sınırı kimliksiz IP başına saatte 60 istek.** `GITHUB_TOKEN` ile saatte 5000'e yükseltilebilir; 6 saatlik önbellek taze kayıtları ağa hiç çıkarmadığı için sınırı büyük ölçüde azaltır. `ETag` yalnızca bant genişliği tasarrufu sağlar (`304` de sınırdan düşer).
+- **Mağazada 6 uygulama indirilebilir.** Kalan 13 kayıt `manual` yöntemdedir; upstream doğrulanabilir SHA-256 özeti yayımlamadığı için "Kur" eylemi sunulmaz.
+- **Tek çalıştırılabilir dosya kurulur.** Arşivdeki man sayfaları, tamamlayıcılar ve ek belgeler kurulmaz; yalnızca katalogdaki `executable` yerleştirilir.
+- **Güncelleme sağlayıcısı henüz gerçek bir kaynağa bağlı değil.** `DefaultUpdateProvider` her zaman "resmî güncelleme kaynağı tanımlanmadı" hatası verir; otomatik güncelleme varmış gibi gösterilmez.
 - **Güvenlik denetimi çalıştırılmadı** (`cargo-audit`/`cargo-deny` bu ortamda kurulu değildi).
 
 ## Proje Dizinini Geçersiz Kılma (Faz 5)
 
 `LaunchRequest::from_entry`, kaydın kendi `working_directory` değerini **hemen** çözer. Etkin bir proje dizini varken bu, kayıttaki eski/bayat `working_dir_path` yüzünden geçerli bir proje olsa bile başlatmanın reddedilmesine yol açıyordu. Çözüm: `from_entry_with_project(entry, home, project: Option<&Path>)` — `project` verilirse `Project(_)` seçimini doğrulamadan **önce** onunla değiştirir; `from_entry` bunu `None` ile çağırır. Aynı değişim `launch_text` yolunda da uygulanır. Etkin proje yokken bayat yol sessizce düşürülmez; açık hata verir.
+
+## Mağaza Kurulum Mimarisi (Faz 6)
+
+Mağaza kataloğu araç kataloğundan **ayrı** tutulur: `assets/catalog.toml`
+"Nova ile gelen araçlar", `assets/store.toml` ise "Nova'nın kurabileceği
+uygulamalar" listesidir. İkisi farklı yaşam döngülerine sahiptir — mağaza
+kayıtları sürüm + özet + adres taşır, araç kataloğu taşımaz.
+
+### Mağaza bir modal değil, bir sekmedir
+
+Mağaza, ayrı bir katman (`Modal::Store`) olarak değil, **ana ekranın sekme
+listesindeki son satır** olarak modellenmiştir. Böylece kullanıcı mağazayı
+araç kategorileriyle aynı yerden bulur; ayrı bir kısayol keşfetmesi gerekmez.
+
+| Katman | Soru | Görev |
+|--------|------|-------|
+| Sekme listesi (sol) | Hangi bölümdeyim? | `CATEGORIES` + "Mağaza" |
+| Mağaza kategorileri (orta) | Hangi mağaza kategorisi? | `STORE_CATEGORIES` |
+| Mağaza uygulamaları (sağ) | Hangi uygulama? | `Store::by_category` / `Store::search` |
+
+Odak modeli bir **zincir**dir; `h`/`l` (ya da `←`/`→`) bu zincirde gezinir:
+
+| Sekme | Zincir |
+|-------|--------|
+| Araç (varsayılan) | `Category` → `Tool` |
+| Mağaza (geniş ekran) | `Category` → `StoreCategory` → `StoreApp` |
+| Mağaza (dar ekran) | `StoreCategory` → `StoreApp` |
+
+Dar ekranda üç sütun yan yana sığmadığından mağaza kategorileri **üstte**,
+uygulamalar **alta** yerleşir; buna göre zincir de iki panele düşer.
+
+`m` tuşu yalnızca bu sekmeye bir **kısayoldur** (`App::select_store_tab`); odağı
+doğrudan uygulama listesine götürür ki kurulum eylemi hemen görünsün.
+
+### U ile bağlama duyarlı denetim
+
+`U` tuşu bağlama göre anlam değiştirir:
+
+- Araç sekmesinde → Nova'nın **kendi** güncellemesini denetler.
+- Mağaza sekmesinde → mağaza uygulamalarının **canlı sürümlerini** denetler.
+
+Aynı tuşun iki farklı işi yapması kasıtlıdır: kullanıcı hangi bölümdeyse
+o bölümle ilgili denetimi tetikler.
+
+### Durum önbelleği
+
+Mağaza satırlarının kurulum durumu her karede `which` çağrısıyla hesaplanmaz;
+`App::store_status` önbelleğinden okunur. Önbellek uygulama başlangıcında ve
+her kurulum sonrasında (`App::refresh_detection`) tazelenir.
+
+### Katalog doğrulaması
+
+`Store::from_entries` katalog yüklenirken şu kuralları uygular:
+
+1. Kimlikler benzersiz, kategori `STORE_CATEGORIES` içinde olmalı.
+2. `download_archive` kaydı **mutlaka** `download_url` ve `checksum`
+   taşımalı; `checksum` 64 onaltılık karakter (SHA-256) olmalı.
+3. `download_url` yalnızca `https://` şemasında olabilir.
+
+Bu kurallar sayesinde "Kur" eylemi yalnızca gerçekten doğrulanabilir bir
+indirme için sunulur. Doğrulanamayan uygulamalar `manual` yöntemdedir ve
+resmî kurulum yönergesi gösterilir.
+
+### Kurulum akışı (güvenlik sırası)
+
+```
+onay → indir → SHA-256 doğrula → güvenle çıkar → çalıştırılabiliri bul → yerleştir → temizle
+```
+
+- **Onay zorunludur.** Kurulum başlamadan önce uygulama, sürüm, kaynak, hedef
+  dizin ve yapılacak işlemler gösterilir; `Enter` dışında bir yol yoktur.
+- **İndirme kabuk değildir.** `ureq` ile doğrudan HTTP GET yapılır; gövde
+  dosyaya akıtılır. `curl | sh` deseni yoktur, `sh -c` hiç çalıştırılmaz.
+- **Doğrulama çıkarma öncesidir.** `sha2` ile hesaplanan özet, katalogdaki
+  özetle birebir karşılaştırılır. Uyuşmazlıkta kurulum durur; **hiçbir dosya
+  hedef dizine yazılmaz** ve geçici dosya silinir.
+- **Çıkarma korumalıdır.** `tar` + `flate2` ile açılır; mutlak yollar ve `..`
+  bileşenleri reddedilir, sembolik/hard link oluşturulmaz, girdi sayısı
+  (10.000) ve toplam boyut (512 MB) sınırlıdır, dosya izinleri korunur.
+- **Hedef kullanıcı alanındadır.** `is_user_area` hedefin `$HOME` ya da
+  Nova'nın kendi veri dizini altında olduğunu doğrular. Dizin henüz yoksa
+  yol sözlü olarak normalleştirilir, var olan en derin atası çözümlenir;
+  `..` ile kaçış denemeleri reddedilir. `sudo`/root yok, sistem dizinlerine
+  yazılmaz.
+
+### Arka planda yürütme
+
+İndirme ağ üzerinden yapıldığı için kurulum ana döngüyü kilitlememek adına
+ayrı bir iş parçacığında yürür (`App::start_store_install`). Sonuç bir kanaldan
+alınır ve ana döngü her karede `App::poll_install` ile kontrol eder. Bu sayede
+Nova'nın TUI'si kurulum sırasında donmaz, durum satırında ilerleme görünür.
+
+### Tespit entegrasyonu
+
+Mağaza, uygulamayı `<store>/<id>/bin/` altına kurar; bu dizin PATH'te değildir.
+`detection::resolve` PATH'te bulamazsa mağaza `bin` dizinlerini tarar. Böylece
+mağazadan kurulan araç Nova'da "kurulu" görünür ve doğrudan başlatılabilir.
+
+## Canlı Sürüm Takibi (manifest)
+
+Mağaza kataloğu, uygulamaları "sabit sürüm" olarak değil, **canlı izlenen
+kaynaklar** olarak tanımlar. Bu, "uzaktan gelen katalog" değildir; güvenlik
+modeli bilinçli olarak tasarlanmıştır.
+
+### Veri akışı
+
+```
+gömülü katalog (depo + dosya adı deseni)   ← değiştirilemez
+        │
+        ▼
+GitHub Releases API (en güncel yayın)       ← yalnızca sürüm ipucu
+        │
+        ▼
+upstream'in kendi checksum dosyası          ← bütünlük kaynağı
+        │
+        ▼
+indirilen arşiv ↔ SHA-256 karşılaştırması  ← kurulumun ön şartı
+```
+
+### Neden güvenli
+
+| Bilgi | Kaynağı | Saldırgan değiştirebilir mi? |
+|-------|---------|-------------------------------|
+| Hangi depo izlenecek | Gömülü `assets/store.toml` | Hayır |
+| Arşiv/checksum dosya adı | Gömülü katalog | Hayır |
+| En güncel sürüm | GitHub Releases API | Yalnızca ipucu verir |
+| SHA-256 özeti | Upstream'in checksum dosyası | Hayır |
+
+Ağdan gelen veri yalnızca "şu sürümü kontrol et" diyebilir. Upstream'in
+yayımladığı özet değiştirilmeden tek bir bayt kurulamaz; çünkü doğrulama
+**indirilen dosyaya** karşı yapılır.
+
+### Tasarım kararı: katalog uzaktan güncellenmiyor
+
+Bilinçli olarak **katalog Nova'nın kendi deposundan okunmuyor**. Canlı akış
+yalnızca uygulama başına GitHub Releases takibidir.
+
+Gerekçe:
+
+- **Tek güvenlik sınırı korunur.** Katalog gömülü ve değiştirilemez kalırsa,
+  saldırgan yalnızca "hangi sürüm" bilgisini etkileyebilir. Katalog da
+  uzaktan geliyor olsaydı, saldırgan hem sürümü hem de indirilecek dosya adını
+  değiştirebilirdi; bütünlüğü ayakta tutan tek şey upstream'in checksum
+  dosyası kalırdı.
+- **"Hangi uygulamalar var" sorusunun tek kaynağı olur.** Katalog değişikliği
+  Nova'nın kendi sürümüyle gelir (uygulama güncellemesi); sürüm numarası ise
+  kullanıcı istediğinde canlı olarak çözülür. İkisi birbirine karışmaz.
+- **Test edilebilirlik.** Nova deposu henüz yayınlanmadığı için, uzaktan
+  katalog okuyan bir yol bugün uçtan uca doğrulanamazdı.
+
+Sonuç: yeni bir mağaza uygulaması eklemek `assets/store.toml` içine kayıt
+eklemek ve Nova'yı güncellemektir. Sürüm numarasının tazeliği ise kullanıcının
+`U` tuşuna basmasıyla ve 6 saatlik önbellek döngüsüyle sağlanır.
+
+### API hız sınırı
+
+`api.github.com` kimliksiz çağrılarda IP başına saatte 60 istekle sınırlıdır.
+Bu nedenle:
+
+- Çözümlemeler `manifest-cache.toml` içinde 6 saat saklanır; **taze kayıtlar
+  ağa hiç çıkmaz**. Sınır korumasının asıl kaynağı bu önbellektir.
+- Yayın sorgusu ayrıca `ETag` ile **koşullu** atılır (`If-None-Match`).
+  `304 Not Modified` döndüğünde gövde indirilmez (bant genişliği tasarrufu);
+  ancak ölçüldüğü kadarıyla `304` yanıtları da sınırdan düşer, yani tekrarlar
+  ücretsiz sayılmaz.
+- Checksum dosyası `github.com` üzerinden **indirilir**; bu indirmeler API
+  sınırdan sayılmaz.
+- `GITHUB_TOKEN` verilirse istekler kimlikli yapılır (saatte 5000).
+- Sınıra takılıldığında kullanıcıya ne yapması gerektiği açıkça söylenir.
+
+### Katmanlar
+
+- `store::manifest` — veri modeli (`ReleaseSource`, `ResolvedRelease`),
+  `ReleaseProvider` arayüzü, koşullu çözümleme sonucu
+  (`ConditionalRelease`), önbellek.
+- `store::github` — gerçek çözümleyici. Testlerde sahte sağlayıcı
+  (`ReleaseProvider`) verilebilir; `App` alanı `Arc<dyn ReleaseProvider>`
+  olduğu için sağlayıcı değiştirilebilir.
+- `app` — denetim arka planda yürür (`App::check_store_updates` /
+  `App::poll_store_check`), sonuç `App::store_updates` içinde tutulur ve
+  mağaza detayında "yeni sürüm X → Y" olarak gösterilir. Denetim
+  **mağaza sekmesinde `U`** tuşuyla tetiklenir; araç sekmesindeki `U` ise
+  Nova'nın kendi güncellemesini denetler.
 
 ## Güvenlik İlkeleri
 
@@ -480,3 +690,7 @@ yazılır, onay ekranında tanınmayan tuşlar yok sayılır. Böylece modal iç
 - Başlatıcı hiçbir zaman kurulum yapmaz, `sudo` istemez veya dosya sistemi değiştirmez.
 - Kullanıcı yapılandırması bozuksa **sessizce yok sayılmaz**: uygulama açılmaz, hata dosya ve satır bilgisiyle bildirilir. Böylece kullanıcı yazdığı bir aracın "neden görünmediğini" tahmin etmek zorunda kalmaz.
 - `command_help`/`shell_integration_info` türlerinde araç **çalıştırılmaz**; `--help` dahi çağrılmaz. Metin katalogdan gelir.
+- Mağaza kurulumu yalnızca kullanıcı alanına yapılır; hedef `$HOME` ya da Nova'nın veri dizini altında değilse güvenlik hatasıyla reddedilir.
+- İndirilen arşiv **doğrulanmadan** çalıştırılmaz ve hiçbir yere yazılmaz: SHA-256 uyuşmazlığında kurulum durur.
+- Arşiv çıkarımı yol geçişi, sembolik bağ ve aşırı boyut denemelerine karşı korumalıdır; çıkarma kökünün dışına çıkan hiçbir girdi kabul edilmez.
+- Doğrulanabilir yayın özeti yayımlamayan uygulamalar için "Kur" eylemi sunulmaz; resmî kurulum yönergesi gösterilir.

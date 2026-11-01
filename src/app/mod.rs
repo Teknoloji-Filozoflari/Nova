@@ -5,11 +5,21 @@
 use crate::catalog::{Catalog, CATEGORIES};
 use crate::error::NovaError;
 use crate::event::{Event, EventReader};
+use crate::file_picker::FilePickerState;
+use crate::media_launcher::MediaLauncher;
+use crate::store::manifest::{
+    self, ConditionalRelease, ReleaseProvider, ReleaseSource, ResolvedRelease,
+};
+use crate::store::{Store, StoreEntry, STORE_CATEGORIES};
 use crate::ui;
+use crate::update::{UpdateCheck, UpdateProvider};
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
+use std::collections::BTreeMap;
 use std::io::Stdout;
 use std::path::PathBuf;
+use std::sync::mpsc::{self, Receiver, TryRecvError};
+use std::sync::Arc;
 use std::time::Duration;
 
 pub mod form;
@@ -35,15 +45,20 @@ fn real_launch(
 /// Arayüzde odaklı panel.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PanelFocus {
-    /// Kategori paneli odaklı.
+    /// Sekme (kategori) paneli odaklı.
     Category,
     /// Araç paneli odaklı.
     Tool,
+    /// Mağaza kategorileri paneli odaklı.
+    StoreCategory,
+    /// Mağaza uygulamaları paneli odaklı.
+    StoreApp,
 }
 
 /// Uygulama durumu.
 #[derive(Debug, Clone)]
 /// `handle_form_key`ün sonucu.
+#[allow(clippy::large_enum_variant)]
 enum FormOutcome {
     /// Form düzenlenmeye devam ediyor.
     Editing,
@@ -53,7 +68,31 @@ enum FormOutcome {
     Review(modal::Modal),
 }
 
+/// Arka planda süren mağaza kurulum işi.
+///
+/// İndirme ve doğrulama ağ üzerinden yapıldığı için ana döngüyü
+/// kilitlememek adına ayrı bir iş parçacığında yürütülür. Sonuç kanaldan
+/// alınır ([`App::poll_install`]).
 #[derive(Debug)]
+pub struct InstallJob {
+    /// Kurulan uygulamanın kimliği.
+    pub app_id: String,
+    /// Kurulan uygulamanın adı.
+    pub app_name: String,
+    /// İşin sonucunu taşıyan kanal.
+    receiver: Receiver<Result<crate::store::install::InstallOutcome, String>>,
+}
+
+/// Arka planda süren mağaza canlı sürüm denetimi.
+///
+/// Her uygulama için GitHub Releases sorgusu yapılır; sonuçlar
+/// [`crate::store::manifest::ManifestCache`] içinde önbelleklenir.
+#[derive(Debug)]
+pub struct StoreCheckJob {
+    /// İşin sonucunu taşıyan kanal.
+    receiver: Receiver<BTreeMap<String, Result<ResolvedRelease, String>>>,
+}
+
 pub struct App {
     /// Uygulamanın çalışıp çalışmadığını belirler.
     pub running: bool,
@@ -63,6 +102,16 @@ pub struct App {
     pub focus: PanelFocus,
     /// Seçili kategorinin indeksi.
     pub category_index: usize,
+    /// Mağaza sekmesi etkin mi?
+    ///
+    /// Sol paneldeki sekme listesinin son satırı "Mağaza"dır. Bu bayrak
+    /// o satırın seçili olduğunu belirtir; mağaza ayrı bir modal değil,
+    /// ana ekranın bir sekmesidir.
+    pub store_tab: bool,
+    /// Seçili mağaza kategorisinin indeksi.
+    pub store_category_index: usize,
+    /// Seçili mağaza uygulamasının indeksi (filtrelenmiş liste üzerinden).
+    pub store_app_index: usize,
     /// Seçili aracın indeksi (filtrelenmiş liste üzerinden).
     pub tool_index: usize,
     /// Arama sorgusu.
@@ -99,6 +148,34 @@ pub struct App {
     pub config_path_display: String,
     /// Yardım ekranında gösterilecek durum dosyası yolu.
     pub state_path_display: String,
+    /// Son bilinen terminal boyutu (fare tıklama alanı hesaplaması için).
+    pub terminal_size: Option<(u16, u16)>,
+    /// Mağaza kataloğu (uygulama kataloğundan ayrı).
+    pub store: Store,
+    /// Mağaza uygulamalarının kurulum durumu (mağaza kimliği → durum).
+    ///
+    /// Her karede `which` çağrısı yapmamak için durum önbellekte tutulur.
+    /// Kurulum sonrasında [`App::refresh_detection`] ile tazelenir.
+    pub store_status: BTreeMap<String, crate::detection::InstalledStatus>,
+    /// Medya dosyalarını ayarlarda belirlenen uygulamayla açan başlatıcı.
+    pub media_launcher: MediaLauncher,
+    /// Güncelleme denetimi sağlayıcısı.
+    pub update_provider: Box<dyn UpdateProvider + Send + Sync>,
+    /// Arka planda süren mağaza kurulum işi (varsa).
+    pub install_job: Option<InstallJob>,
+    /// Arka planda süren canlı sürüm denetimi (varsa).
+    pub store_check_job: Option<StoreCheckJob>,
+    /// Canlı denetimle çözülen sürümler (uygulama kimliği → sürüm).
+    pub store_updates: BTreeMap<String, ResolvedRelease>,
+    /// Denetlenemeyen uygulamalar ve hataları.
+    pub store_check_errors: BTreeMap<String, String>,
+    /// Canlı sürüm çözümleyicisi (testlerde sahte olanı verilebilir).
+    pub store_release_provider: Arc<dyn ReleaseProvider + Send + Sync>,
+    /// Canlı sürüm önbelleğinin dosya yolu.
+    ///
+    /// `None` ise varsayılan konum kullanılır
+    /// (`<store>/manifest-cache.toml`). Testler her teste ayrı bir yol verir.
+    pub store_cache_path: Option<PathBuf>,
 }
 
 impl App {
@@ -143,11 +220,14 @@ impl App {
         for entry in catalog.entries_mut() {
             entry.favorite = state.file.favorites.contains(&entry.id);
         }
-        Self {
+        let mut app = Self {
             running: true,
             catalog,
             focus: PanelFocus::Category,
             category_index: 0,
+            store_tab: false,
+            store_category_index: 0,
+            store_app_index: 0,
             tool_index: 0,
             search_query: String::new(),
             search_active: false,
@@ -157,6 +237,10 @@ impl App {
             status_message: String::new(),
             launcher: real_launch,
             home_dir: default_home_dir(),
+            media_launcher: MediaLauncher::new(
+                state.file.prefs.default_image_app.clone(),
+                state.file.prefs.default_video_app.clone(),
+            ),
             state,
             first_run_seed: seed_favorites_from_catalog,
             hidden,
@@ -166,7 +250,21 @@ impl App {
                 .map(|p| p.display().to_string())
                 .unwrap_or_else(|| "bulunamadı (HOME yok)".into()),
             state_path_display,
-        }
+            terminal_size: None,
+            store: crate::store::loader::load_builtin_store().unwrap_or_default(),
+            store_status: BTreeMap::new(),
+            update_provider: Box::new(crate::update::DefaultUpdateProvider),
+            install_job: None,
+            store_check_job: None,
+            store_updates: BTreeMap::new(),
+            store_check_errors: BTreeMap::new(),
+            store_release_provider: Arc::new(crate::store::github::GitHubReleaseProvider::new()),
+            store_cache_path: None,
+        };
+        // Mağaza uygulamalarının kurulum durumu başlangıçta bir kez hesaplanır;
+        // liste her karede bu önbellekten okur.
+        app.refresh_store_status();
+        app
     }
 
     /// `config.toml`'dan gelen araç kimliklerini bildirir.
@@ -191,6 +289,10 @@ impl App {
             if let Some(event) = EventReader::next_event(tick_rate)? {
                 self.handle_event(event, terminal)?;
             }
+
+            // Arka plandaki kurulum ve sürüm denetimi işlerini kontrol et.
+            self.poll_install();
+            self.poll_store_check();
         }
 
         Ok(())
@@ -207,18 +309,111 @@ impl App {
                 self.running = false;
             }
             Event::Key(key) => self.handle_key(key)?,
+            Event::Mouse(mouse) => self.handle_mouse(mouse)?,
             Event::Resize(w, h) => {
-                // Dar terminale geçildiğinde kategori paneli gizlenir; odak
-                // görünmeyen panelde kalmasın.
-                self.narrow_mode = w < crate::ui::WIDE_MIN_WIDTH;
-                if self.narrow_mode {
-                    self.focus = PanelFocus::Tool;
-                }
+                self.apply_resize(w, h);
                 terminal.resize(ratatui::layout::Rect::new(0, 0, w, h))?;
             }
             Event::Ignored => {}
         }
         Ok(())
+    }
+
+    /// Fare olayını işler: kategori/araç tıklaması ve kaydırma. Tıklama
+    /// alanları mevcut terminal boyutundan yeniden hesaplanır.
+    fn handle_mouse(&mut self, mouse: crossterm::event::MouseEvent) -> Result<(), NovaError> {
+        use crossterm::event::{MouseButton, MouseEventKind};
+
+        let size = match self.terminal_size {
+            Some(s) => s,
+            None => return Ok(()),
+        };
+        let areas = crate::ui::click_areas(size, self.show_help, self.store_tab);
+
+        match mouse.kind {
+            MouseEventKind::Down(MouseButton::Left) => {
+                let x = mouse.column;
+                let y = mouse.row;
+                // İçerik alanı dışındaki tıklamalar yok sayılır.
+                if y < areas.content_top
+                    || y >= areas.content_top.saturating_add(areas.content_height)
+                {
+                    return Ok(());
+                }
+                let row = (y - areas.content_top) as usize;
+                if areas.wide && x < areas.category_end_x {
+                    // Sekme listesi: araç kategorileri ve mağaza sekmesi.
+                    self.set_tab_index(row);
+                    self.focus = PanelFocus::Category;
+                    self.tool_index = 0;
+                } else if self.store_tab {
+                    // Mağaza görünümü: ortadaki sütun mağaza kategorileri,
+                    // sağdaki sütun o kategorideki uygulamalar.
+                    if areas.wide {
+                        if x < areas.store_category_end_x {
+                            self.store_category_index =
+                                row.min(STORE_CATEGORIES.len().saturating_sub(1));
+                            self.store_app_index = 0;
+                            self.focus = PanelFocus::StoreCategory;
+                        } else {
+                            let apps = self.filtered_store_apps();
+                            if !apps.is_empty() {
+                                self.store_app_index = row.min(apps.len().saturating_sub(1));
+                                self.focus = PanelFocus::StoreApp;
+                            }
+                        }
+                    } else {
+                        // Dar modda kategoriler üstte, uygulamalar altta.
+                        let cat_rows =
+                            areas.store_category_end_y.saturating_sub(areas.content_top) as usize;
+                        if row < cat_rows {
+                            self.store_category_index =
+                                row.min(STORE_CATEGORIES.len().saturating_sub(1));
+                            self.store_app_index = 0;
+                            self.focus = PanelFocus::StoreCategory;
+                        } else {
+                            let apps = self.filtered_store_apps();
+                            if !apps.is_empty() {
+                                self.store_app_index = row
+                                    .saturating_sub(cat_rows)
+                                    .min(apps.len().saturating_sub(1));
+                                self.focus = PanelFocus::StoreApp;
+                            }
+                        }
+                    }
+                } else {
+                    // Araç paneli.
+                    let tools = self.filtered_tools();
+                    if !tools.is_empty() {
+                        self.tool_index = row.min(tools.len().saturating_sub(1));
+                        self.focus = PanelFocus::Tool;
+                    }
+                }
+            }
+            MouseEventKind::ScrollUp => {
+                self.status_message.clear();
+                self.move_up();
+            }
+            MouseEventKind::ScrollDown => {
+                self.status_message.clear();
+                self.move_down();
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
+    /// Terminal yeniden boyutlandığında dar/geniş modu, odak ve fare
+    /// tıklama alanı boyutunu günceller. Terminalin yeniden çizilmesi
+    /// çağrıcıya bırakılır.
+    fn apply_resize(&mut self, w: u16, h: u16) {
+        // Dar terminale geçildiğinde kategori paneli gizlenir; odak
+        // görünmeyen panelde kalmasın.
+        self.narrow_mode = w < crate::ui::WIDE_MIN_WIDTH;
+        if self.narrow_mode {
+            self.focus = PanelFocus::Tool;
+        }
+        self.terminal_size = Some((w, h));
     }
 
     /// Klavye tuşlarını işler.
@@ -255,10 +450,15 @@ impl App {
             KeyCode::Char('/') => {
                 self.search_active = true;
                 self.search_query.clear();
-                self.focus = PanelFocus::Tool;
+                self.focus = self.search_target_focus();
             }
             KeyCode::Char('f') | KeyCode::Char('F') => {
-                self.toggle_selected_favorite();
+                // Favoriler araç kataloğuna aittir; mağazada karşılığı yok.
+                if self.store_tab {
+                    self.status_message = "Favoriler araç listesinde çalışır.".into();
+                } else {
+                    self.toggle_selected_favorite();
+                }
             }
             KeyCode::Char('j') | KeyCode::Down => {
                 self.status_message.clear();
@@ -269,26 +469,31 @@ impl App {
                 self.move_up();
             }
             KeyCode::Char('h') | KeyCode::Left => {
-                // Dar terminalde kategori paneli gizli olduğundan odak
-                // araç listesinde kalır; yön tuşları yanıltıcı olmasın.
-                if self.narrow_mode {
+                // Dar terminalde araç kategorisi paneli gizli olduğundan odak
+                // listede kalır; yön tuşları yanıltıcı olmasın.
+                if self.narrow_mode && !self.store_tab {
                     self.status_message =
                         "Kategori paneli bu genişlikte gizli; terminali genişlet.".into();
                 } else {
-                    self.focus = PanelFocus::Category;
+                    self.focus = self.prev_focus();
                 }
             }
             KeyCode::Char('l') | KeyCode::Right => {
-                self.focus = PanelFocus::Tool;
+                self.focus = self.next_focus();
             }
-            KeyCode::Tab | KeyCode::Enter => {
-                if self.focus == PanelFocus::Category {
-                    self.focus = PanelFocus::Tool;
-                    self.tool_index = 0;
-                } else {
-                    self.select_tool();
+            KeyCode::Tab => {
+                self.focus = self.next_focus();
+            }
+            KeyCode::Enter => match self.focus {
+                PanelFocus::Category => {
+                    self.focus = self.next_focus();
                 }
-            }
+                PanelFocus::Tool => self.select_tool(),
+                PanelFocus::StoreCategory => {
+                    self.focus = PanelFocus::StoreApp;
+                }
+                PanelFocus::StoreApp => self.select_store_app(),
+            },
             KeyCode::Char('r') | KeyCode::Char('R') => {
                 self.modal = modal::Modal::History;
             }
@@ -313,22 +518,75 @@ impl App {
                         .default_working_dir
                         .clone()
                         .unwrap_or_default(),
+                    theme: self.state.file.prefs.theme.clone().unwrap_or_default(),
+                    default_ai_tool: self
+                        .state
+                        .file
+                        .prefs
+                        .default_ai_tool
+                        .clone()
+                        .unwrap_or_default(),
+                    default_image_app: self
+                        .state
+                        .file
+                        .prefs
+                        .default_image_app
+                        .clone()
+                        .unwrap_or_default(),
+                    default_video_app: self
+                        .state
+                        .file
+                        .prefs
+                        .default_video_app
+                        .clone()
+                        .unwrap_or_default(),
                     focus: 0,
                     error: None,
+                };
+            }
+            KeyCode::Char('m') | KeyCode::Char('M') => {
+                // Mağaza artık ayrı bir modal değil, sol paneldeki "Mağaza"
+                // sekmesidir. Bu tuş yalnızca o sekmeye kısayoldur.
+                self.select_store_tab();
+            }
+            KeyCode::Char('u') | KeyCode::Char('U') => {
+                // Mağaza sekmesindeyken bu tuş Nova'nın kendi güncellemesini
+                // değil, mağaza uygulamalarının canlı sürüm denetimini yapar.
+                if self.store_tab {
+                    self.check_store_updates();
+                } else {
+                    self.modal = modal::Modal::UpdateCheck {
+                        status: modal::UpdateStatus::Idle,
+                        check: None,
+                        error: None,
+                    };
+                }
+            }
+            KeyCode::Char('o') | KeyCode::Char('O') => {
+                self.modal = modal::Modal::FilePicker {
+                    state: FilePickerState::new(&self.home_dir),
                 };
             }
             KeyCode::Char('n') | KeyCode::Char('N') => {
                 self.modal = modal::Modal::ToolForm(Box::default());
             }
             KeyCode::Char('d') | KeyCode::Char('D') => {
-                self.request_delete_selected();
+                if self.store_tab {
+                    self.status_message = "Silme/gizleme araç listesinde çalışır.".into();
+                } else {
+                    self.request_delete_selected();
+                }
             }
             KeyCode::Char('c') | KeyCode::Char('C') => {
-                self.favorite_only = !self.favorite_only;
-                if self.favorite_only {
-                    self.status_message = "Sadece favoriler gösteriliyor.".into();
+                if self.store_tab {
+                    self.status_message = "Favori filtresi araç listesinde çalışır.".into();
                 } else {
-                    self.status_message = "Tüm araçlar gösteriliyor.".into();
+                    self.favorite_only = !self.favorite_only;
+                    if self.favorite_only {
+                        self.status_message = "Sadece favoriler gösteriliyor.".into();
+                    } else {
+                        self.status_message = "Tüm araçlar gösteriliyor.".into();
+                    }
                 }
             }
             _ => {}
@@ -350,11 +608,11 @@ impl App {
             KeyCode::Enter => {
                 // Enter aramayı kapatır ve sonuçlara odaklanır.
                 self.search_active = false;
-                self.focus = PanelFocus::Tool;
+                self.focus = self.search_target_focus();
                 if self.search_query.is_empty() {
                     self.status_message = "Arama temizlendi.".into();
                 } else {
-                    let count = self.filtered_tools().len();
+                    let count = self.search_result_count();
                     self.status_message = format!("'{}' için {} sonuç", self.search_query, count);
                 }
             }
@@ -363,11 +621,11 @@ impl App {
                 self.reset_tool_selection();
             }
             KeyCode::Down => {
-                self.focus = PanelFocus::Tool;
+                self.focus = self.search_target_focus();
                 self.move_down();
             }
             KeyCode::Up => {
-                self.focus = PanelFocus::Tool;
+                self.focus = self.search_target_focus();
                 self.move_up();
             }
             KeyCode::Char(c) => {
@@ -382,6 +640,7 @@ impl App {
     /// Arama değiştiğinde seçim ilk sonuca döner.
     fn reset_tool_selection(&mut self) {
         self.tool_index = 0;
+        self.store_app_index = 0;
     }
 
     /// Seçili aracın favorisini değiştirir.
@@ -444,10 +703,7 @@ impl App {
     /// Aşağı doğru hareket eder.
     fn move_down(&mut self) {
         match self.focus {
-            PanelFocus::Category => {
-                let max = CATEGORIES.len().saturating_sub(1);
-                self.category_index = (self.category_index + 1).min(max);
-            }
+            PanelFocus::Category => self.move_tab_down(),
             PanelFocus::Tool => {
                 let tools = self.filtered_tools();
                 if tools.is_empty() {
@@ -456,18 +712,163 @@ impl App {
                 let max = tools.len().saturating_sub(1);
                 self.tool_index = (self.tool_index + 1).min(max);
             }
+            PanelFocus::StoreCategory => {
+                let max = STORE_CATEGORIES.len().saturating_sub(1);
+                self.store_category_index = (self.store_category_index + 1).min(max);
+                // Kategori değişince uygulama seçimi başa döner.
+                self.store_app_index = 0;
+            }
+            PanelFocus::StoreApp => {
+                let apps = self.filtered_store_apps();
+                if apps.is_empty() {
+                    return;
+                }
+                let max = apps.len().saturating_sub(1);
+                self.store_app_index = (self.store_app_index + 1).min(max);
+            }
         }
     }
 
     /// Yukarı doğru hareket eder.
     fn move_up(&mut self) {
         match self.focus {
-            PanelFocus::Category => {
-                self.category_index = self.category_index.saturating_sub(1);
-            }
+            PanelFocus::Category => self.move_tab_up(),
             PanelFocus::Tool => {
                 self.tool_index = self.tool_index.saturating_sub(1);
             }
+            PanelFocus::StoreCategory => {
+                self.store_category_index = self.store_category_index.saturating_sub(1);
+                self.store_app_index = 0;
+            }
+            PanelFocus::StoreApp => {
+                self.store_app_index = self.store_app_index.saturating_sub(1);
+            }
+        }
+    }
+
+    /// Sekme listesinde aşağı hareket eder.
+    ///
+    /// Sekme listesi araç kategorileriyle başlar ve "Mağaza" satırıyla
+    /// biter. Mağaza satırına gelindiğinde sağdaki paneller mağaza
+    /// görünümüne dönüşür.
+    fn move_tab_down(&mut self) {
+        if self.store_tab {
+            // Mağaza sekmesi listenin sonudur.
+            return;
+        }
+        if self.category_index + 1 < CATEGORIES.len() {
+            self.category_index += 1;
+        } else {
+            self.store_tab = true;
+            self.store_category_index = 0;
+            self.store_app_index = 0;
+        }
+    }
+
+    /// Sekme listesinde yukarı hareket eder.
+    fn move_tab_up(&mut self) {
+        if self.store_tab {
+            self.store_tab = false;
+            self.category_index = CATEGORIES.len() - 1;
+            return;
+        }
+        self.category_index = self.category_index.saturating_sub(1);
+    }
+
+    /// Mağaza sekmesine geçer.
+    ///
+    /// `m` kısayolu da budur. Odağı doğrudan uygulama listesine götürür:
+    /// kullanıcı kurulum eylemini hemen görebilsin diye.
+    pub fn select_store_tab(&mut self) {
+        self.store_tab = true;
+        self.store_category_index = 0;
+        self.store_app_index = 0;
+        self.focus = PanelFocus::StoreApp;
+        self.status_message =
+            "Mağaza: solda mağaza kategorileri, sağda o kategorideki uygulamalar.".into();
+    }
+
+    /// Sol panelde seçili sekmenin satır indeksi.
+    ///
+    /// Satırlar sırayla `CATEGORIES` (araç kategorileri) ve son satırda
+    /// mağaza sekmesidir.
+    pub fn selected_tab_index(&self) -> usize {
+        if self.store_tab {
+            CATEGORIES.len()
+        } else {
+            self.category_index
+        }
+    }
+
+    /// Sol paneldeki satıra göre sekmeyi seçer.
+    ///
+    /// Son satır mağaza sekmesidir; araç kategorileri seçilirse mağaza
+    /// sekmesi kapatılır.
+    pub fn set_tab_index(&mut self, row: usize) {
+        if row >= CATEGORIES.len() {
+            self.store_tab = true;
+            self.store_category_index = 0;
+            self.store_app_index = 0;
+        } else {
+            self.store_tab = false;
+            self.category_index = row;
+            self.store_app_index = 0;
+        }
+    }
+
+    /// Etkin odak zinciri (soldan sağa).
+    ///
+    /// Mağaza sekmesinde üç panel vardır: sekme listesi, mağaza kategorileri
+    /// ve mağaza uygulamaları. Araç sekmesinde iki panel vardır. Dar
+    /// terminalde gizlenen paneller zincirden çıkarılır.
+    fn focus_chain(&self) -> &'static [PanelFocus] {
+        match (self.store_tab, self.narrow_mode) {
+            (true, false) => &[
+                PanelFocus::Category,
+                PanelFocus::StoreCategory,
+                PanelFocus::StoreApp,
+            ],
+            (true, true) => &[PanelFocus::StoreCategory, PanelFocus::StoreApp],
+            (false, false) => &[PanelFocus::Category, PanelFocus::Tool],
+            (false, true) => &[PanelFocus::Tool],
+        }
+    }
+
+    /// Odak zincirinde bir sonraki panele geçer (son panelde kalır).
+    fn next_focus(&self) -> PanelFocus {
+        let chain = self.focus_chain();
+        let idx = chain.iter().position(|f| *f == self.focus).unwrap_or(0);
+        chain
+            .get(idx + 1)
+            .copied()
+            .unwrap_or_else(|| *chain.last().expect("odak zinciri boş olamaz"))
+    }
+
+    /// Odak zincirinde bir önceki panele geçer (ilk panelde kalır).
+    fn prev_focus(&self) -> PanelFocus {
+        let chain = self.focus_chain();
+        let idx = chain.iter().position(|f| *f == self.focus).unwrap_or(0);
+        chain
+            .get(idx.saturating_sub(1))
+            .copied()
+            .unwrap_or(chain[0])
+    }
+
+    /// Aramadan sonra odaklanılacak panel.
+    fn search_target_focus(&self) -> PanelFocus {
+        if self.store_tab {
+            PanelFocus::StoreApp
+        } else {
+            PanelFocus::Tool
+        }
+    }
+
+    /// Arama sonuç sayısı (etkin panele göre).
+    fn search_result_count(&self) -> usize {
+        if self.store_tab {
+            self.filtered_store_apps().len()
+        } else {
+            self.filtered_tools().len()
         }
     }
 
@@ -617,6 +1018,9 @@ impl App {
         crate::catalog::normalize(&entry.name).contains(&q)
             || crate::catalog::normalize(&entry.executable).contains(&q)
             || crate::catalog::normalize(&entry.category).contains(&q)
+            || crate::catalog::short_category_name(&entry.category)
+                .map(|s| crate::catalog::normalize(s).contains(&q))
+                .unwrap_or(false)
             || crate::catalog::normalize(&entry.description).contains(&q)
     }
 
@@ -655,9 +1059,396 @@ impl App {
         tools
     }
 
+    /// Mağaza için filtrelenmiş uygulama listesi (kategori ve arama filtresi).
+    ///
+    /// Arama sırasında kategori filtresi uygulanmaz: kullanıcı bütün
+    /// mağazada aradığını bulabilmelidir.
+    pub fn filtered_store_apps(&self) -> Vec<&StoreEntry> {
+        let category = self.selected_store_category();
+        let searching = !self.search_query.is_empty();
+        if searching {
+            self.store.search(&self.search_query)
+        } else {
+            self.store.by_category(category)
+        }
+    }
+
+    /// Seçili mağaza kategorisinin adı.
+    pub fn selected_store_category(&self) -> &str {
+        STORE_CATEGORIES
+            .get(self.store_category_index)
+            .copied()
+            .unwrap_or("")
+    }
+
+    /// Seçili mağaza uygulamasını döner (detay paneli için).
+    pub fn selected_store_app(&self) -> Option<&StoreEntry> {
+        let apps = self.filtered_store_apps();
+        if apps.is_empty() {
+            return None;
+        }
+        apps.get(self.store_app_index.min(apps.len() - 1)).copied()
+    }
+
+    /// Seçili mağaza uygulamasına yönelik eylemi başlatır.
+    ///
+    /// Öncelik sırası:
+    ///
+    /// 1. Canlı denetimde bulunmuş **yeni sürüm** varsa güncelleme onayı
+    ///    sorulur.
+    /// 2. Doğrulanabilir özeti olmayan kayıtta Nova kurulum yapmaz; resmî
+    ///    yönergeyi gösterir.
+    /// 3. Diğer hâllerde indirme + SHA-256 doğrulamalı kurulum onayı
+    ///    sorulur.
+    pub fn select_store_app(&mut self) {
+        let apps = self.filtered_store_apps();
+        let Some(entry) = apps
+            .get(self.store_app_index.min(apps.len().saturating_sub(1)))
+            .cloned()
+        else {
+            self.status_message = "Seçili mağaza uygulaması yok.".into();
+            return;
+        };
+
+        let update = self.store_update_for(&entry.id).cloned();
+        let has_update = update.as_ref().is_some_and(|r| {
+            manifest::is_newer(&r.version, &entry.version.clone().unwrap_or_default())
+        });
+
+        if has_update {
+            let release = update.expect("güncelleme var");
+            self.modal = modal::Modal::Confirm {
+                question: format!(
+                    "'{}' {} sürümünden {} sürümüne güncellensin mi? \
+                     Enter onaylar, Esc vazgeçer.",
+                    entry.name,
+                    entry.version.clone().unwrap_or_default(),
+                    release.version
+                ),
+                action: modal::ConfirmAction::UpdateStoreApp {
+                    id: entry.id.clone(),
+                    name: entry.name.clone(),
+                    version: release.version.clone(),
+                },
+            };
+        } else if !entry.install_method.is_installable() {
+            // Doğrulanabilir bir yöntemi olmayan uygulamada "Kur" eylemi
+            // sunulmaz; resmî talimat gösterilir.
+            let note = entry
+                .install_notes
+                .as_deref()
+                .unwrap_or("resmî kurulum yönergelerini takip edin");
+            self.status_message = format!("'{}' için {note}", entry.name);
+        } else {
+            self.modal = modal::Modal::Confirm {
+                question: format!(
+                    "'{}' (id: {}) uygulaması indirilip SHA-256 ile doğrulanıp \
+                     kullanıcı alanına kurulsun mu? Enter onaylar, Esc vazgeçer.",
+                    entry.name, entry.id
+                ),
+                action: modal::ConfirmAction::InstallStoreApp {
+                    id: entry.id.clone(),
+                    name: entry.name.clone(),
+                },
+            };
+        }
+    }
+
     /// Kullanıcıya gösterilmeyen (gizlenmiş) araç kimlikleri.
     pub fn hidden_tools(&self) -> &std::collections::BTreeSet<String> {
         &self.hidden
+    }
+
+    /// Mağazadaki bir uygulamanın kurulumunu başlatır.
+    ///
+    /// Kurulum arka planda yürütülür: indirme, SHA-256 doğrulama ve arşiv
+    /// çıkarma ana döngüyü kilitlemez. Sonuç
+    /// [`App::poll_install`] ile alınır.
+    ///
+    /// Yalnızca `download_archive` yöntemli ve doğrulanabilir kayıtlar
+    /// kurulabilir; `manual` kayıtlarda kullanıcıya resmî talimat gösterilir.
+    pub fn start_store_install(&mut self, id: &str) {
+        if self.install_job.is_some() {
+            self.status_message = "Zaten süren bir kurulum var; önce onun bitmesini bekle.".into();
+            return;
+        }
+        let Some(entry) = self.store.get_by_id(id).cloned() else {
+            self.status_message = format!("Mağazada '{}' bulunamadı.", id);
+            return;
+        };
+        if !entry.install_method.is_installable() {
+            let note = entry
+                .install_notes
+                .as_deref()
+                .unwrap_or("resmî kurulum yönergelerini takip edin");
+            self.status_message = format!("'{}' için Nova kurulum yapmıyor. {note}", entry.name);
+            return;
+        }
+        let Some(dest_dir) = crate::store::store_app_dir(&entry.id) else {
+            self.status_message = "Kurulum dizini belirlenemedi ($HOME bulunamadı).".into();
+            return;
+        };
+
+        let (tx, rx) = mpsc::channel();
+        let app_name = entry.name.clone();
+        std::thread::spawn(move || {
+            let downloader = crate::store::http::HttpDownloader::new();
+            let result = crate::store::install::install_app(&entry, &dest_dir, &downloader)
+                .map_err(|e| e.to_string());
+            let _ = tx.send(result);
+        });
+
+        self.install_job = Some(InstallJob {
+            app_id: id.to_string(),
+            app_name: app_name.clone(),
+            receiver: rx,
+        });
+        self.status_message = format!("'{}' indiriliyor ve SHA-256 ile doğrulanıyor...", app_name);
+    }
+
+    /// Mağazadaki bir uygulamanın **yeni sürümle** güncellenmesini başlatır.
+    ///
+    /// Kurulum, canlı denetimde çözülen adres ve özetle yapılır; yani
+    /// güncellenen dosya da upstream'in bu yayın için yayımladığı SHA-256
+    /// özetiyle doğrulanır.
+    pub fn start_store_update(&mut self, id: &str) {
+        if self.install_job.is_some() {
+            self.status_message = "Zaten süren bir kurulum var; önce onun bitmesini bekle.".into();
+            return;
+        }
+        let Some(entry) = self.store.get_by_id(id).cloned() else {
+            self.status_message = format!("Mağazada '{}' bulunamadı.", id);
+            return;
+        };
+        let Some(release) = self.store_updates.get(id).cloned() else {
+            self.status_message = format!(
+                "'{}' için çözülmüş bir sürüm yok; önce sürümleri denetle (U).",
+                entry.name
+            );
+            return;
+        };
+        let Some(dest_dir) = crate::store::store_app_dir(&entry.id) else {
+            self.status_message = "Kurulum dizini belirlenemedi ($HOME bulunamadı).".into();
+            return;
+        };
+
+        let (tx, rx) = mpsc::channel();
+        let app_name = entry.name.clone();
+        let version = release.version.clone();
+        std::thread::spawn(move || {
+            let downloader = crate::store::http::HttpDownloader::new();
+            let result =
+                crate::store::install::install_release(&entry, &dest_dir, &release, &downloader)
+                    .map_err(|e| e.to_string());
+            let _ = tx.send(result);
+        });
+
+        self.install_job = Some(InstallJob {
+            app_id: id.to_string(),
+            app_name: app_name.clone(),
+            receiver: rx,
+        });
+        self.status_message = format!(
+            "'{}' {} sürümüne güncelleniyor (SHA-256 doğrulamasıyla)...",
+            app_name, version
+        );
+    }
+
+    /// Arka plandaki kurulum işinin durumunu kontrol eder.
+    ///
+    /// İş tamamlandıysa sonucu durum satırına yazar ve katalogdaki tespit
+    /// durumlarını tazeler (kurulan uygulama artık "kurulu" görünür).
+    pub fn poll_install(&mut self) {
+        let Some(job) = self.install_job.take() else {
+            return;
+        };
+        match job.receiver.try_recv() {
+            Ok(Ok(outcome)) => {
+                // Kurulan sürüm artık "bilinen" sürümdür; yeni sürüm
+                // göstergesi söner.
+                let resolved = self.store_updates.get(&outcome.app_id).cloned();
+                let current = self.store.get_by_id(&outcome.app_id).cloned();
+                let checksum = resolved
+                    .as_ref()
+                    .map(|r| r.checksum.clone())
+                    .or_else(|| current.as_ref().and_then(|e| e.checksum.clone()))
+                    .unwrap_or_default();
+                let download_url = resolved
+                    .as_ref()
+                    .map(|r| r.download_url.clone())
+                    .or_else(|| current.as_ref().and_then(|e| e.download_url.clone()))
+                    .unwrap_or_default();
+                self.store.mark_installed(
+                    &outcome.app_id,
+                    &outcome.version,
+                    &checksum,
+                    &download_url,
+                );
+                self.status_message = format!("✓ {}", outcome.summary);
+                self.refresh_detection();
+            }
+            Ok(Err(message)) => {
+                self.status_message = format!("Hata: {message}");
+            }
+            Err(TryRecvError::Empty) => {
+                // İş hâlâ sürüyor.
+                self.install_job = Some(job);
+            }
+            Err(TryRecvError::Disconnected) => {
+                self.status_message = "Hata: kurulum işi beklenmedik şekilde sonlandı.".into();
+            }
+        }
+    }
+
+    /// Katalogdaki tüm araçların kurulum durumunu yeniden belirler.
+    pub fn refresh_detection(&mut self) {
+        for entry in self.catalog.entries_mut().iter_mut() {
+            entry.refresh_status();
+        }
+        self.refresh_store_status();
+    }
+
+    /// Mağazadaki tüm uygulamaların kurulum durumunu yeniden belirler.
+    ///
+    /// Durum her çizimde değil, yalnızca bu çağrıda hesaplanır; liste
+    /// önbellekten okur.
+    pub fn refresh_store_status(&mut self) {
+        self.store_status.clear();
+        for entry in self.store.entries() {
+            let status = crate::detection::resolve(&entry.executable).0;
+            self.store_status.insert(entry.id.clone(), status);
+        }
+    }
+
+    /// Mağazadaki bir uygulamanın kurulum durumunu döner.
+    pub fn store_status(&self, id: &str) -> crate::detection::InstalledStatus {
+        self.store_status
+            .get(id)
+            .copied()
+            .unwrap_or(crate::detection::InstalledStatus::Unknown)
+    }
+
+    /// Mağazadaki uygulamaların canlı sürümlerini denetler.
+    ///
+    /// Denetim arka planda yürür: GitHub Releases sorgusu ana döngüyü
+    /// kilitlemez. Sonuçlar önce önbellekten okunur (taze kayıtlar ağa
+    /// çıkmaz); süresi dolmuş kayıtlar yeniden çözülür ve önbelleğe yazılır.
+    pub fn check_store_updates(&mut self) {
+        if self.store_check_job.is_some() {
+            self.status_message = "Sürüm denetimi zaten sürüyor.".into();
+            return;
+        }
+        let sources: Vec<(String, ReleaseSource)> = self
+            .store
+            .entries()
+            .iter()
+            .filter_map(|e| e.release.as_ref().map(|r| (e.id.clone(), r.clone())))
+            .collect();
+        if sources.is_empty() {
+            self.status_message = "Canlı takip için tanımlı mağaza uygulaması yok.".into();
+            return;
+        }
+
+        let (tx, rx) = mpsc::channel();
+        let provider = Arc::clone(&self.store_release_provider);
+        let cache_path = self.store_cache_path.clone().or_else(manifest::cache_path);
+        std::thread::spawn(move || {
+            let mut results: BTreeMap<String, Result<ResolvedRelease, String>> = BTreeMap::new();
+            let mut cache = cache_path
+                .as_ref()
+                .map(|p| manifest::load_cache(p))
+                .unwrap_or_default();
+            let now = manifest::now_secs();
+            for (id, source) in sources {
+                // Taze önbellek kaydı ağa çıkmaz.
+                let resolved = match cache.fresh(&id, now) {
+                    Some(cached) => Ok(cached.release.clone()),
+                    None => {
+                        // Süresi dolmuş kayıt **koşullu** sorgulanır: sunucu
+                        // değişiklik yoksa 304 döner ve API hız sınırı harcanmaz.
+                        let etag = cache.get(&id).and_then(|c| c.etag.clone());
+                        match provider.resolve(&source, etag.as_deref()) {
+                            Ok(ConditionalRelease::NotModified) => cache
+                                .get(&id)
+                                .map(|c| c.release.clone())
+                                .ok_or_else(|| "önbellek kaydı bulunamadı".to_string()),
+                            Ok(ConditionalRelease::Fresh { release, etag }) => {
+                                cache.put(&id, release.clone(), now, etag);
+                                Ok(release)
+                            }
+                            Err(e) => Err(e),
+                        }
+                    }
+                };
+                results.insert(id, resolved);
+            }
+            if let Some(path) = cache_path {
+                let _ = manifest::save_cache(&path, &cache);
+            }
+            let _ = tx.send(results);
+        });
+
+        self.store_check_job = Some(StoreCheckJob { receiver: rx });
+        self.status_message = "Mağaza sürümleri denetleniyor...".into();
+    }
+
+    /// Arka plandaki sürüm denetimini kontrol eder.
+    ///
+    /// Sonuç geldiğinde [`App::store_updates`] doldurulur; yeni sürüm bulunan
+    /// uygulamalar sayı ile bildirilir.
+    pub fn poll_store_check(&mut self) {
+        let Some(job) = self.store_check_job.take() else {
+            return;
+        };
+        match job.receiver.try_recv() {
+            Ok(results) => {
+                let mut updates = BTreeMap::new();
+                let mut errors = BTreeMap::new();
+                let mut newer = 0usize;
+                for (id, result) in results {
+                    match result {
+                        Ok(release) => {
+                            let current = self
+                                .store
+                                .get_by_id(&id)
+                                .and_then(|e| e.version.clone())
+                                .unwrap_or_default();
+                            if manifest::is_newer(&release.version, &current) {
+                                newer += 1;
+                            }
+                            updates.insert(id, release);
+                        }
+                        Err(message) => {
+                            errors.insert(id, message);
+                        }
+                    }
+                }
+                self.store_updates = updates;
+                self.store_check_errors = errors;
+                self.status_message = if newer > 0 {
+                    format!("{newer} mağaza uygulaması için yeni sürüm bulundu.")
+                } else if self.store_check_errors.is_empty() {
+                    "Mağaza uygulamalarının tümü güncel.".into()
+                } else {
+                    format!(
+                        "{} uygulama denetlenemedi; diğerleri güncel.",
+                        self.store_check_errors.len()
+                    )
+                };
+            }
+            Err(TryRecvError::Empty) => {
+                // Denetim hâlâ sürüyor.
+                self.store_check_job = Some(job);
+            }
+            Err(TryRecvError::Disconnected) => {
+                self.status_message = "Hata: sürüm denetimi beklenmedik şekilde sonlandı.".into();
+            }
+        }
+    }
+
+    /// Seçili mağaza uygulaması için bulunan yeni sürüm.
+    pub fn store_update_for(&self, id: &str) -> Option<&ResolvedRelease> {
+        self.store_updates.get(id)
     }
 
     /// Bir aracı Nova görünümünden çıkarır.
@@ -712,6 +1503,7 @@ impl App {
     /// Yalnızca tuş kodu alınır: imzada `key.code` deseydik, `current`
     /// (modal) ödünçlüyken `self`i ödünç alan çağrılar
     /// (`state.add_project_dir` gibi) derlenemezdi.
+    #[allow(unused_variables)]
     pub fn handle_modal_key(&mut self, code: crossterm::event::KeyCode) -> Result<(), NovaError> {
         match self.apply_modal_key(code) {
             Ok(Some(next)) => self.modal = next,
@@ -864,6 +1656,10 @@ impl App {
             modal::Modal::Settings {
                 preferred_terminal,
                 default_working_dir,
+                theme,
+                default_ai_tool,
+                default_image_app,
+                default_video_app,
                 focus,
                 error,
             } => match code {
@@ -871,18 +1667,40 @@ impl App {
                     self.status_message = "Ayarlar değiştirilmedi.".into();
                     take(modal::Modal::None);
                 }
-                KeyCode::Tab | KeyCode::Down => *focus = (*focus + 1) % 2,
-                KeyCode::BackTab | KeyCode::Up => *focus = (*focus + 1) % 2,
+                KeyCode::Tab | KeyCode::Down => *focus = (*focus + 1) % 6,
+                KeyCode::BackTab | KeyCode::Up => *focus = (*focus + 5) % 6,
                 KeyCode::Backspace => {
-                    if *focus == 0 {
-                        preferred_terminal.pop();
-                    } else {
-                        default_working_dir.pop();
+                    match *focus {
+                        0 => {
+                            preferred_terminal.pop();
+                        }
+                        1 => {
+                            default_working_dir.pop();
+                        }
+                        2 => {
+                            theme.pop();
+                        }
+                        3 => {
+                            default_ai_tool.pop();
+                        }
+                        4 => {
+                            default_image_app.pop();
+                        }
+                        5 => {
+                            default_video_app.pop();
+                        }
+                        _ => {}
                     }
                     *error = None;
                 }
-                KeyCode::Enter => match self.save_settings(preferred_terminal, default_working_dir)
-                {
+                KeyCode::Enter => match self.save_settings(
+                    preferred_terminal,
+                    default_working_dir,
+                    theme,
+                    default_ai_tool,
+                    default_image_app,
+                    default_video_app,
+                ) {
                     Ok(()) => {
                         self.status_message = "✓ Ayarlar kaydedildi.".into();
                         take(modal::Modal::None);
@@ -893,12 +1711,112 @@ impl App {
                     }
                 },
                 KeyCode::Char(c) if !c.is_control() => {
-                    if *focus == 0 {
-                        preferred_terminal.push(c);
-                    } else {
-                        default_working_dir.push(c);
+                    match *focus {
+                        0 => preferred_terminal.push(c),
+                        1 => default_working_dir.push(c),
+                        2 => theme.push(c),
+                        3 => default_ai_tool.push(c),
+                        4 => default_image_app.push(c),
+                        5 => default_video_app.push(c),
+                        _ => {}
                     }
                     *error = None;
+                }
+                _ => {}
+            },
+            modal::Modal::UpdateCheck {
+                status,
+                check,
+                error,
+            } => match code {
+                KeyCode::Esc => take(modal::Modal::None),
+                KeyCode::Enter => {
+                    if let Some(UpdateCheck::UpdateAvailable {
+                        current,
+                        latest,
+                        release,
+                    }) = check.clone()
+                    {
+                        take(modal::Modal::UpdateConfirm {
+                            current,
+                            latest,
+                            release,
+                        });
+                    }
+                }
+                KeyCode::Char('u') | KeyCode::Char('U') => {
+                    *status = modal::UpdateStatus::Checking;
+                    *check = None;
+                    *error = None;
+                    let provider = self.update_provider.as_ref();
+                    let current = provider.current_version();
+                    match provider.fetch_latest_release() {
+                        Ok(Some(release)) => {
+                            let latest = release.version.clone();
+                            if release.version > current {
+                                *check = Some(UpdateCheck::UpdateAvailable {
+                                    current,
+                                    latest,
+                                    release,
+                                });
+                            } else {
+                                *check = Some(UpdateCheck::UpToDate { current });
+                            }
+                            *status = modal::UpdateStatus::Done;
+                        }
+                        Ok(None) => {
+                            *check = Some(UpdateCheck::UpToDate { current });
+                            *status = modal::UpdateStatus::Done;
+                        }
+                        Err(e) => {
+                            *error = Some(e);
+                            *status = modal::UpdateStatus::Done;
+                        }
+                    }
+                }
+                _ => {}
+            },
+            modal::Modal::UpdateConfirm {
+                current,
+                latest,
+                release: _,
+            } => match code {
+                KeyCode::Esc => take(modal::Modal::None),
+                KeyCode::Enter => {
+                    take(modal::Modal::Confirm {
+                        question: format!(
+                            "Nova v{} → v{} güncellensin mi? Enter onaylar, Esc vazgeçer.",
+                            current, latest
+                        ),
+                        action: modal::ConfirmAction::InstallUpdate {
+                            version: latest.to_string(),
+                        },
+                    });
+                }
+                _ => {}
+            },
+            modal::Modal::FilePicker { state } => match code {
+                KeyCode::Esc => take(modal::Modal::None),
+                KeyCode::Char('j') | KeyCode::Down => state.move_down(),
+                KeyCode::Char('k') | KeyCode::Up => state.move_up(),
+                KeyCode::Char('h') | KeyCode::Left => state.navigate_up(),
+                KeyCode::Char('l') | KeyCode::Right => state.enter_dir(),
+                KeyCode::Enter => {
+                    if let Some(path) = state.confirm_selection() {
+                        match self.media_launcher.launch_media(&path) {
+                            Ok(pid) => {
+                                self.status_message = format!(
+                                    "'{}' PID {} ile açılıyor.",
+                                    path.file_name().unwrap_or_default().to_string_lossy(),
+                                    pid
+                                );
+                                take(modal::Modal::None);
+                            }
+                            Err(e) => {
+                                self.status_message = format!("Hata: {e}");
+                            }
+                        }
+                    }
                 }
                 _ => {}
             },
@@ -995,10 +1913,15 @@ impl App {
 
     /// Tercihleri doğrular, kaydeder ve yazma başarısız olursa belleği geri
     /// alır. Eksik çalışma dizinini oluşturmaz.
+    #[allow(clippy::too_many_arguments)]
     fn save_settings(
         &mut self,
         preferred_terminal: &str,
         default_working_dir: &str,
+        theme: &str,
+        default_ai_tool: &str,
+        default_image_app: &str,
+        default_video_app: &str,
     ) -> Result<(), String> {
         let terminal = preferred_terminal.trim();
         let preferred_terminal = if terminal.is_empty() {
@@ -1026,9 +1949,58 @@ impl App {
             Some(path.to_string_lossy().into_owned())
         };
 
+        // Varsayılan AI aracı: boş (seçim yok) veya kurulu bir AI kategorisindeki
+        // araç olmalıdır.
+        let default_ai_tool = if default_ai_tool.trim().is_empty() {
+            None
+        } else {
+            let id = default_ai_tool.trim().to_string();
+            let entry = self
+                .catalog
+                .get_by_id(&id)
+                .ok_or_else(|| format!("'{id}' katalogda bulunamadı."))?;
+            if entry.category != "AI ve Kodlama" {
+                return Err(format!(
+                    "'{id}' AI kategorisinde değil; yalnızca AI araçları varsayılan AI seçilebilir."
+                ));
+            }
+            use crate::detection::InstalledStatus;
+            if entry.status != InstalledStatus::Installed {
+                return Err(format!(
+                    "'{id}' kurulu değil; varsayılan AI olarak ayarlanamadı."
+                ));
+            }
+            Some(id)
+        };
+
+        // Resim/video varsayılanları: boş (seçim yok) veya katalogda bulunan bir uygulama.
+        let validate_app = |id: &str, kind: &str| -> Result<Option<String>, String> {
+            if id.trim().is_empty() {
+                return Ok(None);
+            }
+            let id = id.trim().to_string();
+            let entry = self
+                .catalog
+                .get_by_id(&id)
+                .ok_or_else(|| format!("'{id}' katalogda bulunamadı."))?;
+            use crate::detection::InstalledStatus;
+            if entry.status != InstalledStatus::Installed {
+                return Err(format!(
+                    "'{id}' kurulu değil; varsayılan {kind} uygulaması olarak ayarlanamadı."
+                ));
+            }
+            Ok(Some(id))
+        };
+        let default_image_app = validate_app(default_image_app, "resim")?;
+        let default_video_app = validate_app(default_video_app, "video")?;
+
         let old = self.state.file.prefs.clone();
         self.state.file.prefs.preferred_terminal = preferred_terminal;
         self.state.file.prefs.default_working_dir = default_working_dir;
+        self.state.file.prefs.theme = Some(theme.trim().to_string());
+        self.state.file.prefs.default_ai_tool = default_ai_tool;
+        self.state.file.prefs.default_image_app = default_image_app;
+        self.state.file.prefs.default_video_app = default_video_app;
         if let Err(error) = self.persist_state() {
             self.state.file.prefs = old;
             return Err(format!("Ayarlar kaydedilemedi: {error}"));
@@ -1186,6 +2158,21 @@ impl App {
                             format!("Hata: '{}' oluşturulamadı: {e}", path.display());
                     }
                 }
+            }
+            modal::ConfirmAction::InstallStoreApp { id, name } => {
+                // Kurulumu başlat: indirme, SHA-256 doğrulama ve çıkarma
+                // arka planda yürür, ana döngü kilitlenmez.
+                self.status_message = format!("'{}' kurulumu başlatılıyor...", name);
+                self.start_store_install(&id);
+            }
+            modal::ConfirmAction::UpdateStoreApp { id, name, version } => {
+                self.status_message = format!("'{}' {} sürümüne güncelleniyor...", name, version);
+                self.start_store_update(&id);
+            }
+            modal::ConfirmAction::InstallUpdate { version } => {
+                self.status_message = format!(
+                    "✓ Nova v{version} güncelleme onaylandı. Kurulum kullanıcı alanına yapılır."
+                );
             }
         }
     }
@@ -1537,5 +2524,536 @@ mod tests {
         app.handle_key(typed('N')).unwrap();
         app.handle_key(key(crossterm::event::KeyCode::Esc)).unwrap();
         assert_eq!(app.modal, modal::Modal::None);
+    }
+
+    /// Fare sol-tuş tıklaması üretir.
+    fn mouse_down(x: u16, y: u16) -> crossterm::event::MouseEvent {
+        crossterm::event::MouseEvent {
+            kind: crossterm::event::MouseEventKind::Down(crossterm::event::MouseButton::Left),
+            column: x,
+            row: y,
+            modifiers: crossterm::event::KeyModifiers::empty(),
+        }
+    }
+
+    /// Fare tekerleği aşağı.
+    fn mouse_scroll_down() -> crossterm::event::MouseEvent {
+        crossterm::event::MouseEvent {
+            kind: crossterm::event::MouseEventKind::ScrollDown,
+            column: 0,
+            row: 0,
+            modifiers: crossterm::event::KeyModifiers::empty(),
+        }
+    }
+
+    #[test]
+    fn mouse_click_selects_category() {
+        let mut app = sample_app();
+        app.terminal_size = Some((100, 30));
+        app.focus = PanelFocus::Tool;
+        // Kategori paneli: x < 26; içerik satırı 2'den başlar, satır 1 → y = 3.
+        app.handle_mouse(mouse_down(5, 3)).unwrap();
+        assert_eq!(app.focus, PanelFocus::Category);
+        assert_eq!(app.category_index, 1);
+        assert_eq!(app.tool_index, 0);
+    }
+
+    #[test]
+    fn mouse_click_selects_tool() {
+        let mut app = sample_app();
+        app.terminal_size = Some((100, 30));
+        app.focus = PanelFocus::Category;
+        app.category_index = category_index("Sistem ve Kaynak Kullanımı");
+        // Araç paneli: x >= 26; ilk araç satırı y = 2.
+        app.handle_mouse(mouse_down(40, 2)).unwrap();
+        assert_eq!(app.focus, PanelFocus::Tool);
+        assert!(!app.filtered_tools().is_empty());
+        assert_eq!(app.tool_index, 0);
+    }
+
+    #[test]
+    fn mouse_scroll_changes_tool_selection() {
+        let mut app = sample_app();
+        app.terminal_size = Some((100, 30));
+        app.focus = PanelFocus::Tool;
+        app.category_index = category_index("Sistem ve Kaynak Kullanımı");
+        let before = app.tool_index;
+        app.handle_mouse(mouse_scroll_down()).unwrap();
+        assert!(app.tool_index > before);
+    }
+
+    #[test]
+    fn mouse_click_in_narrow_mode_selects_tool_only() {
+        let mut app = sample_app();
+        app.terminal_size = Some((40, 30));
+        app.focus = PanelFocus::Category;
+        app.category_index = 0;
+        // Dar modda kategori paneli yok; ekranın sağ tarafındaki tıklama
+        // yine aracı seçmelidir.
+        app.handle_mouse(mouse_down(39, 2)).unwrap();
+        assert_eq!(app.focus, PanelFocus::Tool);
+    }
+
+    #[test]
+    fn resize_to_narrow_moves_focus_to_tool() {
+        let mut app = sample_app();
+        app.focus = PanelFocus::Category;
+        app.apply_resize(40, 30);
+        assert!(app.narrow_mode);
+        assert_eq!(app.focus, PanelFocus::Tool);
+        assert_eq!(app.terminal_size, Some((40, 30)));
+    }
+
+    #[test]
+    fn resize_to_wide_keeps_category_focus() {
+        let mut app = sample_app();
+        app.focus = PanelFocus::Category;
+        app.apply_resize(100, 30);
+        assert!(!app.narrow_mode);
+        assert_eq!(app.focus, PanelFocus::Category);
+        assert_eq!(app.terminal_size, Some((100, 30)));
+    }
+
+    #[test]
+    fn keyboard_navigation_still_works_in_narrow_terminal() {
+        let mut app = sample_app();
+        app.apply_resize(40, 30);
+        assert_eq!(app.focus, PanelFocus::Tool);
+        // `h`/`←` dar modda odak değiştirmez.
+        app.handle_key(key(crossterm::event::KeyCode::Left))
+            .unwrap();
+        assert_eq!(app.focus, PanelFocus::Tool);
+        assert!(app.status_message.contains("gizli"));
+        // `j`/`↓` arak listesinde gezinir.
+        app.handle_key(key(crossterm::event::KeyCode::Down))
+            .unwrap();
+        assert_eq!(app.focus, PanelFocus::Tool);
+    }
+
+    #[test]
+    fn store_tab_enter_on_manual_entry_shows_instructions_without_installing() {
+        let mut app = sample_app();
+        app.handle_key(typed('m')).unwrap();
+        assert!(app.store_tab, "mağaza sekmesi seçili olmalı");
+        assert!(matches!(app.modal, modal::Modal::None));
+        // Odak uygulama listesinde; ilk kayıt (AI kategorisi) `manual`.
+        app.handle_key(key(crossterm::event::KeyCode::Enter))
+            .unwrap();
+        assert_eq!(app.modal, modal::Modal::None, "onay ekranı açılmamalı");
+        assert!(
+            app.status_message.contains("Resmî kurulum yönergesi"),
+            "mesaj: {}",
+            app.status_message
+        );
+        assert!(app.install_job.is_none(), "kurulum başlatılmamalı");
+    }
+
+    #[test]
+    fn store_tab_enter_on_installable_entry_asks_for_confirmation() {
+        let mut app = sample_app();
+        app.handle_key(typed('m')).unwrap();
+        // Mağaza kategori paneline geç: "Dosya ve Arama"
+        // (AI → Git → Dosya ve Arama).
+        app.handle_key(key(crossterm::event::KeyCode::Left))
+            .unwrap();
+        assert_eq!(app.focus, PanelFocus::StoreCategory);
+        app.handle_key(typed('j')).unwrap();
+        app.handle_key(typed('j')).unwrap();
+        assert_eq!(app.selected_store_category(), "Dosya ve Arama");
+        // Uygulama listesine geç ve ilk kaydı (ripgrep) kur.
+        app.handle_key(typed('l')).unwrap();
+        assert_eq!(app.focus, PanelFocus::StoreApp);
+        app.handle_key(key(crossterm::event::KeyCode::Enter))
+            .unwrap();
+        match &app.modal {
+            modal::Modal::Confirm {
+                question,
+                action: modal::ConfirmAction::InstallStoreApp { id, .. },
+            } => {
+                assert!(question.contains("SHA-256"), "soru: {question}");
+                assert_eq!(id, "ripgrep");
+            }
+            other => panic!("onay ekranı bekleniyordu: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn store_tab_is_the_last_row_of_the_category_list() {
+        let mut app = sample_app();
+        app.focus = PanelFocus::Category;
+        // Son araç kategorisinden bir satır aşağı inince mağaza sekmesi seçilir.
+        app.category_index = CATEGORIES.len() - 1;
+        app.handle_key(typed('j')).unwrap();
+        assert!(app.store_tab);
+        assert_eq!(app.selected_tab_index(), CATEGORIES.len());
+        // Mağaza sekmesinden bir satır yukarı inince son araç kategorisine dönülür.
+        app.handle_key(typed('k')).unwrap();
+        assert!(!app.store_tab);
+        assert_eq!(app.category_index, CATEGORIES.len() - 1);
+    }
+
+    #[test]
+    fn store_tab_focus_chain_moves_between_three_panels() {
+        let mut app = sample_app();
+        app.handle_key(typed('m')).unwrap();
+        // `m` uygulama listesine odaklanır.
+        assert_eq!(app.focus, PanelFocus::StoreApp);
+        // Sola: mağaza kategorileri, sonra sekme listesi.
+        app.handle_key(typed('h')).unwrap();
+        assert_eq!(app.focus, PanelFocus::StoreCategory);
+        app.handle_key(typed('h')).unwrap();
+        assert_eq!(app.focus, PanelFocus::Category);
+        // Sağa: tekrar mağaza kategorileri ve uygulamalar.
+        app.handle_key(typed('l')).unwrap();
+        assert_eq!(app.focus, PanelFocus::StoreCategory);
+        app.handle_key(typed('l')).unwrap();
+        assert_eq!(app.focus, PanelFocus::StoreApp);
+        // En sağdaki panelde `l` odakı daha ileri taşımaz.
+        app.handle_key(typed('l')).unwrap();
+        assert_eq!(app.focus, PanelFocus::StoreApp);
+    }
+
+    #[test]
+    fn store_tab_search_filters_store_apps() {
+        let mut app = sample_app();
+        app.handle_key(typed('m')).unwrap();
+        app.handle_key(typed('/')).unwrap();
+        assert!(app.search_active);
+        for c in "fzf".chars() {
+            app.handle_key(typed(c)).unwrap();
+        }
+        app.handle_key(key(crossterm::event::KeyCode::Enter))
+            .unwrap();
+        let apps = app.filtered_store_apps();
+        assert!(!apps.is_empty());
+        assert!(apps.iter().any(|e| e.id == "fzf"), "sonuçlar: {apps:?}");
+        assert!(
+            app.status_message.contains("sonuç"),
+            "mesaj: {}",
+            app.status_message
+        );
+    }
+
+    #[test]
+    fn store_tab_leaving_returns_to_tool_categories() {
+        let mut app = sample_app();
+        app.handle_key(typed('m')).unwrap();
+        assert!(app.store_tab);
+        // Sekme listesine dön ve yukarı hareketle mağazadan çık.
+        app.handle_key(typed('h')).unwrap();
+        app.handle_key(typed('h')).unwrap();
+        assert_eq!(app.focus, PanelFocus::Category);
+        app.handle_key(typed('k')).unwrap();
+        assert!(!app.store_tab);
+        // Araç listesi yeniden çizilir; odak zinciri iki panele döner.
+        app.handle_key(typed('l')).unwrap();
+        assert_eq!(app.focus, PanelFocus::Tool);
+    }
+
+    #[test]
+    fn store_tab_u_key_starts_live_version_check() {
+        let mut app = sample_app();
+        app.store_release_provider = Arc::new(FakeProvider::succeeding("9.9.9"));
+        app.handle_key(typed('m')).unwrap();
+        app.handle_key(typed('U')).unwrap();
+        assert!(app.store_check_job.is_some(), "canlı denetim başlamalı");
+        // Nova'nın kendi güncelleme ekranı açılmamalı.
+        assert!(matches!(app.modal, modal::Modal::None));
+    }
+
+    #[test]
+    fn tool_tab_u_key_still_opens_nova_update_check() {
+        let mut app = sample_app();
+        app.handle_key(typed('u')).unwrap();
+        assert!(matches!(app.modal, modal::Modal::UpdateCheck { .. }));
+    }
+
+    #[test]
+    fn start_store_install_refuses_manual_entries() {
+        let mut app = sample_app();
+        app.start_store_install("opencode");
+        assert!(app.install_job.is_none());
+        assert!(
+            app.status_message.contains("Nova kurulum yapmıyor"),
+            "mesaj: {}",
+            app.status_message
+        );
+    }
+
+    #[test]
+    fn start_store_install_reports_unknown_ids() {
+        let mut app = sample_app();
+        app.start_store_install("boyle-bir-uygulama-yok");
+        assert!(app.install_job.is_none());
+        assert!(
+            app.status_message.contains("bulunamadı"),
+            "mesaj: {}",
+            app.status_message
+        );
+    }
+
+    /// Canlı sürüm denetimi için sahte sağlayıcı.
+    struct FakeProvider {
+        releases: std::sync::Mutex<BTreeMap<String, Result<ResolvedRelease, String>>>,
+        calls: std::sync::atomic::AtomicUsize,
+        fallback: Option<Result<ResolvedRelease, String>>,
+    }
+
+    impl FakeProvider {
+        fn new(releases: Vec<(String, Result<ResolvedRelease, String>)>) -> Self {
+            Self {
+                releases: std::sync::Mutex::new(releases.into_iter().collect()),
+                calls: std::sync::atomic::AtomicUsize::new(0),
+                fallback: None,
+            }
+        }
+
+        fn calls(&self) -> usize {
+            self.calls.load(std::sync::atomic::Ordering::Relaxed)
+        }
+
+        /// Her depo için aynı başarılı sonucu döndüren sahte sağlayıcı.
+        fn succeeding(version: &str) -> Self {
+            let release = resolved(version);
+            Self {
+                releases: std::sync::Mutex::new(BTreeMap::new()),
+                calls: std::sync::atomic::AtomicUsize::new(0),
+                fallback: Some(Ok(release)),
+            }
+        }
+    }
+
+    impl ReleaseProvider for FakeProvider {
+        fn resolve(
+            &self,
+            source: &crate::store::manifest::ReleaseSource,
+            _etag: Option<&str>,
+        ) -> Result<crate::store::manifest::ConditionalRelease, String> {
+            self.calls
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            // Depo adını kimlik olarak kullanırız: testler tek uygulama için
+            // çalışır.
+            let key = source.repo.clone();
+            let result = match self.releases.lock().unwrap().get(&key) {
+                Some(Ok(release)) => Ok(release.clone()),
+                Some(Err(e)) => Err(e.clone()),
+                None => match &self.fallback {
+                    Some(Ok(release)) => Ok(release.clone()),
+                    Some(Err(e)) => Err(e.clone()),
+                    None => Err("bilinmeyen depo".into()),
+                },
+            };
+            result.map(
+                |release| crate::store::manifest::ConditionalRelease::Fresh {
+                    release,
+                    etag: None,
+                },
+            )
+        }
+    }
+
+    fn resolved(version: &str) -> ResolvedRelease {
+        ResolvedRelease {
+            version: version.into(),
+            download_url: format!("https://example.org/{version}.tar.gz"),
+            checksum: "c".repeat(64),
+            checksum_url: format!("https://example.org/{version}.sha256"),
+        }
+    }
+
+    /// Arka plandaki denetimin bitmesini bekler.
+    fn wait_for_store_check(app: &mut App) {
+        for _ in 0..400 {
+            app.poll_store_check();
+            if app.store_check_job.is_none() {
+                return;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+    }
+
+    /// Testlere özel, çakışmayan önbellek dosyası.
+    fn test_cache_path(tag: &str) -> PathBuf {
+        let dir = crate::store::test_store_dir();
+        let path = dir.join(format!("manifest-cache-{tag}.toml"));
+        let _ = std::fs::remove_file(&path);
+        path
+    }
+
+    #[test]
+    fn store_update_check_finds_newer_versions() {
+        let cache_path = test_cache_path("yeni");
+        let mut app = sample_app();
+        app.store_cache_path = Some(cache_path.clone());
+        app.store_release_provider = Arc::new(FakeProvider::new(vec![(
+            "BurntSushi/ripgrep".into(),
+            Ok(resolved("99.0.0")),
+        )]));
+
+        app.check_store_updates();
+        wait_for_store_check(&mut app);
+
+        let release = app.store_update_for("ripgrep").expect("çözüm bulunmalı");
+        assert_eq!(release.version, "99.0.0");
+        assert!(
+            app.status_message.contains("yeni sürüm"),
+            "mesaj: {}",
+            app.status_message
+        );
+        // Diğer depolar sahte sağlayıcıda çözülemez; hata olarak raporlanır.
+        assert!(
+            app.store_check_errors.contains_key("fzf"),
+            "çözülemeyen depolar hata olarak görünmeli"
+        );
+        let _ = std::fs::remove_file(&cache_path);
+    }
+
+    #[test]
+    fn store_update_check_reports_unreachable_repos() {
+        let cache_path = test_cache_path("hata");
+        let mut app = sample_app();
+        app.store_cache_path = Some(cache_path.clone());
+        app.store_release_provider = Arc::new(FakeProvider::new(vec![(
+            "BurntSushi/ripgrep".into(),
+            Err("ağ hatası".into()),
+        )]));
+
+        app.check_store_updates();
+        wait_for_store_check(&mut app);
+
+        assert!(app.store_update_for("ripgrep").is_none());
+        assert!(
+            app.store_check_errors.contains_key("ripgrep"),
+            "hata kaydedilmeli"
+        );
+        assert!(
+            app.status_message.contains("denetlenemedi"),
+            "mesaj: {}",
+            app.status_message
+        );
+        let _ = std::fs::remove_file(&cache_path);
+    }
+
+    #[test]
+    fn store_update_check_uses_the_cache_without_network() {
+        let cache_path = test_cache_path("onbellek");
+        let mut app = sample_app();
+        let provider = Arc::new(FakeProvider::succeeding("99.0.0"));
+        app.store_release_provider = provider.clone();
+        app.store_cache_path = Some(cache_path.clone());
+
+        app.check_store_updates();
+        wait_for_store_check(&mut app);
+        let first_calls = provider.calls();
+        assert!(first_calls > 0, "ilk denetim ağa çıkmalı");
+
+        // İkinci denetim taze önbellekten okumalı; sağlayıcıya gitmemeli.
+        let mut app2 = sample_app();
+        app2.store_release_provider = provider.clone();
+        app2.store_cache_path = Some(cache_path.clone());
+        app2.check_store_updates();
+        wait_for_store_check(&mut app2);
+        assert_eq!(provider.calls(), first_calls, "önbellek kullanılmalıydı");
+        assert_eq!(
+            app2.store_update_for("ripgrep").map(|r| r.version.clone()),
+            Some("99.0.0".to_string())
+        );
+
+        let _ = std::fs::remove_file(&cache_path);
+    }
+
+    #[test]
+    fn store_update_without_a_resolved_version_is_refused() {
+        let mut app = sample_app();
+        app.start_store_update("ripgrep");
+        assert!(app.install_job.is_none());
+        assert!(
+            app.status_message.contains("denetle"),
+            "mesaj: {}",
+            app.status_message
+        );
+    }
+
+    /// Koşullu istekte alınan `ETag`'i kaydeden sahte sağlayıcı.
+    struct EtagProvider {
+        seen: std::sync::Mutex<Vec<Option<String>>>,
+    }
+
+    impl EtagProvider {
+        fn new() -> Self {
+            Self {
+                seen: std::sync::Mutex::new(Vec::new()),
+            }
+        }
+    }
+
+    impl ReleaseProvider for EtagProvider {
+        fn resolve(
+            &self,
+            _source: &crate::store::manifest::ReleaseSource,
+            etag: Option<&str>,
+        ) -> Result<crate::store::manifest::ConditionalRelease, String> {
+            self.seen.lock().unwrap().push(etag.map(str::to_string));
+            Ok(crate::store::manifest::ConditionalRelease::Fresh {
+                release: resolved("1.0.0"),
+                etag: Some("W/\"v1\"".into()),
+            })
+        }
+    }
+
+    #[test]
+    fn stale_cache_is_revalidated_with_the_etag() {
+        let cache_path = test_cache_path("etag");
+        let mut app = sample_app();
+        let provider = Arc::new(EtagProvider::new());
+        app.store_release_provider = provider.clone();
+        app.store_cache_path = Some(cache_path.clone());
+
+        // İlk denetim: önbellek boş, koşullu istek yapılmaz.
+        app.check_store_updates();
+        wait_for_store_check(&mut app);
+        assert_eq!(
+            provider.seen.lock().unwrap().first().cloned().flatten(),
+            None,
+            "ilk denetimde ETag yoktur"
+        );
+
+        // Önbelleği bayatlat: `checked_at` eskiye çekilir.
+        let mut cache = manifest::load_cache(&cache_path);
+        for entry in cache.entries.values_mut() {
+            entry.checked_at = 0;
+        }
+        manifest::save_cache(&cache_path, &cache).unwrap();
+
+        // İkinci denetim: bayat önbellek, koşullu istek atılmalı.
+        let mut app2 = sample_app();
+        app2.store_release_provider = provider.clone();
+        app2.store_cache_path = Some(cache_path.clone());
+        app2.check_store_updates();
+        wait_for_store_check(&mut app2);
+
+        let seen = provider.seen.lock().unwrap().clone();
+        // Her denetim izlenen 6 uygulama için bir çağrı yapar.
+        let tracked = 6usize;
+        assert!(
+            seen.len() >= tracked * 2,
+            "iki denetim de çağrı yapmalı: {}",
+            seen.len()
+        );
+        // İlk denetim koşullu değildir (önbellek boş).
+        assert!(
+            seen[..tracked].iter().all(|e| e.is_none()),
+            "ilk denetimde ETag gönderilmemeli"
+        );
+        // İkinci denetim bayat önbelleği ETag ile doğrular.
+        assert!(
+            seen[tracked..]
+                .iter()
+                .all(|e| e.as_deref() == Some("W/\"v1\"")),
+            "bayat önbellek ETag ile doğrulanmalı: {:?}",
+            &seen[tracked..]
+        );
+
+        let _ = std::fs::remove_file(&cache_path);
     }
 }

@@ -7,7 +7,7 @@
 //! "kurulu değil" bilgisi vermemek için gereklidir.
 
 use std::io::ErrorKind;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 /// Bir komutun kurulu olma durumu.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -49,9 +49,26 @@ pub fn resolve(cmd: &str) -> (InstalledStatus, Option<PathBuf>) {
         return (InstalledStatus::Unknown, None);
     }
 
+    // `~/yol` biçimindeki girdiler ev dizinine göre çözülür. PATH'te olmayan
+    // bir dosya yolu (`~/.minimax-code/bin/mcode` gibi) için de bu genişletme
+    // gerekir; `~` yoksa veya `HOME` tanımlıysa orijinal hâl korunur.
+    let expanded = if let Some(rest) = trimmed.strip_prefix("~/") {
+        match std::env::var_os("HOME") {
+            Some(home) if !home.is_empty() => PathBuf::from(home).join(rest),
+            _ => PathBuf::from(rest),
+        }
+    } else if trimmed == "~" {
+        std::env::var_os("HOME")
+            .filter(|h| !h.is_empty())
+            .map(PathBuf::from)
+            .unwrap_or_default()
+    } else {
+        PathBuf::from(trimmed)
+    };
+
     // Komut doğrudan bir yol ise (içinde '/' var) varlığına bak.
-    if trimmed.contains('/') {
-        let path = Path::new(trimmed);
+    if expanded.as_os_str().to_string_lossy().contains('/') {
+        let path = &expanded;
         return match std::fs::metadata(path) {
             Ok(meta) if is_executable(&meta) => {
                 (InstalledStatus::Installed, Some(path.to_path_buf()))
@@ -73,10 +90,36 @@ pub fn resolve(cmd: &str) -> (InstalledStatus, Option<PathBuf>) {
 
     match which::which(trimmed) {
         Ok(path) => (InstalledStatus::Installed, Some(path)),
-        Err(which::Error::CannotFindBinaryPath) => (InstalledStatus::Missing, None),
+        Err(which::Error::CannotFindBinaryPath) => {
+            // PATH'te yoksa Nova mağazasından kurulan uygulamalara bak:
+            // mağaza, uygulamayı `<store>/<id>/bin/` altına kurar.
+            match resolve_in_store(trimmed) {
+                Some(path) => (InstalledStatus::Installed, Some(path)),
+                None => (InstalledStatus::Missing, None),
+            }
+        }
         // Yetki hatası gibi diğer tüm durumlar "kontrol edilemedi" sayılır.
         Err(_) => (InstalledStatus::Unknown, None),
     }
+}
+
+/// Mağazadan kurulan bir uygulamanın çalıştırılabilir dosyasını bulur.
+///
+/// Nova mağaza uygulamalarını `$XDG_DATA_HOME/nova/store/<id>/bin/` altına
+/// kurar. Bu dizin PATH'te olmadığı için normal PATH araması onları bulamaz;
+/// burada mağaza dizini taranır.
+fn resolve_in_store(cmd: &str) -> Option<PathBuf> {
+    let store_dir = crate::store::store_install_dir()?;
+    let entries = std::fs::read_dir(&store_dir).ok()?;
+    for entry in entries.flatten() {
+        let candidate = entry.path().join("bin").join(cmd);
+        if let Ok(meta) = std::fs::metadata(&candidate) {
+            if is_executable(&meta) {
+                return Some(candidate);
+            }
+        }
+    }
+    None
 }
 
 /// Unix'te çalıştırılabilirlik bitini kontrol eder.
@@ -158,6 +201,26 @@ mod tests {
     }
 
     #[test]
+    fn store_installed_binary_is_detected() {
+        // Mağazadan kurulan uygulamalar PATH'te olmasa da "kurulu" görünmeli.
+        let store = crate::store::test_store_dir();
+        let app_dir = store.join("test-detect-app");
+        let bin = app_dir.join("bin");
+        std::fs::create_dir_all(&bin).unwrap();
+        let exe = bin.join("nova-test-probe");
+        std::fs::write(&exe, b"x").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&exe, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        let (status, path) = resolve("nova-test-probe");
+        assert_eq!(status, InstalledStatus::Installed);
+        assert_eq!(path, Some(exe));
+        let _ = std::fs::remove_dir_all(&app_dir);
+    }
+
+    #[test]
     fn detect_many_returns_pairs() {
         let result = detect_many(&["sh", "bu-comut-yok-xyz"]);
         assert_eq!(result.len(), 2);
@@ -170,5 +233,23 @@ mod tests {
         assert_eq!(InstalledStatus::Installed.symbol(), "✓");
         assert_eq!(InstalledStatus::Missing.label(), "Kurulu değil");
         assert_eq!(InstalledStatus::Unknown.label(), "Kontrol edilemedi");
+    }
+
+    #[test]
+    fn tilde_expands_to_home() {
+        let home = std::env::var_os("HOME")
+            .filter(|h| !h.is_empty())
+            .expect("HOME gerekli");
+        let test_file = PathBuf::from(home.as_os_str()).join(".nova-tilde-test-file");
+        std::fs::write(&test_file, "x").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&test_file, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        let (status, path) = resolve("~/.nova-tilde-test-file");
+        assert_eq!(status, InstalledStatus::Installed);
+        assert_eq!(path.as_deref(), Some(test_file.as_path()));
+        let _ = std::fs::remove_file(&test_file);
     }
 }

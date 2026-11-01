@@ -6,6 +6,7 @@
 //! ilgili tüm mantık [`nova::terminal_guard`] içindedir; bu dosya yalnızca
 //! onu sıraya koyar.
 
+use crossterm::event::EnableMouseCapture;
 use crossterm::terminal::{enable_raw_mode, EnterAlternateScreen};
 use crossterm::ExecutableCommand;
 use nova::app::App;
@@ -26,6 +27,10 @@ fn enter_terminal(guard: &mut TerminalGuard<CrosstermState>) -> Result<(), NovaE
     guard.mark_alternate_screen_attempted();
     stdout()
         .execute(EnterAlternateScreen)
+        .map_err(terminal_guard::raw_mode_error)?;
+    guard.mark_mouse_capture_attempted();
+    stdout()
+        .execute(EnableMouseCapture)
         .map_err(terminal_guard::raw_mode_error)?;
     Ok(())
 }
@@ -125,6 +130,7 @@ fn run() -> Result<(), NovaError> {
     }
     // Başlangıç terminal boyutuna göre dar/geniş modu ayarla.
     if let Ok(size) = terminal.size() {
+        app.terminal_size = Some((size.width, size.height));
         app.narrow_mode = size.width < nova::ui::WIDE_MIN_WIDTH;
         if app.narrow_mode {
             app.focus = nova::app::PanelFocus::Tool;

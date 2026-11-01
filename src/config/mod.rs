@@ -143,6 +143,15 @@ pub struct ToolEntry {
     /// Bir alternatif ise, asıl aracın kimliği (örn. `gdu` → `duf`).
     #[serde(default)]
     pub alternative_to: Option<String>,
+    /// Doğrulanmış kullanım örnekleri / kısayollar (katalog metaverisi).
+    /// Kullanıcı açıkça başlatmadıkça Nova bunları çalıştırmaz.
+    #[serde(default)]
+    pub examples: Vec<String>,
+    /// Kabuk entegrasyonu veya ek kurulum bilgisi (ör. shell entegrasyonu
+    /// kurulum talimatları). Gömülü katalogdan veya kullanıcı yapılandırmasından
+    /// gelir; Nova tarafından yürütülmez.
+    #[serde(default)]
+    pub setup_info: Option<String>,
 }
 
 /// Bir katalog girişinin nereden geldiği.

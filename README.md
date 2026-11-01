@@ -14,8 +14,8 @@ Konsole sekmesinde** başlatmayı isteyen küçük bir TUI launcher'dır.
 
 - Terminal araçlarının (opencode, btop, fzf, rg, duf…) katalogu üzerinde klavyeyle
   gezinen, arayan, favorileyen bir başlatıcı.
-- Kurulu olmayan araçları görünür tutan, hiçbir şeyi kendiliğinden kurmayan bir
-  araç.
+- Doğrulanabilir yayın özeti (SHA-256) olan araçları **kullanıcı alanına** indirip
+  kuran bir mağaza.
 - Kataloğu koddan ayrı tutan (TOML) ve kullanıcının kendi araçlarını eklemesine
   izin veren bir yapı.
 
@@ -23,7 +23,11 @@ Konsole sekmesinde** başlatmayı isteyen küçük bir TUI launcher'dır.
 
 - Araçların yerine geçmez; `btop`, `yazi`, `lazygit` gibi programları yeniden
   yazmaz, işlevlerini içine kopyalamaz.
-- Paket yöneticisi değildir: kurmaz, güncellemez, `sudo` istemez.
+- Sistem paket yöneticisi değildir: `sudo`/root istemez, sistem dizinlerine
+  yazmaz, `apt`/`pacman`/`dnf` çağırmaz. Yalnızca kullanıcı alanına kurar.
+- Güvenlik kanalı yoktur: indirilen betikleri `curl | sh` gibi kabuk üzerinden
+  çalıştırmaz. Dosyayı indirir, **SHA-256 özetini doğrular**, sonra güvenli
+  biçimde çıkarır.
 - Genel amaçlı bir görev yöneticisi, dosya yöneticisi ya da terminal emülatörü
   değildir.
 - Konsole dışındaki terminal emülatörlerini şu an kullanmaz (bkz. [Bilinen
@@ -42,6 +46,12 @@ Konsole sekmesinde** başlatmayı isteyen küçük bir TUI launcher'dır.
 - Kullanıcı yapılandırması (`config.toml`) ile gömülü kataloğun `id` bazında
   birleşmesi; Nova'nın yazdığı ayrı durum dosyası (`state.toml`).
 - Nova içinden yeni özel araç ekleme (doğrulama + gözden geçirme ekranı).
+- **Mağaza**: sol paneldeki sekme listesinin son satırıdır; oradan seçilince
+  ekran üç sütuna döner (kategoriler | mağaza kategorileri | uygulamalar).
+  Doğrulanabilir yayın özeti olan uygulamalar SHA-256 doğrulamasıyla kullanıcı
+  alanına kurulur, diğerleri resmî kurulum yönergesini gösterir.
+- **Canlı sürüm takibi**: mağazada `U` ile GitHub Releases denetimi; yeni
+  sürümler gösterilir ve güncellenebilir.
 - Dar terminal desteği (tek sütun, minimum ekranlar) ve panik durumunda
   terminali geri yükleme.
 
@@ -108,6 +118,9 @@ araçları (`$HOME`, `PATH`, `konsole`, `less`/`more`) ve KDE Konsole'dur.
 | `r`/`R` | Başlatma geçmişini gösterir (içinde `X` + onay temizler) |
 | `p`/`P` | Proje dizini seçicisi (içinde `A` ekle, `D` listeden çıkar, `Enter` etkinleştir) |
 | `s`/`S` | Varsayılan terminali ve çalışma dizinini düzenler; dosya yollarını gösterir |
+| `m`/`M` | Mağaza sekmesine atlar (kısayol; asıl yol sol paneldeki "Mağaza" satırı) — bkz. [Mağaza](#mağaza) |
+| `u`/`U` | Nova güncellemelerini denetler; mağaza sekmesindeyken mağaza uygulamalarının canlı sürümlerini denetler |
+| `o`/`O` | Dosya seçici (seçilen dosya medya uygulamasıyla açılır) |
 | `n`/`N` | Yeni özel araç formu |
 | `d`/`D` | Özel aracı siler (onay ister) |
 | `?` | Klavye yardımı, dosya yolları ve etkin çalışma dizini |
@@ -321,11 +334,132 @@ dönülür.
 - `config.toml` araçları Nova'da "silinince" dosyadan silinmez, `hidden_tools`
   içine eklenir.
 
+## Mağaza
+
+Mağaza, uygulama kataloğundan **ayrı** bir listedir (`assets/store.toml`) ve
+ayrı bir ekran (modal) değildir: **sol paneldeki sekme listesinin son satırıdır.**
+Sekme seçildiğinde ekran üç sütuna döner:
+
+```
+┌ Kategoriler ────────┐ ┌ Mağaza Kategorileri ┐ ┌ Dosya ve Arama ──────┐
+│▶ AI                 │ │▶ AI            (3) │ │ ▶ ✓ ripgrep (rg)     │
+│  Git                │ │  Git           (1) │ │   ✓ fzf              │
+│  …                  │ │  Dosya ve Arama(4)│ │   · eza              │
+│  Mağaza (19)        │ │  Sistem       (2) │ │   · bat              │
+└─────────────────────┘ └───────────────────┘ └──────────────────────┘
+```
+
+- **Sol sütun** her zaman sekme listesidir: sekiz araç kategorisi ve en altta
+  "Mağaza".
+- **Orta sütun** mağaza kategorilerini, **sağ sütun** o kategorideki
+  uygulamaları gösterir. Altta mağaza detayı yer alır (sürüm, kurulum durumu,
+  canlı takip, kaynak, lisans).
+- `m` tuşu doğrudan mağaza sekmesine atlar (kısayoldur; asıl yol sekme
+  listesidir). `h`/`l` (ya da `←`/`→`) paneller arasında gezinir, `↑`/`↓`
+  seçimi taşır.
+- Dar terminalde üç sütun yan yana sığmaz; mağaza kategorileri üste,
+  uygulamalar alta yerleşir.
+
+Uygulamalar kategoriye ve ada göre aranabilir (`/`); detay ekranında ne işe
+yaradığı, kaynağı, lisansı, sürümü, kurulu olup olmadığı ve desteklenen kurulum
+yöntemi gösterilir.
+
+### İki kurulum yöntemi
+
+| Yöntem | Anlamı | Nova ne yapar |
+|--------|--------|---------------|
+| `download_archive` | Upstream doğrulanabilir bir yayın özeti yayımlıyor | İndirir, **SHA-256 özetini doğrular**, güvenle çıkarır, kullanıcı alanına kurar |
+| `manual` | Upstream doğrulanabilir özet yayımlamıyor | Kurulum yapmaz; resmî kurulum yönergesini gösterir |
+
+`download_archive` kaydı **mutlaka** `download_url` ve `checksum` içermelidir;
+eksik bir kayıt katalog yüklenirken reddedilir. Böylece "Kur" düğmesi yalnızca
+gerçekten doğrulanabilir bir indirme için görünür.
+
+### Şu anda indirilebilir olan uygulamalar
+
+| Uygulama | Sürüm | Platform |
+|----------|-------|----------|
+| [ripgrep](https://github.com/BurntSushi/ripgrep) | 15.2.0 | linux-x64 (musl) |
+| [fzf](https://github.com/junegunn/fzf) | 0.74.5 | linux-x64 |
+| [eza](https://github.com/eza-community/eza) | 0.23.5 | linux-x64 (musl) |
+| [lazygit](https://github.com/jesseduffield/lazygit) | 0.66.2 | linux-x64 |
+| [lazydocker](https://github.com/jesseduffield/lazydocker) | 0.25.2 | linux-x64 |
+| [duf](https://github.com/muesli/duf) | 0.9.1 | linux-x64 |
+
+Özetler upstream'in kendi yayın checksum dosyalarından alınmıştır
+(ripgrep/fzf için `SHA256SUMS`, lazygit/lazydocker/duf için `checksums.txt`,
+eza için yayın notları) ve Nova tarafından **indirilen dosyanın özetiyle
+karşılaştırılarak** doğrulanır.
+
+### Kurulum akışı
+
+1. Mağazada uygulama seçilir, `Enter` ile **onay** istenir (uygulama, sürüm,
+   kaynak, hedef dizin ve yapılacak işlemler gösterilir).
+2. Arşiv indirilir. İndirme arka planda yürür; Nova'nın ana döngüsü
+   kilitlenmez, durum satırında ilerleme görünür.
+3. **SHA-256 özeti doğrulanır.** Uyuşmazlıkta kurulum durur ve **hiçbir dosya
+   yazılmaz**.
+4. Arşiv geçici bir dizine çıkarılır: mutlak yollar ve `..` bileşenleri
+   reddedilir, sembolik bağ oluşturulmaz, girdi sayısı ve toplam boyut
+   sınırlıdır.
+5. Çalıştırılabilir dosya bulunur ve `~/.local/share/nova/store/<id>/bin/`
+   altına `0755` izniyle yerleştirilir. Geçici dosyalar silinir.
+
+Kurulum tamamen kullanıcı alanındadır: `sudo`/root yok, sistem dizinlerine
+yazılmaz, sistem paket yöneticisi çağrılmaz, indirilen betik kabuk üzerinden
+çalıştırılmaz. `NOVA_STORE_DIR` ortam değişkeniyle mağaza dizini
+taşınabilir/taşınabilir-kurulum için değiştirilebilir.
+
+Mağazadan kurulan uygulama, PATH'te olmasa bile Nova'da "kurulu" görünür:
+tespit sırasında mağazanın `bin` dizinleri de taranır.
+
+### Canlı sürüm takibi
+
+Mağaza sekmesinde `U` tuşu **canlı sürüm denetimi** yapar: izlenen her uygulamanın
+GitHub deposundaki en güncel yayını sorgulanır ve yeni sürüm varsa mağaza
+detayında "yeni sürüm X → Y" olarak gösterilir. `Enter` ile güncelleme
+onaylanır.
+
+Bu, "uzaktan gelen katalog" **değildir**. Güvenlik modeli şöyledir:
+
+| Ne | Nerden gelir | Değiştirilebilir mi |
+|-----|--------------|---------------------|
+| Hangi depo izlenecek | Gömülü `assets/store.toml` | Hayır — kullanıcı değiştiremez, ağ da değiştiremez |
+| Arşiv dosyasının adı | Gömülü katalog | Hayır |
+| En güncel sürüm | GitHub Releases API | Yalnızca ipucu |
+| SHA-256 özeti | **Upstream'in kendi** checksum dosyası (ya da yayın notları) | Hayır |
+
+Yani ağdan gelen veri yalnızca "şu sürümü kontrol et" demektir; çalıştırılacak
+dosyanın bütünlüğü upstream'in yayımladığı özetle korunur. Upstream özeti
+değiştirilmeden tek bir bayt bile kurulamaz.
+
+Mağaza kataloğu ise **gömülü kalır**; Nova'nın kendi deposundan uzaktan
+okunmaz. Yeni bir mağaza uygulaması eklemek Nova'nın güncellenmesiyle olur,
+sürüm numarasının tazeliği ise `U` tuşu ve önbellek döngüsüyle sağlanır. Bu,
+bütünlüğün tek bir güvenlik sınırından (upstream özeti) geçmesini korumak için
+bilinçli bir tercihtir.
+
+Denetim sonuçları `~/.local/share/nova/store/manifest-cache.toml` dosyasında
+6 saat saklanır; önbellek tazeyse API'ye hiç gidilmez — hız sınırı koruması
+buradan gelir. Tekrarlı denetimler ayrıca `ETag` ile **koşullu** yapılır ve
+`304 Not Modified` döndüğünde gövde indirilmez; ancak `304` yanıtları da
+sınırdan düştüğü için tekrarlar ücretsiz sayılmaz.
+
+GitHub'ın kimliksiz API sınırı IP başına saatte 60 istektir. Sınıra takılırsanız
+`GITHUB_TOKEN` ortam değişkenini ayarlayarak kimlikli isteklerle (saatte 5000)
+sınırı yükseltebilirsiniz; Nova bu değişkeni kendiliğinden kullanır.
+
 ## Güvenlik modeli
 
 - Program ve argümanlar **ayrı ayrı** geçirilir; kullanıcı girdisinden kabuk
   komutu birleştirilmez. Kabuk (`sh -c`) hiç çalıştırılmaz.
-- `sudo` kullanılmaz, kurulum yapılmaz, sistem dosyaları değiştirilmez.
+- `sudo` kullanılmaz, sistem dosyaları değiştirilmez.
+- Mağaza kurulumu **yalnızca kullanıcı alanına** yapılır; hedef dizin
+  `$HOME` altında ya da Nova'nın kendi veri dizininde olmalıdır, aksi hâlde
+  güvenlik hatasıyla reddedilir.
+- İndirilen arşiv **doğrulanmadan** çalıştırılmaz ve hiçbir yere yazılmaz.
+- Arşiv çıkarımı yol geçişi (path traversal), sembolik bağ ve aşırı boyut
+  denemelerine karşı korumalıdır.
 - Katalogdaki sabit metinler dışında hiçbir program Nova tarafından
   "bilgi toplamak için" çalıştırılmaz.
 - Kalıcı kullanıcı verisi `$XDG_CONFIG_HOME/nova/state.toml` dosyasına (değişken
@@ -336,7 +470,9 @@ dönülür.
 
 **Sınır:** Nova, kullanıcının yazdığı programın güvenli olduğunu kanıtlamaz;
 o program senin kullanıcı yetkilerinle çalışır. Sekme açıldıktan sonra ne
-olduğu Nova'nın denetiminde değildir.
+olduğu Nova'nın denetiminde değildir. Aynı şekilde mağaza, upstream
+checksum'ının **doğru** olduğunu varsayar; Nova yalnızca indirilen dosyanın
+o özetle birebir eşleştiğini doğrular.
 
 ## Bilinen sınırlamalar
 
@@ -344,6 +480,13 @@ olduğu Nova'nın denetiminde değildir.
   olsa bile `konsole` aranır ve yoksa başlatma reddedilir.
 - Sekmenin açıldığı **doğrulanmaz**; mesaj "istendi" der.
 - `background` / `detached` başlatma yoktur.
+- Mağaza kataloğu **canlı takip edilen** uygulamalar için GitHub Releases
+  üzerinden denetlenebilir; ancak denetim **kullanıcı isteğine bağlıdır**,
+  otomatik olarak yapılmaz. Denetim 6 saatlik önbellekle sınırlıdır.
+- GitHub'ın kimliksiz API sınırı IP başına saatte 60 istektir; sınıra
+  takılırsanız `GITHUB_TOKEN` ayarlayın (Nova bunu kendiliğinden kullanır).
+- Mağazadaki 13 uygulama `manual` yöntemdedir (upstream doğrulanabilir özet
+  yayımlamıyor); onlar için resmî yönerge gösterilir, kurulum yapılmaz.
 - `config.toml` içindeki `[ui] theme` alanı okunur ama **henüz uygulanmaz**
   (tek tema vardır).
 - **Asgari Rust sürümü doğrulanmadı** (bkz. Gereksinimler); yalnızca 1.99.1

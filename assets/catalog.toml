@@ -46,6 +46,8 @@ name = "OpenCode"
 category = "AI ve Kodlama"
 executable = "opencode"
 description = "Terminalde çalışan açık kaynaklı yapay zekâ kodlama asistanı."
+examples = ["opencode", "opencode --help"]
+setup_info = "Kullanmak için terminalde 'opencode' yazın; ilk çalıştırmada kimlik doğrulama istenir."
 
 [[tools]]
 id = "codex"
@@ -53,6 +55,8 @@ name = "OpenAI Codex CLI"
 category = "AI ve Kodlama"
 executable = "codex"
 description = "OpenAI'nin terminal tabanlı kodlama ajanı."
+examples = ["codex", "codex --help"]
+setup_info = "Kullanmak için terminalde 'codex' yazın; ilk çalıştırmada kimlik doğrulama istenir."
 
 [[tools]]
 id = "claude"
@@ -60,6 +64,17 @@ name = "Claude Code"
 category = "AI ve Kodlama"
 executable = "claude"
 description = "Anthropic'in terminal tabanlı kodlama asistanı."
+examples = ["claude", "claude --help"]
+setup_info = "Kullanmak için terminalde 'claude' yazın; ilk çalıştırmada kimlik doğrulama istenir."
+
+[[tools]]
+id = "minimax-code"
+name = "MiniMax Code"
+category = "AI ve Kodlama"
+executable = "mcode"
+description = "MiniMax'ın terminalde çalışan kodlama asistanı."
+examples = ["mcode"]
+setup_info = "Linux'ta PATH'te veya ~/.minimax-code/bin/mcode konumunda bulunur."
 
 [[tools]]
 id = "lazygit"
@@ -67,6 +82,7 @@ name = "lazygit"
 category = "Git ve Geliştirici Araçları"
 executable = "lazygit"
 description = "Git işlemleri için klavye odaklı terminal arayüzü."
+examples = ["lazygit", "lazygit --config-path=/path/to/config.yml"]
 
 # ---------------------------------------------------------------------------
 # Sistem ve Kaynak Kullanımı
@@ -78,6 +94,7 @@ name = "btop"
 category = "Sistem ve Kaynak Kullanımı"
 executable = "btop"
 description = "CPU, bellek, disk ve ağ kullanımını grafik olarak izler."
+examples = ["btop"]
 
 [[tools]]
 id = "fastfetch"
@@ -85,6 +102,7 @@ name = "fastfetch"
 category = "Sistem ve Kaynak Kullanımı"
 executable = "fastfetch"
 description = "Sistem bilgilerini logoyla birlikte hızlıca özetler."
+examples = ["fastfetch"]
 
 [[tools]]
 id = "procs"
@@ -92,6 +110,7 @@ name = "procs"
 category = "Sistem ve Kaynak Kullanımı"
 executable = "procs"
 description = "Renkli ve okunaklı süreç listesi; `ps`ye modern alternatif."
+examples = ["procs"]
 
 [[tools]]
 id = "btm"
@@ -100,6 +119,7 @@ category = "Sistem ve Kaynak Kullanımı"
 executable = "btm"
 description = "Grafiksel sistem izleyici; btop'a alternatif."
 alternative_to = "btop"
+examples = ["btm"]
 
 [[tools]]
 id = "dust"
@@ -107,6 +127,7 @@ name = "dust"
 category = "Sistem ve Kaynak Kullanımı"
 executable = "dust"
 description = "Dizinlerin disk kullanımını ağaç biçiminde sıralar."
+examples = ["dust"]
 
 [[tools]]
 id = "duf"
@@ -114,6 +135,7 @@ name = "duf"
 category = "Sistem ve Kaynak Kullanımı"
 executable = "duf"
 description = "Diskleri ve doluluk oranlarını tablo hâlinde gösterir."
+examples = ["duf"]
 
 # ---------------------------------------------------------------------------
 # Dosya Yönetimi ve Arama
@@ -125,6 +147,7 @@ name = "spf"
 category = "Dosya Yönetimi ve Arama"
 executable = "spf"
 description = "Hızlı, klavye odaklı terminal dosya yöneticisi."
+examples = ["spf"]
 
 [[tools]]
 id = "yazi"
@@ -132,6 +155,7 @@ name = "Yazi"
 category = "Dosya Yönetimi ve Arama"
 executable = "yazi"
 description = "Görsel önizlemeli, hızlı terminal dosya yöneticisi."
+examples = ["yazi"]
 
 [[tools]]
 id = "gdu"
@@ -140,6 +164,7 @@ category = "Dosya Yönetimi ve Arama"
 executable = "gdu"
 description = "Disk kullanımını etkileşimli gezerek incele; duf'a alternatif."
 alternative_to = "duf"
+examples = ["gdu"]
 
 [[tools]]
 id = "fzf"
@@ -147,6 +172,7 @@ name = "fzf"
 category = "Dosya Yönetimi ve Arama"
 executable = "fzf"
 description = "Bulanık arama aracı; tek başına çalışır, Ctrl+T/Ctrl+R/Alt+C kısayolları için kabuk entegrasyonu gerekir."
+examples = ["fzf"]
 
 [[tools]]
 id = "rg"
@@ -168,6 +194,7 @@ ripgrep (rg) — dosya içeriğinde arama
 Nova ripgrep'i bu sekmeye kendiliğinden bir desen vermeden başlatmaz;
 kullanmak için terminalde yukarıdaki komutlardan birini yaz.
 """
+examples = ["rg <desen>", "rg -i <desen>", "rg -l <desen>"]
 
 [[tools]]
 id = "fd"
@@ -187,6 +214,7 @@ fd — dosya adında arama
 
 Nova fd'yi argümansız başlatmaz; terminalde yukarıdaki komutlardan birini yaz.
 """
+examples = ["fd <desen>", "fd -e rs", "fd -t d <desen>"]
 
 [[tools]]
 id = "bat"
@@ -194,6 +222,7 @@ name = "bat"
 category = "Dosya Yönetimi ve Arama"
 executable = "bat"
 description = "Sözdizimi renklendirmeli dosya görüntüleyici."
+examples = ["bat dosya.txt"]
 
 [[tools]]
 id = "eza"
@@ -201,6 +230,7 @@ name = "eza"
 category = "Dosya Yönetimi ve Arama"
 executable = "eza"
 description = "Renkli ve simgeli dizin listesi; `ls`ye modern alternatif."
+examples = ["eza", "eza -la"]
 
 # ---------------------------------------------------------------------------
 # Ağ ve Bağlantı
@@ -212,6 +242,7 @@ name = "bandwhich"
 category = "Ağ ve Bağlantı"
 executable = "bandwhich"
 description = "Ağ bant genişliğini süreç ve bağlantı bazında gösterir. Yerel arayüzleri izlemek için ek izinler gerekebilir."
+examples = ["bandwhich"]
 
 [[tools]]
 id = "trip"
@@ -230,6 +261,7 @@ Nova bir hedef adres uydurmaz; kullanmak için terminalde
   trip example.com
 biçiminde bir komut yaz.
 """
+examples = ["trip example.com"]
 
 [[tools]]
 id = "cloudflare-speed-test"
@@ -259,6 +291,7 @@ Nova bir hedef uydurmaz; terminalde örneğin
   mtr example.com
 yaz.
 """
+examples = ["mtr example.com"]
 
 [[tools]]
 id = "curl"
@@ -279,6 +312,7 @@ curl — veri transfer aracı
 Nova curl'ü adres vermeden çalıştırmaz; terminalde yukarıdaki biçimlerden
 birini kullan.
 """
+examples = ["curl https://example.com", "curl -I https://example.com"]
 
 # ---------------------------------------------------------------------------
 # Docker ve Sunucu
@@ -290,6 +324,7 @@ name = "lazydocker"
 category = "Docker ve Sunucu"
 executable = "lazydocker"
 description = "Docker konteynerleri, imajları ve günlükleri için terminal arayüzü."
+examples = ["lazydocker"]
 
 [[tools]]
 id = "lazysql"
@@ -297,6 +332,7 @@ name = "lazysql"
 category = "Docker ve Sunucu"
 executable = "lazysql"
 description = "Veritabanlarını gezmek için terminal arayüzü."
+examples = ["lazysql"]
 
 [[tools]]
 id = "ssh"
@@ -324,6 +360,7 @@ args = ["user@host.example"]
 description = "Örnek sunucu bağlantısı"
 launch_kind = "custom_command"
 """
+examples = ["ssh user@host.example", "ssh -p 2222 user@host.example"]
 
 # ---------------------------------------------------------------------------
 # Günlük Terminal Yardımcıları
@@ -348,6 +385,7 @@ Kurulumdan sonra shell yapılandırmanıza ekleyin:
 Entegrasyon olmadan `atuin` komutu geçmişi doldurmaz. Ayrıntılar:
   atuin --help
 """
+setup_info = """Kabuk entegrasyonu için shell yapılandırmanıza 'eval "$(atuin init bash)"' (bash) veya 'eval "$(atuin init zsh)"' (zsh) ekleyin."""
 
 [[tools]]
 id = "tldr"
@@ -366,6 +404,7 @@ tldr — komutların kısa örnekleri
 Ayrıntılı örnek için:
   tldr tar
 """
+examples = ["tldr tar", "tldr --list"]
 
 [[tools]]
 id = "jq"
@@ -384,6 +423,7 @@ jq — JSON işleme
 
 jq standart girdi bekler; dosya veya boru hattı olmadan çalıştırmak anlamsızdır.
 """
+examples = ["jq '.' dosya.json", "jq '.[] | .ad' dosya.json"]
 
 [[tools]]
 id = "yq"
@@ -437,6 +477,7 @@ entegrasyonudur.
 
 Olmadan Nova'dan başlatmak anlamlı bir çıktı üretmez.
 """
+setup_info = """.gitconfig dosyasına [core] pager = delta ekleyin."""
 
 # ---------------------------------------------------------------------------
 # Özel Araçlar

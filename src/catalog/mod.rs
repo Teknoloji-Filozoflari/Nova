@@ -87,6 +87,11 @@ pub struct CatalogEntry {
     pub info_text: Option<String>,
     /// Bir alternatifse asıl aracın kimliği.
     pub alternative_to: Option<String>,
+    /// Doğrulanmış kullanım örnekleri / kısayollar (katalog metaverisi).
+    /// Kullanıcı açıkça başlatmadıkça Nova bunları çalıştırmaz.
+    pub examples: Vec<String>,
+    /// Kabuk entegrasyonu veya ek kurulum bilgisi. Nova tarafından yürütülmez.
+    pub setup_info: Option<String>,
     /// Favori durumu.
     pub favorite: bool,
     /// Çalıştırılabilir dosyanın PATH üzerinden bulunduğu durumda `Some(path)`.
@@ -130,6 +135,8 @@ impl CatalogEntry {
             handlers: Vec::new(),
             info_text: None,
             alternative_to: None,
+            examples: Vec::new(),
+            setup_info: None,
             favorite,
             status,
             resolved_path,
@@ -219,6 +226,12 @@ impl CatalogEntry {
         if user.alternative_to.is_some() {
             self.alternative_to = user.alternative_to.clone();
         }
+        if !user.examples.is_empty() {
+            self.examples = user.examples.clone();
+        }
+        if user.setup_info.is_some() {
+            self.setup_info = user.setup_info.clone();
+        }
         self.favorite = user.favorite;
         self.refresh_status();
         Ok(())
@@ -246,6 +259,9 @@ impl CatalogEntry {
         normalize(&self.name).contains(normalized_query)
             || normalize(&self.executable).contains(normalized_query)
             || normalize(&self.category).contains(normalized_query)
+            || short_category_name(&self.category)
+                .map(|s| normalize(s).contains(normalized_query))
+                .unwrap_or(false)
             || normalize(&self.description).contains(normalized_query)
     }
 }
@@ -279,6 +295,36 @@ pub const CATEGORIES: &[&str] = &[
     "Günlük Terminal Yardımcıları",
     "Özel Araçlar",
 ];
+
+/// Görünümde gösterilen kısa kategori adları (sadece UI). `CATEGORIES`
+/// kimlikleri ve yapılandırma dosyaları değişmez; yalnızca ekranda gösterilen
+/// ad kısaltılır. Sırası `CATEGORIES` ile aynıdır.
+pub const SHORT_CATEGORY_NAMES: &[&str] = &[
+    "AI",
+    "Git",
+    "Dosya",
+    "Sistem",
+    "Ağ",
+    "Docker",
+    "Yardımcılar",
+    "Özel",
+];
+
+/// Tam kategori adından kısa görünen adı döner; eşleşme yoksa `None`.
+pub fn short_category_name(full: &str) -> Option<&'static str> {
+    CATEGORIES
+        .iter()
+        .position(|c| *c == full)
+        .and_then(|i| SHORT_CATEGORY_NAMES.get(i).copied())
+}
+
+/// Kısa görünen adından tam kategori adını döner; eşleşme yoksa `None`.
+pub fn category_from_short(short: &str) -> Option<&'static str> {
+    SHORT_CATEGORY_NAMES
+        .iter()
+        .position(|s| *s == short)
+        .and_then(|i| CATEGORIES.get(i).copied())
+}
 
 /// TOML'daki çalışma dizini alanlarından bir seçim üretir.
 ///
@@ -355,14 +401,11 @@ pub fn catalog_entry_from_tool(t: &ToolEntry) -> Result<CatalogEntry, String> {
     } else {
         t.executable.clone()
     };
-    // Program adı PATH üzerinde aranır; yol ayıracı veya mutlak yol içeren
-    // bir "ad" birleştirme anahtarı olarak yanıltıcı olur.
-    if executable.contains('/') {
-        return Err(format!(
-            "'{}' için 'executable' yalnızca program adı olmalı (yol değil): '{}'",
-            t.id, executable
-        ));
-    }
+    // `executable` bir program adı (`ssh`) veya mutlak dosya yolu
+    // (`~/.minimax-code/bin/mcode`) olabilir. `detection::resolve` PATH'te
+    // arar ve `/` içeren bir girdi için dosya varlığı ve çalıştırılabilirliği
+    // güvenli bir şekilde kontrol eder; çalıştırılmadan önce her şey
+    // doğrulanır.
     for arg in &t.args {
         // Argümanlar kabuk olmadan ayrı ayrı geçirilir; boş bir argüman
         // genellikle yazım hatasıdır ve programa beklenmedik bir değer gider.
@@ -411,6 +454,8 @@ pub fn catalog_entry_from_tool(t: &ToolEntry) -> Result<CatalogEntry, String> {
     entry.handlers = t.handlers.clone();
     entry.info_text = t.info_text.clone();
     entry.alternative_to = t.alternative_to.clone();
+    entry.examples = t.examples.clone();
+    entry.setup_info = t.setup_info.clone();
     Ok(entry)
 }
 
@@ -680,11 +725,13 @@ mod tests {
     }
 
     #[test]
-    fn executable_must_be_a_program_name_not_a_path() {
+    fn executable_can_be_a_path_to_a_file() {
         let mut t = tool("x", "Özel Araçlar");
         t.executable = "/usr/bin/x".into();
-        let err = catalog_entry_from_tool(&t).unwrap_err();
-        assert!(err.contains("program adı"), "{err}");
+        // `/` içeren executable artık hata vermez; detection::resolve dosya
+        // yoksa Missing durumunda bırakır, ancak giriş oluşturulur.
+        let entry = catalog_entry_from_tool(&t).unwrap();
+        assert_eq!(entry.executable, "/usr/bin/x");
     }
 
     #[test]
@@ -868,5 +915,30 @@ mod tests {
         let msg = err.to_string();
         assert!(msg.contains("lazygit"), "{msg}");
         assert!(msg.contains("/nova/yok/boyle/dizin"), "{msg}");
+    }
+
+    #[test]
+    fn short_category_names_round_trip_with_full_names() {
+        let pairs = [
+            ("AI ve Kodlama", "AI"),
+            ("Git ve Geliştirici Araçları", "Git"),
+            ("Dosya Yönetimi ve Arama", "Dosya"),
+            ("Sistem ve Kaynak Kullanımı", "Sistem"),
+            ("Ağ ve Bağlantı", "Ağ"),
+            ("Docker ve Sunucu", "Docker"),
+            ("Günlük Terminal Yardımcıları", "Yardımcılar"),
+            ("Özel Araçlar", "Özel"),
+        ];
+        for (full, short) in pairs {
+            assert_eq!(short_category_name(full), Some(short), "kısa ad: {full}");
+            assert_eq!(category_from_short(short), Some(full), "tam ad: {short}");
+        }
+    }
+
+    #[test]
+    fn unknown_short_category_name_returns_none() {
+        assert_eq!(short_category_name("Yok Böyle Bir Şey"), None);
+        assert_eq!(category_from_short("Yok"), None);
+        assert_eq!(category_from_short(""), None);
     }
 }

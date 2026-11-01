@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 const RAW_MODE_ATTEMPTED: u8 = 1;
 const ALTERNATE_SCREEN_ATTEMPTED: u8 = 2;
+const MOUSE_CAPTURED: u8 = 4;
 
 /// Terminal hazırlığında geri alınması gereken adımları paylaşır.
 ///
@@ -35,6 +36,10 @@ impl TerminalProgress {
     fn mark_alternate_screen_attempted(&self) {
         self.0
             .fetch_or(ALTERNATE_SCREEN_ATTEMPTED, Ordering::SeqCst);
+    }
+
+    fn mark_mouse_capture_attempted(&self) {
+        self.0.fetch_or(MOUSE_CAPTURED, Ordering::SeqCst);
     }
 
     fn take(&self) -> u8 {
@@ -55,6 +60,8 @@ pub trait TerminalState {
     fn disable_raw_mode(&mut self) -> std::io::Result<()>;
     /// Alt ekrandan çıkar.
     fn leave_alternate_screen(&mut self) -> std::io::Result<()>;
+    /// Fare yakalamasını kapatır.
+    fn disable_mouse_capture(&mut self) -> std::io::Result<()>;
 }
 
 /// Gerçek terminali `stdout` üzerinden geri yükler.
@@ -69,6 +76,10 @@ impl TerminalState for CrosstermState {
     fn leave_alternate_screen(&mut self) -> std::io::Result<()> {
         crossterm::execute!(std::io::stdout(), crossterm::terminal::LeaveAlternateScreen)
     }
+
+    fn disable_mouse_capture(&mut self) -> std::io::Result<()> {
+        crossterm::execute!(std::io::stdout(), crossterm::event::DisableMouseCapture)
+    }
 }
 
 /// Terminali eski durumuna döndürür.
@@ -79,6 +90,10 @@ impl TerminalState for CrosstermState {
 /// başarısız olsa bile sıradaki işaretli adım çalıştırılır.
 pub fn restore_terminal<S: TerminalState>(state: &mut S, progress: &TerminalProgress) {
     let attempted = progress.take();
+    // Fare yakalaması önce kapatılır; diğer adımlar etkilenmesin.
+    if attempted & MOUSE_CAPTURED != 0 {
+        let _ = state.disable_mouse_capture();
+    }
     if attempted & RAW_MODE_ATTEMPTED != 0 {
         let _ = state.disable_raw_mode();
     }
@@ -221,6 +236,11 @@ impl<S: TerminalState> TerminalGuard<S> {
         self.progress.mark_alternate_screen_attempted();
     }
 
+    /// Fare yakalaması açıldığında çağrılır.
+    pub fn mark_mouse_capture_attempted(&self) {
+        self.progress.mark_mouse_capture_attempted();
+    }
+
     /// Panic hook'un aynı hazırlık durumunu izlemesini sağlar.
     pub fn progress(&self) -> TerminalProgress {
         self.progress.clone()
@@ -274,6 +294,11 @@ mod tests {
             self.log.lock().unwrap().push("alt-off");
             Ok(())
         }
+
+        fn disable_mouse_capture(&mut self) -> std::io::Result<()> {
+            self.log.lock().unwrap().push("mouse-off");
+            Ok(())
+        }
     }
 
     /// Çağrıları kaydeden taklit terminal.
@@ -281,6 +306,7 @@ mod tests {
         log: Rc<RefCell<Vec<&'static str>>>,
         fail_raw: bool,
         fail_alt: bool,
+        fail_mouse: bool,
     }
 
     impl FakeState {
@@ -291,6 +317,7 @@ mod tests {
                     log: log.clone(),
                     fail_raw: false,
                     fail_alt: false,
+                    fail_mouse: false,
                 },
                 log,
             )
@@ -310,6 +337,14 @@ mod tests {
             self.log.borrow_mut().push("alt-off");
             if self.fail_alt {
                 return Err(std::io::Error::other("alt"));
+            }
+            Ok(())
+        }
+
+        fn disable_mouse_capture(&mut self) -> std::io::Result<()> {
+            self.log.borrow_mut().push("mouse-off");
+            if self.fail_mouse {
+                return Err(std::io::Error::other("mouse"));
             }
             Ok(())
         }
@@ -352,6 +387,28 @@ mod tests {
         assert!(!guard.is_active());
         drop(guard);
         assert_eq!(*log.borrow(), vec!["raw-off", "alt-off"]);
+    }
+
+    #[test]
+    fn drop_restores_mouse_capture_exactly_once() {
+        let (state, log) = FakeState::new();
+        {
+            let guard = TerminalGuard::new(state);
+            guard.mark_mouse_capture_attempted();
+        }
+        assert_eq!(*log.borrow(), vec!["mouse-off"]);
+    }
+
+    #[test]
+    fn failing_mouse_step_does_not_skip_raw_and_alt() {
+        let (mut state, log) = FakeState::new();
+        state.fail_mouse = true;
+        let progress = TerminalProgress::default();
+        progress.mark_mouse_capture_attempted();
+        progress.mark_raw_mode_attempted();
+        progress.mark_alternate_screen_attempted();
+        restore_terminal(&mut state, &progress);
+        assert_eq!(*log.borrow(), vec!["mouse-off", "raw-off", "alt-off"]);
     }
 
     #[test]

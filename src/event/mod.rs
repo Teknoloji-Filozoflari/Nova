@@ -9,6 +9,8 @@ use std::time::Duration;
 pub enum Event {
     /// Klavyeden bir tuş basıldı.
     Key(crossterm::event::KeyEvent),
+    /// Fare ile etkileşim (tıklama / kaydırma).
+    Mouse(crossterm::event::MouseEvent),
     /// Terminal yeniden boyutlandırıldı.
     Resize(u16, u16),
     /// Uygulamanın çıkması isteniyor.
@@ -32,6 +34,7 @@ impl EventReader {
                         Ok(Some(Event::Ignored))
                     }
                 }
+                crossterm::event::Event::Mouse(mouse) => Ok(Some(Event::Mouse(mouse))),
                 crossterm::event::Event::Resize(w, h) => Ok(Some(Event::Resize(w, h))),
                 _ => Ok(Some(Event::Ignored)),
             }

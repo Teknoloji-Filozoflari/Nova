@@ -318,10 +318,12 @@ fn unknown_category_is_rejected_with_valid_list() {
 }
 
 #[test]
-fn path_like_executable_is_rejected() {
-    let tool = user_tool("yol", "/usr/bin/true");
-    let err = catalog_entry_from_tool(&tool).unwrap_err();
-    assert!(err.contains("program adı"), "{err}");
+fn path_like_executable_is_allowed() {
+    let tool = user_tool("yol", "/bu/yol/kesinlikle/yok/xyz");
+    // `/` içeren executable artık hata vermez; detection::resolve dosya
+    // yoksa Missing durumunda bırakır, ancak giriş oluşturulur.
+    let entry = catalog_entry_from_tool(&tool).unwrap();
+    assert_eq!(entry.executable, "/bu/yol/kesinlikle/yok/xyz");
 }
 
 #[test]
@@ -548,4 +550,105 @@ fn launch_hint_explains_non_interactive_kinds() {
     assert!(help.contains("araç çalıştırılmaz"), "{help}");
     let info = cat.get_by_id("atuin").unwrap().launch_hint().unwrap();
     assert!(info.contains("kabuk entegrasyonu"), "{info}");
+}
+
+// ---------------------------------------------------------------------------
+// Kısa kategori adları ile arama
+// ---------------------------------------------------------------------------
+
+#[test]
+fn search_matches_short_category_name() {
+    let cat = builtin_catalog();
+    let ai_by_short: Vec<&str> = cat.search("AI").iter().map(|e| e.id.as_str()).collect();
+    let ai_by_full: Vec<&str> = cat
+        .search("AI ve Kodlama")
+        .iter()
+        .map(|e| e.id.as_str())
+        .collect();
+    // Kısa ve tam kategori adı aynı AI & Kodlama aracılarını döndürmeli.
+    assert_eq!(ai_by_short, ai_by_full);
+    assert!(ai_by_short.contains(&"opencode"));
+    assert!(ai_by_short.contains(&"codex"));
+    assert!(ai_by_short.contains(&"claude"));
+
+    let git_by_short: Vec<&str> = cat.search("Git").iter().map(|e| e.id.as_str()).collect();
+    assert!(git_by_short.contains(&"lazygit"));
+}
+
+#[test]
+fn search_is_case_insensitive_for_short_names() {
+    let cat = builtin_catalog();
+    let lower = cat
+        .search("ai")
+        .iter()
+        .map(|e| e.id.as_str())
+        .collect::<Vec<_>>();
+    let upper = cat
+        .search("AI")
+        .iter()
+        .map(|e| e.id.as_str())
+        .collect::<Vec<_>>();
+    assert_eq!(lower, upper);
+    assert!(!lower.is_empty());
+}
+
+// ---------------------------------------------------------------------------
+// Katalog metaverisi (örnekler ve kurulum bilgisi)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn catalog_entries_have_examples_and_setup_info() {
+    let cat = builtin_catalog();
+
+    // opencode: örnekler ve kurulum bilgisi var.
+    let opencode = cat.get_by_id("opencode").unwrap();
+    assert!(!opencode.examples.is_empty());
+    assert!(opencode.examples.contains(&"opencode".to_string()));
+    assert!(opencode.examples.contains(&"opencode --help".to_string()));
+    assert!(opencode.setup_info.is_some());
+    assert!(opencode
+        .setup_info
+        .as_deref()
+        .unwrap()
+        .contains("kimlik doğrulama"));
+
+    // rg: örnekler var.
+    let rg = cat.get_by_id("rg").unwrap();
+    assert!(!rg.examples.is_empty());
+    assert!(rg.examples.contains(&"rg <desen>".to_string()));
+    assert!(rg.examples.contains(&"rg -i <desen>".to_string()));
+
+    // atuin: setup_info var (kabuk entegrasyonu).
+    let atuin = cat.get_by_id("atuin").unwrap();
+    assert!(atuin.setup_info.is_some());
+    assert!(atuin
+        .setup_info
+        .as_deref()
+        .unwrap()
+        .contains("Kabuk entegrasyonu"));
+
+    // delta: setup_info var.
+    let delta = cat.get_by_id("delta").unwrap();
+    assert!(delta.setup_info.is_some());
+    assert!(delta
+        .setup_info
+        .as_deref()
+        .unwrap()
+        .contains("pager = delta"));
+
+    // Biraz örnekli olmayan bir araç (btop): examples boş olabilir ama setup_info yok.
+    let btop = cat.get_by_id("btop").unwrap();
+    assert!(btop.examples.contains(&"btop".to_string()));
+}
+
+#[test]
+fn catalog_entry_examples_are_verified_not_invented() {
+    let cat = builtin_catalog();
+    // Tüm örnekler katalog metaverisi olarak tutulur; Nova bunları çalıştırmaz.
+    for entry in cat.entries() {
+        for example in &entry.examples {
+            // Örnek boş olmamalı, kabuk karakteri içerememeli.
+            assert!(!example.is_empty(), "boş örnek: {}", entry.id);
+        }
+    }
 }

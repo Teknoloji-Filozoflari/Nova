@@ -101,6 +101,20 @@ pub struct Prefs {
         rename = "recent_limit"
     )]
     pub recent_limit_value: Option<usize>,
+    /// Arayüz teması (ör. `"varsayılan"`, `"karanlık"`). `None` ise sistem
+    /// varsayılanı kullanılır.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub theme: Option<String>,
+    /// Varsayılan AI komut satırı aracının katalog kimliği (`id`).
+    /// Yalnızca kurulu olan AI kategorisindeki araçlar seçilebilir.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_ai_tool: Option<String>,
+    /// Resim dosyaları için varsayılan uygulama (katalog `id` veya executable adı).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_image_app: Option<String>,
+    /// Video dosyaları için varsayılan uygulama (katalog `id` veya executable adı).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_video_app: Option<String>,
 }
 
 impl StateFile {

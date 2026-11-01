@@ -7,13 +7,16 @@
 
 use super::truncate;
 use crate::app::form::{Field, ToolForm, FIELD_ORDER};
-use crate::app::modal::Modal;
+use crate::app::modal::{Modal, UpdateStatus};
 use crate::app::state::relative_time;
 use crate::app::App;
+use crate::file_picker::FilePickerState;
+use crate::update::{GitHubRelease, UpdateCheck, Version};
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, Clear, Paragraph, Wrap};
+use ratatui::widgets::ListState;
+use ratatui::widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap};
 use ratatui::Frame;
 
 /// Modallar için en fazla kutu genişliği.
@@ -50,6 +53,10 @@ pub fn draw(f: &mut Frame, app: &App) {
         Modal::Settings {
             preferred_terminal,
             default_working_dir,
+            theme,
+            default_ai_tool,
+            default_image_app,
+            default_video_app,
             focus,
             error,
         } => draw_settings(
@@ -58,10 +65,282 @@ pub fn draw(f: &mut Frame, app: &App) {
             app,
             preferred_terminal,
             default_working_dir,
+            theme,
+            default_ai_tool,
+            default_image_app,
+            default_video_app,
             *focus,
             error.as_deref(),
         ),
+        Modal::FilePicker { state } => draw_file_picker(f, area, state),
+        Modal::UpdateCheck {
+            status,
+            check,
+            error,
+        } => draw_update_check(f, area, status, check.as_ref(), error.as_deref()),
+        Modal::UpdateConfirm {
+            current,
+            latest,
+            release,
+        } => draw_update_confirm(f, area, current, latest, release),
     }
+}
+
+/// Güncelleme onay ekranını çizer.
+fn draw_update_confirm(
+    f: &mut Frame,
+    area: Rect,
+    current: &Version,
+    latest: &Version,
+    release: &GitHubRelease,
+) {
+    let inner_w = area.width.saturating_sub(2) as usize;
+    let mut lines: Vec<Line> = Vec::new();
+
+    lines.push(Line::from(Span::styled(
+        "Güncelleme onayı",
+        Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD),
+    )));
+    lines.push(Line::from(""));
+    lines.push(Line::from(vec![
+        Span::styled("Mevcut: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(current.to_string(), Style::default().fg(Color::White)),
+    ]));
+    lines.push(Line::from(vec![
+        Span::styled("Yeni: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(latest.to_string(), Style::default().fg(Color::White)),
+    ]));
+    lines.push(Line::from(Span::styled(
+        format!("Yayın notları: {}", truncate(&release.body, inner_w)),
+        Style::default().fg(Color::Gray),
+    )));
+    lines.push(Line::from(vec![
+        Span::styled("Kaynak: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            truncate(&release.html_url, inner_w.saturating_sub(10)),
+            Style::default().fg(Color::Blue),
+        ),
+    ]));
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        "Enter: kurulum onayı   Esc: kapat",
+        Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD),
+    )));
+
+    let list = List::new(lines.into_iter().map(ListItem::new).collect::<Vec<_>>()).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan))
+            .title(" Güncelleme onayı "),
+    );
+    f.render_widget(list, area);
+}
+
+/// Güncelleme denetim ekranını çizer.
+fn draw_update_check(
+    f: &mut Frame,
+    area: Rect,
+    status: &UpdateStatus,
+    check: Option<&UpdateCheck>,
+    error: Option<&str>,
+) {
+    let inner_w = area.width.saturating_sub(2) as usize;
+    let mut lines: Vec<Line> = Vec::new();
+
+    match status {
+        UpdateStatus::Idle => {
+            lines.push(Line::from(Span::styled(
+                "Güncellemeleri denetlemek için Enter'a basın.",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(""));
+            if let Some(current) = current_version() {
+                lines.push(Line::from(vec![
+                    Span::styled("Mevcut sürüm: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled(current.to_string(), Style::default().fg(Color::White)),
+                ]));
+            }
+        }
+        UpdateStatus::Checking => {
+            lines.push(Line::from(Span::styled(
+                "Güncellemeler denetleniyor...",
+                Style::default().fg(Color::Yellow),
+            )));
+        }
+        UpdateStatus::Done => match check {
+            Some(UpdateCheck::UpToDate { current }) => {
+                lines.push(Line::from(Span::styled(
+                    "Güncelleme yok; sürüm zaten güncel.",
+                    Style::default().fg(Color::Green),
+                )));
+                lines.push(Line::from(vec![
+                    Span::styled("Sürüm: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled(current.to_string(), Style::default().fg(Color::White)),
+                ]));
+            }
+            Some(UpdateCheck::UpdateAvailable {
+                current,
+                latest,
+                release,
+            }) => {
+                lines.push(Line::from(Span::styled(
+                    "Güncelleme mevcut!",
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
+                )));
+                lines.push(Line::from(vec![
+                    Span::styled("Mevcut: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled(current.to_string(), Style::default().fg(Color::White)),
+                ]));
+                lines.push(Line::from(vec![
+                    Span::styled("Yeni: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled(latest.to_string(), Style::default().fg(Color::White)),
+                ]));
+                lines.push(Line::from(Span::styled(
+                    format!("Yayın notları: {}", truncate(&release.body, inner_w)),
+                    Style::default().fg(Color::Gray),
+                )));
+                lines.push(Line::from(vec![
+                    Span::styled("Kaynak: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled(
+                        truncate(&release.html_url, inner_w.saturating_sub(10)),
+                        Style::default().fg(Color::Blue),
+                    ),
+                ]));
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    "Enter: kurulum onayı   Esc: kapat",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )));
+            }
+            None => {
+                lines.push(Line::from(Span::styled(
+                    "Denetim sonucu yok.",
+                    Style::default().fg(Color::Yellow),
+                )));
+            }
+            Some(UpdateCheck::Error(msg)) => {
+                lines.push(Line::from(Span::styled(
+                    format!("Denetim hatası: {msg}"),
+                    Style::default().fg(Color::Red),
+                )));
+            }
+        },
+    }
+
+    if let Some(err) = error {
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            format!("Hata: {err}"),
+            Style::default().fg(Color::Red),
+        )));
+    }
+
+    let list = List::new(lines.into_iter().map(ListItem::new).collect::<Vec<_>>()).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan))
+            .title(" Güncellemeleri denetle "),
+    );
+    f.render_widget(list, area);
+}
+
+/// Mevcut sürümü `CARGO_PKG_VERSION`'dan döner.
+fn current_version() -> Option<Version> {
+    Version::parse(env!("CARGO_PKG_VERSION")).ok()
+}
+
+/// Dosya seçici ekranını çizer: mevcut dizin, dosya/dizin listesi ve ipuç çubuğu.
+fn draw_file_picker(f: &mut Frame, area: Rect, state: &FilePickerState) {
+    let inner_w = area.width.saturating_sub(2) as usize;
+    let items: Vec<ListItem> = state
+        .entries
+        .iter()
+        .enumerate()
+        .map(|(i, entry)| {
+            let selected = i == state.selected;
+            let focused = selected;
+            let style = if focused {
+                Style::default()
+                    .bg(Color::Cyan)
+                    .fg(Color::Black)
+                    .add_modifier(Modifier::BOLD)
+            } else if entry.is_dir {
+                Style::default().fg(Color::Cyan)
+            } else {
+                Style::default()
+            };
+            let prefix = if selected { "▶ " } else { "  " };
+            let marker = if entry.is_dir { "📁 " } else { "📄 " };
+            let name = truncate(
+                &format!("{marker}{}", entry.name),
+                inner_w.saturating_sub(4),
+            );
+            ListItem::new(Line::from(vec![
+                Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
+                Span::styled(name, style),
+            ]))
+        })
+        .collect();
+
+    let title = format!(
+        " {} ({}) ",
+        truncate(
+            &state.current_dir.to_string_lossy(),
+            area.width.saturating_sub(10) as usize,
+        ),
+        state.entries.len()
+    );
+
+    let list = List::new(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Cyan))
+                .title(title),
+        )
+        .highlight_style(
+            Style::default()
+                .bg(Color::Cyan)
+                .fg(Color::Black)
+                .add_modifier(Modifier::BOLD),
+        )
+        .highlight_symbol("▶ ");
+    let mut state_list = ListState::default();
+    if !state.entries.is_empty() {
+        state_list.select(Some(state.selected));
+    }
+    f.render_stateful_widget(list, area, &mut state_list);
+
+    if let Some(err) = &state.error {
+        let err_area = Rect::new(area.x, area.y.saturating_sub(1), area.width, 1);
+        f.render_widget(
+            Paragraph::new(Line::from(Span::styled(
+                format!("Hata: {err}"),
+                Style::default().fg(Color::Red),
+            ))),
+            err_area,
+        );
+    }
+
+    let hint = "↑↓: gezin   ←/h: yukarı   →/l: gir   Enter: seç   Esc: kapat";
+    let hint_area = Rect::new(area.x, area.y, area.width, 1);
+    f.render_widget(
+        Paragraph::new(Line::from(Span::styled(
+            hint,
+            Style::default().fg(Color::DarkGray),
+        ))),
+        hint_area,
+    );
 }
 
 /// Kutuyu temizleyip kenarlıkla çizer.
@@ -366,12 +645,17 @@ fn draw_history(f: &mut Frame, screen: Rect, app: &App) {
     f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
+#[allow(clippy::too_many_arguments)]
 fn draw_settings(
     f: &mut Frame,
     screen: Rect,
     app: &App,
     preferred_terminal: &str,
     default_working_dir: &str,
+    theme: &str,
+    default_ai_tool: &str,
+    default_image_app: &str,
+    default_video_app: &str,
     focus: usize,
     error: Option<&str>,
 ) {
@@ -386,6 +670,38 @@ fn draw_settings(
                 "(boş: ev dizini)"
             } else {
                 default_working_dir
+            },
+        ),
+        (
+            "Tema",
+            if theme.is_empty() {
+                "(varsayılan)"
+            } else {
+                theme
+            },
+        ),
+        (
+            "Varsayılan AI aracı",
+            if default_ai_tool.is_empty() {
+                "(seçilmedi)"
+            } else {
+                default_ai_tool
+            },
+        ),
+        (
+            "Varsayılan resim uygulaması",
+            if default_image_app.is_empty() {
+                "(seçilmedi)"
+            } else {
+                default_image_app
+            },
+        ),
+        (
+            "Varsayılan video uygulaması",
+            if default_video_app.is_empty() {
+                "(seçilmedi)"
+            } else {
+                default_video_app
             },
         ),
     ]

@@ -189,6 +189,7 @@ pub fn load_default() -> Result<Catalog, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::detection::InstalledStatus;
 
     const MINI: &str = r#"
 [[tools]]
@@ -627,20 +628,23 @@ favorite = true
     }
 
     #[test]
-    fn path_like_executable_is_rejected() {
+    fn path_like_executable_is_allowed() {
         let builtin = parse_source("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry {
                 id: "yol".into(),
                 category: "Özel Araçlar".into(),
-                executable: "/usr/bin/sh".into(),
+                executable: "/bu/yol/kesinlikle/yok/xyz".into(),
                 ..ToolEntry::default()
             }],
             ..UserConfig::default()
         };
-        let err = merge_with_user(builtin, &user).unwrap_err();
-        assert!(err.contains("yol"), "{err}");
-        assert!(err.contains("program adı"), "{err}");
+        // `/` içeren executable artık hata vermez; detection::resolve dosya
+        // yoksa Missing durumunda bırakır, ancak giriş oluşturulur.
+        let cat = merge_with_user(builtin, &user).unwrap();
+        let entry = cat.get_by_id("yol").unwrap();
+        assert_eq!(entry.executable, "/bu/yol/kesinlikle/yok/xyz");
+        assert_eq!(entry.status, InstalledStatus::Missing);
     }
 
     #[test]
