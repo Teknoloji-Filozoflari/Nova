@@ -1,30 +1,27 @@
 //! Mağaza kurulum güvenliği modülü.
 //!
-//! Kurulum yalnızca kullanıcı alanına yapılır. `sudo`, root yetkisi, sistem
-//! dizinlerine yazma ve sistem paket yöneticisiyle kurulum yoktur. Uzaktan
-//! indirilen betikler varsayılan olarak shell üzerinden çalıştırılmaz
-//! (`curl | sh` vb. yok). Program ve argümanlar ayrı ayrı geçirilir, shell
-//! komutu birleştirilmez. Arşiv açılırken yol geçişi ve dosya üzerine yazma
-//! saldırılarına karşı koruma sağlanır.
+//! İki kurulum yolu vardır:
 //!
-//! Kurulum akışı:
-//!
-//! 1. Arşiv indirilir (geçici dosya, kullanıcı alanı).
-//! 2. **SHA-256 özeti doğrulanır.** Uyuşmazlık kurulumu keser.
-//! 3. Arşiv geçici bir dizine çıkarılır; yol geçişi, sembolik bağ ve
-//!    aşırı boyut denemeleri reddedilir.
-//! 4. Çalıştırılabilir dosya bulunur ve `<store>/<id>/bin/` altına taşınır.
-//! 5. Geçici dosyalar silinir.
+//! 1. **Arşiv (`download_archive`)**: yalnızca kullanıcı alanına. `sudo` /
+//!    sistem dizinlerine yazma yok. Uzaktan betik shell üzerinden
+//!    çalıştırılmaz (`curl | sh` yok). SHA-256 doğrulanır; arşiv yol geçişi
+//!    korumalıdır.
+//! 2. **Paket yöneticisi (`pipx`/`npm`/`cargo`/`brew`/`apt`)**: katalogdaki
+//!    `install_command` argv'si, kullanıcı onayından sonra **kabuksuz**
+//!    çalıştırılır. `sh -c` / `curl | bash` kabul edilmez. `apt` için
+//!    `sudo` argv'nin parçası olabilir; parola/TTY gerekirse kurulum
+//!    anlaşılır hata ile düşer (sessiz yükseltme yok).
 //!
 //! Testlerde gerçek ağ veya dosya sistemi erişimi olmadan davranışı sınamak
 //! için [`Downloader`] ve [`Installer`] trait'leri taklit edilebilir.
 
-use crate::store::StoreEntry;
+use crate::store::{format_install_command, validate_install_command, InstallMethod, StoreEntry};
 use sha2::{Digest, Sha256};
 use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::io::Read;
 use std::path::{Component, Path, PathBuf};
+use std::process::Command;
 
 /// Bir arşivden çıkarılacak en fazla dosya sayısı (zip bomb koruması).
 const MAX_ENTRIES: usize = 10_000;
@@ -457,26 +454,52 @@ fn resolve_existing_prefix(path: &Path) -> Option<PathBuf> {
 pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
     let install_dir = crate::store::store_app_dir(&entry.id).unwrap_or_else(|| PathBuf::from("."));
     let mut actions = Vec::new();
-    actions.push(format!(
-        "'{}' indirilecek ve '{}' dizinine çıkarılacak.",
-        entry.name,
-        install_dir.display()
-    ));
-    actions.push(format!(
-        "Executable: '{}' (ayrı argüman olarak çalıştırılacak, kabuk yok).",
-        entry.executable
-    ));
-    if let Some(version) = &entry.version {
-        actions.push(format!("Sürüm: {version}"));
-    }
-    match entry.checksum.as_deref() {
-        Some(sum) => actions.push(format!(
-            "İndirme sonrası SHA-256 checksum doğrulanacak: {}.",
-            sum.to_lowercase()
-        )),
-        None => actions.push(
-            "Uygulama için upstream checksum sağlanmamış; kurulum onay sonrası yürür.".into(),
-        ),
+    if entry.install_method.is_package_manager() {
+        let argv = entry.install_command.as_deref().unwrap_or_default();
+        let rendered = format_install_command(argv);
+        actions.push(format!(
+            "Onay sonrası kabuksuz komut çalıştırılacak: {rendered}"
+        ));
+        actions.push(format!(
+            "Yöntem: {} · executable tespiti: '{}'.",
+            entry.install_method.short_label(),
+            entry.executable
+        ));
+        if entry.install_method == InstallMethod::Apt {
+            actions.push(
+                "apt sistem paket yöneticisidir; sudo parola/TTY isterse kurulum \
+                 başarısız olabilir — o zaman komutu bir terminalde çalıştırın."
+                    .into(),
+            );
+        }
+        if let Some(notes) = entry.install_notes.as_deref() {
+            let alt = notes.lines().take(3).collect::<Vec<_>>().join(" · ");
+            if !alt.is_empty() {
+                actions.push(format!("Notlar: {alt}"));
+            }
+        }
+    } else {
+        actions.push(format!(
+            "'{}' indirilecek ve '{}' dizinine çıkarılacak.",
+            entry.name,
+            install_dir.display()
+        ));
+        actions.push(format!(
+            "Executable: '{}' (ayrı argüman olarak çalıştırılacak, kabuk yok).",
+            entry.executable
+        ));
+        if let Some(version) = &entry.version {
+            actions.push(format!("Sürüm: {version}"));
+        }
+        match entry.checksum.as_deref() {
+            Some(sum) => actions.push(format!(
+                "İndirme sonrası SHA-256 checksum doğrulanacak: {}.",
+                sum.to_lowercase()
+            )),
+            None => actions.push(
+                "Uygulama için upstream checksum sağlanmamış; kurulum onay sonrası yürür.".into(),
+            ),
+        }
     }
     InstallConfirmation {
         app_name: entry.name.clone(),
@@ -487,7 +510,9 @@ pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
     }
 }
 
-/// `entry` uygulamasını `dest_dir` dizinine kurar.
+/// `entry` uygulamasını `dest_dir` dizinine kurar (**arşiv yolu**).
+///
+/// Paket yöneticisi kayıtları için [`install_via_package_manager`] kullanın.
 ///
 /// # Güvenlik kuralları
 ///
@@ -503,9 +528,89 @@ pub fn install_app(
     dest_dir: &Path,
     downloader: &dyn Downloader,
 ) -> Result<InstallOutcome, InstallError> {
+    if entry.install_method.is_package_manager() {
+        return Err(InstallError::Internal(
+            "paket yöneticisi kaydı için install_via_package_manager kullanın".into(),
+        ));
+    }
     let source = InstallSource::from_entry(entry)?;
     let version = entry.version.clone().unwrap_or_default();
     install_with_source(entry, dest_dir, &source, &version, downloader)
+}
+
+/// Katalogdaki `install_command` argv'sini kabuksuz çalıştırır.
+///
+/// Kullanıcı onayı **çağıran** tarafta alınmış olmalıdır. `curl | bash`,
+/// `sh -c` ve benzeri kalıplar [`validate_install_command`] ile reddedilir.
+pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome, InstallError> {
+    if !entry.install_method.is_package_manager() {
+        return Err(InstallError::Security(format!(
+            "'{}' paket yöneticisi yöntemi değil.",
+            entry.name
+        )));
+    }
+    let argv = entry.install_command.as_deref().unwrap_or_default();
+    validate_install_command(entry.install_method, argv).map_err(InstallError::Security)?;
+    let program = &argv[0];
+    let args = &argv[1..];
+
+    // sudo dışındaki programın PATH'te olması gerekir; yoksa anlaşılır hata.
+    let lookup = if program == "sudo" {
+        argv.get(1).map(String::as_str).unwrap_or("apt")
+    } else {
+        program.as_str()
+    };
+    if which::which(lookup).is_err() {
+        return Err(InstallError::Internal(format!(
+            "'{lookup}' bulunamadı (PATH). Alternatifler için install_notes'a bakın."
+        )));
+    }
+
+    let rendered = format_install_command(argv);
+    let output = Command::new(program)
+        .args(args)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .output()
+        .map_err(|e| InstallError::Internal(format!("'{rendered}' başlatılamadı: {e}")))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let detail = if !stderr.trim().is_empty() {
+            stderr.trim().to_string()
+        } else if !stdout.trim().is_empty() {
+            stdout.trim().to_string()
+        } else {
+            format!("çıkış kodu {:?}", output.status.code())
+        };
+        // apt/sudo TTY/parola gibi durumları kullanıcıya açıkça söyle.
+        let hint = if entry.install_method == InstallMethod::Apt {
+            " (sudo parola veya etkileşimli onay gerekebilir; komutu bir terminalde deneyin)"
+        } else {
+            ""
+        };
+        return Err(InstallError::Internal(format!(
+            "'{rendered}' başarısız{hint}: {detail}"
+        )));
+    }
+
+    let install_dir = crate::store::store_app_dir(&entry.id).unwrap_or_else(|| PathBuf::from("."));
+    let executable_path = crate::detection::resolve(&entry.executable)
+        .1
+        .unwrap_or_else(|| PathBuf::from(&entry.executable));
+    Ok(InstallOutcome {
+        app_id: entry.id.clone(),
+        app_name: entry.name.clone(),
+        version: entry.version.clone().unwrap_or_default(),
+        executable_path,
+        install_dir,
+        summary: format!(
+            "'{}' kuruldu ({}): {rendered}",
+            entry.name,
+            entry.install_method.short_label()
+        ),
+    })
 }
 
 /// `entry` uygulamasını **canlı çözülmüş sürümden** kurar veya günceller.
@@ -585,9 +690,10 @@ fn install_with_source(
     version: &str,
     downloader: &dyn Downloader,
 ) -> Result<InstallOutcome, InstallError> {
-    if !entry.install_method.is_installable() {
+    if !entry.install_method.is_archive() {
         return Err(InstallError::Security(format!(
-            "'{}' için Nova kurulum yapmıyor; resmî kurulum yönergelerini takip edin.",
+            "'{}' için arşiv kurulumu yok; resmî kurulum yönergelerini takip edin \
+             veya paket yöneticisi yolunu kullanın.",
             entry.name
         )));
     }
@@ -827,7 +933,29 @@ mod tests {
             checksum_type: Some("sha256".into()),
             version: Some("1.0.0".into()),
             download_url: Some("https://example.org/ornek.tar.gz".into()),
+            install_command: None,
             install_notes: None,
+            release: None,
+        }
+    }
+
+    fn package_entry(method: InstallMethod, argv: Vec<&str>) -> StoreEntry {
+        StoreEntry {
+            id: "ornek-pm".into(),
+            name: "Örnek PM".into(),
+            description: "d".into(),
+            category: "Günlük".into(),
+            source: "https://example.org/".into(),
+            license: "MIT".into(),
+            executable: "ornek-pm".into(),
+            install_method: method,
+            supported_platforms: vec!["linux-x64".into()],
+            checksum: None,
+            checksum_type: None,
+            version: None,
+            download_url: None,
+            install_command: Some(argv.into_iter().map(str::to_string).collect()),
+            install_notes: Some("not".into()),
             release: None,
         }
     }
@@ -1113,6 +1241,49 @@ mod tests {
         assert_eq!(confirm.version, "1.0.0");
         assert!(confirm.actions.iter().any(|a| a.contains("SHA-256")));
         assert!(confirm.actions.iter().any(|a| a.contains("kabuk yok")));
+    }
+
+    #[test]
+    fn prepare_confirmation_for_package_manager_shows_command() {
+        let entry = package_entry(InstallMethod::Pipx, vec!["pipx", "install", "ornek-pm"]);
+        let confirm = prepare_confirmation(&entry);
+        assert!(
+            confirm
+                .actions
+                .iter()
+                .any(|a| a.contains("pipx install ornek-pm")),
+            "{:?}",
+            confirm.actions
+        );
+    }
+
+    #[test]
+    fn package_manager_rejects_curl_bash_argv() {
+        let entry = package_entry(
+            InstallMethod::Pipx,
+            vec!["curl", "-fsSL", "https://x", "|", "bash"],
+        );
+        let err = install_via_package_manager(&entry).unwrap_err();
+        assert!(matches!(err, InstallError::Security(_)), "hata: {err}");
+    }
+
+    #[test]
+    fn package_manager_rejects_manual_method() {
+        let mut entry = package_entry(InstallMethod::Pipx, vec!["pipx", "install", "x"]);
+        entry.install_method = InstallMethod::Manual;
+        let err = install_via_package_manager(&entry).unwrap_err();
+        assert!(matches!(err, InstallError::Security(_)), "hata: {err}");
+    }
+
+    #[test]
+    fn package_manager_reports_missing_program() {
+        let entry = package_entry(
+            InstallMethod::Brew,
+            vec!["brew", "install", "kesinlikle-yok-xyz"],
+        );
+        // brew yoksa erken hata; varsa paket yokluğu da Internal olur.
+        let err = install_via_package_manager(&entry).unwrap_err();
+        assert!(matches!(err, InstallError::Internal(_)), "hata: {err}");
     }
 
     #[test]

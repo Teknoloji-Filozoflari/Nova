@@ -1132,13 +1132,27 @@ impl App {
                 },
             };
         } else if !entry.install_method.is_installable() {
-            // Doğrulanabilir bir yöntemi olmayan uygulamada "Kur" eylemi
-            // sunulmaz; resmî talimat gösterilir.
+            // curl|bash vb. manual kayıtlarda "Kur" sunulmaz; talimat gösterilir.
             let note = entry
                 .install_notes
                 .as_deref()
                 .unwrap_or("resmî kurulum yönergelerini takip edin");
             self.status_message = format!("'{}' için {note}", entry.name);
+        } else if entry.install_method.is_package_manager() {
+            let argv = entry.install_command.as_deref().unwrap_or_default();
+            let cmd = crate::store::format_install_command(argv);
+            self.modal = modal::Modal::Confirm {
+                question: format!(
+                    "'{}' kurulsun mu? Komut ({}) — kabuksuz çalışır: {cmd} \
+                     Enter onaylar, Esc vazgeçer.",
+                    entry.name,
+                    entry.install_method.short_label()
+                ),
+                action: modal::ConfirmAction::InstallStoreApp {
+                    id: entry.id.clone(),
+                    name: entry.name.clone(),
+                },
+            };
         } else {
             self.modal = modal::Modal::Confirm {
                 question: format!(
@@ -1165,8 +1179,9 @@ impl App {
     /// çıkarma ana döngüyü kilitlemez. Sonuç
     /// [`App::poll_install`] ile alınır.
     ///
-    /// Yalnızca `download_archive` yöntemli ve doğrulanabilir kayıtlar
-    /// kurulabilir; `manual` kayıtlarda kullanıcıya resmî talimat gösterilir.
+    /// `download_archive` ve paket yöneticisi (`pipx`/`npm`/`cargo`/`brew`/`apt`)
+    /// kayıtları kurulabilir; `manual` kayıtlarda resmî talimat gösterilir.
+    /// Kurulum her zaman önce onay modalından geçer.
     pub fn start_store_install(&mut self, id: &str) {
         if self.install_job.is_some() {
             self.status_message = "Zaten süren bir kurulum var; önce onun bitmesini bekle.".into();
@@ -1184,13 +1199,38 @@ impl App {
             self.status_message = format!("'{}' için Nova kurulum yapmıyor. {note}", entry.name);
             return;
         }
+
+        let (tx, rx) = mpsc::channel();
+        let app_name = entry.name.clone();
+        let method = entry.install_method;
+
+        if method.is_package_manager() {
+            let cmd = crate::store::format_install_command(
+                entry.install_command.as_deref().unwrap_or_default(),
+            );
+            std::thread::spawn(move || {
+                let result = crate::store::install::install_via_package_manager(&entry)
+                    .map_err(|e| e.to_string());
+                let _ = tx.send(result);
+            });
+            self.install_job = Some(InstallJob {
+                app_id: id.to_string(),
+                app_name: app_name.clone(),
+                receiver: rx,
+            });
+            self.status_message = format!(
+                "'{}' kuruluyor ({}): {cmd}...",
+                app_name,
+                method.short_label()
+            );
+            return;
+        }
+
         let Some(dest_dir) = crate::store::store_app_dir(&entry.id) else {
             self.status_message = "Kurulum dizini belirlenemedi ($HOME bulunamadı).".into();
             return;
         };
 
-        let (tx, rx) = mpsc::channel();
-        let app_name = entry.name.clone();
         std::thread::spawn(move || {
             let downloader = crate::store::http::HttpDownloader::new();
             let result = crate::store::install::install_app(&entry, &dest_dir, &downloader)
@@ -2631,21 +2671,51 @@ mod tests {
     }
 
     #[test]
-    fn store_tab_enter_on_manual_entry_shows_instructions_without_installing() {
+    fn store_tab_enter_on_package_manager_entry_asks_for_confirmation() {
         let mut app = sample_app();
         app.handle_key(typed('m')).unwrap();
         assert!(app.store_tab, "mağaza sekmesi seçili olmalı");
         assert!(matches!(app.modal, modal::Modal::None));
-        // Odak uygulama listesinde; ilk kayıt (AI kategorisi) `manual`.
+        // İlk AI kaydı (Aider) pipx; Enter onay ister, hemen kurmaz.
+        app.handle_key(key(crossterm::event::KeyCode::Enter))
+            .unwrap();
+        match &app.modal {
+            modal::Modal::Confirm {
+                question,
+                action: modal::ConfirmAction::InstallStoreApp { id, .. },
+            } => {
+                assert_eq!(id, "aider");
+                assert!(
+                    question.contains("pipx") && question.contains("aider-chat"),
+                    "soru: {question}"
+                );
+            }
+            other => panic!("onay ekranı bekleniyordu: {other:?}"),
+        }
+        assert!(
+            app.install_job.is_none(),
+            "onaydan önce kurulum başlamamalı"
+        );
+    }
+
+    #[test]
+    fn store_tab_enter_on_manual_entry_shows_instructions_without_installing() {
+        let mut app = sample_app();
+        app.handle_key(typed('m')).unwrap();
+        // AI kategorisinde hâlâ manual olan bir kayıt seç (goose).
+        let apps = app.filtered_store_apps();
+        let goose_idx = apps
+            .iter()
+            .position(|e| e.id == "goose")
+            .expect("goose manual kalmalı");
+        app.store_app_index = goose_idx;
         app.handle_key(key(crossterm::event::KeyCode::Enter))
             .unwrap();
         assert_eq!(app.modal, modal::Modal::None, "onay ekranı açılmamalı");
-        // İlk AI kaydı (Aider) manual; durum satırında install_notes görünür.
         assert!(
-            app.status_message.contains("Aider")
-                && (app.status_message.contains("pipx")
-                    || app.status_message.contains("Resmî")
-                    || app.status_message.contains("kurulum")),
+            app.status_message.contains("Goose")
+                || app.status_message.to_lowercase().contains("kurulum")
+                || app.status_message.contains("goose"),
             "mesaj: {}",
             app.status_message
         );
@@ -2775,7 +2845,8 @@ mod tests {
     #[test]
     fn start_store_install_refuses_manual_entries() {
         let mut app = sample_app();
-        app.start_store_install("opencode");
+        // curl|bash kayıtları bilerek `manual` kalır (ör. plandex).
+        app.start_store_install("plandex");
         assert!(app.install_job.is_none());
         assert!(
             app.status_message.contains("Nova kurulum yapmıyor"),
