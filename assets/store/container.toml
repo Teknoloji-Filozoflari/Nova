@@ -3,6 +3,8 @@
 # Kategori: "Konteyner"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "lazydocker"
@@ -13,11 +15,24 @@ source = "https://github.com/jesseduffield/lazydocker"
 license = "MIT"
 executable = "lazydocker"
 install_method = "download_archive"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 version = "0.25.2"
+
+[[apps.artifacts]]
+arch = "x86_64"
 download_url = "https://github.com/jesseduffield/lazydocker/releases/download/v0.25.2/lazydocker_0.25.2_Linux_x86_64.tar.gz"
 checksum = "0d9dbfc26068b218e7ed84b104748cadc6e3cf733c0afd35465306fb39b9523c"
 checksum_type = "sha256"
+asset_pattern = "lazydocker_{version}_Linux_x86_64.tar.gz"
+checksum_asset_pattern = "checksums.txt"
+
+[[apps.artifacts]]
+arch = "aarch64"
+download_url = "https://github.com/jesseduffield/lazydocker/releases/download/v0.25.2/lazydocker_0.25.2_Linux_arm64.tar.gz"
+checksum = "005c38b685aaa557e7d646d83a3dadb5024340eeed8c6a2e1949eee6f530de23"
+checksum_type = "sha256"
+asset_pattern = "lazydocker_{version}_Linux_arm64.tar.gz"
+checksum_asset_pattern = "checksums.txt"
 
 [apps.release]
 repo = "jesseduffield/lazydocker"
@@ -35,7 +50,7 @@ license = "Apache-2.0"
 executable = "k9s"
 install_method = "brew"
 install_command = ["brew", "install", "k9s"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install k9s\nResmî: https://k9scli.io/topics/install/"""
 
 [[apps]]
@@ -48,7 +63,7 @@ license = "MIT"
 executable = "ctop"
 install_method = "brew"
 install_command = ["brew", "install", "ctop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install ctop\nResmî: https://github.com/bcicen/ctop#installation"""
 
 [[apps]]
@@ -61,7 +76,7 @@ license = "MIT"
 executable = "dive"
 install_method = "brew"
 install_command = ["brew", "install", "dive"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install dive\nResmî: https://github.com/wagoodman/dive#installation"""
 
 [[apps]]
@@ -73,7 +88,7 @@ source = "https://github.com/moncho/dry"
 license = "MIT"
 executable = "dry"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """go: go install github.com/moncho/dry@latest\nResmî: https://github.com/moncho/dry#installation"""
 
 [[apps]]
@@ -86,7 +101,7 @@ license = "Apache-2.0"
 executable = "podman-tui"
 install_method = "brew"
 install_command = ["brew", "install", "podman-tui"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install podman-tui\nResmî: https://github.com/containers/podman-tui#installation"""
 
 [[apps]]
@@ -99,7 +114,7 @@ license = "Apache-2.0"
 executable = "helm"
 install_method = "brew"
 install_command = ["brew", "install", "helm"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install helm\ncurl: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash\nResmî: https://helm.sh/docs/intro/install/"""
 
 [[apps]]
@@ -112,7 +127,7 @@ license = "Apache-2.0"
 executable = "kubectl"
 install_method = "brew"
 install_command = ["brew", "install", "kubectl"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install kubectl\nResmî: https://kubernetes.io/docs/tasks/tools/"""
 
 [[apps]]
@@ -125,8 +140,12 @@ license = "MIT"
 executable = "oxker"
 install_method = "cargo"
 install_command = ["cargo", "install", "oxker"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install oxker\nResmî: https://github.com/mrjackwills/oxker"""
+
+# ---------------------------------------------------------------------------
+# Veritabanı
+# ---------------------------------------------------------------------------
 
 [[apps]]
 id = "kdash"
@@ -138,7 +157,7 @@ license = "MIT"
 executable = "kdash"
 install_method = "cargo"
 install_command = ["cargo", "install", "kdash"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install kdash\nbrew: brew install kdash\nResmî: https://github.com/kdash-rs/kdash"
 
 [[apps]]
@@ -151,7 +170,7 @@ license = "MIT"
 executable = "kubetui"
 install_method = "cargo"
 install_command = ["cargo", "install", "kubetui"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install kubetui\nResmî: https://github.com/sarub0b0/kubetui"
 
 [[apps]]
@@ -163,7 +182,7 @@ source = "https://github.com/vladimirvivien/ktop"
 license = "Apache-2.0"
 executable = "ktop"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "go: go install github.com/vladimirvivien/ktop@latest\nResmî: https://github.com/vladimirvivien/ktop"
 
 [[apps]]
@@ -176,7 +195,7 @@ license = "Apache-2.0"
 executable = "stern"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "stern"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S stern\nbrew: brew install stern\nResmî: https://github.com/stern/stern"
 
 [[apps]]
@@ -189,7 +208,7 @@ license = "Apache-2.0"
 executable = "kubectx"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "kubectx"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S kubectx\nbrew: brew install kubectx\nResmî: https://github.com/ahmetb/kubectx"
 
 [[apps]]
@@ -202,7 +221,7 @@ license = "Apache-2.0"
 executable = "kubens"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "kubectx"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S kubectx\nbrew: brew install kubectx\nResmî: https://github.com/ahmetb/kubectx"
 
 [[apps]]
@@ -215,7 +234,7 @@ license = "Apache-2.0"
 executable = "docker-compose"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "docker-compose"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S docker-compose\napt: sudo apt install docker-compose-plugin\nResmî: https://docs.docker.com/compose/"
 
 [[apps]]
@@ -228,7 +247,7 @@ license = "Apache-2.0"
 executable = "nerdctl"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "nerdctl"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S nerdctl\nResmî: https://github.com/containerd/nerdctl"
 
 [[apps]]
@@ -241,7 +260,7 @@ license = "Apache-2.0"
 executable = "buildah"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "buildah"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S buildah\napt: sudo apt install buildah\nResmî: https://buildah.io/"
 
 [[apps]]
@@ -254,7 +273,7 @@ license = "Apache-2.0"
 executable = "skopeo"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "skopeo"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S skopeo\napt: sudo apt install skopeo\nResmî: https://github.com/containers/skopeo"
 
 [[apps]]
@@ -266,7 +285,7 @@ source = "https://github.com/regclient/regclient"
 license = "Apache-2.0"
 executable = "regctl"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "Resmî: https://github.com/regclient/regclient/releases\nbrew: brew install regclient"
 
 [[apps]]
@@ -279,7 +298,7 @@ license = "GPL-3.0"
 executable = "hadolint"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "hadolint"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S hadolint\nbrew: brew install hadolint\nResmî: https://github.com/hadolint/hadolint"
 
 [[apps]]
@@ -291,7 +310,7 @@ source = "https://github.com/iximiuz/cdebug"
 license = "Apache-2.0"
 executable = "cdebug"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "go: go install github.com/iximiuz/cdebug@latest\nResmî: https://github.com/iximiuz/cdebug"
 
 [[apps]]
@@ -304,7 +323,7 @@ license = "Apache-2.0"
 executable = "docker"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "docker"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S docker\napt: sudo apt install docker.io\nResmî: https://docs.docker.com/engine/install/"
 
 [[apps]]
@@ -317,7 +336,7 @@ license = "Apache-2.0"
 executable = "podman"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "podman"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S podman\napt: sudo apt install podman\nResmî: https://podman.io/"
 
 [[apps]]
@@ -330,7 +349,7 @@ license = "Apache-2.0"
 executable = "kind"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "kind"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S kind\nbrew: brew install kind\nResmî: https://kind.sigs.k8s.io/"
 
 [[apps]]
@@ -343,7 +362,7 @@ license = "Apache-2.0"
 executable = "minikube"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "minikube"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S minikube\nbrew: brew install minikube\nResmî: https://minikube.sigs.k8s.io/"
 
 [[apps]]
@@ -356,7 +375,7 @@ license = "MIT"
 executable = "helmfile"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "helmfile"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S helmfile\nbrew: brew install helmfile\nResmî: https://github.com/helmfile/helmfile"
 
 [[apps]]
@@ -369,5 +388,5 @@ license = "Apache-2.0"
 executable = "kustomize"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "kustomize"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S kustomize\nbrew: brew install kustomize\nResmî: https://kustomize.io/"

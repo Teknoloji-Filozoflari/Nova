@@ -3,6 +3,8 @@
 # Kategori: "Sistem"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "duf"
@@ -13,11 +15,24 @@ source = "https://github.com/muesli/duf"
 license = "MIT"
 executable = "duf"
 install_method = "download_archive"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 version = "0.9.1"
+
+[[apps.artifacts]]
+arch = "x86_64"
 download_url = "https://github.com/muesli/duf/releases/download/v0.9.1/duf_0.9.1_linux_x86_64.tar.gz"
 checksum = "5add851e7062c5e56939abb664705e4d14fa2d06289490aff31d51f153832de7"
 checksum_type = "sha256"
+asset_pattern = "duf_{version}_linux_x86_64.tar.gz"
+checksum_asset_pattern = "checksums.txt"
+
+[[apps.artifacts]]
+arch = "aarch64"
+download_url = "https://github.com/muesli/duf/releases/download/v0.9.1/duf_0.9.1_linux_arm64.tar.gz"
+checksum = "22ea0ad29f6610bf443aa351e600de97e47a9b380ef58316606a84bb8f595216"
+checksum_type = "sha256"
+asset_pattern = "duf_{version}_linux_arm64.tar.gz"
+checksum_asset_pattern = "checksums.txt"
 
 [apps.release]
 repo = "muesli/duf"
@@ -35,7 +50,7 @@ license = "Apache-2.0"
 executable = "btop"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "btop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install btop\nbrew: brew install btop\npacman: sudo pacman -S btop\nResmî: https://github.com/aristocratos/btop#installation"""
 
 [[apps]]
@@ -48,7 +63,7 @@ license = "GPL-2.0"
 executable = "htop"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "htop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install htop\nbrew: brew install htop\ndnf: sudo dnf install htop\npacman: sudo pacman -S htop\nResmî: https://htop.dev/"""
 
 [[apps]]
@@ -61,7 +76,7 @@ license = "MIT"
 executable = "btm"
 install_method = "cargo"
 install_command = ["cargo", "install", "bottom"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install bottom\nbrew: brew install bottom\nResmî: https://github.com/ClementTsang/bottom#installation"""
 
 [[apps]]
@@ -74,7 +89,7 @@ license = "LGPL-3.0"
 executable = "glances"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "glances"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """pipx: pipx install glances\napt: sudo apt install glances\nbrew: brew install glances\npacman: sudo pacman -S glances\nResmî: https://glances.readthedocs.io/en/latest/install.html"""
 
 [[apps]]
@@ -87,7 +102,7 @@ license = "MIT"
 executable = "procs"
 install_method = "cargo"
 install_command = ["cargo", "install", "procs"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install procs\nbrew: brew install procs\nResmî: https://github.com/dalance/procs#installation"""
 
 [[apps]]
@@ -100,7 +115,7 @@ license = "MIT"
 executable = "fastfetch"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "fastfetch"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install fastfetch\nbrew: brew install fastfetch\npacman: sudo pacman -S fastfetch\nResmî: https://github.com/fastfetch-cli/fastfetch#installation"""
 
 [[apps]]
@@ -113,7 +128,7 @@ license = "GPL-3.0"
 executable = "nvtop"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "nvtop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install nvtop\nbrew: brew install nvtop\npacman: sudo pacman -S nvtop\nResmî: https://github.com/Syllo/nvtop#nvtop-installation"""
 
 [[apps]]
@@ -126,7 +141,7 @@ license = "GPL-3.0"
 executable = "kmon"
 install_method = "cargo"
 install_command = ["cargo", "install", "kmon"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install kmon\nbrew: brew install kmon\nResmî: https://github.com/orhun/kmon#installation"""
 
 [[apps]]
@@ -138,7 +153,7 @@ source = "https://github.com/joehillen/sysz"
 license = "Unlicense"
 executable = "sysz"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """curl: curl -fsSL https://github.com/joehillen/sysz/releases/latest/download/sysz -o ~/.local/bin/sysz && chmod +x ~/.local/bin/sysz\nResmî: https://github.com/joehillen/sysz"""
 
 [[apps]]
@@ -151,8 +166,12 @@ license = "MIT"
 executable = "zenith"
 install_method = "cargo"
 install_command = ["cargo", "install", "--locked", "zenith"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install --locked zenith\nbrew: brew install zenith\nResmî: https://github.com/bvaisvil/zenith#installation"""
+
+# ---------------------------------------------------------------------------
+# Ağ
+# ---------------------------------------------------------------------------
 
 [[apps]]
 id = "inxi"
@@ -164,7 +183,7 @@ license = "GPL-3.0"
 executable = "inxi"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "inxi"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S inxi\napt: sudo apt install inxi\nResmî: https://smxi.org/docs/inxi.htm"
 
 [[apps]]
@@ -177,7 +196,7 @@ license = "MIT"
 executable = "neofetch"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "neofetch"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S neofetch\napt: sudo apt install neofetch\nbrew: brew install neofetch"
 
 [[apps]]
@@ -190,7 +209,7 @@ license = "GPL-3.0"
 executable = "screenfetch"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "screenfetch"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S screenfetch\napt: sudo apt install screenfetch"
 
 [[apps]]
@@ -202,7 +221,7 @@ source = "https://github.com/ssleert/paleofetch"
 license = "MIT"
 executable = "paleofetch"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "Resmî: https://github.com/ssleert/paleofetch\nmake && sudo make install"
 
 [[apps]]
@@ -215,7 +234,7 @@ license = "MIT"
 executable = "macchina"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "macchina"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S macchina\ncargo: cargo install macchina\nResmî: https://github.com/Macchina-CLI/macchina"
 
 [[apps]]
@@ -228,7 +247,7 @@ license = "GPL-2.0"
 executable = "alsamixer"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "alsa-utils"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S alsa-utils\napt: sudo apt install alsa-utils"
 
 [[apps]]
@@ -241,7 +260,7 @@ license = "MIT"
 executable = "pulsemixer"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "pulsemixer"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S pulsemixer\npipx: pipx install pulsemixer\nResmî: https://github.com/GeorgeFilipkin/pulsemixer"
 
 [[apps]]
@@ -254,7 +273,7 @@ license = "MIT"
 executable = "ncpamixer"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "ncpamixer"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S ncpamixer\nResmî: https://github.com/fulhax/ncpamixer"
 
 [[apps]]
@@ -267,7 +286,7 @@ license = "MIT"
 executable = "brightnessctl"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "brightnessctl"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S brightnessctl\napt: sudo apt install brightnessctl"
 
 [[apps]]
@@ -280,7 +299,7 @@ license = "GPL-2.0"
 executable = "acpi"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "acpi"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S acpi\napt: sudo apt install acpi"
 
 [[apps]]
@@ -293,7 +312,7 @@ license = "GPL-2.0"
 executable = "sensors"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "lm_sensors"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S lm_sensors\napt: sudo apt install lm-sensors"
 
 [[apps]]
@@ -306,5 +325,5 @@ license = "GPL-2.0"
 executable = "powertop"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "powertop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S powertop\napt: sudo apt install powertop"

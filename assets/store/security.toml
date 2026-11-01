@@ -3,6 +3,8 @@
 # Kategori: "Güvenlik"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "age"
@@ -14,7 +16,7 @@ license = "BSD-3-Clause"
 executable = "age"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "age"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install age\nbrew: brew install age\ngo: go install filippo.io/age/cmd/...@latest\npacman: sudo pacman -S age\nResmî: https://github.com/FiloSottile/age#installation"""
 
 [[apps]]
@@ -27,7 +29,7 @@ license = "MPL-2.0"
 executable = "sops"
 install_method = "brew"
 install_command = ["brew", "install", "sops"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install sops\nResmî: https://github.com/getsops/sops#install"""
 
 [[apps]]
@@ -40,7 +42,7 @@ license = "MIT"
 executable = "gpg-tui"
 install_method = "cargo"
 install_command = ["cargo", "install", "gpg-tui"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install gpg-tui\nbrew: brew install gpg-tui\nResmî: https://github.com/orhun/gpg-tui#installation"""
 
 [[apps]]
@@ -53,7 +55,7 @@ license = "GPL-2.0"
 executable = "pass"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "pass"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install pass\nbrew: brew install pass\npacman: sudo pacman -S pass\nResmî: https://www.passwordstore.org/"""
 
 [[apps]]
@@ -66,7 +68,7 @@ license = "BUSL-1.1"
 executable = "vault"
 install_method = "brew"
 install_command = ["brew", "install", "vault"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install vault\nResmî: https://developer.hashicorp.com/vault/install"""
 
 [[apps]]
@@ -79,7 +81,7 @@ license = "Apache-2.0"
 executable = "trivy"
 install_method = "brew"
 install_command = ["brew", "install", "trivy"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install trivy\nResmî: https://trivy.dev/latest/getting-started/installation/"""
 
 [[apps]]
@@ -92,8 +94,12 @@ license = "MIT/Apache-2.0"
 executable = "binsider"
 install_method = "cargo"
 install_command = ["cargo", "install", "binsider"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install binsider\nResmî: https://binsider.dev/"""
+
+# ---------------------------------------------------------------------------
+# Medya
+# ---------------------------------------------------------------------------
 
 [[apps]]
 id = "masscan"
@@ -105,7 +111,7 @@ license = "AGPL-3.0"
 executable = "masscan"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "masscan"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S masscan\napt: sudo apt install masscan\nResmî: https://github.com/robertdavidgraham/masscan"
 
 [[apps]]
@@ -118,7 +124,7 @@ license = "GPL-2.0"
 executable = "nikto"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "nikto"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S nikto\napt: sudo apt install nikto"
 
 [[apps]]
@@ -131,7 +137,7 @@ license = "GPL-2.0"
 executable = "sqlmap"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "sqlmap"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S sqlmap\napt: sudo apt install sqlmap\nResmî: https://sqlmap.org/"
 
 [[apps]]
@@ -144,7 +150,7 @@ license = "MIT"
 executable = "hashcat"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "hashcat"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S hashcat\napt: sudo apt install hashcat\nResmî: https://hashcat.net/hashcat/"
 
 [[apps]]
@@ -157,7 +163,7 @@ license = "GPL-2.0"
 executable = "john"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "john"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S john\napt: sudo apt install john\nResmî: https://www.openwall.com/john/"
 
 [[apps]]
@@ -170,7 +176,7 @@ license = "AGPL-3.0"
 executable = "hydra"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "hydra"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S hydra\napt: sudo apt install hydra"
 
 [[apps]]
@@ -183,5 +189,70 @@ license = "GPL-2.0"
 executable = "tshark"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "wireshark-cli"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S wireshark-cli\napt: sudo apt install tshark\nResmî: https://www.wireshark.org/"
+
+[[apps]]
+id = "osv-scanner"
+name = "osv-scanner"
+category = "Güvenlik"
+description = "OSV veritabanı ile bağımlılık güvenlik açığı tarayıcısı."
+source = "https://github.com/google/osv-scanner"
+license = "Apache-2.0"
+executable = "osv-scanner"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "osv-scanner"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S osv-scanner\nbrew: brew install osv-scanner\ngo: go install github.com/google/osv-scanner/cmd/osv-scanner@latest\nResmî: https://google.github.io/osv-scanner/"
+
+[[apps]]
+id = "gitleaks"
+name = "gitleaks"
+category = "Güvenlik"
+description = "Git depolarında sızdırılmış sır ve anahtar tarayıcısı."
+source = "https://github.com/gitleaks/gitleaks"
+license = "MIT"
+executable = "gitleaks"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "gitleaks"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S gitleaks\nbrew: brew install gitleaks\nResmî: https://github.com/gitleaks/gitleaks"
+
+[[apps]]
+id = "grype"
+name = "grype"
+category = "Güvenlik"
+description = "Konteyner imajı ve dosya sistemi güvenlik açığı tarayıcısı (Anchore)."
+source = "https://github.com/anchore/grype"
+license = "Apache-2.0"
+executable = "grype"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "grype"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S grype / AUR\nbrew: brew install grype\nResmî: https://github.com/anchore/grype"
+
+[[apps]]
+id = "syft"
+name = "syft"
+category = "Güvenlik"
+description = "Konteyner ve dosya sistemlerinden SBOM üretici (Anchore)."
+source = "https://github.com/anchore/syft"
+license = "Apache-2.0"
+executable = "syft"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "syft"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S syft\nbrew: brew install syft\nResmî: https://github.com/anchore/syft"
+
+[[apps]]
+id = "cosign"
+name = "cosign"
+category = "Güvenlik"
+description = "Sigstore ile konteyner ve artefakt imzalama / doğrulama."
+source = "https://github.com/sigstore/cosign"
+license = "Apache-2.0"
+executable = "cosign"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "cosign"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S cosign\nbrew: brew install cosign\ngo: go install github.com/sigstore/cosign/v2/cmd/cosign@latest\nResmî: https://docs.sigstore.dev/cosign/system_config/installation/"

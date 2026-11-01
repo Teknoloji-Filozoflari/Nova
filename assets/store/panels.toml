@@ -3,6 +3,8 @@
 # Kategori: "Paneller"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "gotop"
@@ -14,7 +16,7 @@ license = "MIT"
 executable = "gotop"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "gotop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S gotop\nResmî: https://github.com/xxxserxxx/gotop"
 
 [[apps]]
@@ -27,7 +29,7 @@ license = "Apache-2.0"
 executable = "bashtop"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "bashtop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S bashtop\nResmî: https://github.com/aristocratos/bashtop"
 
 [[apps]]
@@ -40,7 +42,7 @@ license = "Apache-2.0"
 executable = "bpytop"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "bpytop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S bpytop\npipx: pipx install bpytop\nResmî: https://github.com/aristocratos/bpytop"
 
 [[apps]]
@@ -53,7 +55,7 @@ license = "GPL-2.0"
 executable = "s-tui"
 install_method = "pipx"
 install_command = ["pipx", "install", "s-tui"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pipx: pipx install s-tui\npacman: sudo pacman -S s-tui\nResmî: https://github.com/amanusk/s-tui"
 
 [[apps]]
@@ -66,7 +68,7 @@ license = "GPL-3.0"
 executable = "tiptop"
 install_method = "pipx"
 install_command = ["pipx", "install", "tiptop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pipx: pipx install tiptop\nResmî: https://github.com/nschloe/tiptop"
 
 [[apps]]
@@ -79,7 +81,7 @@ license = "MIT"
 executable = "ytop"
 install_method = "cargo"
 install_command = ["cargo", "install", "ytop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install ytop\nNot: bakım durumu değişken; bottom/btop alternatif.\nResmî: https://github.com/cjbassi/ytop"
 
 [[apps]]
@@ -92,7 +94,7 @@ license = "Apache-2.0"
 executable = "below"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "below"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S below\nResmî: https://github.com/facebookincubator/below"
 
 [[apps]]
@@ -105,7 +107,7 @@ license = "GPL-2.0"
 executable = "atop"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "atop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S atop\napt: sudo apt install atop\nResmî: https://www.atoptool.nl/"
 
 [[apps]]
@@ -118,7 +120,7 @@ license = "GPL-2.0"
 executable = "iotop"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "iotop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S iotop\napt: sudo apt install iotop\nResmî: https://github.com/Tomas-M/iotop"
 
 [[apps]]
@@ -131,7 +133,7 @@ license = "GPL-2.0"
 executable = "iftop"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "iftop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S iftop\napt: sudo apt install iftop\nResmî: https://www.ex-parrot.com/pdw/iftop/"
 
 [[apps]]
@@ -144,7 +146,7 @@ license = "GPL-2.0"
 executable = "nethogs"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "nethogs"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S nethogs\napt: sudo apt install nethogs\nResmî: https://github.com/raboof/nethogs"
 
 [[apps]]
@@ -157,7 +159,7 @@ license = "MIT"
 executable = "bmon"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "bmon"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S bmon\napt: sudo apt install bmon\nbrew: brew install bmon"
 
 [[apps]]
@@ -170,7 +172,7 @@ license = "MIT"
 executable = "goaccess"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "goaccess"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S goaccess\napt: sudo apt install goaccess\nResmî: https://goaccess.io/"
 
 [[apps]]
@@ -182,7 +184,7 @@ source = "https://github.com/mrusme/planor"
 license = "GPL-3.0"
 executable = "planor"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "go: go install github.com/mrusme/planor@latest\nResmî: https://github.com/mrusme/planor"
 
 [[apps]]
@@ -195,7 +197,7 @@ license = "Apache-2.0"
 executable = "cointop"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "cointop"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S cointop\nbrew: brew install cointop\nResmî: https://github.com/cointop-sh/cointop"
 
 [[apps]]
@@ -207,7 +209,7 @@ source = "https://github.com/f1bonacc1/process-compose"
 license = "Apache-2.0"
 executable = "process-compose"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "Resmî: https://github.com/f1bonacc1/process-compose/releases\nbrew: brew install process-compose"
 
 [[apps]]
@@ -220,7 +222,7 @@ license = "MIT"
 executable = "hwatch"
 install_method = "cargo"
 install_command = ["cargo", "install", "hwatch"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install hwatch\nbrew: brew install hwatch\nResmî: https://github.com/black-desk/hwatch"
 
 [[apps]]
@@ -233,5 +235,5 @@ license = "MIT"
 executable = "viddy"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "viddy"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S viddy\nbrew: brew install viddy\nResmî: https://github.com/sachaos/viddy"

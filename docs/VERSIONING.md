@@ -27,8 +27,8 @@ onay olmadan yapılmamalıdır.
 4. Gerçek ortamda Konsole senaryoları (README "Doğrulanmış / doğrulanmamış"
    tablosundaki satırlar) yeniden kontrol edilir.
 5. `Cargo.toml` sürümü ve `CHANGELOG.md` güncellenir.
-6. `LICENSE-MIT` ve `LICENSE-APACHE` dosyaları ile `Cargo.toml` içindeki
-   `MIT OR Apache-2.0` metadata'sı birbiriyle uyumlu mu?
+6. `LICENSE.md` (SPDX seçim özeti), `LICENSE-MIT`, `LICENSE-APACHE` ve
+   `Cargo.toml` `license = "MIT OR Apache-2.0"` alanı birbiriyle uyumlu mu?
 7. `cargo build --release` ve `./target/release/nova` ile duman testi.
 8. Etiket ve yayın yalnızca proje sahibinin onayıyla.
 

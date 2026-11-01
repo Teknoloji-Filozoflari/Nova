@@ -3,6 +3,8 @@
 # Kategori: "Ekran Koruyucular"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "pipes-sh"
@@ -14,7 +16,7 @@ license = "MIT"
 executable = "pipes.sh"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "pipes.sh"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S pipes.sh\nbrew: brew install pipes-sh\nResmî: https://github.com/pipeseroni/pipes.sh"
 
 [[apps]]
@@ -27,7 +29,7 @@ license = "NCSA"
 executable = "nyancat"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "nyancat"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S nyancat\napt: sudo apt install nyancat\nResmî: https://github.com/klange/nyancat"
 
 [[apps]]
@@ -40,7 +42,7 @@ license = "MIT"
 executable = "terminal-parrot"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "terminal-parrot"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S terminal-parrot / AUR\ngo: go install github.com/jmhobbs/terminal-parrot@latest"
 
 [[apps]]
@@ -52,7 +54,7 @@ source = "https://github.com/will8211/unimatrix"
 license = "GPL-3.0"
 executable = "unimatrix"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pip: pip install unimatrix (veya betiği PATH'e kopyalayın)\nResmî: https://github.com/will8211/unimatrix"
 
 [[apps]]
@@ -65,7 +67,7 @@ license = "Apache-2.0"
 executable = "rusty-rain"
 install_method = "cargo"
 install_command = ["cargo", "install", "rusty-rain"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install rusty-rain\nResmî: https://github.com/cowboy8625/rusty-rain"
 
 [[apps]]
@@ -77,7 +79,7 @@ source = "https://github.com/AngelJumbo/lavat"
 license = "MIT"
 executable = "lavat"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "Resmî: https://github.com/AngelJumbo/lavat\nmake && sudo make install"
 
 [[apps]]
@@ -89,7 +91,7 @@ source = "https://gitlab.com/jallbrit/cbonsai"
 license = "GPL-3.0"
 executable = "bonsai"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cbonsai tercih edilir: pacman -S cbonsai\nResmî: https://gitlab.com/jallbrit/cbonsai"
 
 [[apps]]
@@ -102,7 +104,7 @@ license = "Apache-2.0"
 executable = "asciimatics"
 install_method = "pipx"
 install_command = ["pipx", "install", "asciimatics"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pipx: pipx install asciimatics\npip: pip install asciimatics\nResmî: https://github.com/peterbrittain/asciimatics"
 
 [[apps]]
@@ -115,5 +117,5 @@ license = "MIT"
 executable = "termframe"
 install_method = "cargo"
 install_command = ["cargo", "install", "termframe"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install termframe\nResmî: https://github.com/pamburus/termframe"

@@ -3,6 +3,8 @@
 # Kategori: "Ağ"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "bandwhich"
@@ -14,7 +16,7 @@ license = "MIT"
 executable = "bandwhich"
 install_method = "cargo"
 install_command = ["cargo", "install", "bandwhich"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install bandwhich\nbrew: brew install bandwhich\nResmî: https://github.com/imsnif/bandwhich#installation"""
 
 [[apps]]
@@ -27,7 +29,7 @@ license = "curl"
 executable = "curl"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "curl"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install curl\nbrew: brew install curl\npacman: sudo pacman -S curl\nResmî: https://curl.se/docs/install.html"""
 
 [[apps]]
@@ -40,7 +42,7 @@ license = "GPL-2.0"
 executable = "mtr"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "mtr"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install mtr\nbrew: brew install mtr\npacman: sudo pacman -S mtr\nResmî: https://github.com/traviscross/mtr"""
 
 [[apps]]
@@ -53,7 +55,7 @@ license = "MIT"
 executable = "gping"
 install_method = "cargo"
 install_command = ["cargo", "install", "gping"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install gping\ncargo: cargo install gping\nResmî: https://github.com/orf/gping#installation"""
 
 [[apps]]
@@ -66,7 +68,7 @@ license = "EUPL-1.2"
 executable = "dog"
 install_method = "cargo"
 install_command = ["cargo", "install", "dog"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install dog\ncargo: cargo install dog\nResmî: https://github.com/ogham/dog#installation"""
 
 [[apps]]
@@ -79,7 +81,7 @@ license = "Nmap"
 executable = "nmap"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "nmap"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install nmap\nbrew: brew install nmap\npacman: sudo pacman -S nmap\nResmî: https://nmap.org/download.html"""
 
 [[apps]]
@@ -92,7 +94,7 @@ license = "MIT"
 executable = "termshark"
 install_method = "brew"
 install_command = ["brew", "install", "termshark"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """go: go install github.com/gcla/termshark/v2/cmd/termshark@latest\nbrew: brew install termshark\nResmî: https://github.com/gcla/termshark#installation"""
 
 [[apps]]
@@ -105,7 +107,7 @@ license = "Apache-2.0"
 executable = "trip"
 install_method = "cargo"
 install_command = ["cargo", "install", "trippy"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install trippy\nbrew: brew install trippy\nResmî: https://trippy.cli.rs/"""
 
 [[apps]]
@@ -118,7 +120,7 @@ license = "GPL-3.0"
 executable = "wget"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "wget"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install wget\nbrew: brew install wget\npacman: sudo pacman -S wget\nResmî: https://www.gnu.org/software/wget/"""
 
 [[apps]]
@@ -131,8 +133,12 @@ license = "GPL-2.0"
 executable = "aria2c"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "aria2"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install aria2\nbrew: brew install aria2\npacman: sudo pacman -S aria2\nResmî: https://aria2.github.io/"""
+
+# ---------------------------------------------------------------------------
+# Konteyner
+# ---------------------------------------------------------------------------
 
 [[apps]]
 id = "tcpdump"
@@ -144,7 +150,7 @@ license = "BSD"
 executable = "tcpdump"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "tcpdump"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S tcpdump\napt: sudo apt install tcpdump\nbrew: brew install tcpdump"
 
 [[apps]]
@@ -157,7 +163,7 @@ license = "BSD"
 executable = "iperf3"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "iperf3"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S iperf3\napt: sudo apt install iperf3\nbrew: brew install iperf3"
 
 [[apps]]
@@ -170,7 +176,7 @@ license = "Apache-2.0"
 executable = "speedtest-cli"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "speedtest-cli"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S speedtest-cli\npipx: pipx install speedtest-cli\napt: sudo apt install speedtest-cli"
 
 [[apps]]
@@ -183,7 +189,7 @@ license = "Nmap"
 executable = "ncat"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "nmap"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S nmap\napt: sudo apt install ncat"
 
 [[apps]]
@@ -196,7 +202,7 @@ license = "GPL-2.0"
 executable = "socat"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "socat"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S socat\napt: sudo apt install socat\nbrew: brew install socat"
 
 [[apps]]
@@ -209,7 +215,7 @@ license = "BSD"
 executable = "nc"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "gnu-netcat"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S gnu-netcat openbsd-netcat\napt: sudo apt install netcat-openbsd"
 
 [[apps]]
@@ -222,7 +228,7 @@ license = "GPL-2.0"
 executable = "whois"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "whois"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S whois\napt: sudo apt install whois\nbrew: brew install whois"
 
 [[apps]]
@@ -235,5 +241,57 @@ license = "MPL-2.0"
 executable = "dig"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "bind"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S bind\napt: sudo apt install dnsutils\nbrew: brew install bind"
+
+[[apps]]
+id = "doggo"
+name = "doggo"
+category = "Ağ"
+description = "İnsan dostu komut satırı DNS istemcisi."
+source = "https://github.com/mr-karan/doggo"
+license = "GPL-3.0"
+executable = "doggo"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "doggo"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S doggo\nbrew: brew install doggo\ngo: go install github.com/mr-karan/doggo/cmd/doggo@latest\nResmî: https://github.com/mr-karan/doggo"
+
+[[apps]]
+id = "oha"
+name = "oha"
+category = "Ağ"
+description = "HTTP yük üreteci (rakyll/hey esinli, TUI)."
+source = "https://github.com/hatoo/oha"
+license = "MIT"
+executable = "oha"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "oha"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S oha\ncargo: cargo install oha\nbrew: brew install oha\nResmî: https://github.com/hatoo/oha"
+
+[[apps]]
+id = "rustscan"
+name = "rustscan"
+category = "Ağ"
+description = "Hızlı modern port tarayıcı."
+source = "https://github.com/bee-san/RustScan"
+license = "GPL-3.0"
+executable = "rustscan"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "rustscan"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S rustscan\ncargo: cargo install rustscan\nbrew: brew install rustscan\nResmî: https://github.com/bee-san/RustScan"
+
+[[apps]]
+id = "croc"
+name = "croc"
+category = "Ağ"
+description = "Bilgisayarlar arası kolay ve güvenli dosya transferi."
+source = "https://github.com/schollz/croc"
+license = "MIT"
+executable = "croc"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "croc"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S croc\nbrew: brew install croc\nResmî: https://github.com/schollz/croc"

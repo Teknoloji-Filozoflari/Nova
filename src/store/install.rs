@@ -17,13 +17,16 @@
 //! için [`Downloader`] ve [`Installer`] trait'leri taklit edilebilir.
 
 use crate::store::host::{self, HostTools, InstallPlan};
-use crate::store::{format_install_command, validate_install_command, StoreEntry};
+use crate::store::platform::CpuArch;
+use crate::store::{format_install_command, validate_install_command, InstallMethod, StoreEntry};
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::io::Read;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Bir arşivden çıkarılacak en fazla dosya sayısı (zip bomb koruması).
 const MAX_ENTRIES: usize = 10_000;
@@ -128,6 +131,32 @@ pub enum ConfirmDecision {
     Rejected,
 }
 
+/// Kurulum kapsamı: kullanıcı alanı mı, sistem PM mi?
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InstallScope {
+    /// `~/.local` / pipx / npm -g kullanıcı / brew vb.
+    User,
+    /// apt / dnf / pacman (sistem paketleri).
+    System,
+}
+
+impl InstallScope {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::User => "kullanıcı alanı",
+            Self::System => "sistem (paket yöneticisi)",
+        }
+    }
+
+    pub fn for_method(method: InstallMethod) -> Self {
+        if method.needs_elevated_tty() {
+            Self::System
+        } else {
+            Self::User
+        }
+    }
+}
+
 /// Kurulum onay ekranı için gereken bilgiler.
 #[derive(Debug, Clone)]
 pub struct InstallConfirmation {
@@ -137,10 +166,131 @@ pub struct InstallConfirmation {
     pub version: String,
     /// Kaynak/proje sayfası.
     pub source: String,
-    /// Hedef dizin (kullanıcı alanı).
+    /// Lisans.
+    pub license: String,
+    /// Hedef dizin (kullanıcı alanı; arşiv).
     pub install_dir: PathBuf,
     /// Yapılacak işlemlerin kısa açıklaması.
     pub actions: Vec<String>,
+    /// Onayda gösterilecek tam komut (argv veya indirme URL’si).
+    pub full_command: String,
+    /// Paket yöneticisi / yöntem kısa adı.
+    pub package_manager: String,
+    /// Kullanıcı vs sistem kapsamı.
+    pub scope: InstallScope,
+    /// `sudo` kullanılacak mı?
+    pub uses_sudo: bool,
+    /// Üçüncü taraf kod uyarısı.
+    pub third_party_risk: String,
+    /// Seçilen CPU mimarisi.
+    pub arch: String,
+}
+
+impl InstallConfirmation {
+    /// Onay modalında gösterilecek çok satırlı metin.
+    pub fn question_text(&self) -> String {
+        let sudo = if self.uses_sudo { "evet" } else { "hayır" };
+        let version = if self.version.trim().is_empty() {
+            "bilinmiyor".to_string()
+        } else {
+            self.version.clone()
+        };
+        let mut lines = vec![
+            format!("'{}' kurulsun mu?", self.app_name),
+            format!("Komut: {}", self.full_command),
+            format!("Paket yöneticisi: {}", self.package_manager),
+            format!("Kapsam: {}", self.scope.label()),
+            format!("sudo?: {sudo}"),
+            format!("Mimari: {}", self.arch),
+            format!("Sürüm: {version}"),
+            format!("Kaynak: {}", self.source),
+            format!("Lisans: {}", self.license),
+            format!("Üçüncü taraf: {}", self.third_party_risk),
+        ];
+        for action in &self.actions {
+            if !lines.iter().any(|l| l.contains(action)) {
+                lines.push(action.clone());
+            }
+        }
+        lines.push("Enter onaylar, Esc vazgeçer.".into());
+        lines.join("\n")
+    }
+}
+
+/// Arşiv kurulumundan sonra yazılan dosya manifest’i (kaldırma / geri alma).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct InstallFileManifest {
+    pub app_id: String,
+    pub version: String,
+    pub arch: String,
+    pub method: String,
+    #[serde(default)]
+    pub source_url: Option<String>,
+    #[serde(default)]
+    pub checksum: Option<String>,
+    pub installed_at_unix: u64,
+    /// Kurulum dizinine göre göreli dosya yolları.
+    pub files: Vec<String>,
+    /// `~/.local/bin` shim adı (varsa).
+    #[serde(default)]
+    pub shim_name: Option<String>,
+}
+
+impl InstallFileManifest {
+    /// `<store>/<id>/install-manifest.toml` yolu.
+    pub fn path_for(app_id: &str) -> Option<PathBuf> {
+        Some(crate::store::store_app_dir(app_id)?.join("install-manifest.toml"))
+    }
+
+    pub fn load(app_id: &str) -> Option<Self> {
+        let path = Self::path_for(app_id)?;
+        let text = fs::read_to_string(path).ok()?;
+        toml::from_str(&text).ok()
+    }
+
+    pub fn save(&self, install_dir: &Path) -> Result<(), InstallError> {
+        let path = install_dir.join("install-manifest.toml");
+        let text = toml::to_string_pretty(self).map_err(|e| {
+            InstallError::Internal(format!("kurulum manifest’i serileştirilemedi: {e}"))
+        })?;
+        fs::write(&path, text).map_err(|e| {
+            InstallError::Permission(format!(
+                "kurulum manifest’i yazılamadı '{}': {e}",
+                path.display()
+            ))
+        })
+    }
+}
+
+fn unix_now() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
+/// Kısmi arşiv kurulumunu geri alır (yazılan dosyalar + shim + boş dizinler).
+pub fn rollback_archive_install(
+    install_dir: &Path,
+    files: &[String],
+    shim_name: Option<&str>,
+) -> Result<(), InstallError> {
+    if let Some(name) = shim_name {
+        let _ = crate::store::path::remove_path_shim(name);
+    }
+    for rel in files.iter().rev() {
+        let path = install_dir.join(rel);
+        if path.is_file() || path.is_symlink() {
+            let _ = fs::remove_file(&path);
+        } else if path.is_dir() {
+            let _ = fs::remove_dir_all(&path);
+        }
+    }
+    let manifest = install_dir.join("install-manifest.toml");
+    let _ = fs::remove_file(&manifest);
+    // Boş kurulum dizinini temizle (üst store/ kalsın).
+    let _ = fs::remove_dir(install_dir);
+    Ok(())
 }
 
 /// Bir dosyanın SHA-256 özetini hesaplar (onaltılık, küçük harf).
@@ -206,8 +356,8 @@ pub fn verify_checksum(file: &Path, expected: &str) -> Result<(), InstallError> 
 ///
 /// - **Yol geçişi (path traversal)**: `..` bileşeni içeren veya mutlak yola
 ///   çıkan girdiler reddedilir; çıkarma `dest` dışına çıkamaz.
-/// - **Sembolik bağ**: sembolik ve hard link girdileri oluşturulmaz
-///   (dışarıya bağlantı kurma saldırısı engellenir).
+/// - **Sembolik bağ**: sembolik ve hard link girdileri **reddedilir**
+///   (dışarıya bağlantı / zip-slip kaçış yolu engellenir).
 /// - **Kaynak tüketimi**: girdi sayısı ve toplam boyut sınırlıdır.
 /// - Dosya izinleri korunur; çalıştırılabilir biti kaybolmaz.
 pub fn extract_archive(src: &Path, dest: &Path) -> Result<(), InstallError> {
@@ -245,10 +395,13 @@ pub fn extract_archive(src: &Path, dest: &Path) -> Result<(), InstallError> {
             .map_err(|e| InstallError::Archive(format!("geçersiz arşiv yolu: {e}")))?
             .into_owned();
 
-        // Sembolik bağ ve hard link oluşturulmaz.
+        // Sembolik bağ ve hard link reddedilir (zip-slip / escape yolu).
         let kind = entry.header().entry_type();
         if kind.is_symlink() || kind.is_hard_link() {
-            continue;
+            return Err(InstallError::Security(format!(
+                "arşiv sembolik/hard link içeriyor (reddedildi): '{}'",
+                path.display()
+            )));
         }
 
         let target = safe_join(&root, &path)?;
@@ -460,8 +613,18 @@ pub fn resolve_entry_install_plan(entry: &StoreEntry) -> Option<InstallPlan> {
 /// Kurulum onay ekranı için bilgi hazırlar.
 pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
     let install_dir = crate::store::store_app_dir(&entry.id).unwrap_or_else(|| PathBuf::from("."));
+    let arch = CpuArch::host().unwrap_or(CpuArch::X86_64);
     let mut actions = Vec::new();
-    if entry.install_method.is_package_manager() {
+    let third_party_risk = format!(
+        "Üçüncü taraf kod çalışacak (kaynak: {}). Nova yalnızca kataloğu ve \
+         (arşivde) SHA-256’yı doğrular; yazılımın kendisine güvenirsiniz.",
+        entry.source
+    );
+
+    let (full_command, package_manager, scope, uses_sudo) = if entry
+        .install_method
+        .is_package_manager()
+    {
         let plan = resolve_entry_install_plan(entry).unwrap_or(InstallPlan {
             method: entry.install_method,
             argv: entry.install_command.clone().unwrap_or_default(),
@@ -505,6 +668,12 @@ pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
                 actions.push(format!("Notlar: {alt}"));
             }
         }
+        (
+            rendered,
+            plan.method.short_label().to_string(),
+            InstallScope::for_method(plan.method),
+            plan.uses_sudo(),
+        )
     } else {
         actions.push(format!(
             "'{}' indirilecek ve '{}' dizinine çıkarılacak.",
@@ -515,25 +684,61 @@ pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
             "Executable: '{}' (ayrı argüman olarak çalıştırılacak, kabuk yok).",
             entry.executable
         ));
-        if let Some(version) = &entry.version {
-            actions.push(format!("Sürüm: {version}"));
-        }
-        match entry.checksum.as_deref() {
-            Some(sum) => actions.push(format!(
+        let (url, sum) = entry.resolve_download_for(arch).unwrap_or_else(|_| {
+            (
+                entry.download_url.clone().unwrap_or_default(),
+                entry.checksum.clone().unwrap_or_default(),
+            )
+        });
+        let full_command = if url.is_empty() {
+            format!("download_archive → {}", install_dir.display())
+        } else {
+            format!("download → {url}")
+        };
+        if !sum.is_empty() {
+            actions.push(format!(
                 "İndirme sonrası SHA-256 checksum doğrulanacak: {}.",
                 sum.to_lowercase()
-            )),
-            None => actions.push(
+            ));
+        } else {
+            actions.push(
                 "Uygulama için upstream checksum sağlanmamış; kurulum onay sonrası yürür.".into(),
-            ),
+            );
         }
-    }
+        actions
+            .push("Kurulan dosyalar install-manifest.toml ile izlenir; kaldırma geri alır.".into());
+        let trust = entry.trust_level();
+        actions.push(format!("Güven: {} ({})", trust.badge(), trust.label()));
+        if let Some(sig) = &entry.signature {
+            actions.push(format!(
+                "Upstream imza ({}) mümkünse doğrulanacak.",
+                sig.kind.label()
+            ));
+        }
+        (
+            full_command,
+            entry.install_method.short_label().to_string(),
+            InstallScope::User,
+            false,
+        )
+    };
     InstallConfirmation {
         app_name: entry.name.clone(),
         version: entry.version.clone().unwrap_or_default(),
         source: entry.source.clone(),
+        license: if entry.license.trim().is_empty() {
+            "belirtilmemiş".into()
+        } else {
+            entry.license.clone()
+        },
         install_dir,
         actions,
+        full_command,
+        package_manager,
+        scope,
+        uses_sudo,
+        third_party_risk,
+        arch: arch.as_str().to_string(),
     }
 }
 
@@ -796,25 +1001,43 @@ pub fn upgrade_via_package_manager(
 }
 
 /// Arşivle kurulan uygulamayı kullanıcı alanından kaldırır.
+///
+/// Varsa `install-manifest.toml` ile dosya listesi + shim geri alınır;
+/// yoksa dizin toplu silinir (eski kurulumlar).
 pub fn uninstall_archive_app(entry: &StoreEntry) -> Result<InstallOutcome, InstallError> {
     let Some(dir) = crate::store::store_app_dir(&entry.id) else {
         return Err(InstallError::Internal(
             "kurulum dizini belirlenemedi ($HOME bulunamadı)".into(),
         ));
     };
-    if dir.exists() {
-        fs::remove_dir_all(&dir).map_err(|e| {
-            InstallError::Permission(format!("'{}' silinemedi: {e}", dir.display()))
-        })?;
+    if let Some(manifest) = InstallFileManifest::load(&entry.id) {
+        let shim = manifest
+            .shim_name
+            .as_deref()
+            .unwrap_or(entry.executable.as_str());
+        rollback_archive_install(&dir, &manifest.files, Some(shim))?;
+        // Manifest’te listelenmeyen artıkları da temizle.
+        if dir.exists() {
+            let _ = fs::remove_dir_all(&dir);
+        }
+    } else {
+        if dir.exists() {
+            fs::remove_dir_all(&dir).map_err(|e| {
+                InstallError::Permission(format!("'{}' silinemedi: {e}", dir.display()))
+            })?;
+        }
+        let _ = crate::store::path::remove_path_shim(&entry.executable);
     }
-    let _ = crate::store::path::remove_path_shim(&entry.executable);
     Ok(InstallOutcome {
         app_id: entry.id.clone(),
         app_name: entry.name.clone(),
         version: entry.version.clone().unwrap_or_default(),
         executable_path: PathBuf::from(&entry.executable),
         install_dir: dir,
-        summary: format!("'{}' kullanıcı alanı kurulumundan kaldırıldı.", entry.name),
+        summary: format!(
+            "'{}' kullanıcı alanı kurulumundan kaldırıldı (manifest geri alma).",
+            entry.name
+        ),
     })
 }
 
@@ -860,16 +1083,30 @@ pub struct InstallSource {
 }
 
 impl InstallSource {
-    /// Gömülü katalogdaki kayıttan indirme bilgisi üretir.
+    /// Gömülü katalogdaki kayıttan indirme bilgisi üretir (host mimarisi).
     pub fn from_entry(entry: &StoreEntry) -> Result<Self, InstallError> {
-        let url = entry.download_url.as_deref().unwrap_or_default().trim();
-        if url.is_empty() {
-            return Err(InstallError::Security(
-                "indirme adresi tanımlanmamış; kurulum yapılmıyor.".into(),
-            ));
+        let arch = CpuArch::host().ok_or_else(|| {
+            InstallError::Security(format!(
+                "desteklenmeyen CPU mimarisi: {}",
+                std::env::consts::ARCH
+            ))
+        })?;
+        Self::from_entry_for_arch(entry, arch)
+    }
+
+    /// Belirli mimari için gömülü katalogdan indirme bilgisi üretir.
+    pub fn from_entry_for_arch(entry: &StoreEntry, arch: CpuArch) -> Result<Self, InstallError> {
+        if !entry.supports_arch(arch) {
+            return Err(InstallError::Security(format!(
+                "'{}' {} mimarisini desteklemiyor",
+                entry.name,
+                arch.as_str()
+            )));
         }
-        let checksum = entry.checksum.as_deref().unwrap_or_default().trim();
-        Self::new(url, checksum)
+        let (url, checksum) = entry
+            .resolve_download_for(arch)
+            .map_err(InstallError::Security)?;
+        Self::new(url.trim(), checksum.trim())
     }
 
     /// Canlı çözülmüş yayından indirme bilgisi üretir.
@@ -900,7 +1137,7 @@ impl InstallSource {
     }
 }
 
-/// Ortak kurulum yolu: indir → doğrula → çıkar → yerleştir → temizle.
+/// Ortak kurulum yolu: indir → doğrula → çıkar → yerleştir → manifest → temizle.
 fn install_with_source(
     entry: &StoreEntry,
     dest_dir: &Path,
@@ -921,6 +1158,14 @@ fn install_with_source(
             dest_dir.display()
         )));
     }
+    let arch = CpuArch::host().unwrap_or(CpuArch::X86_64);
+    if !entry.supports_arch(arch) {
+        return Err(InstallError::Security(format!(
+            "'{}' {} mimarisini desteklemiyor",
+            entry.name,
+            arch.as_str()
+        )));
+    }
 
     // 1) Geçici çalışma alanı (kullanıcı alanında).
     let work_dir = dest_dir.join(".nova-work");
@@ -934,12 +1179,32 @@ fn install_with_source(
     // Önceki başarısız kurulumdan kalmış olabilecek geçici içeriği temizle.
     let _ = fs::remove_dir_all(&staging_dir);
 
+    let mut placed_files: Vec<String> = Vec::new();
+    let mut shim_written: Option<String> = None;
+
     let result = (|| -> Result<InstallOutcome, InstallError> {
         // 2) İndir.
         let downloaded = downloader.download(&source.url, &archive_path)?;
 
         // 3) SHA-256 doğrula — uyuşmazlık kurulumu keser.
         verify_checksum(&downloaded, &source.checksum)?;
+
+        // 3b) Upstream imza — araç varsa doğrula, yoksa atla (when possible).
+        let signature_note = match crate::store::signature::verify_signature_when_possible(
+            &downloaded,
+            entry.signature.as_ref(),
+            version,
+            &work_dir,
+            downloader,
+        )? {
+            crate::store::signature::SignatureCheck::Verified => {
+                Some("upstream imza doğrulandı".to_string())
+            }
+            crate::store::signature::SignatureCheck::SkippedMissingTool(tool) => {
+                Some(format!("upstream imza atlandı ({tool} PATH'te yok)"))
+            }
+            crate::store::signature::SignatureCheck::NotRequested => None,
+        };
 
         // 4) Güvenli çıkarma.
         extract_archive(&downloaded, &staging_dir)?;
@@ -960,6 +1225,7 @@ fn install_with_source(
         fs::copy(&found, &final_path).map_err(|e| {
             InstallError::Permission(format!("'{}' kopyalanamadı: {e}", final_path.display()))
         })?;
+        placed_files.push(format!("bin/{}", entry.executable));
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -977,15 +1243,36 @@ fn install_with_source(
             entry.name,
             final_path.display()
         );
+        if let Some(note) = signature_note {
+            summary.push_str(" · ");
+            summary.push_str(&note);
+        }
         match crate::store::path::shim_installed_executable(&entry.executable, &final_path) {
             Ok(shim) => {
                 executable_path = shim;
+                shim_written = Some(entry.executable.clone());
                 summary.push_str(" · PATH: ~/.local/bin");
             }
             Err(err) => {
                 summary.push_str(&format!(" · PATH uyarısı: {err}"));
             }
         }
+
+        // 6) Dosya manifest’i — kaldırma / geri alma için.
+        let manifest = InstallFileManifest {
+            app_id: entry.id.clone(),
+            version: version.to_string(),
+            arch: arch.as_str().to_string(),
+            method: entry.install_method.short_label().to_string(),
+            source_url: Some(source.url.clone()),
+            checksum: Some(source.checksum.clone()),
+            installed_at_unix: unix_now(),
+            files: placed_files.clone(),
+            shim_name: shim_written.clone(),
+        };
+        manifest.save(dest_dir)?;
+        placed_files.push("install-manifest.toml".into());
+
         Ok(InstallOutcome {
             app_id: entry.id.clone(),
             app_name: entry.name.clone(),
@@ -996,10 +1283,15 @@ fn install_with_source(
         })
     })();
 
-    // 6) Geçici dosyaları temizle (hata durumunda da).
+    // 7) Geçici dosyaları temizle (hata durumunda da).
     let _ = fs::remove_dir_all(&staging_dir);
     let _ = fs::remove_file(&archive_path);
     let _ = fs::remove_dir(&work_dir);
+
+    // 8) Kalıcı dosya yazıldıktan sonra hata → rollback.
+    if result.is_err() && !placed_files.is_empty() {
+        let _ = rollback_archive_install(dest_dir, &placed_files, shim_written.as_deref());
+    }
 
     result
 }
@@ -1183,9 +1475,11 @@ mod tests {
             checksum_type: Some("sha256".into()),
             version: Some("1.0.0".into()),
             download_url: Some("https://example.org/ornek.tar.gz".into()),
+            artifacts: vec![],
             install_command: None,
             install_notes: None,
             release: None,
+            signature: None,
         }
     }
 
@@ -1204,9 +1498,11 @@ mod tests {
             checksum_type: None,
             version: None,
             download_url: None,
+            artifacts: vec![],
             install_command: Some(argv.into_iter().map(str::to_string).collect()),
             install_notes: Some("not".into()),
             release: None,
+            signature: None,
         }
     }
 
@@ -1308,6 +1604,28 @@ mod tests {
         let _ = fs::remove_dir_all(&dir);
     }
 
+    /// Klasik zip-slip: `../` ile hedef kök dışına yazma denemesi.
+    #[test]
+    fn extract_archive_rejects_zip_slip() {
+        let dir = temp_dir("zipslip");
+        let archive = dir.join("a.tar.gz");
+        let raw = make_tar(&[("safe/file", b"x", false)]);
+        let malicious = gzip(&patch_entry_name(
+            &raw,
+            "safe/file",
+            "safe/../../zipslip-escaped",
+        ));
+        fs::write(&archive, &malicious).unwrap();
+        let dest = dir.join("cikarilan");
+        let err = extract_archive(&archive, &dest).unwrap_err();
+        assert!(matches!(err, InstallError::Security(_)), "hata: {err}");
+        assert!(
+            !dir.join("zipslip-escaped").exists(),
+            "zip-slip hedef dışına yazmamalı"
+        );
+        let _ = fs::remove_dir_all(&dir);
+    }
+
     #[test]
     fn extract_archive_rejects_absolute_paths() {
         let dir = temp_dir("mutlak");
@@ -1321,6 +1639,47 @@ mod tests {
         assert!(
             !Path::new("/etc/kotu").exists(),
             "sistem dizinine yazılmamalı"
+        );
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn extract_archive_rejects_symlink_entries() {
+        let dir = temp_dir("symlink");
+        let archive = dir.join("a.tar.gz");
+        let mut builder = tar::Builder::new(Vec::new());
+        let mut header = tar::Header::new_gnu();
+        header.set_entry_type(tar::EntryType::Symlink);
+        header.set_size(0);
+        header.set_mode(0o777);
+        header.set_cksum();
+        builder
+            .append_link(&mut header, "escape-link", "/etc/passwd")
+            .expect("symlink girdisi");
+        // Yanına zararsız bir dosya da koy; link önce gelince tüm çıkarma kesilmeli.
+        let mut file_header = tar::Header::new_gnu();
+        file_header.set_size(1);
+        file_header.set_mode(0o644);
+        file_header.set_cksum();
+        builder
+            .append_data(&mut file_header, "paket/ok", &b"x"[..])
+            .expect("dosya");
+        let raw = builder.into_inner().expect("tar");
+        fs::write(&archive, gzip(&raw)).unwrap();
+        let dest = dir.join("cikarilan");
+        let err = extract_archive(&archive, &dest).unwrap_err();
+        assert!(matches!(err, InstallError::Security(_)), "hata: {err}");
+        assert!(
+            format!("{err}").contains("link"),
+            "sembolik/hard link mesajı beklenir: {err}"
+        );
+        assert!(
+            !dest.join("escape-link").exists(),
+            "symlink oluşturulmamalı"
+        );
+        assert!(
+            !dest.join("paket/ok").exists(),
+            "link reddi sonrası devam edilmemeli"
         );
         let _ = fs::remove_dir_all(&dir);
     }
@@ -1531,6 +1890,16 @@ mod tests {
         assert_eq!(confirm.version, "1.0.0");
         assert!(confirm.actions.iter().any(|a| a.contains("SHA-256")));
         assert!(confirm.actions.iter().any(|a| a.contains("kabuk yok")));
+        let q = confirm.question_text();
+        assert!(q.contains("SHA-256"), "{q}");
+        assert!(q.contains("Kaynak:"));
+        assert!(q.contains("Lisans: MIT"));
+        assert!(q.contains("sudo?: hayır"));
+        assert!(q.contains("Kapsam: kullanıcı alanı"));
+        assert!(q.contains("Üçüncü taraf"));
+        assert_eq!(confirm.scope, InstallScope::User);
+        assert!(!confirm.uses_sudo);
+        assert_eq!(confirm.package_manager, "archive");
     }
 
     #[test]
@@ -1545,6 +1914,82 @@ mod tests {
             "{:?}",
             confirm.actions
         );
+        let q = confirm.question_text();
+        assert!(q.contains("pipx install ornek-pm"), "{q}");
+        assert!(q.contains("Paket yöneticisi: pipx"), "{q}");
+        assert!(q.contains("Kaynak:"));
+        assert!(q.contains("Lisans:"));
+        assert_eq!(confirm.scope, InstallScope::User);
+        assert!(!confirm.uses_sudo);
+    }
+
+    #[test]
+    fn prepare_confirmation_marks_system_sudo_for_pacman() {
+        let entry = package_entry(
+            InstallMethod::Pacman,
+            vec!["sudo", "pacman", "-S", "--noconfirm", "htop"],
+        );
+        let confirm = prepare_confirmation(&entry);
+        assert_eq!(confirm.scope, InstallScope::System);
+        assert!(confirm.uses_sudo);
+        let q = confirm.question_text();
+        assert!(q.contains("sudo?: evet"), "{q}");
+        assert!(q.contains("sistem"), "{q}");
+    }
+
+    #[test]
+    fn archive_install_writes_manifest_and_uninstall_rolls_back() {
+        with_isolated_home(|| {
+            let payload =
+                make_tar_gz(&[(&format!("paket/{TEST_EXE}"), b"#!/bin/sh\n" as &[u8], true)]);
+            let sum = hex(&Sha256::digest(&payload));
+            let entry = installable_entry(&sum);
+            let dest = crate::store::store_app_dir(&entry.id).expect("store app dir");
+            let downloader = FakeDownloader::with_payload(payload);
+            install_app(&entry, &dest, &downloader).unwrap();
+            assert!(dest.join("bin").join(TEST_EXE).is_file());
+            let manifest = InstallFileManifest::load(&entry.id).expect("manifest yazılmalı");
+            assert_eq!(manifest.app_id, entry.id);
+            assert!(manifest.files.iter().any(|f| f.contains(TEST_EXE)));
+            assert_eq!(manifest.checksum.as_deref(), Some(sum.as_str()));
+            uninstall_archive_app(&entry).unwrap();
+            assert!(!dest.exists(), "kurulum dizini rollback sonrası silinmeli");
+            let _ = crate::store::path::remove_path_shim(TEST_EXE);
+        });
+    }
+
+    #[test]
+    fn install_source_picks_artifact_for_arch() {
+        let mut entry = installable_entry(&"a".repeat(64));
+        entry.supported_platforms = vec!["linux-x64".into(), "linux-aarch64".into()];
+        entry.artifacts = vec![
+            crate::store::ArchArtifact {
+                arch: "x86_64".into(),
+                download_url: "https://example.org/x.tar.gz".into(),
+                checksum: "b".repeat(64),
+                checksum_type: Some("sha256".into()),
+                asset_pattern: Some("x-{version}.tar.gz".into()),
+                checksum_asset_pattern: None,
+            },
+            crate::store::ArchArtifact {
+                arch: "aarch64".into(),
+                download_url: "https://example.org/a.tar.gz".into(),
+                checksum: "c".repeat(64),
+                checksum_type: Some("sha256".into()),
+                asset_pattern: Some("a-{version}.tar.gz".into()),
+                checksum_asset_pattern: None,
+            },
+        ];
+        entry.download_url = None;
+        entry.checksum = None;
+        let x = InstallSource::from_entry_for_arch(&entry, CpuArch::X86_64).unwrap();
+        assert_eq!(x.url, "https://example.org/x.tar.gz");
+        assert_eq!(x.checksum, "b".repeat(64));
+        let a = InstallSource::from_entry_for_arch(&entry, CpuArch::Aarch64).unwrap();
+        assert_eq!(a.url, "https://example.org/a.tar.gz");
+        let src = entry.release_source_for(CpuArch::Aarch64);
+        // no release on installable_entry
+        assert!(src.is_none());
     }
 
     #[test]

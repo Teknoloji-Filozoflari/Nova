@@ -117,3 +117,33 @@ fn store_tab_narrow_layout_stacks_categories_over_apps() {
     // Uygulama listesi başlığı da görünmeli.
     assert!(text.contains("AI ("), "uygulama listesi başlığı yok");
 }
+
+#[test]
+fn store_detail_shows_trust_badge() {
+    let mut app = app();
+    app.select_store_tab();
+    // AI kategorisindeki ilk kayıtlar manual → "manual" rozeti.
+    let lines = render(&app, 150, 42);
+    let text = all_text(&lines);
+    assert!(text.contains("Güven:"), "detayda Güven satırı yok");
+    assert!(
+        text.contains("manual") || text.contains("hash"),
+        "hash / manual rozeti görünmeli"
+    );
+
+    // Dosya ve Arama: ripgrep gibi download_archive → [hash].
+    let target = nova::store::STORE_CATEGORIES
+        .iter()
+        .position(|c| *c == "Dosya ve Arama")
+        .expect("kategori var");
+    app.store_category_index = target;
+    app.store_app_index = 0;
+    let lines = render(&app, 150, 42);
+    let text = all_text(&lines);
+    assert!(text.contains("[hash]"), "liste satırında [hash] rozeti yok");
+    assert!(text.contains("Güven:"), "detayda Güven satırı yok");
+    assert!(
+        text.contains("yalnızca SHA-256") || text.contains("hash —"),
+        "hash güven açıklaması yok"
+    );
+}

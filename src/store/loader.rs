@@ -228,15 +228,6 @@ mod tests {
             .collect();
         assert!(!archives.is_empty(), "indirilebilir en az bir kayıt olmalı");
         for entry in archives {
-            let url = entry.download_url.as_deref().unwrap_or_default();
-            assert!(url.starts_with("https://"), "{}: {}", entry.id, url);
-            let sum = entry.checksum.as_deref().unwrap_or_default();
-            assert!(
-                crate::store::is_sha256_hex(sum),
-                "{}: geçersiz checksum '{}'",
-                entry.id,
-                sum
-            );
             assert!(
                 entry
                     .version
@@ -245,6 +236,51 @@ mod tests {
                 "{}: sürüm belirtilmeli",
                 entry.id
             );
+            if entry.artifacts.is_empty() {
+                let url = entry.download_url.as_deref().unwrap_or_default();
+                assert!(url.starts_with("https://"), "{}: {}", entry.id, url);
+                let sum = entry.checksum.as_deref().unwrap_or_default();
+                assert!(
+                    crate::store::is_sha256_hex(sum),
+                    "{}: geçersiz checksum '{}'",
+                    entry.id,
+                    sum
+                );
+            } else {
+                assert!(
+                    entry.artifacts.len() >= 2,
+                    "{}: x86_64 ve aarch64 artifact beklenir",
+                    entry.id
+                );
+                for art in &entry.artifacts {
+                    assert!(
+                        art.download_url.starts_with("https://"),
+                        "{} ({}): {}",
+                        entry.id,
+                        art.arch,
+                        art.download_url
+                    );
+                    assert!(
+                        crate::store::is_sha256_hex(&art.checksum),
+                        "{} ({}): geçersiz checksum '{}'",
+                        entry.id,
+                        art.arch,
+                        art.checksum
+                    );
+                    assert!(
+                        art.cpu_arch().is_some(),
+                        "{}: arch '{}'",
+                        entry.id,
+                        art.arch
+                    );
+                }
+                assert!(
+                    entry.supports_arch(crate::store::CpuArch::X86_64)
+                        && entry.supports_arch(crate::store::CpuArch::Aarch64),
+                    "{}: her iki mimari desteklenmeli",
+                    entry.id
+                );
+            }
         }
     }
 
@@ -336,8 +372,35 @@ mod tests {
             if entry.release.is_none() {
                 continue;
             }
-            assert!(entry.checksum.is_some(), "{}: gömülü özet olmalı", entry.id);
+            let has_top = entry.checksum.is_some();
+            let has_artifacts = !entry.artifacts.is_empty()
+                && entry
+                    .artifacts
+                    .iter()
+                    .all(|a| crate::store::is_sha256_hex(&a.checksum));
+            assert!(
+                has_top || has_artifacts,
+                "{}: gömülü özet (üst alan veya artifacts) olmalı",
+                entry.id
+            );
             assert!(entry.version.is_some(), "{}: sürüm olmalı", entry.id);
+        }
+    }
+
+    #[test]
+    fn builtin_store_entries_declare_linux_arches() {
+        let store = load_builtin_store().expect("mağaza kataloğu yüklenmeli");
+        for entry in store.entries() {
+            assert!(
+                entry.supports_arch(crate::store::CpuArch::X86_64),
+                "{}: linux-x64 / x86_64",
+                entry.id
+            );
+            assert!(
+                entry.supports_arch(crate::store::CpuArch::Aarch64),
+                "{}: linux-aarch64 / aarch64",
+                entry.id
+            );
         }
     }
 }

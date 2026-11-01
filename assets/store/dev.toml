@@ -3,6 +3,8 @@
 # Kategori: "Geliştirme"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "atac"
@@ -14,7 +16,7 @@ license = "MIT"
 executable = "atac"
 install_method = "cargo"
 install_command = ["cargo", "install", "atac"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install atac\nbrew: brew install atac\nResmî: https://github.com/Julien-cpsn/ATAC#installation"""
 
 [[apps]]
@@ -27,7 +29,7 @@ license = "MIT"
 executable = "posting"
 install_method = "pipx"
 install_command = ["pipx", "install", "posting"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """pipx: pipx install posting\nuv: uv tool install posting\nResmî: https://github.com/darrenburns/posting"""
 
 [[apps]]
@@ -40,7 +42,7 @@ license = "BSD-3-Clause"
 executable = "http"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "httpie"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install httpie\npipx: pipx install httpie\napt: sudo apt install httpie\npacman: sudo pacman -S httpie\nResmî: https://httpie.io/docs/cli/installation"""
 
 [[apps]]
@@ -53,7 +55,7 @@ license = "MIT"
 executable = "xh"
 install_method = "cargo"
 install_command = ["cargo", "install", "xh"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install xh\nbrew: brew install xh\nResmî: https://github.com/ducaale/xh#installation"""
 
 [[apps]]
@@ -66,7 +68,7 @@ license = "MIT"
 executable = "fx"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "fx"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """npm: npm install -g fx\nbrew: brew install fx\nResmî: https://fx.wtf/"""
 
 [[apps]]
@@ -79,7 +81,7 @@ license = "MIT"
 executable = "jqp"
 install_method = "brew"
 install_command = ["brew", "install", "jqp"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install jqp\ngo: go install github.com/noahgorstein/jqp@latest\nResmî: https://github.com/noahgorstein/jqp#installation"""
 
 [[apps]]
@@ -92,7 +94,7 @@ license = "MIT"
 executable = "mitmproxy"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "mitmproxy"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """pipx: pipx install mitmproxy\nbrew: brew install mitmproxy\napt: sudo apt install mitmproxy\npacman: sudo pacman -S mitmproxy\nResmî: https://docs.mitmproxy.org/stable/overview-installation/"""
 
 [[apps]]
@@ -105,7 +107,7 @@ license = "MIT/Apache-2.0"
 executable = "hyperfine"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "hyperfine"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install hyperfine\nbrew: brew install hyperfine\napt: sudo apt install hyperfine\npacman: sudo pacman -S hyperfine\nResmî: https://github.com/sharkdp/hyperfine#installation"""
 
 [[apps]]
@@ -118,7 +120,7 @@ license = "MIT/Apache-2.0"
 executable = "tokei"
 install_method = "cargo"
 install_command = ["cargo", "install", "tokei"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install tokei\nbrew: brew install tokei\nResmî: https://github.com/XAMPPRocky/tokei#installation"""
 
 [[apps]]
@@ -131,7 +133,7 @@ license = "CC0-1.0"
 executable = "just"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "just"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install just\nbrew: brew install just\napt: sudo apt install just\npacman: sudo pacman -S just\nResmî: https://github.com/casey/just#installation"""
 
 [[apps]]
@@ -144,7 +146,7 @@ license = "Apache-2.0"
 executable = "watchexec"
 install_method = "cargo"
 install_command = ["cargo", "install", "watchexec-cli"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install watchexec-cli\nbrew: brew install watchexec\nResmî: https://github.com/watchexec/watchexec#install"""
 
 [[apps]]
@@ -157,7 +159,7 @@ license = "MIT"
 executable = "direnv"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "direnv"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install direnv\nbrew: brew install direnv\npacman: sudo pacman -S direnv\nResmî: https://direnv.net/docs/installation.html"""
 
 [[apps]]
@@ -170,7 +172,7 @@ license = "MIT"
 executable = "mise"
 install_method = "brew"
 install_command = ["brew", "install", "mise"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """curl: curl https://mise.run | sh\nbrew: brew install mise\nResmî: https://mise.jdx.dev/getting-started.html"""
 
 [[apps]]
@@ -183,7 +185,7 @@ license = "MIT/Apache-2.0"
 executable = "uv"
 install_method = "brew"
 install_command = ["brew", "install", "uv"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """curl: curl -LsSf https://astral.sh/uv/install.sh | sh\nbrew: brew install uv\npip: pip install uv\nResmî: https://docs.astral.sh/uv/getting-started/installation/"""
 
 [[apps]]
@@ -196,7 +198,7 @@ license = "MIT"
 executable = "ruff"
 install_method = "pipx"
 install_command = ["pipx", "install", "ruff"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """pipx: pipx install ruff\nuv: uv tool install ruff\nbrew: brew install ruff\nResmî: https://docs.astral.sh/ruff/installation/"""
 
 [[apps]]
@@ -209,7 +211,7 @@ license = "GPL-3.0"
 executable = "shellcheck"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "shellcheck"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install shellcheck\nbrew: brew install shellcheck\npacman: sudo pacman -S shellcheck\nResmî: https://github.com/koalaman/shellcheck#installing"""
 
 [[apps]]
@@ -222,8 +224,12 @@ license = "MIT"
 executable = "act"
 install_method = "brew"
 install_command = ["brew", "install", "act"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install act\nResmî: https://nektosact.com/installation/"""
+
+# ---------------------------------------------------------------------------
+# Editörler
+# ---------------------------------------------------------------------------
 
 [[apps]]
 id = "pre-commit"
@@ -235,7 +241,7 @@ license = "MIT"
 executable = "pre-commit"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "pre-commit"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S pre-commit\npipx: pipx install pre-commit\nbrew: brew install pre-commit"
 
 [[apps]]
@@ -248,7 +254,7 @@ license = "MIT"
 executable = "ec"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "editorconfig-checker"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S editorconfig-checker\nbrew: brew install editorconfig-checker"
 
 [[apps]]
@@ -261,7 +267,7 @@ license = "BSD"
 executable = "shfmt"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "shfmt"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S shfmt\ngo: go install mvdan.cc/sh/v3/cmd/shfmt@latest\nbrew: brew install shfmt"
 
 [[apps]]
@@ -274,7 +280,7 @@ license = "Apache-2.0"
 executable = "yapf"
 install_method = "pipx"
 install_command = ["pipx", "install", "yapf"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pipx: pipx install yapf\npacman: sudo pacman -S yapf\nResmî: https://github.com/google/yapf"
 
 [[apps]]
@@ -287,7 +293,7 @@ license = "MIT"
 executable = "black"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "python-black"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S python-black\npipx: pipx install black\nResmî: https://github.com/psf/black"
 
 [[apps]]
@@ -300,7 +306,7 @@ license = "MIT"
 executable = "mypy"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "mypy"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S mypy\npipx: pipx install mypy\nResmî: https://mypy-lang.org/"
 
 [[apps]]
@@ -313,7 +319,7 @@ license = "MIT"
 executable = "pyright"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "pyright"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "npm: npm install -g pyright\npipx: pipx install pyright\nResmî: https://github.com/microsoft/pyright"
 
 [[apps]]
@@ -326,7 +332,7 @@ license = "MIT"
 executable = "eslint"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "eslint"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "npm: npm install -g eslint\nResmî: https://eslint.org/"
 
 [[apps]]
@@ -339,7 +345,7 @@ license = "MIT"
 executable = "prettier"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "prettier"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "npm: npm install -g prettier\nResmî: https://prettier.io/"
 
 [[apps]]
@@ -352,7 +358,7 @@ license = "Apache-2.0"
 executable = "tsc"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "typescript"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S typescript\nnpm: npm install -g typescript\nResmî: https://www.typescriptlang.org/"
 
 [[apps]]
@@ -365,7 +371,7 @@ license = "Apache-2.0/MIT"
 executable = "rust-analyzer"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "rust-analyzer"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S rust-analyzer\nrustup: rustup component add rust-analyzer\nResmî: https://rust-analyzer.github.io/"
 
 [[apps]]
@@ -378,7 +384,7 @@ license = "BSD"
 executable = "gopls"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "gopls"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S gopls\ngo: go install golang.org/x/tools/gopls@latest"
 
 [[apps]]
@@ -391,7 +397,7 @@ license = "Apache-2.0"
 executable = "clangd"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "clang"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S clang\napt: sudo apt install clangd\nResmî: https://clangd.llvm.org/"
 
 [[apps]]
@@ -404,7 +410,7 @@ license = "BSD"
 executable = "cmake"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "cmake"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S cmake\napt: sudo apt install cmake\nbrew: brew install cmake"
 
 [[apps]]
@@ -417,7 +423,7 @@ license = "Apache-2.0"
 executable = "ninja"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "ninja"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S ninja\napt: sudo apt install ninja-build\nbrew: brew install ninja"
 
 [[apps]]
@@ -430,7 +436,7 @@ license = "Apache-2.0"
 executable = "meson"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "meson"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S meson\napt: sudo apt install meson\nbrew: brew install meson"
 
 [[apps]]
@@ -443,7 +449,7 @@ license = "Apache-2.0"
 executable = "bazel"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "bazel"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S bazel\nbrew: brew install bazel\nResmî: https://bazel.build/"
 
 [[apps]]
@@ -456,7 +462,7 @@ license = "MIT"
 executable = "mold"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "mold"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S mold\nResmî: https://github.com/rui314/mold"
 
 [[apps]]
@@ -469,7 +475,7 @@ license = "GPL-3.0"
 executable = "ccache"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "ccache"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S ccache\napt: sudo apt install ccache\nbrew: brew install ccache"
 
 [[apps]]
@@ -482,7 +488,7 @@ license = "Apache-2.0"
 executable = "sccache"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "sccache"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S sccache\ncargo: cargo install sccache\nbrew: brew install sccache"
 
 [[apps]]
@@ -495,7 +501,7 @@ license = "GPL-2.0"
 executable = "cloc"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "cloc"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S cloc\napt: sudo apt install cloc\nbrew: brew install cloc"
 
 [[apps]]
@@ -508,7 +514,7 @@ license = "MIT"
 executable = "loc"
 install_method = "cargo"
 install_command = ["cargo", "install", "loc"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install loc\nResmî: https://github.com/cgag/loc"
 
 [[apps]]
@@ -521,7 +527,7 @@ license = "BSD"
 executable = "bench"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "bench"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S bench\nResmî: https://github.com/gabriel439/bench"
 
 [[apps]]
@@ -534,7 +540,7 @@ license = "LGPL-2.1"
 executable = "strace"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "strace"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S strace\napt: sudo apt install strace"
 
 [[apps]]
@@ -547,7 +553,7 @@ license = "GPL-2.0"
 executable = "ltrace"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "ltrace"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S ltrace\napt: sudo apt install ltrace"
 
 [[apps]]
@@ -560,7 +566,7 @@ license = "GPL-3.0"
 executable = "gdb"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "gdb"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S gdb\napt: sudo apt install gdb\nbrew: brew install gdb"
 
 [[apps]]
@@ -573,7 +579,7 @@ license = "Apache-2.0"
 executable = "lldb"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "lldb"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S lldb\napt: sudo apt install lldb\nbrew: brew install llvm"
 
 [[apps]]
@@ -586,7 +592,7 @@ license = "GPL-2.0"
 executable = "valgrind"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "valgrind"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S valgrind\napt: sudo apt install valgrind"
 
 [[apps]]
@@ -599,7 +605,7 @@ license = "LGPL-2.1"
 executable = "heaptrack"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "heaptrack"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S heaptrack\nResmî: https://github.com/KDE/heaptrack"
 
 [[apps]]
@@ -612,7 +618,7 @@ license = "GPL-2.0"
 executable = "perf"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "perf"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S perf\napt: sudo apt install linux-tools-generic"
 
 [[apps]]
@@ -625,5 +631,31 @@ license = "CDDL"
 executable = "flamegraph"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "flamegraph"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S flamegraph\nResmî: https://github.com/brendangregg/FlameGraph"
+
+[[apps]]
+id = "ast-grep"
+name = "ast-grep"
+category = "Geliştirme"
+description = "AST tabanlı yapısal kod arama, lint ve yeniden yazma (sg)."
+source = "https://ast-grep.github.io/"
+license = "MIT"
+executable = "sg"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ast-grep"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S ast-grep\ncargo: cargo install ast-grep --locked\nnpm: npm install -g @ast-grep/cli\nbrew: brew install ast-grep\nResmî: https://ast-grep.github.io/"
+
+[[apps]]
+id = "actionlint"
+name = "actionlint"
+category = "Geliştirme"
+description = "GitHub Actions workflow dosyaları için statik denetleyici."
+source = "https://github.com/rhysd/actionlint"
+license = "MIT"
+executable = "actionlint"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "actionlint"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S actionlint\ngo: go install github.com/rhysd/actionlint/cmd/actionlint@latest\nbrew: brew install actionlint\nResmî: https://github.com/rhysd/actionlint"

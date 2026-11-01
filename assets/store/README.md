@@ -26,3 +26,11 @@ okuyup birleştirir.
 | `daily.toml` | Günlük |
 
 Yeni uygulama: doğru kategori dosyasına `[[apps]]` ekleyip yeniden derleyin.
+
+## Şema notları
+
+- `supported_platforms`: `linux-x64`, `linux-aarch64`
+- `artifacts`: `[[apps.artifacts]]` ile mimariye özel URL/checksum
+- `signature`: isteğe bağlı upstream imza (minisign | cosign | gpg | attestation)
+- Kurulum yöntemleri: `manual`, `download_archive`, `pipx`, `npm`, `cargo`, `brew`, `apt`, `dnf`, `pacman`, `uv`
+

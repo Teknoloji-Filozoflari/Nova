@@ -3,6 +3,8 @@
 # Kategori: "Verimlilik"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "tmux"
@@ -14,7 +16,7 @@ license = "ISC"
 executable = "tmux"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "tmux"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install tmux\nbrew: brew install tmux\npacman: sudo pacman -S tmux\nResmî: https://github.com/tmux/tmux/wiki/Installing"""
 
 [[apps]]
@@ -27,7 +29,7 @@ license = "MIT"
 executable = "zellij"
 install_method = "cargo"
 install_command = ["cargo", "install", "--locked", "zellij"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install --locked zellij\nbrew: brew install zellij\nResmî: https://zellij.dev/documentation/installation"""
 
 [[apps]]
@@ -40,7 +42,7 @@ license = "MIT"
 executable = "glow"
 install_method = "brew"
 install_command = ["brew", "install", "glow"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install glow\ngo: go install github.com/charmbracelet/glow@latest\nResmî: https://github.com/charmbracelet/glow#installation"""
 
 [[apps]]
@@ -53,7 +55,7 @@ license = "MIT"
 executable = "slides"
 install_method = "brew"
 install_command = ["brew", "install", "slides"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install slides\ngo: go install github.com/maaslalani/slides@latest\nResmî: https://github.com/maaslalani/slides#installation"""
 
 [[apps]]
@@ -66,7 +68,7 @@ license = "MIT"
 executable = "taskwarrior-tui"
 install_method = "cargo"
 install_command = ["cargo", "install", "taskwarrior-tui"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install taskwarrior-tui\nbrew: brew install taskwarrior-tui\nResmî: https://kdheepak.com/taskwarrior-tui/"""
 
 [[apps]]
@@ -79,7 +81,7 @@ license = "BSD-2-Clause"
 executable = "calcurse"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "calcurse"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install calcurse\nbrew: brew install calcurse\npacman: sudo pacman -S calcurse\nResmî: https://calcurse.org/"""
 
 [[apps]]
@@ -92,7 +94,7 @@ license = "Apache-2.0"
 executable = "navi"
 install_method = "cargo"
 install_command = ["cargo", "install", "--locked", "navi"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install navi\ncargo: cargo install --locked navi\nResmî: https://github.com/denisidoro/navi#installation"""
 
 [[apps]]
@@ -105,7 +107,7 @@ license = "MIT"
 executable = "atuin"
 install_method = "brew"
 install_command = ["brew", "install", "atuin"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """curl: curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh\nbrew: brew install atuin\nResmî: https://docs.atuin.sh/guide/installation/"""
 
 [[apps]]
@@ -118,7 +120,7 @@ license = "MIT"
 executable = "zoxide"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "zoxide"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install zoxide --locked\nbrew: brew install zoxide\napt: sudo apt install zoxide\npacman: sudo pacman -S zoxide\nResmî: https://github.com/ajeetdsouza/zoxide#installation"""
 
 [[apps]]
@@ -131,7 +133,7 @@ license = "ISC"
 executable = "starship"
 install_method = "brew"
 install_command = ["brew", "install", "starship"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """curl: curl -sS https://starship.rs/install.sh | sh\nbrew: brew install starship\nResmî: https://starship.rs/guide/#%F0%9F%9A%80-installation"""
 
 [[apps]]
@@ -144,7 +146,7 @@ license = "MPL-2.0"
 executable = "wtfutil"
 install_method = "brew"
 install_command = ["brew", "install", "wtfutil"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install wtfutil\nResmî: https://wtfutil.com/"""
 
 [[apps]]
@@ -157,8 +159,12 @@ license = "MIT"
 executable = "gum"
 install_method = "brew"
 install_command = ["brew", "install", "gum"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install gum\ngo: go install github.com/charmbracelet/gum@latest\nResmî: https://github.com/charmbracelet/gum#installation"""
+
+# ---------------------------------------------------------------------------
+# Oyunlar
+# ---------------------------------------------------------------------------
 
 [[apps]]
 id = "cheat"
@@ -170,7 +176,7 @@ license = "MIT"
 executable = "cheat"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "cheat"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S cheat\nbrew: brew install cheat\nResmî: https://github.com/cheat/cheat"
 
 [[apps]]
@@ -183,7 +189,7 @@ license = "MIT/Apache-2.0"
 executable = "tldr"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "tealdeer"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S tealdeer\ncargo: cargo install tealdeer\nNot: tldr id çakışabilir; tealdeer aynı exe."
 
 [[apps]]
@@ -196,7 +202,7 @@ license = "MIT"
 executable = "howdoi"
 install_method = "pipx"
 install_command = ["pipx", "install", "howdoi"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pipx: pipx install howdoi\nResmî: https://github.com/gleitz/howdoi"
 
 [[apps]]
@@ -209,7 +215,7 @@ license = "MIT"
 executable = "fuck"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "thefuck"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S thefuck\npipx: pipx install thefuck\nResmî: https://github.com/nvbn/thefuck"
 
 [[apps]]
@@ -222,7 +228,7 @@ license = "GPL-3.0"
 executable = "autojump"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "autojump"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S autojump\napt: sudo apt install autojump\nbrew: brew install autojump"
 
 [[apps]]
@@ -235,7 +241,7 @@ license = "MIT"
 executable = "fasd"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "fasd"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S fasd\nbrew: brew install fasd"
 
 [[apps]]
@@ -248,5 +254,44 @@ license = "MIT"
 executable = "mcfly"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "mcfly"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S mcfly\nbrew: brew install mcfly\nResmî: https://github.com/cantino/mcfly"
+
+[[apps]]
+id = "restic"
+name = "restic"
+category = "Verimlilik"
+description = "Hızlı, güvenli ve verimli yedekleme aracı."
+source = "https://restic.net/"
+license = "BSD-2-Clause"
+executable = "restic"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "restic"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S restic\napt: sudo apt install restic\nbrew: brew install restic\nResmî: https://restic.readthedocs.io/en/stable/020_installation.html"
+
+[[apps]]
+id = "borg"
+name = "borg"
+category = "Verimlilik"
+description = "Tekilleştirmeli, sıkıştırmalı ve şifreli yedekleme (BorgBackup)."
+source = "https://www.borgbackup.org/"
+license = "BSD-3-Clause"
+executable = "borg"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "borg"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S borg\napt: sudo apt install borgbackup\nbrew: brew install borgbackup\nResmî: https://borgbackup.readthedocs.io/"
+
+[[apps]]
+id = "khal"
+name = "khal"
+category = "Verimlilik"
+description = "CalDAV tabanlı komut satırı takvim uygulaması."
+source = "https://lostpackets.de/khal/"
+license = "MIT"
+executable = "khal"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "khal"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S khal\npipx: pipx install khal\napt: sudo apt install khal\nbrew: brew install khal\nResmî: https://lostpackets.de/khal/"

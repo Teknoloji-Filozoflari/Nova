@@ -3,6 +3,8 @@
 # Kategori: "Medya"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "ncspot"
@@ -14,7 +16,7 @@ license = "BSD-2-Clause"
 executable = "ncspot"
 install_method = "cargo"
 install_command = ["cargo", "install", "ncspot"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """cargo: cargo install ncspot\nbrew: brew install ncspot\nResmî: https://github.com/hrkfdn/ncspot#installation"""
 
 [[apps]]
@@ -27,7 +29,7 @@ license = "GPL-2.0"
 executable = "cmus"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "cmus"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install cmus\nbrew: brew install cmus\npacman: sudo pacman -S cmus\nResmî: https://github.com/cmus/cmus"""
 
 [[apps]]
@@ -40,7 +42,7 @@ license = "GPL-2.0"
 executable = "mpv"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "mpv"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install mpv\nbrew: brew install mpv\npacman: sudo pacman -S mpv\nResmî: https://mpv.io/installation/"""
 
 [[apps]]
@@ -53,7 +55,7 @@ license = "LGPL/GPL"
 executable = "ffmpeg"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "ffmpeg"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install ffmpeg\nbrew: brew install ffmpeg\npacman: sudo pacman -S ffmpeg\nResmî: https://ffmpeg.org/download.html"""
 
 [[apps]]
@@ -66,7 +68,7 @@ license = "Unlicense"
 executable = "yt-dlp"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "yt-dlp"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """pipx: pipx install yt-dlp\nbrew: brew install yt-dlp\napt: sudo apt install yt-dlp\npacman: sudo pacman -S yt-dlp\nResmî: https://github.com/yt-dlp/yt-dlp#installation"""
 
 [[apps]]
@@ -79,8 +81,12 @@ license = "MIT"
 executable = "cava"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "cava"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install cava\nbrew: brew install cava\npacman: sudo pacman -S cava\nResmî: https://github.com/karlstav/cava#installing"""
+
+# ---------------------------------------------------------------------------
+# Mesajlaşma
+# ---------------------------------------------------------------------------
 
 [[apps]]
 id = "ncmpcpp"
@@ -92,7 +98,7 @@ license = "GPL-2.0"
 executable = "ncmpcpp"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "ncmpcpp"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S ncmpcpp\napt: sudo apt install ncmpcpp\nbrew: brew install ncmpcpp"
 
 [[apps]]
@@ -105,7 +111,7 @@ license = "GPL-3.0"
 executable = "mpsyt"
 install_method = "pipx"
 install_command = ["pipx", "install", "mps-youtube"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pipx: pipx install mps-youtube\nResmî: https://github.com/mps-youtube/mps-youtube"
 
 [[apps]]
@@ -118,7 +124,7 @@ license = "GPL-3.0"
 executable = "ytfzf"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "ytfzf"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S ytfzf\nResmî: https://github.com/pystardust/ytfzf"
 
 [[apps]]
@@ -131,7 +137,7 @@ license = "MIT"
 executable = "spt"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "spotify-tui"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S spotify-tui\ncargo: cargo install spotify-tui\nResmî: https://github.com/Rigellute/spotify-tui"
 
 [[apps]]
@@ -144,5 +150,5 @@ license = "MIT"
 executable = "termusic"
 install_method = "cargo"
 install_command = ["cargo", "install", "termusic"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install termusic\nResmî: https://github.com/tramhao/termusic"

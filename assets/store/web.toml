@@ -3,6 +3,8 @@
 # Kategori: "Web"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "w3m"
@@ -14,7 +16,7 @@ license = "w3m"
 executable = "w3m"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "w3m"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install w3m\nbrew: brew install w3m\npacman: sudo pacman -S w3m\nResmî: https://w3m.sourceforge.net/"""
 
 [[apps]]
@@ -27,7 +29,7 @@ license = "GPL-2.0"
 executable = "lynx"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "lynx"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install lynx\nbrew: brew install lynx\npacman: sudo pacman -S lynx\nResmî: https://lynx.invisible-island.net/"""
 
 [[apps]]
@@ -40,7 +42,7 @@ license = "LGPL-2.1"
 executable = "browsh"
 install_method = "brew"
 install_command = ["brew", "install", "browsh"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install browsh\nResmî: https://www.brow.sh/"""
 
 [[apps]]
@@ -53,7 +55,7 @@ license = "MIT"
 executable = "newsboat"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "newsboat"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install newsboat\nbrew: brew install newsboat\npacman: sudo pacman -S newsboat\nResmî: https://newsboat.org/"""
 
 [[apps]]
@@ -66,7 +68,7 @@ license = "LGPL-3.0"
 executable = "chafa"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "chafa"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install chafa\nbrew: brew install chafa\npacman: sudo pacman -S chafa\nResmî: https://hpjansson.org/chafa/"""
 
 [[apps]]
@@ -79,8 +81,12 @@ license = "GPL-3.0"
 executable = "ddgr"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "ddgr"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """pipx: pipx install ddgr\nbrew: brew install ddgr\napt: sudo apt install ddgr\npacman: sudo pacman -S ddgr\nResmî: https://github.com/jarun/ddgr#installation"""
+
+# ---------------------------------------------------------------------------
+# Günlük
+# ---------------------------------------------------------------------------
 
 [[apps]]
 id = "buku"
@@ -92,7 +98,7 @@ license = "GPL-3.0"
 executable = "buku"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "buku"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S buku\npipx: pipx install buku\nResmî: https://github.com/jarun/buku"
 
 [[apps]]
@@ -105,7 +111,7 @@ license = "GPL-3.0"
 executable = "googler"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "googler"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S googler\nResmî: https://github.com/jarun/googler"
 
 [[apps]]
@@ -118,7 +124,7 @@ license = "GPL-2.0"
 executable = "links"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "links"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S links\napt: sudo apt install links\nbrew: brew install links"
 
 [[apps]]
@@ -131,7 +137,7 @@ license = "GPL-2.0"
 executable = "elinks"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "elinks"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S elinks\napt: sudo apt install elinks"
 
 [[apps]]
@@ -144,5 +150,5 @@ license = "Unlicense"
 executable = "cha"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "chawan"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S chawan\nResmî: https://git.sr.ht/~bptato/chawan"

@@ -86,7 +86,8 @@ pub struct StateFile {
 /// Kalıcı tercihler.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Prefs {
-    /// Desteklenen terminal emülatörleri arasında tercih (ör. `"konsole"`).
+    /// Desteklenen terminal emülatörleri arasında tercih (ör. `"kitty"`).
+    /// `None`/boş: `$TERMINAL`, sonra bilinen emülatör listesi.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub preferred_terminal: Option<String>,
     /// `current`/`home` yerine kullanılacak varsayılan çalışma dizini.
@@ -107,6 +108,7 @@ pub struct Prefs {
     pub theme: Option<String>,
     /// Varsayılan AI komut satırı aracının katalog kimliği (`id`).
     /// Yalnızca kurulu olan AI kategorisindeki araçlar seçilebilir.
+    /// Ana ekranda `a` tuşu bu aracı başlatır.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default_ai_tool: Option<String>,
     /// Resim dosyaları için varsayılan uygulama (katalog `id` veya executable adı).
@@ -115,6 +117,9 @@ pub struct Prefs {
     /// Video dosyaları için varsayılan uygulama (katalog `id` veya executable adı).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default_video_app: Option<String>,
+    /// Arayüz dili (`tr`, `en`, `ru`, `az`, `uz`, `kk`). `None` → Türkçe.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
 }
 
 impl StateFile {

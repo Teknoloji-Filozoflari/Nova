@@ -3,6 +3,8 @@
 # Kategori: "AI"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "aider"
@@ -14,7 +16,7 @@ license = "Apache-2.0"
 executable = "aider"
 install_method = "pipx"
 install_command = ["pipx", "install", "aider-chat"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """pipx: pipx install aider-chat\npip: python3 -m pip install aider-chat\nResmî: https://aider.chat/"""
 
 [[apps]]
@@ -27,7 +29,7 @@ license = "Proprietary"
 executable = "claude"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "@anthropic-ai/claude-code"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """npm: npm install -g @anthropic-ai/claude-code\nResmî: https://code.claude.com/"""
 
 [[apps]]
@@ -40,7 +42,7 @@ license = "Apache-2.0"
 executable = "codex"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "@openai/codex"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """npm: npm install -g @openai/codex\nResmî: https://github.com/openai/codex#installation"""
 
 [[apps]]
@@ -53,7 +55,7 @@ license = "Apache-2.0"
 executable = "gemini"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "@google/gemini-cli"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """npm: npm install -g @google/gemini-cli\nResmî: https://github.com/google-gemini/gemini-cli"""
 
 [[apps]]
@@ -66,7 +68,7 @@ license = "Apache-2.0"
 executable = "llm"
 install_method = "pipx"
 install_command = ["pipx", "install", "llm"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """pipx: pipx install llm\nuv: uv tool install llm\nResmî: https://llm.datasette.io/en/stable/setup.html"""
 
 [[apps]]
@@ -79,7 +81,7 @@ license = "MIT"
 executable = "opencode"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "opencode-ai"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """npm: npm install -g opencode-ai\ncurl: curl -fsSL https://opencode.ai/install | bash\nResmî: https://opencode.ai/"""
 
 [[apps]]
@@ -92,7 +94,7 @@ license = "MIT"
 executable = "crush"
 install_method = "brew"
 install_command = ["brew", "install", "charmbracelet/tap/crush"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install charmbracelet/tap/crush\ngo: go install github.com/charmbracelet/crush@latest\nResmî: https://github.com/charmbracelet/crush"""
 
 [[apps]]
@@ -104,7 +106,7 @@ source = "https://block.github.io/goose/"
 license = "Apache-2.0"
 executable = "goose"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """Resmî kurulum: https://block.github.io/goose/docs/getting-started/installation/"""
 
 [[apps]]
@@ -116,7 +118,7 @@ source = "https://github.com/plandex-ai/plandex"
 license = "MIT"
 executable = "plandex"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """curl: curl -sL https://plandex.ai/install.sh | bash\nResmî: https://github.com/plandex-ai/plandex#install"""
 
 [[apps]]
@@ -129,7 +131,7 @@ license = "Apache-2.0"
 executable = "cn"
 install_method = "npm"
 install_command = ["npm", "i", "-g", "@continuedev/cli"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """npm: npm i -g @continuedev/cli\nResmî: https://docs.continue.dev/"""
 
 [[apps]]
@@ -142,7 +144,7 @@ license = "Apache-2.0"
 executable = "qwen"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "@qwen-code/qwen-code"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """npm: npm install -g @qwen-code/qwen-code\nResmî: https://github.com/QwenLM/qwen-code"""
 
 [[apps]]
@@ -155,8 +157,12 @@ license = "Proprietary"
 executable = "amp"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "@sourcegraph/amp"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """npm: npm install -g @sourcegraph/amp\nResmî: https://ampcode.com/"""
+
+# ---------------------------------------------------------------------------
+# Git
+# ---------------------------------------------------------------------------
 
 [[apps]]
 id = "auggie"
@@ -168,7 +174,7 @@ license = "Proprietary"
 executable = "auggie"
 install_method = "npm"
 install_command = ["npm", "install", "-g", "@augmentcode/auggie"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "npm: npm install -g @augmentcode/auggie\nResmî: https://www.augmentcode.com/"
 
 [[apps]]
@@ -181,7 +187,7 @@ license = "MIT"
 executable = "openhands"
 install_method = "pipx"
 install_command = ["pipx", "install", "openhands"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pipx: pipx install openhands\nuv: uv tool install openhands\nResmî: https://github.com/All-Hands-AI/OpenHands"
 
 [[apps]]
@@ -194,7 +200,7 @@ license = "MIT"
 executable = "mods"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "mods"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S mods\nbrew: brew install charmbracelet/tap/mods\nResmî: https://github.com/charmbracelet/mods"
 
 [[apps]]
@@ -207,7 +213,7 @@ license = "GPL-3.0"
 executable = "tgpt"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "tgpt"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S tgpt\nbrew: brew install tgpt\nResmî: https://github.com/aandrew-me/tgpt"
 
 [[apps]]
@@ -220,7 +226,7 @@ license = "MIT"
 executable = "sgpt"
 install_method = "pipx"
 install_command = ["pipx", "install", "shell-gpt"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pipx: pipx install shell-gpt\nuv: uv tool install shell-gpt\nResmî: https://github.com/TheR1D/shell_gpt"
 
 [[apps]]
@@ -233,7 +239,7 @@ license = "MIT"
 executable = "fabric"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "fabric"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S fabric\nResmî: https://github.com/danielmiessler/fabric"
 
 [[apps]]
@@ -246,7 +252,7 @@ license = "MPL-2.0"
 executable = "tts"
 install_method = "pipx"
 install_command = ["pipx", "install", "TTS"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pipx: pipx install TTS\nResmî: https://github.com/coqui-ai/TTS"
 
 [[apps]]
@@ -259,7 +265,7 @@ license = "MIT"
 executable = "ollama"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "ollama"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S ollama\ncurl: https://ollama.com/install.sh\nResmî: https://ollama.com/"
 
 [[apps]]
@@ -272,7 +278,7 @@ license = "Apache-2.0"
 executable = "aichat"
 install_method = "cargo"
 install_command = ["cargo", "install", "aichat"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install aichat\nbrew: brew install aichat\npacman: AUR aichat\nResmî: https://github.com/sigoden/aichat"
 
 [[apps]]
@@ -284,5 +290,18 @@ source = "https://github.com/kardolus/chatgpt-cli"
 license = "MIT"
 executable = "chatgpt"
 install_method = "manual"
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "go: go install github.com/kardolus/chatgpt-cli/cmd/chatgpt@latest\nResmî: https://github.com/kardolus/chatgpt-cli"
+
+[[apps]]
+id = "llmfit"
+name = "llmfit"
+category = "AI"
+description = "Donanıma göre hangi yerel LLM modellerinin çalışacağını önerir (TUI)."
+source = "https://github.com/AlexsJones/llmfit"
+license = "MIT"
+executable = "llmfit"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "llmfit"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "pacman: sudo pacman -S llmfit\nuv: uv tool install -U llmfit\nbrew: brew install llmfit\nResmî: https://www.llmfit.org/"

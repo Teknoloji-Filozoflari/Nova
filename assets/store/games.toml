@@ -3,6 +3,8 @@
 # Kategori: "Oyunlar"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+# Desteklenen platformlar: linux-x64, linux-aarch64.
+# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
 
 [[apps]]
 id = "nethack"
@@ -14,7 +16,7 @@ license = "NGPL"
 executable = "nethack"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "nethack-console"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install nethack-console\nbrew: brew install nethack\npacman: sudo pacman -S nethack\nResmî: https://www.nethack.org/"""
 
 [[apps]]
@@ -27,7 +29,7 @@ license = "GPL-3.0"
 executable = "bastet"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "bastet"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install bastet\npacman: sudo pacman -S bastet\nResmî: https://fph.altervista.org/prog/bastet.html"""
 
 [[apps]]
@@ -40,7 +42,7 @@ license = "MIT"
 executable = "2048"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "2048"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install 2048\nbrew: brew install 2048-cli\npacman: sudo pacman -S 2048-cli\nResmî: https://github.com/tiehuis/2048-cli"""
 
 [[apps]]
@@ -53,7 +55,7 @@ license = "GPL-3.0"
 executable = "cmatrix"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "cmatrix"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install cmatrix\nbrew: brew install cmatrix\npacman: sudo pacman -S cmatrix\nResmî: https://github.com/abishekvashok/cmatrix"""
 
 [[apps]]
@@ -66,7 +68,7 @@ license = "GPL-2.0"
 executable = "asciiquarium"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "asciiquarium"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """brew: brew install asciiquarium\napt: sudo apt install asciiquarium\npacman: sudo pacman -S asciiquarium\nResmî: https://robobunny.com/projects/asciiquarium/html/"""
 
 [[apps]]
@@ -79,8 +81,12 @@ license = "GPL-3.0"
 executable = "nsnake"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "nsnake"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = """apt: sudo apt install nsnake\npacman: sudo pacman -S nsnake\nResmî: https://github.com/alexdantas/nSnake"""
+
+# ---------------------------------------------------------------------------
+# Web
+# ---------------------------------------------------------------------------
 
 [[apps]]
 id = "angband"
@@ -92,7 +98,7 @@ license = "GPL-2.0"
 executable = "angband"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "angband"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S angband\napt: sudo apt install angband\nResmî: https://rephial.org/"
 
 [[apps]]
@@ -105,7 +111,7 @@ license = "GPL-2.0"
 executable = "crawl"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "crawl"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S crawl\napt: sudo apt install crawl\nResmî: https://crawl.develz.org/"
 
 [[apps]]
@@ -118,7 +124,7 @@ license = "BSD"
 executable = "fortune"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "fortune-mod"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S fortune-mod\napt: sudo apt install fortune-mod\nResmî: fortune-mod paketi"
 
 [[apps]]
@@ -131,7 +137,7 @@ license = "GPL-3.0"
 executable = "cowsay"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "cowsay"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S cowsay\napt: sudo apt install cowsay\nbrew: brew install cowsay"
 
 [[apps]]
@@ -144,7 +150,7 @@ license = "BSD"
 executable = "lolcat"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "lolcat"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S lolcat\ngem: gem install lolcat\napt: sudo apt install lolcat"
 
 [[apps]]
@@ -157,7 +163,7 @@ license = "MIT"
 executable = "sl"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "sl"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S sl\napt: sudo apt install sl\nbrew: brew install sl"
 
 [[apps]]
@@ -170,7 +176,7 @@ license = "GPL-2.0"
 executable = "typespeed"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "typespeed"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S typespeed\napt: sudo apt install typespeed"
 
 [[apps]]
@@ -183,7 +189,7 @@ license = "GPL-2.0"
 executable = "greed"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "greed"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S greed\napt: sudo apt install greed"
 
 [[apps]]
@@ -196,7 +202,7 @@ license = "GPL-2.0"
 executable = "robotfindskitten"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "robotfindskitten"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S robotfindskitten\napt: sudo apt install robotfindskitten"
 
 [[apps]]
@@ -209,7 +215,7 @@ license = "BSD"
 executable = "tetris"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "bsd-games"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S bsd-games\napt: sudo apt install bsdgames\nResmî: bsd-games paketi"
 
 [[apps]]
@@ -222,7 +228,7 @@ license = "GPL-2.0"
 executable = "moon-buggy"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "moon-buggy"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S moon-buggy\napt: sudo apt install moon-buggy"
 
 [[apps]]
@@ -235,7 +241,7 @@ license = "GPL-2.0"
 executable = "ninvaders"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "ninvaders"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S ninvaders\napt: sudo apt install ninvaders"
 
 [[apps]]
@@ -248,7 +254,7 @@ license = "GPL-2.0"
 executable = "pacman4console"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "pacman4console"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S pacman4console\napt: sudo apt install pacman4console"
 
 [[apps]]
@@ -261,7 +267,7 @@ license = "BSD"
 executable = "tetris"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "bsd-games"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S bsd-games\napt: sudo apt install bsdgames"
 
 [[apps]]
@@ -274,7 +280,7 @@ license = "MIT"
 executable = "2048"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "2048-cli"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S 2048-cli / AUR\nmanual: https://github.com/tiehuis/2048-cli"
 
 [[apps]]
@@ -287,7 +293,7 @@ license = "MIT"
 executable = "chess-tui"
 install_method = "cargo"
 install_command = ["cargo", "install", "chess-tui"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install chess-tui\nResmî: https://github.com/thomas-daniels/chess-tui"
 
 [[apps]]
@@ -300,7 +306,7 @@ license = "MIT"
 executable = "minesweep"
 install_method = "cargo"
 install_command = ["cargo", "install", "minesweep"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "cargo: cargo install minesweep\nResmî: https://github.com/cpcloud/minesweep-rs"
 
 [[apps]]
@@ -313,7 +319,7 @@ license = "GPL-3.0"
 executable = "cbonsai"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "cbonsai"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S cbonsai\nbrew: brew install cbonsai\nResmî: https://gitlab.com/jallbrit/cbonsai"
 
 [[apps]]
@@ -326,5 +332,5 @@ license = "MIT"
 executable = "ttysolitaire"
 install_method = "pacman"
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "tty-solitaire"]
-supported_platforms = ["linux-x64"]
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_notes = "pacman: sudo pacman -S tty-solitaire\nbrew: brew install tty-solitaire"
