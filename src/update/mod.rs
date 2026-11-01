@@ -433,8 +433,7 @@ pub fn install_nova_from_url(
     } else if lower.ends_with(".zip") {
         return Err("zip arşivleri henüz desteklenmiyor; tar.gz kullanın".into());
     } else {
-        std::fs::copy(&archive_path, &dest)
-            .map_err(|e| format!("ikili kopyalanamadı: {e}"))?;
+        std::fs::copy(&archive_path, &dest).map_err(|e| format!("ikili kopyalanamadı: {e}"))?;
     }
     #[cfg(unix)]
     {

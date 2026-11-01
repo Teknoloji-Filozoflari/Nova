@@ -248,9 +248,7 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
     let accent = palette(app).accent;
     let title = Paragraph::new(Line::from(Span::styled(
         "Nova",
-        Style::default()
-            .fg(accent)
-            .add_modifier(Modifier::BOLD),
+        Style::default().fg(accent).add_modifier(Modifier::BOLD),
     )))
     .alignment(Alignment::Center);
     f.render_widget(title, area);

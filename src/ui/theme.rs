@@ -149,7 +149,10 @@ mod tests {
             assert_eq!(UiTheme::parse(theme.id()), *theme);
             assert!(!theme.label().is_empty());
         }
-        assert_eq!(UiTheme::Default.next().next().next().next(), UiTheme::Default);
+        assert_eq!(
+            UiTheme::Default.next().next().next().next(),
+            UiTheme::Default
+        );
         assert_eq!(UiTheme::parse("bilinmeyen"), UiTheme::Default);
     }
 }

@@ -79,7 +79,12 @@ mod tests {
             download_url: None,
             checksum: None,
             checksum_type: None,
-            install_command: Some(vec!["npm".into(), "install".into(), "-g".into(), "x".into()]),
+            install_command: Some(vec![
+                "npm".into(),
+                "install".into(),
+                "-g".into(),
+                "x".into(),
+            ]),
             install_notes: None,
             release: None,
         }

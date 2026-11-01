@@ -70,7 +70,9 @@ pub fn ensure_path_shim(exe_name: &str, source: &Path) -> Result<PathBuf, String
         .map_err(|e| format!("'{}' oluşturulamadı: {e}", bin_dir.display()))?;
 
     let shim = bin_dir.join(name);
-    let source_canon = source.canonicalize().unwrap_or_else(|_| source.to_path_buf());
+    let source_canon = source
+        .canonicalize()
+        .unwrap_or_else(|_| source.to_path_buf());
 
     // Kaynak zaten ~/.local/bin altında ise ek bağ gerekmez.
     if source_canon == shim
@@ -218,7 +220,8 @@ mod tests {
             }
             let path = std::env::var("PATH").unwrap();
             assert!(
-                path.split(':').any(|p| p == home.join(".local/bin").to_str().unwrap()),
+                path.split(':')
+                    .any(|p| p == home.join(".local/bin").to_str().unwrap()),
                 "PATH={path}"
             );
             // which artık bulmalı (PATH güncellendi).

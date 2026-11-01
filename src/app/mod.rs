@@ -1681,9 +1681,10 @@ impl App {
             return;
         }
 
-        let already = self.catalog.entries().iter().any(|e| {
-            crate::store::sync::catalog_matches_store(&e.id, &e.executable, &store_entry)
-        });
+        let already =
+            self.catalog.entries().iter().any(|e| {
+                crate::store::sync::catalog_matches_store(&e.id, &e.executable, &store_entry)
+            });
         if already {
             return;
         }
@@ -2687,9 +2688,8 @@ impl App {
                                 self.status_message = format!("✓ {}", outcome.summary);
                             }
                             Err(e) => {
-                                self.status_message = format!(
-                                    "Hata: Nova v{version} kurulamadı: {e}"
-                                );
+                                self.status_message =
+                                    format!("Hata: Nova v{version} kurulamadı: {e}");
                             }
                         }
                     }
@@ -3809,11 +3809,20 @@ mod tests {
         assert_eq!(entry.category, "AI ve Kodlama");
         assert_eq!(entry.executable, "gemini");
         assert!(
-            app.state.file.custom_tools.iter().any(|t| t.id == "gemini-cli"),
+            app.state
+                .file
+                .custom_tools
+                .iter()
+                .any(|t| t.id == "gemini-cli"),
             "state.toml custom_tools’a yazılmalı"
         );
         // Kurulum sonrası PATH’te bulunursa ana listede görünür.
-        if let Some(entry) = app.catalog.entries_mut().iter_mut().find(|e| e.id == "gemini-cli") {
+        if let Some(entry) = app
+            .catalog
+            .entries_mut()
+            .iter_mut()
+            .find(|e| e.id == "gemini-cli")
+        {
             entry.status = InstalledStatus::Installed;
         }
         let tools = app.filtered_tools();
@@ -3834,7 +3843,12 @@ mod tests {
         );
         app.sync_store_app_to_catalog("opencode");
         assert_eq!(app.catalog.entries().len(), before);
-        assert!(!app.state.file.custom_tools.iter().any(|t| t.id == "opencode"));
+        assert!(!app
+            .state
+            .file
+            .custom_tools
+            .iter()
+            .any(|t| t.id == "opencode"));
     }
 
     #[test]
