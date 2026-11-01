@@ -1,6 +1,6 @@
 //! Mağaza kurulumlarını ana araç kataloğuna senkronize etme.
 //!
-//! Mağaza (`store.toml`) ile ana katalog (`catalog.toml`) ayrıdır. Kurulum
+//! Mağaza (`assets/store/*.toml`) ile ana katalog (`assets/catalog/*.toml`) ayrıdır. Kurulum
 //! sonrası mağazada ✓ görünen bir uygulama AI vb. sol kategoride yoksa
 //! kullanıcı oradan başlatamaz. Bu modül:
 //!

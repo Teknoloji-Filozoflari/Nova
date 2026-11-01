@@ -108,7 +108,7 @@ iptal eder.
 
 ## Araç kataloğu
 
-Varsayılan araçlar <code>assets/catalog.toml</code> dosyasından yüklenir. Katalog,
+Varsayılan araçlar <code>assets/catalog/*.toml</code> dosyalarından (kategoriye göre) yüklenir. Katalog,
 uygulama açıklamalarını, çalıştırma biçimini ve varsa güvenli kullanım
 örneklerini içerir. Araçlar yeni Konsole sekmesinde başlatılır; Nova'nın
 ana oturumu açık kalır.
@@ -125,7 +125,7 @@ tarafından doğrulanıp gözden geçirme ekranında gösterildikten sonra kayde
 
 ## Mağaza ve kurulum
 
-Mağaza, araç kataloğundan ayrı olan <code>assets/store.toml</code> kataloğunu kullanır.
+Mağaza, araç kataloğundan ayrı olan <code>assets/store/*.toml</code> kataloğunu kullanır.
 <code>m</code> tuşuyla mağaza sekmesine geç; kategorilerde gezin, uygulama ara ve
 uygulamanın kaynağını, lisansını, sürümünü ve kurulum yöntemini incele.
 

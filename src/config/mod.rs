@@ -3,8 +3,9 @@
 //! İki veri kaynağı bilinçli olarak ayrıdır:
 //!
 //! 1. **Varsayılanlar**: uygulamayla birlikte gelen gömülü katalog
-//!    (`assets/catalog.toml`, `include_str!` ile derlenir). Kullanıcı bunu
-//!    düzenlemez; güncelleme varsayılanları değiştirebilir.
+//!    (`assets/catalog/*.toml`, kategoriye göre ayrılmış; `include_str!` ile
+//!    derlenir). Kullanıcı bunu düzenlemez; güncelleme varsayılanları
+//!    değiştirebilir.
 //! 2. **Kullanıcı verisi**: `$XDG_CONFIG_HOME/nova/config.toml` (varsayılanı
 //!    `~/.config/nova/config.toml`; bkz.
 //!    [`user_config_path`]). Yalnızca kullanıcının değiştirdiği/eklediği

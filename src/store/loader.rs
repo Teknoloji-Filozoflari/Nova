@@ -1,29 +1,178 @@
 //! Mağaza kataloğu yükleyici.
 //!
-//! `assets/store.toml` dosyasını okur, ayrıştırır ve [`Store`] modeline
-//! çevirir. Katalog verisi UI koduna gömülmez; ayrı bir TOML dosyasından
-//! `include_str!` ile yüklenir.
+//! `assets/store/*.toml` dosyalarını (kategoriye göre ayrılmış) okur,
+//! ayrıştırır ve [`Store`] modeline çevirir. Katalog verisi UI koduna
+//! gömülmez; ayrı TOML dosyalarından `include_str!` ile yüklenir.
 
 #[allow(unused_imports)]
 use crate::store::{Store, StoreEntry, StoreFile, STORE_CATEGORIES};
 
+/// Gömülü mağaza kaynakları: `(görünen ad, içerik)`.
+///
+/// Sıra [`STORE_CATEGORIES`] ile uyumludur.
+pub const BUILTIN_STORE_SOURCES: &[(&str, &str)] = &[
+    (
+        "assets/store/ai.toml",
+        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/store/ai.toml")),
+    ),
+    (
+        "assets/store/git.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/git.toml"
+        )),
+    ),
+    (
+        "assets/store/files.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/files.toml"
+        )),
+    ),
+    (
+        "assets/store/dev.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/dev.toml"
+        )),
+    ),
+    (
+        "assets/store/editors.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/editors.toml"
+        )),
+    ),
+    (
+        "assets/store/system.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/system.toml"
+        )),
+    ),
+    (
+        "assets/store/panels.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/panels.toml"
+        )),
+    ),
+    (
+        "assets/store/network.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/network.toml"
+        )),
+    ),
+    (
+        "assets/store/container.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/container.toml"
+        )),
+    ),
+    (
+        "assets/store/database.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/database.toml"
+        )),
+    ),
+    (
+        "assets/store/security.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/security.toml"
+        )),
+    ),
+    (
+        "assets/store/media.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/media.toml"
+        )),
+    ),
+    (
+        "assets/store/messaging.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/messaging.toml"
+        )),
+    ),
+    (
+        "assets/store/productivity.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/productivity.toml"
+        )),
+    ),
+    (
+        "assets/store/games.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/games.toml"
+        )),
+    ),
+    (
+        "assets/store/screensavers.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/screensavers.toml"
+        )),
+    ),
+    (
+        "assets/store/web.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/web.toml"
+        )),
+    ),
+    (
+        "assets/store/daily.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/store/daily.toml"
+        )),
+    ),
+];
+
 /// Gömülü mağaza kataloğunu yükler.
 ///
-/// `assets/store.toml` `include_str!` ile derlenir ve burada ayrıştırılır.
+/// `assets/store/*.toml` dosyaları `include_str!` ile derlenir, sırayla
+/// ayrıştırılır ve tek bir [`Store`] modelinde birleştirilir.
 pub fn load_builtin_store() -> Result<Store, Box<dyn std::error::Error>> {
-    let toml_content = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/store.toml"));
-    let store_file: StoreFile = toml::from_str(toml_content)?;
-    Store::from_entries(store_file.apps).map_err(|e| e.into())
+    let mut apps = Vec::new();
+    for (name, text) in BUILTIN_STORE_SOURCES {
+        let store_file: StoreFile =
+            toml::from_str(text).map_err(|e| format!("'{name}' geçerli TOML değil: {e}"))?;
+        apps.extend(store_file.apps);
+    }
+    Store::from_entries(apps).map_err(|e| e.into())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{load_builtin_store, STORE_CATEGORIES};
+    use super::{load_builtin_store, BUILTIN_STORE_SOURCES, STORE_CATEGORIES};
 
     #[test]
     fn builtin_store_loads_with_entries() {
         let store = load_builtin_store().expect("mağaza kataloğu yüklenmeli");
         assert!(!store.entries().is_empty());
+    }
+
+    #[test]
+    fn builtin_store_sources_match_store_categories() {
+        assert_eq!(
+            BUILTIN_STORE_SOURCES.len(),
+            STORE_CATEGORIES.len(),
+            "her mağaza kategorisinin bir TOML dosyası olmalı"
+        );
+        for (name, text) in BUILTIN_STORE_SOURCES {
+            assert!(name.starts_with("assets/store/"), "{name}");
+            assert!(name.ends_with(".toml"), "{name}");
+            let _: crate::store::StoreFile =
+                toml::from_str(text).unwrap_or_else(|e| panic!("{name}: {e}"));
+        }
     }
 
     #[test]

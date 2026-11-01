@@ -11,7 +11,7 @@ onay olmadan yapılmamalıdır.
 - `0.x` dönemi: arayüz ve yapılandırma biçimi değişebilir; `MINOR` artışı
   uyumsuz değişiklik içerebilir. Bunu `CHANGELOG` veya sürüm notunda **açıkça**
   yaz.
-- 1.0'dan sonra: katalog alanları (`assets/catalog.toml` şeması) ve
+- 1.0'dan sonra: katalog alanları (`assets/catalog/*.toml` şeması) ve
   `$XDG_CONFIG_HOME/nova/config.toml` / `state.toml` (XDG yoksa
   `~/.config/nova/`) biçimi genel API sayılır;
   uyumsuz değişiklik `MAJOR` ister veya eski dosyayı okuyan bir geçiş
@@ -34,7 +34,7 @@ onay olmadan yapılmamalıdır.
 
 ## Derleme ve ikili dosya
 
-- Tek ikili: `nova`. Katalog (`assets/catalog.toml`) `include_str!` ile ikiliye
+- Tek ikili: `nova`. Katalog (`assets/catalog/*.toml`) `include_str!` ile ikiliye
   gömülüdür; çalışma zamanında ayrı veri dosyası gerekmez.
 - Çalışma zamanı verisi: `$XDG_CONFIG_HOME/nova/config.toml` (kullanıcı,
   isteğe bağlı) ve `$XDG_CONFIG_HOME/nova/state.toml` (Nova yazar); XDG

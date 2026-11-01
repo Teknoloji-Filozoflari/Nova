@@ -28,7 +28,7 @@ Katalog modeli UI'dan bağımsızdır: `catalog` ve `catalog::loader` modülleri
 | `launcher::terminal` | `TerminalAdapter` trait'i ve Konsole adapteri (yalnızca argüman üretir) | `launcher::request`, `error` |
 | `detection` | PATH **ve mağaza `bin` dizinleri** üzerinden kurulum durumunu belirleme (üç durumlu) | `which`, `store` |
 | `store` | Mağaza kataloğu modeli, kategori listesi, katalog doğrulama kuralları, kurulum dizini çözümü | `serde` |
-| `store::loader` | Gömülü mağaza kataloğu (`assets/store.toml`, `include_str!`) ve doğrulaması | `store` |
+| `store::loader` | Gömülü mağaza kataloğu (`assets/store/*.toml`, `include_str!`) ve doğrulaması | `store` |
 | `store::install` | SHA-256 doğrulama, yol geçişi korumalı arşiv çıkarma, kullanıcı alanı kontrolü, kurulum orkestrasyonu | `store`, `sha2`, `flate2`, `tar` |
 | `store::http` | Gerçek HTTPS indirici (`ureq`); gövdeyi dosyaya akıtır, boyut sınırlar | `store::install`, `ureq` |
 | `store::manifest` | Canlı sürüm takibi: `ReleaseSource`, `ResolvedRelease`, `ReleaseProvider` arayüzü, önbellek (`ETag` + TTL) | `update::Version`, `serde` |
@@ -47,7 +47,7 @@ Bir istisna: `ui` içindeki `truncate()` ve genişlik eşikleri çizimle doğrud
 
 | Kaynak | Yol | Sahibi | Güncelleme |
 |--------|-----|--------|------------|
-| Gömülü varsayılan | `assets/catalog.toml`, `include_str!` ile ikiliye gömülür | Uygulama | Değişebilir |
+| Gömülü varsayılan | `assets/catalog/*.toml`, `include_str!` ile ikiliye gömülür | Uygulama | Değişebilir |
 | Kullanıcı | `config::user_config_path()` → `$XDG_CONFIG_HOME/nova/config.toml` (yoksa `~/.config/nova/config.toml`) | Kullanıcı | Dokunulmaz |
 
 Bu ayrım "kullanıcı verisi uygulama varsayılanlarından ayrıdır" ilkesinin uygulanışıdır: güncelleme yalnızca gömülü dosyayı değiştirir, kullanıcının eklediği araçlar ve favoriler yerinde kalır.
@@ -485,7 +485,7 @@ kullanıcıya durum satırında açıklanır.
 - **PTY kapanınca alt ekrandan çıkış dizisi yazılamaz.** Terminal (tty) yoksa `leave_alternate_screen` IO hatası verir; hook bunu bilinçli olarak yutar ve Nova panik üretmeden çıkar.
 - **Dağıtım paketi/yayın yok.** Proje MIT OR Apache-2.0 çift lisanslıdır (`LICENSE.md`); crates.io, AUR, distro paketi ve ikili yayın yapılmadı. `docs/VERSIONING.md` akışı önerir.
 - **Mağaza sürüm denetimi kullanıcı isteğine bağlı.** Otomatik denetim yok; kullanıcı mağazada `U` tuşuna bastığında GitHub Releases sorgulanır.
-- **Mağaza kataloğu uzaktan güncellenmiyor.** Katalog gömülü `assets/store.toml` içinde sabittir; canlı akış yalnızca sürüm ipucu getirir. Bu bilinçli bir tasarım kararıdır (bkz. "Canlı Sürüm Takibi → Tasarım kararı").
+- **Mağaza kataloğu uzaktan güncellenmiyor.** Katalog gömülü `assets/store/*.toml` içinde sabittir; canlı akış yalnızca sürüm ipucu getirir. Bu bilinçli bir tasarım kararıdır (bkz. "Canlı Sürüm Takibi → Tasarım kararı").
 - **GitHub API hız sınırı kimliksiz IP başına saatte 60 istek.** `GITHUB_TOKEN` ile saatte 5000'e yükseltilebilir; 6 saatlik önbellek taze kayıtları ağa hiç çıkarmadığı için sınırı büyük ölçüde azaltır. `ETag` yalnızca bant genişliği tasarrufu sağlar (`304` de sınırdan düşer).
 - **Mağazada 6 uygulama indirilebilir.** Kalan 13 kayıt `manual` yöntemdedir; upstream doğrulanabilir SHA-256 özeti yayımlamadığı için "Kur" eylemi sunulmaz.
 - **Tek çalıştırılabilir dosya kurulur.** Arşivdeki man sayfaları, tamamlayıcılar ve ek belgeler kurulmaz; yalnızca katalogdaki `executable` yerleştirilir.
@@ -498,8 +498,8 @@ kullanıcıya durum satırında açıklanır.
 
 ## Mağaza Kurulum Mimarisi (Faz 6)
 
-Mağaza kataloğu araç kataloğundan **ayrı** tutulur: `assets/catalog.toml`
-"Nova ile gelen araçlar", `assets/store.toml` ise "Nova'nın kurabileceği
+Mağaza kataloğu araç kataloğundan **ayrı** tutulur: `assets/catalog/*.toml`
+"Nova ile gelen araçlar", `assets/store/*.toml` ise "Nova'nın kurabileceği
 uygulamalar" listesidir. İkisi farklı yaşam döngülerine sahiptir — mağaza
 kayıtları sürüm + özet + adres taşır, araç kataloğu taşımaz.
 
@@ -618,7 +618,7 @@ indirilen arşiv ↔ SHA-256 karşılaştırması  ← kurulumun ön şartı
 
 | Bilgi | Kaynağı | Saldırgan değiştirebilir mi? |
 |-------|---------|-------------------------------|
-| Hangi depo izlenecek | Gömülü `assets/store.toml` | Hayır |
+| Hangi depo izlenecek | Gömülü `assets/store/*.toml` | Hayır |
 | Arşiv/checksum dosya adı | Gömülü katalog | Hayır |
 | En güncel sürüm | GitHub Releases API | Yalnızca ipucu verir |
 | SHA-256 özeti | Upstream'in checksum dosyası | Hayır |
@@ -645,7 +645,7 @@ Gerekçe:
 - **Test edilebilirlik.** Nova deposu henüz yayınlanmadığı için, uzaktan
   katalog okuyan bir yol bugün uçtan uca doğrulanamazdı.
 
-Sonuç: yeni bir mağaza uygulaması eklemek `assets/store.toml` içine kayıt
+Sonuç: yeni bir mağaza uygulaması eklemek `assets/store/<kategori>.toml` içine kayıt
 eklemek ve Nova'yı güncellemektir. Sürüm numarasının tazeliği ise kullanıcının
 `U` tuşuna basmasıyla ve 6 saatlik önbellek döngüsüyle sağlanır.
 

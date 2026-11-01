@@ -1,0 +1,184 @@
+# Nova mağaza kataloğu — messaging
+#
+# Kategori: "Mesajlaşma"
+# `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+
+[[apps]]
+id = "aerc"
+name = "aerc"
+category = "Mesajlaşma"
+description = "E-posta için zarif terminal istemcisi."
+source = "https://aerc-mail.org/"
+license = "MIT"
+executable = "aerc"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "aerc"]
+supported_platforms = ["linux-x64"]
+install_notes = """apt: sudo apt install aerc\nbrew: brew install aerc\npacman: sudo pacman -S aerc\nResmî: https://aerc-mail.org/"""
+
+[[apps]]
+id = "neomutt"
+name = "NeoMutt"
+category = "Mesajlaşma"
+description = "Mutt'un gelişmiş e-posta istemcisi çatalı."
+source = "https://neomutt.org/"
+license = "GPL-2.0"
+executable = "neomutt"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "neomutt"]
+supported_platforms = ["linux-x64"]
+install_notes = """apt: sudo apt install neomutt\nbrew: brew install neomutt\npacman: sudo pacman -S neomutt\nResmî: https://neomutt.org/"""
+
+[[apps]]
+id = "weechat"
+name = "WeeChat"
+category = "Mesajlaşma"
+description = "Hafif ve genişletilebilir IRC / sohbet istemcisi."
+source = "https://weechat.org/"
+license = "GPL-3.0"
+executable = "weechat"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "weechat"]
+supported_platforms = ["linux-x64"]
+install_notes = """apt: sudo apt install weechat\nbrew: brew install weechat\npacman: sudo pacman -S weechat\nResmî: https://weechat.org/download/"""
+
+[[apps]]
+id = "irssi"
+name = "irssi"
+category = "Mesajlaşma"
+description = "Modüler IRC istemcisi."
+source = "https://irssi.org/"
+license = "GPL-2.0"
+executable = "irssi"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "irssi"]
+supported_platforms = ["linux-x64"]
+install_notes = """apt: sudo apt install irssi\nbrew: brew install irssi\npacman: sudo pacman -S irssi\nResmî: https://irssi.org/download/"""
+
+[[apps]]
+id = "tut"
+name = "tut"
+category = "Mesajlaşma"
+description = "Mastodon için TUI istemcisi."
+source = "https://github.com/RasmusLindroth/tut"
+license = "MIT"
+executable = "tut"
+install_method = "brew"
+install_command = ["brew", "install", "tut"]
+supported_platforms = ["linux-x64"]
+install_notes = """go: go install github.com/RasmusLindroth/tut@latest\nbrew: brew install tut\nResmî: https://github.com/RasmusLindroth/tut#installing"""
+
+[[apps]]
+id = "gomuks"
+name = "gomuks"
+category = "Mesajlaşma"
+description = "Matrix için terminal istemcisi."
+source = "https://github.com/tulir/gomuks"
+license = "AGPL-3.0"
+executable = "gomuks"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = """go: go install maunium.net/go/gomuks@latest\nResmî: https://github.com/tulir/gomuks"""
+
+[[apps]]
+id = "signal-cli"
+name = "signal-cli"
+category = "Mesajlaşma"
+description = "Signal için resmi olmayan komut satırı istemcisi."
+source = "https://github.com/AsamK/signal-cli"
+license = "GPL-3.0"
+executable = "signal-cli"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = """Resmî kurulum: https://github.com/AsamK/signal-cli#installation"""
+
+[[apps]]
+id = "himalaya"
+name = "himalaya"
+category = "Mesajlaşma"
+description = "E-posta için CLI; MUA ile birlikte kullanılabilir."
+source = "https://github.com/pimalaya/himalaya"
+license = "MIT"
+executable = "himalaya"
+install_method = "cargo"
+install_command = ["cargo", "install", "himalaya"]
+supported_platforms = ["linux-x64"]
+install_notes = """cargo: cargo install himalaya\nbrew: brew install himalaya\nResmî: https://github.com/pimalaya/himalaya#installation"""
+
+[[apps]]
+id = "toot"
+name = "toot"
+category = "Mesajlaşma"
+description = "Mastodon CLI istemcisi."
+source = "https://github.com/ihabunek/toot"
+license = "GPL-3.0"
+executable = "toot"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "toot"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S toot\npipx: pipx install toot\nResmî: https://github.com/ihabunek/toot"
+
+[[apps]]
+id = "senpai"
+name = "senpai"
+category = "Mesajlaşma"
+description = "Modern IRC istemcisi."
+source = "https://git.sr.ht/~delthas/senpai"
+license = "ISC"
+executable = "senpai"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "senpai"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S senpai\nResmî: https://git.sr.ht/~delthas/senpai"
+
+[[apps]]
+id = "tiny"
+name = "tiny"
+category = "Mesajlaşma"
+description = "Rust IRC istemcisi."
+source = "https://github.com/osa1/tiny"
+license = "MIT"
+executable = "tiny"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "tiny"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S tiny\ncargo: cargo install tiny\nResmî: https://github.com/osa1/tiny"
+
+[[apps]]
+id = "profanity"
+name = "profanity"
+category = "Mesajlaşma"
+description = "Konsol XMPP istemcisi."
+source = "https://profanity-im.github.io/"
+license = "GPL-3.0"
+executable = "profanity"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "profanity"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S profanity\napt: sudo apt install profanity\nResmî: https://profanity-im.github.io/"
+
+[[apps]]
+id = "slack-term"
+name = "slack-term"
+category = "Mesajlaşma"
+description = "Slack terminal istemcisi."
+source = "https://github.com/erroneousboat/slack-term"
+license = "MIT"
+executable = "slack-term"
+install_method = "manual"
+supported_platforms = ["linux-x64"]
+install_notes = "go: go install github.com/erroneousboat/slack-term@latest\nResmî: https://github.com/erroneousboat/slack-term"
+
+[[apps]]
+id = "discordo"
+name = "discordo"
+category = "Mesajlaşma"
+description = "Hafif Discord TUI."
+source = "https://github.com/ayn2op/discordo"
+license = "MIT"
+executable = "discordo"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "discordo"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S discordo / AUR\nResmî: https://github.com/ayn2op/discordo"

@@ -1,0 +1,148 @@
+# Nova mağaza kataloğu — media
+#
+# Kategori: "Medya"
+# `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+
+[[apps]]
+id = "ncspot"
+name = "ncspot"
+category = "Medya"
+description = "Spotify için ncurses istemcisi."
+source = "https://github.com/hrkfdn/ncspot"
+license = "BSD-2-Clause"
+executable = "ncspot"
+install_method = "cargo"
+install_command = ["cargo", "install", "ncspot"]
+supported_platforms = ["linux-x64"]
+install_notes = """cargo: cargo install ncspot\nbrew: brew install ncspot\nResmî: https://github.com/hrkfdn/ncspot#installation"""
+
+[[apps]]
+id = "cmus"
+name = "cmus"
+category = "Medya"
+description = "Hafif ncurses müzik çalar."
+source = "https://cmus.github.io/"
+license = "GPL-2.0"
+executable = "cmus"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "cmus"]
+supported_platforms = ["linux-x64"]
+install_notes = """apt: sudo apt install cmus\nbrew: brew install cmus\npacman: sudo pacman -S cmus\nResmî: https://github.com/cmus/cmus"""
+
+[[apps]]
+id = "mpv"
+name = "mpv"
+category = "Medya"
+description = "Özgür, açık kaynaklı medya oynatıcı (CLI/TUI dostu)."
+source = "https://mpv.io/"
+license = "GPL-2.0"
+executable = "mpv"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "mpv"]
+supported_platforms = ["linux-x64"]
+install_notes = """apt: sudo apt install mpv\nbrew: brew install mpv\npacman: sudo pacman -S mpv\nResmî: https://mpv.io/installation/"""
+
+[[apps]]
+id = "ffmpeg"
+name = "ffmpeg"
+category = "Medya"
+description = "Ses/video dönüştürme ve işleme araç seti."
+source = "https://ffmpeg.org/"
+license = "LGPL/GPL"
+executable = "ffmpeg"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "ffmpeg"]
+supported_platforms = ["linux-x64"]
+install_notes = """apt: sudo apt install ffmpeg\nbrew: brew install ffmpeg\npacman: sudo pacman -S ffmpeg\nResmî: https://ffmpeg.org/download.html"""
+
+[[apps]]
+id = "yt-dlp"
+name = "yt-dlp"
+category = "Medya"
+description = "YouTube ve diğer sitelerden video/ses indirme aracı."
+source = "https://github.com/yt-dlp/yt-dlp"
+license = "Unlicense"
+executable = "yt-dlp"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "yt-dlp"]
+supported_platforms = ["linux-x64"]
+install_notes = """pipx: pipx install yt-dlp\nbrew: brew install yt-dlp\napt: sudo apt install yt-dlp\npacman: sudo pacman -S yt-dlp\nResmî: https://github.com/yt-dlp/yt-dlp#installation"""
+
+[[apps]]
+id = "cava"
+name = "cava"
+category = "Medya"
+description = "Konsol tabanlı ses görselleştirici."
+source = "https://github.com/karlstav/cava"
+license = "MIT"
+executable = "cava"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "cava"]
+supported_platforms = ["linux-x64"]
+install_notes = """apt: sudo apt install cava\nbrew: brew install cava\npacman: sudo pacman -S cava\nResmî: https://github.com/karlstav/cava#installing"""
+
+[[apps]]
+id = "ncmpcpp"
+name = "ncmpcpp"
+category = "Medya"
+description = "MPD için özellikli müzik istemcisi."
+source = "https://github.com/ncmpcpp/ncmpcpp"
+license = "GPL-2.0"
+executable = "ncmpcpp"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ncmpcpp"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S ncmpcpp\napt: sudo apt install ncmpcpp\nbrew: brew install ncmpcpp"
+
+[[apps]]
+id = "mps-youtube"
+name = "mpsyt"
+category = "Medya"
+description = "YouTube müzik CLI (bakımda)."
+source = "https://github.com/mps-youtube/mps-youtube"
+license = "GPL-3.0"
+executable = "mpsyt"
+install_method = "pipx"
+install_command = ["pipx", "install", "mps-youtube"]
+supported_platforms = ["linux-x64"]
+install_notes = "pipx: pipx install mps-youtube\nResmî: https://github.com/mps-youtube/mps-youtube"
+
+[[apps]]
+id = "ytfzf"
+name = "ytfzf"
+category = "Medya"
+description = "YouTube arama/oynatma (fzf)."
+source = "https://github.com/pystardust/ytfzf"
+license = "GPL-3.0"
+executable = "ytfzf"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ytfzf"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S ytfzf\nResmî: https://github.com/pystardust/ytfzf"
+
+[[apps]]
+id = "spotify-tui"
+name = "spt"
+category = "Medya"
+description = "Spotify TUI istemcisi."
+source = "https://github.com/Rigellute/spotify-tui"
+license = "MIT"
+executable = "spt"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "spotify-tui"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S spotify-tui\ncargo: cargo install spotify-tui\nResmî: https://github.com/Rigellute/spotify-tui"
+
+[[apps]]
+id = "termusic"
+name = "termusic"
+category = "Medya"
+description = "Rust terminal müzik çalar."
+source = "https://github.com/tramhao/termusic"
+license = "MIT"
+executable = "termusic"
+install_method = "cargo"
+install_command = ["cargo", "install", "termusic"]
+supported_platforms = ["linux-x64"]
+install_notes = "cargo: cargo install termusic\nResmî: https://github.com/tramhao/termusic"

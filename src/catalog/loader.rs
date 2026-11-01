@@ -2,8 +2,9 @@
 //!
 //! İki kaynağı birleştirir:
 //!
-//! 1. Uygulamayla **gömülü** varsayılan katalog (`assets/catalog.toml`).
-//!    Güncellemede değişebilir; kullanıcı bunu düzenlemez.
+//! 1. Uygulamayla **gömülü** varsayılan katalog (`assets/catalog/*.toml`,
+//!    kategoriye göre ayrılmış). Güncellemede değişebilir; kullanıcı bunu
+//!    düzenlemez.
 //! 2. Kullanıcı yapılandırması (`$XDG_CONFIG_HOME/nova/config.toml`, yoksa
 //!    `~/.config/nova/config.toml`): yalnızca
 //!    favoriler, kimliğe göre geçersiz kılmalar ve kullanıcının eklediği
@@ -23,21 +24,85 @@ use crate::catalog::{
 use crate::config::{CatalogFile, EntryOrigin, LaunchKind, ToolEntry, UserConfig};
 use std::path::Path;
 
-/// Uygulamayla gelen varsayılan katalog.
+/// Gömülü katalog kaynakları: `(görünen ad, içerik)`.
 ///
-/// Derleme sırasında ikiliye gömülür; çalışma dizininde dosya olmasına gerek
-/// yoktur.
-pub const BUILTIN_CATALOG: &str = include_str!("../../assets/catalog.toml");
+/// Sıra [`CATEGORIES`] ile uyumludur; her dosya bir kategoriye karşılık gelir.
+pub const BUILTIN_CATALOG_SOURCES: &[(&str, &str)] = &[
+    (
+        "assets/catalog/ai.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/catalog/ai.toml"
+        )),
+    ),
+    (
+        "assets/catalog/git.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/catalog/git.toml"
+        )),
+    ),
+    (
+        "assets/catalog/files.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/catalog/files.toml"
+        )),
+    ),
+    (
+        "assets/catalog/system.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/catalog/system.toml"
+        )),
+    ),
+    (
+        "assets/catalog/network.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/catalog/network.toml"
+        )),
+    ),
+    (
+        "assets/catalog/docker.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/catalog/docker.toml"
+        )),
+    ),
+    (
+        "assets/catalog/helpers.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/catalog/helpers.toml"
+        )),
+    ),
+    (
+        "assets/catalog/custom.toml",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/catalog/custom.toml"
+        )),
+    ),
+];
 
-/// Gömülü katalogun hata mesajlarında görünen adı.
-pub const BUILTIN_NAME: &str = "assets/catalog.toml (gömülü)";
+/// Gömülü katalogun hata mesajlarında görünen ortak adı.
+pub const BUILTIN_NAME: &str = "assets/catalog/*.toml (gömülü)";
 
 /// Bir katalog kaynağını (dosya içeriği) ayrıştırır ve doğrular.
 ///
 /// `name` yalnızca hata mesajlarında kullanılır. TOML sözdizimi hatası,
 /// dosya adını ve satır/sütun numarasını içerir; böylece kullanıcı hatanın
 /// yerini bulabilir.
-fn parse_source(name: &str, text: &str) -> Result<Vec<CatalogEntry>, String> {
+///
+/// `require_nonempty`: `true` ise hiç araç yoksa hata döner. Kategoriye göre
+/// ayrılmış gömülü dosyalarda (ör. boş `custom.toml`) `false` kullanılır;
+/// birleşik katalog yine boş olamaz.
+fn parse_source(
+    name: &str,
+    text: &str,
+    require_nonempty: bool,
+) -> Result<Vec<CatalogEntry>, String> {
     let file: CatalogFile =
         toml::from_str(text).map_err(|e| format!("'{name}' geçerli TOML değil: {e}"))?;
     let mut entries = Vec::with_capacity(file.tools.len());
@@ -46,7 +111,7 @@ fn parse_source(name: &str, text: &str) -> Result<Vec<CatalogEntry>, String> {
             .map_err(|e| format!("'{name}' içindeki kayıt geçersiz: {e}"))?;
         entries.push(entry);
     }
-    if entries.is_empty() {
+    if require_nonempty && entries.is_empty() {
         return Err(format!(
             "'{name}' hiç araç içermiyor; en az bir araç gerekli"
         ));
@@ -59,7 +124,16 @@ fn parse_source(name: &str, text: &str) -> Result<Vec<CatalogEntry>, String> {
 /// Hata ancak uygulama paketlenirken gömülü dosya bozulursa oluşur; yine de
 /// hata sessizce yutulmaz.
 pub fn builtin_catalog() -> Result<Vec<CatalogEntry>, String> {
-    parse_source(BUILTIN_NAME, BUILTIN_CATALOG)
+    let mut entries = Vec::new();
+    for (name, text) in BUILTIN_CATALOG_SOURCES {
+        entries.extend(parse_source(name, text, false)?);
+    }
+    if entries.is_empty() {
+        return Err(format!(
+            "'{BUILTIN_NAME}' hiç araç içermiyor; en az bir araç gerekli"
+        ));
+    }
+    Ok(entries)
 }
 
 /// Birleştirilmiş tek bir girişin tutarlılığını kontrol eder.
@@ -209,6 +283,10 @@ description = "test"
         }
     }
 
+    fn parse_one(name: &str, text: &str) -> Result<Vec<CatalogEntry>, String> {
+        parse_source(name, text, true)
+    }
+
     #[test]
     fn builtin_catalog_loads_and_uses_known_categories() {
         let entries = builtin_catalog().expect("gömülü katalog okunmalı");
@@ -220,6 +298,21 @@ description = "test"
                 entry.id,
                 entry.category
             );
+        }
+    }
+
+    #[test]
+    fn builtin_catalog_sources_cover_every_category_file() {
+        assert_eq!(
+            BUILTIN_CATALOG_SOURCES.len(),
+            8,
+            "her kategori dosyası loader listesinde olmalı"
+        );
+        for (name, text) in BUILTIN_CATALOG_SOURCES {
+            assert!(name.starts_with("assets/catalog/"), "{name}");
+            assert!(name.ends_with(".toml"), "{name}");
+            // Her dosya geçerli TOML olmalı (boş tools kabul).
+            parse_source(name, text, false).unwrap_or_else(|e| panic!("{name}: {e}"));
         }
     }
 
@@ -341,21 +434,21 @@ description = "test"
 
     #[test]
     fn broken_toml_error_names_the_source() {
-        let err = parse_source("test.toml", "[[tools]\nid = \"x\"\n").unwrap_err();
+        let err = parse_one("test.toml", "[[tools]\nid = \"x\"\n").unwrap_err();
         assert!(err.contains("test.toml"), "{err}");
         assert!(err.contains("TOML"), "{err}");
     }
 
     #[test]
     fn broken_toml_error_has_line_and_column() {
-        let err = parse_source("bozuk.toml", "[[tools]\nid = \n").unwrap_err();
+        let err = parse_one("bozuk.toml", "[[tools]\nid = \n").unwrap_err();
         assert!(err.contains("line"), "{err}");
     }
 
     #[test]
     fn invalid_record_error_names_the_source_and_id() {
         let text = "[[tools]]\nid = \"bad\"\ncategory = \"Olmayan\"\nexecutable = \"bad\"\n";
-        let err = parse_source("x.toml", text).unwrap_err();
+        let err = parse_one("x.toml", text).unwrap_err();
         assert!(err.contains("bad"), "{err}");
         assert!(err.contains("Olmayan"), "{err}");
         assert!(err.contains("x.toml"), "{err}");
@@ -363,13 +456,13 @@ description = "test"
 
     #[test]
     fn empty_source_is_rejected() {
-        let err = parse_source("bos.toml", "# boş\n").unwrap_err();
+        let err = parse_one("bos.toml", "# boş\n").unwrap_err();
         assert!(err.contains("bos.toml"), "{err}");
     }
 
     #[test]
     fn user_favorite_is_merged_by_id() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry {
                 id: "alpha".into(),
@@ -388,7 +481,7 @@ description = "test"
 
     #[test]
     fn user_can_add_own_tool() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry {
                 id: "kendi".into(),
@@ -413,7 +506,7 @@ description = "test"
 
     #[test]
     fn entry_count_grows_with_user_only_tools() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let before = builtin.len();
         let user = UserConfig {
             tools: vec![
@@ -437,7 +530,7 @@ description = "test"
 
     #[test]
     fn empty_user_record_is_ignored() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry::default()],
             ..UserConfig::default()
@@ -448,7 +541,7 @@ description = "test"
 
     #[test]
     fn user_duplicate_new_id_is_rejected() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let tool = ToolEntry {
             id: "yeni".into(),
             category: "Özel Araçlar".into(),
@@ -467,7 +560,7 @@ description = "test"
 
     #[test]
     fn user_override_keeps_other_fields() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry {
                 id: "alpha".into(),
@@ -484,7 +577,7 @@ description = "test"
 
     #[test]
     fn broken_user_override_is_rejected() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry {
                 id: "alpha".into(),
@@ -500,7 +593,7 @@ description = "test"
 
     #[test]
     fn invalid_launch_mode_in_builtin_override_is_rejected() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry {
                 id: "alpha".into(),
@@ -565,7 +658,7 @@ favorite = true
     #[test]
     fn user_tool_without_id_is_skipped_only_when_fully_empty() {
         // id yok ama başka alanlar var: açık hata.
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry {
                 name: "İsimsiz".into(),
@@ -580,7 +673,7 @@ favorite = true
 
     #[test]
     fn user_executable_is_kept_apart_from_tool_name() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry {
                 id: "yeni".into(),
@@ -600,7 +693,7 @@ favorite = true
 
     #[test]
     fn user_tool_with_executable_like_id_works() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![user_tool("yeni")],
             ..UserConfig::default()
@@ -612,7 +705,7 @@ favorite = true
 
     #[test]
     fn empty_executable_falls_back_to_id() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry {
                 id: "gizli-komut".into(),
@@ -629,7 +722,7 @@ favorite = true
 
     #[test]
     fn path_like_executable_is_allowed() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         let user = UserConfig {
             tools: vec![ToolEntry {
                 id: "yol".into(),
@@ -649,7 +742,7 @@ favorite = true
 
     #[test]
     fn favorite_overrides_and_launch_kind_are_merged() {
-        let builtin = parse_source("mini.toml", MINI).unwrap();
+        let builtin = parse_one("mini.toml", MINI).unwrap();
         // Gömülü kayıt etkileşimli; kullanıcı onu özel komuta çevirmek
         // isterse bu, varsayılanla aynı olmadığı için uygulanır.
         let user = UserConfig {
@@ -680,7 +773,7 @@ executable = "beta-xyz"
 launch_kind = "command_help"
 help_text = "beta --yardim"
 "#;
-        let builtin = parse_source("mini.toml", text).unwrap();
+        let builtin = parse_one("mini.toml", text).unwrap();
         // Kullanıcı yalnızca favori işaretler; launch_kind varsayılanda
         // kalır ve gömülü `command_help` silinmemeli.
         let user = UserConfig {

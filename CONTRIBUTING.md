@@ -26,7 +26,7 @@ cargo test
 
 ## Kurallar
 
-- Katalog (`assets/catalog.toml`) ve araç modelleri UI'dan bağımsız kalır;
+- Katalog (`assets/catalog/*.toml`) ve araç modelleri UI'dan bağımsız kalır;
   `catalog` modülü `ratatui`/`crossterm` tanımaz.
 - Program ve argümanlar `std::process::Command` ile **ayrı ayrı** geçirilir;
   kullanıcı girdisinden kabuk komutu birleştirilmez, `sudo` kullanılmaz.

@@ -1,0 +1,54 @@
+# Nova araç kataloğu — system
+#
+# Kategori: "Sistem ve Kaynak Kullanımı"
+# `assets/catalog/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez; özelleştirme: ~/.config/nova/config.toml
+
+[[tools]]
+id = "btop"
+name = "btop"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "btop"
+description = "CPU, bellek, disk ve ağ kullanımını grafik olarak izler."
+examples = ["btop"]
+
+[[tools]]
+id = "fastfetch"
+name = "fastfetch"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "fastfetch"
+description = "Sistem bilgilerini logoyla birlikte hızlıca özetler."
+examples = ["fastfetch"]
+
+[[tools]]
+id = "procs"
+name = "procs"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "procs"
+description = "Renkli ve okunaklı süreç listesi; `ps`ye modern alternatif."
+examples = ["procs"]
+
+[[tools]]
+id = "btm"
+name = "bottom (btm)"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "btm"
+description = "Grafiksel sistem izleyici; btop'a alternatif."
+alternative_to = "btop"
+examples = ["btm"]
+
+[[tools]]
+id = "dust"
+name = "dust"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "dust"
+description = "Dizinlerin disk kullanımını ağaç biçiminde sıralar."
+examples = ["dust"]
+
+[[tools]]
+id = "duf"
+name = "duf"
+category = "Sistem ve Kaynak Kullanımı"
+executable = "duf"
+description = "Diskleri ve doluluk oranlarını tablo hâlinde gösterir."
+examples = ["duf"]

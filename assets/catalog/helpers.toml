@@ -1,0 +1,134 @@
+# Nova araç kataloğu — helpers
+#
+# Kategori: "Günlük Terminal Yardımcıları"
+# `assets/catalog/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez; özelleştirme: ~/.config/nova/config.toml
+
+[[tools]]
+id = "atuin"
+name = "Atuin"
+category = "Günlük Terminal Yardımcıları"
+executable = "atuin"
+description = "Kabuk geçmişini veritabanında tutar ve aranabilir hâle getirir. Geçmiş araması kabuk entegrasyonu gerektirir."
+launch_kind = "shell_integration_info"
+info_text = """
+Atuin kabuk geçmişini kaydetmek için kabuk entegrasyonu ister.
+
+Kurulumdan sonra shell yapılandırmanıza ekleyin:
+
+  bash:      eval "$(atuin init bash)"
+  zsh:       eval "$(atuin init zsh)"
+  fish:      atuin init fish | source
+
+Entegrasyon olmadan `atuin` komutu geçmişi doldurmaz. Ayrıntılar:
+  atuin --help
+"""
+setup_info = """Kabuk entegrasyonu için shell yapılandırmanıza 'eval "$(atuin init bash)"' (bash) veya 'eval "$(atuin init zsh)"' (zsh) ekleyin."""
+
+[[tools]]
+id = "tldr"
+name = "tldr"
+category = "Günlük Terminal Yardımcıları"
+executable = "tldr"
+description = "Komutların kısa ve örnekli kullanım özetlerini gösterir."
+launch_kind = "command_help"
+help_text = """
+tldr — komutların kısa örnekleri
+
+  tldr <komut>               Komutun kısa kullanımını göster
+  tldr --list                Bilinen sayfaları listele
+  tldr --update              Yerel önbelleği güncelle
+
+Ayrıntılı örnek için:
+  tldr tar
+"""
+examples = ["tldr tar", "tldr --list"]
+
+[[tools]]
+id = "jq"
+name = "jq"
+category = "Günlük Terminal Yardımcıları"
+executable = "jq"
+description = "JSON sorgulama ve biçimlendirme aracı."
+launch_kind = "command_help"
+help_text = """
+jq — JSON işleme
+
+  jq '.' dosya.json                   JSON'u biçimlendirip yaz
+  curl -fsSL <adres> | jq '.'        JSON yanıtı biçimlendir
+  jq '.[] | .ad' dosya.json           Alandaki değerleri yaz
+  jq '.liste | length' dosya.json     Dizi uzunluğu
+
+jq standart girdi bekler; dosya veya boru hattı olmadan çalıştırmak anlamsızdır.
+"""
+examples = ["jq '.' dosya.json", "jq '.[] | .ad' dosya.json"]
+
+[[tools]]
+id = "yq"
+name = "yq"
+category = "Günlük Terminal Yardımcıları"
+executable = "yq"
+description = "YAML, JSON ve TOML sorgulama ve dönüştürme aracı."
+launch_kind = "command_help"
+help_text = """
+yq — YAML/JSON/TOML işleme
+
+  yq '.' dosya.yaml                  YAML'ı biçimlendirip yaz
+  yq '.alan.ad' dosya.yaml           Alan değerini yaz
+  yq -o=json '.' dosya.yaml          YAML'ı JSON'a çevir
+  yq -i '.yeni = true' dosya.yaml    Dosyayı yerinde güncelle
+
+yq bir dosya bekler; dosya vermeden çalıştırmak anlamsızdır.
+"""
+
+[[tools]]
+id = "glow"
+name = "glow"
+category = "Günlük Terminal Yardımcıları"
+executable = "glow"
+description = "Markdown dosyalarını terminalde biçimli gösterir."
+
+[[tools]]
+id = "gh"
+name = "GitHub CLI (gh)"
+category = "Günlük Terminal Yardımcıları"
+executable = "gh"
+description = "GitHub depoları, sorunları ve pull request'leri terminalden yönetir. İlk kullanımda `gh auth login` gerekir."
+
+[[tools]]
+id = "delta"
+name = "delta"
+category = "Günlük Terminal Yardımcıları"
+executable = "delta"
+description = "Git diff'lerini renkli ve okunaklı gösterir; genellikle git yapılandırmasına bağlanır."
+launch_kind = "shell_integration_info"
+info_text = """
+delta tek başına çalıştırıldığında bir diff bekler; bu bir kabuk/git
+entegrasyonudur.
+
+.gitconfig dosyasına ekleyin:
+
+  [core]
+      pager = delta
+  [interactive]
+      diffFilter = delta --color-only
+
+Olmadan Nova'dan başlatmak anlamlı bir çıktı üretmez.
+"""
+setup_info = """.gitconfig dosyasına [core] pager = delta ekleyin."""
+
+# ---------------------------------------------------------------------------
+# Özel Araçlar
+# ---------------------------------------------------------------------------
+#
+# Bu kategori boş gelir. Kendi aracınızı eklemek için
+# ~/.config/nova/config.toml dosyasına bir kayıt ekleyin:
+#
+# [[tools]]
+# id = "benim-aracim"
+# name = "Benim Aracım"
+# category = "Özel Araçlar"
+# executable = "benim-program"
+# args = ["--ornek"]
+# description = "Ne işe yaradığını anlatan kısa bir not"
+# launch_kind = "custom_command"

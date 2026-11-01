@@ -1,0 +1,187 @@
+# Nova mağaza kataloğu — security
+#
+# Kategori: "Güvenlik"
+# `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
+
+[[apps]]
+id = "age"
+name = "age"
+category = "Güvenlik"
+description = "Basit, modern ve güvenli dosya şifreleme aracı."
+source = "https://github.com/FiloSottile/age"
+license = "BSD-3-Clause"
+executable = "age"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "age"]
+supported_platforms = ["linux-x64"]
+install_notes = """apt: sudo apt install age\nbrew: brew install age\ngo: go install filippo.io/age/cmd/...@latest\npacman: sudo pacman -S age\nResmî: https://github.com/FiloSottile/age#installation"""
+
+[[apps]]
+id = "sops"
+name = "sops"
+category = "Güvenlik"
+description = "Mozilla/CNCF sırları şifreleme aracı (YAML/JSON/ENV)."
+source = "https://github.com/getsops/sops"
+license = "MPL-2.0"
+executable = "sops"
+install_method = "brew"
+install_command = ["brew", "install", "sops"]
+supported_platforms = ["linux-x64"]
+install_notes = """brew: brew install sops\nResmî: https://github.com/getsops/sops#install"""
+
+[[apps]]
+id = "gpg-tui"
+name = "gpg-tui"
+category = "Güvenlik"
+description = "GnuPG için terminal kullanıcı arayüzü."
+source = "https://github.com/orhun/gpg-tui"
+license = "MIT"
+executable = "gpg-tui"
+install_method = "cargo"
+install_command = ["cargo", "install", "gpg-tui"]
+supported_platforms = ["linux-x64"]
+install_notes = """cargo: cargo install gpg-tui\nbrew: brew install gpg-tui\nResmî: https://github.com/orhun/gpg-tui#installation"""
+
+[[apps]]
+id = "pass"
+name = "pass"
+category = "Güvenlik"
+description = "Unix parola yöneticisi (the standard unix password manager)."
+source = "https://www.passwordstore.org/"
+license = "GPL-2.0"
+executable = "pass"
+install_method = "apt"
+install_command = ["sudo", "apt", "install", "-y", "pass"]
+supported_platforms = ["linux-x64"]
+install_notes = """apt: sudo apt install pass\nbrew: brew install pass\npacman: sudo pacman -S pass\nResmî: https://www.passwordstore.org/"""
+
+[[apps]]
+id = "vault"
+name = "Vault CLI"
+category = "Güvenlik"
+description = "HashiCorp Vault komut satırı istemcisi."
+source = "https://www.vaultproject.io/"
+license = "BUSL-1.1"
+executable = "vault"
+install_method = "brew"
+install_command = ["brew", "install", "vault"]
+supported_platforms = ["linux-x64"]
+install_notes = """brew: brew install vault\nResmî: https://developer.hashicorp.com/vault/install"""
+
+[[apps]]
+id = "trivy"
+name = "Trivy"
+category = "Güvenlik"
+description = "Konteyner, FS ve Git deposu güvenlik tarayıcısı."
+source = "https://trivy.dev/"
+license = "Apache-2.0"
+executable = "trivy"
+install_method = "brew"
+install_command = ["brew", "install", "trivy"]
+supported_platforms = ["linux-x64"]
+install_notes = """brew: brew install trivy\nResmî: https://trivy.dev/latest/getting-started/installation/"""
+
+[[apps]]
+id = "binsider"
+name = "binsider"
+category = "Güvenlik"
+description = "Linux ikili dosyalarını analiz eden TUI."
+source = "https://github.com/orhun/binsider"
+license = "MIT/Apache-2.0"
+executable = "binsider"
+install_method = "cargo"
+install_command = ["cargo", "install", "binsider"]
+supported_platforms = ["linux-x64"]
+install_notes = """cargo: cargo install binsider\nResmî: https://binsider.dev/"""
+
+[[apps]]
+id = "masscan"
+name = "masscan"
+category = "Güvenlik"
+description = "Çok hızlı port tarayıcı."
+source = "https://github.com/robertdavidgraham/masscan"
+license = "AGPL-3.0"
+executable = "masscan"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "masscan"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S masscan\napt: sudo apt install masscan\nResmî: https://github.com/robertdavidgraham/masscan"
+
+[[apps]]
+id = "nikto"
+name = "nikto"
+category = "Güvenlik"
+description = "Web sunucu tarayıcı."
+source = "https://github.com/sullo/nikto"
+license = "GPL-2.0"
+executable = "nikto"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "nikto"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S nikto\napt: sudo apt install nikto"
+
+[[apps]]
+id = "sqlmap"
+name = "sqlmap"
+category = "Güvenlik"
+description = "SQL enjeksiyon test aracı."
+source = "https://sqlmap.org/"
+license = "GPL-2.0"
+executable = "sqlmap"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "sqlmap"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S sqlmap\napt: sudo apt install sqlmap\nResmî: https://sqlmap.org/"
+
+[[apps]]
+id = "hashcat"
+name = "hashcat"
+category = "Güvenlik"
+description = "Gelişmiş parola kurtarma."
+source = "https://hashcat.net/hashcat/"
+license = "MIT"
+executable = "hashcat"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "hashcat"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S hashcat\napt: sudo apt install hashcat\nResmî: https://hashcat.net/hashcat/"
+
+[[apps]]
+id = "john"
+name = "John the Ripper"
+category = "Güvenlik"
+description = "Parola kırma aracı."
+source = "https://www.openwall.com/john/"
+license = "GPL-2.0"
+executable = "john"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "john"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S john\napt: sudo apt install john\nResmî: https://www.openwall.com/john/"
+
+[[apps]]
+id = "hydra"
+name = "hydra"
+category = "Güvenlik"
+description = "Ağ oturum açma denetleyici."
+source = "https://github.com/vanhauser-thc/thc-hydra"
+license = "AGPL-3.0"
+executable = "hydra"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "hydra"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S hydra\napt: sudo apt install hydra"
+
+[[apps]]
+id = "wireshark-cli"
+name = "tshark"
+category = "Güvenlik"
+description = "Wireshark CLI (tshark)."
+source = "https://www.wireshark.org/"
+license = "GPL-2.0"
+executable = "tshark"
+install_method = "pacman"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "wireshark-cli"]
+supported_platforms = ["linux-x64"]
+install_notes = "pacman: sudo pacman -S wireshark-cli\napt: sudo apt install tshark\nResmî: https://www.wireshark.org/"

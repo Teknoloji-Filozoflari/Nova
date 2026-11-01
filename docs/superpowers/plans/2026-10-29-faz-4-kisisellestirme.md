@@ -47,7 +47,7 @@ ve durum satırında hata gösterilir.
 - Katalogda artık bulunmayan bir id favori listesinde kalır (sitelenmiş
   katalogdan çekilen araç geri gelirse favori geri gelir). `state.toml`
   yazılırken bu id'ler **silinmez**; yalnızca UI'da görünmez.
-- Gömülü `assets/catalog.toml`'daki `favorite = true` alanı **kaldırılamaz**
+- Gömülü `assets/catalog/*.toml`'daki `favorite = true` alanı **kaldırılamaz**
   ama artık yalnızca *ilk çalıştırma tohumu* olarak kullanılır: `state.toml`
   yoksa gömülü favoriler kopyalanır; varsa `state.toml` tek otoritedir.
   Böylece kullanıcı bir varsayılan favoriyi kaldırdığında güncelleme onu

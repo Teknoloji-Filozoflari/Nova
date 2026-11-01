@@ -1,0 +1,17 @@
+# Nova araç kataloğu — custom
+#
+# Kategori: "Özel Araçlar"
+# `assets/catalog/` altında; loader tüm kategori dosyalarını birleştirir.
+# Kullanıcı düzenlemez; özelleştirme: ~/.config/nova/config.toml
+
+# Bu kategori gömülü katalogda boş gelir. Kendi aracınızı eklemek için
+# ~/.config/nova/config.toml dosyasına bir kayıt ekleyin:
+#
+# [[tools]]
+# id = "benim-aracim"
+# name = "Benim Aracım"
+# category = "Özel Araçlar"
+# executable = "benim-program"
+# args = ["--ornek"]
+# description = "Ne işe yaradığını anlatan kısa bir not"
+# launch_kind = "custom_command"

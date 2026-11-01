@@ -6,7 +6,7 @@
 //! **keşif ipucu** verir, bütünlük ise upstream'in kendisinden gelir:
 //!
 //! 1. **Depo gömülü katalogda sabitlendir.** Hangi GitHub deposunun
-//!    izleneceği `assets/store.toml` içinde yazılıdır; ağdan gelen hiçbir
+//!    izleneceği `assets/store/*.toml` içinde yazılıdır; ağdan gelen hiçbir
 //!    veri bu bilgiyi değiştiremez.
 //! 2. **Sürüm GitHub Releases API'sinden okunur.** Bu yalnızca "en güncel
 //!    sürüm hangisi?" sorusunu yanıtlar.
