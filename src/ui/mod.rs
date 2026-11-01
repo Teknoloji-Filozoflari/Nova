@@ -54,7 +54,10 @@ pub const DETAIL_ROWS: u16 = 8;
 ///
 /// Mağaza detayı araç detayından daha fazla bilgi taşır (sürüm, canlı takip,
 /// kurulum yöntemi); bu yüzden biraz daha yüksektir.
-pub const STORE_DETAIL_ROWS: u16 = 11;
+pub const STORE_DETAIL_ROWS: u16 = 12;
+
+/// Liste panellerindeki `Borders::ALL` üst/alt kenarlık kalınlığı (satır).
+pub const LIST_BORDER: u16 = 1;
 
 /// Fare tıklama testi için hesaplanan düzen alanları. `ui::draw` ile aynı
 /// eşikleri kullandığı iki kod yolu senkron kalır.
@@ -108,9 +111,11 @@ pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickA
     let content_bottom = h.saturating_sub(detail_h + 1 + help_height);
     let content_height = content_bottom.saturating_sub(content_top);
     let category_end_x = if wide { CATEGORY_PANEL_WIDTH } else { w };
-    // Dar modda mağaza kategorileri içerik alanının üstünde durur.
-    let store_category_rows =
-        (STORE_CATEGORIES.len() as u16 + 2).min(content_height.saturating_sub(3));
+    // Dar modda mağaza kategorileri içerik alanının üstünde durur (+2 kenarlık).
+    // `draw_store_content` ile aynı: uygulama listesine en az 3 satır bırak.
+    let store_category_rows = (STORE_CATEGORIES.len() as u16 + 2)
+        .min(content_height.saturating_sub(3))
+        .max(1);
     ClickAreas {
         content_top,
         content_height,
@@ -119,6 +124,47 @@ pub fn click_areas(size: (u16, u16), show_help: bool, store_tab: bool) -> ClickA
         store_category_end_x: CATEGORY_PANEL_WIDTH + STORE_CATEGORY_PANEL_WIDTH,
         store_category_end_y: content_top + store_category_rows,
     }
+}
+
+/// Nova her karede `ListState`i `offset = 0` ile yeniden kurar; ratatui
+/// tek satırlık öğelerde seçili satırı görünür tutmak için kaydırmayı
+/// şöyle seçer. Fare isabet hesabı aynı formülü kullanmalıdır.
+pub fn list_scroll_offset(selected: usize, inner_height: u16, len: usize) -> usize {
+    let h = inner_height as usize;
+    if h == 0 || len == 0 {
+        return 0;
+    }
+    let max_off = len.saturating_sub(h);
+    if selected >= h {
+        (selected + 1).saturating_sub(h).min(max_off)
+    } else {
+        0
+    }
+}
+
+/// Kenarlıklı liste panelinde tıklanan satırın öğe indeksini döner.
+///
+/// Üst/alt kenarlık ve listenin seçime göre kaydırılmış penceresi hesaba
+/// katılır. Kenarlığa veya boş satıra tıklanınca `None`.
+pub fn list_index_at_y(
+    y: u16,
+    panel_top: u16,
+    panel_height: u16,
+    selected: usize,
+    len: usize,
+) -> Option<usize> {
+    if panel_height <= 2 || len == 0 {
+        return None;
+    }
+    let inner_top = panel_top.saturating_add(LIST_BORDER);
+    let inner_h = panel_height.saturating_sub(2 * LIST_BORDER);
+    if y < inner_top || y >= inner_top.saturating_add(inner_h) {
+        return None;
+    }
+    let visual = (y - inner_top) as usize;
+    let offset = list_scroll_offset(selected, inner_h, len);
+    let idx = offset + visual;
+    (idx < len).then_some(idx)
 }
 
 // Düzen eşikleri birbirini mantıksal olarak izlemeli; ihlal derleme hatasıdır.
@@ -757,11 +803,24 @@ fn draw_store_apps(f: &mut Frame, app: &App, area: Rect) {
                 ("· ", Style::default().fg(Color::DarkGray))
             };
 
-            let name = truncate(&entry.name, inner_width.saturating_sub(6));
+            let trust = entry.trust_level();
+            let trust_badge = format!("[{}]", trust.badge());
+            let trust_style = match trust {
+                crate::store::trust::TrustLevel::HashAndSignature => {
+                    Style::default().fg(Color::Green)
+                }
+                crate::store::trust::TrustLevel::HashOnly => Style::default().fg(Color::Cyan),
+                crate::store::trust::TrustLevel::Manual => Style::default().fg(Color::DarkGray),
+            };
+            // Ad + rozet sığacak şekilde kısaltılır.
+            let badge_budget = trust_badge.len() + 1;
+            let name = truncate(&entry.name, inner_width.saturating_sub(6 + badge_budget));
             ListItem::new(Line::from(vec![
                 Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
                 Span::styled(marker, marker_style),
                 Span::styled(name, style),
+                Span::raw(" "),
+                Span::styled(trust_badge, trust_style),
             ]))
         })
         .collect();
@@ -1148,6 +1207,22 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         Span::styled("Kurulum: ", Style::default().fg(Color::DarkGray)),
         Span::styled(method_line, Style::default().fg(Color::Yellow)),
     ]));
+
+    // Güven rozeti: hash+sig / hash / manual.
+    let trust = entry.trust_level();
+    let trust_color = match trust {
+        crate::store::trust::TrustLevel::HashAndSignature => Color::Green,
+        crate::store::trust::TrustLevel::HashOnly => Color::Cyan,
+        crate::store::trust::TrustLevel::Manual => Color::DarkGray,
+    };
+    lines.push(Line::from(vec![
+        Span::styled("Güven: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            format!("{} — {}", trust.badge(), trust.label()),
+            Style::default().fg(trust_color),
+        ),
+    ]));
+
     if entry.install_method.is_package_manager() {
         let cmd = resolved_plan
             .as_ref()
@@ -1441,6 +1516,7 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
             ("M", lang.t(Msg::HelpStoreTab)),
             ("U", lang.t(Msg::HelpUpdateCheck)),
             ("O", lang.t(Msg::HelpFilePicker)),
+            ("A", lang.t(Msg::HelpDefaultAi)),
         ]),
         help_line(&[
             ("Q", lang.t(Msg::HelpQuit)),
@@ -1470,7 +1546,7 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
 /// kısmın en az kritik tuşlar olmasını sağlar.
 fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
     let lang = app.ui_lang();
-    let entries: [(&'static str, &'static str); 16] = [
+    let entries: [(&'static str, &'static str); 17] = [
         ("↑↓", lang.t(Msg::HelpNavigate)),
         ("←→", lang.t(Msg::HelpPanel)),
         ("/", lang.t(Msg::HelpSearch)),
@@ -1485,6 +1561,7 @@ fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
         ("M", lang.t(Msg::Store)),
         ("U", lang.t(Msg::HelpUpdateCheck)),
         ("O", lang.t(Msg::HelpFilePicker)),
+        ("A", lang.t(Msg::HelpDefaultAi)),
         ("C", lang.t(Msg::HelpFavOnly)),
         ("Q", lang.t(Msg::HelpQuit)),
     ];
@@ -1573,6 +1650,28 @@ mod tests {
     #[test]
     fn truncate_keeps_short_text() {
         assert_eq!(truncate("htop", 10), "htop");
+    }
+
+    #[test]
+    fn list_scroll_offset_keeps_selection_visible() {
+        assert_eq!(list_scroll_offset(0, 5, 20), 0);
+        assert_eq!(list_scroll_offset(4, 5, 20), 0);
+        assert_eq!(list_scroll_offset(5, 5, 20), 1);
+        assert_eq!(list_scroll_offset(19, 5, 20), 15);
+        assert_eq!(list_scroll_offset(0, 5, 3), 0);
+        assert_eq!(list_scroll_offset(2, 5, 3), 0);
+    }
+
+    #[test]
+    fn list_index_at_y_skips_border_and_uses_scroll() {
+        // panel_top=2, height=10 → inner 3..=10 (8 satır)
+        assert_eq!(list_index_at_y(2, 2, 10, 0, 20), None); // üst kenarlık
+        assert_eq!(list_index_at_y(3, 2, 10, 0, 20), Some(0));
+        assert_eq!(list_index_at_y(4, 2, 10, 0, 20), Some(1));
+        assert_eq!(list_index_at_y(11, 2, 10, 0, 20), None); // alt kenarlık
+                                                             // Seçili 10 → offset 3; görünür ilk satır index 3
+        assert_eq!(list_index_at_y(3, 2, 10, 10, 20), Some(3));
+        assert_eq!(list_index_at_y(10, 2, 10, 10, 20), Some(10));
     }
 
     #[test]

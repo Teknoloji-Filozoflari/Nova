@@ -25,7 +25,7 @@ Katalog modeli UI'dan bağımsızdır: `catalog` ve `catalog::loader` modülleri
 | `catalog::loader` | Gömülü katalog (TOML, `include_str!`), ayrıştırma, kullanıcı dosyasıyla `id` üzerinden birleştirme | `catalog`, `config` |
 | `launcher` | Başlatma orkestrasyonu: istek → adapter → ayrık süreç | `catalog`, `error`, `which` |
 | `launcher::request` | `LaunchRequest` ve çalışma dizini doğrulaması (yan etkisiz; `from_entry_with_project` etkin projeyi geçersiz kılar) | `catalog`, `error` |
-| `launcher::terminal` | `TerminalAdapter` trait'i ve Konsole adapteri (yalnızca argüman üretir) | `launcher::request`, `error` |
+| `launcher::terminal` | `TerminalAdapter` trait'i ve emülatör adapterleri (`$TERMINAL` + bilinen liste; yalnızca argüman üretir) | `launcher::request`, `error` |
 | `detection` | PATH **ve mağaza `bin` dizinleri** üzerinden kurulum durumunu belirleme (üç durumlu) | `which`, `store` |
 | `store` | Mağaza kataloğu modeli, kategori listesi, katalog doğrulama kuralları, kurulum dizini çözümü | `serde` |
 | `store::loader` | Gömülü mağaza kataloğu (`assets/store.toml`, `include_str!`) ve doğrulaması | `store` |
@@ -207,7 +207,7 @@ Bu ayrımın amacı, testlerin gerçek bir Konsole açmadan tüm yolu sınaması
 
 Yeni bir emülatör eklemek `TerminalAdapter` trait'ini uygulayan bir struct yazmak ve `TERMINALS` listesine bir satır eklemekten ibarettir. Dinamik yükleme, harici yapılandırma veya plugin keşfi yoktur — bu, Faz 2 kapsamı dışında bırakılan bilinçli bir sadeleştirmedir.
 
-`TERMINALS: &[&dyn TerminalAdapter]` sırayla denenir; ilk `which` ile bulunan adapter seçilir. Hiçbiri bulunamazsa hata, **aranan** komut adlarını içerir.
+`preferred` boşken önce `$TERMINAL` (basename bilinen bir adapterse) denenir; sonra `TERMINALS` sırayla `which` ile aranır. Hiçbiri bulunamazsa hata, **aranan** komut adlarını içerir.
 
 ### Konsole adapteri ve doğrulanmış argüman sırası
 
@@ -406,8 +406,8 @@ etiketidir.
 
 - `S` modalı, `prefs.preferred_terminal` ve `prefs.default_working_dir` değerlerini
   düzenler; `config.toml` ve `state.toml` yollarını gösterir.
-- Terminal adı boş (varsayılan Konsole) veya `konsole` olmalıdır; desteklenmeyen
-  adapter seçimi hata verir.
+- Terminal adı boş (otomatik: `$TERMINAL` sonra bilinen liste) veya desteklenen
+  bir emülatör adı olmalıdır; desteklenmeyen adapter seçimi hata verir.
 - Çalışma dizini normalize edilir ve var olan bir dizin olduğu doğrulanır.
   Ayar ekranı dizin oluşturmaz.
 - Ayarlar tek bir atomik state yazımıyla saklanır. Yazma başarısız olursa önceki
@@ -466,7 +466,7 @@ kullanıcıya durum satırında açıklanır.
 
 ## Bilinen Eksiklikler (Faz 5 sonu)
 
-- **Yalnızca Konsole destekleniyor.** `TERMINALS` tek girdi içerir; ayarlarda başka emülatör seçimi reddedilir. Yeni emülatör eklemek adapter + bir satır kayıt işidir.
+- **Terminal seçimi çoklu emülatör.** Otomatik sıra: `$TERMINAL` → xdg-terminal-exec → kitty → alacritty → wezterm → gnome-terminal → konsole → foot → xterm → tmux. Ayarlarda bu adlardan biri seçilebilir; bilinmeyen `$TERMINAL` basename sessizce yok sayılır.
 - **Sekme açıldığı doğrulanmıyor.** Mesaj bilinçli olarak "istendi" der; IPC ile sekme izleme yok.
 - **`background` / `detached` çalıştırma biçimleri yok**; reddedilir.
 - **Form aracı düzenleme yok.** Var olan özel araç düzenlenemez; silinip yeniden eklenir.
@@ -477,20 +477,20 @@ kullanıcıya durum satırında açıklanır.
 - **`Özel Araçlar` gömülü katalogda boş.** UI boş kategori mesajı gösterir; araçlar kullanıcı dosyasından veya formdan gelir. Gömülü `lazygit`, `Git ve Geliştirici Araçları` kategorisindedir.
 - **SSH için ayrı profil ekranı yok.** Profiller `custom_command` kayıtları olarak TOML'da tanımlanır.
 - **Cloudflare örneği varsayılan olarak 25 MB indirir** ve `curl` ortalama indirme hızını gösterir; `executable` ve `args` kullanıcı `config.toml` dosyasından değiştirilebilir.
-- **Fare desteği yalnızca ana ekranda.** Kategori/araç panellerinde tıklama ve kaydırma çalışır; mağaza, dosya seçici, ayarlar ve onay modallarında fare olayları yok sayılır.
+- **Fare desteği ana ekran listelerinde.** Kategori, araç, mağaza ve Ayarlar/tema panellerinde tıklama (kenarlık + kaydırma penceresi hesaba katılır) ve kaydırma çalışır; dosya seçici / onay / form modallarında fare yok sayılır.
 - **Arama sıralaması yok.** Sonuçlar katalog sırasındadır; alaka sırasına göre sıralama yapılmaz.
 - **Süreç yeniden sahiplenilmiyor.** Konsole süreci Nova tarafından `wait` edilmez (bilinçli); PID yalnızca raporlama içindir.
 - **Asgari Rust sürümü doğrulanmadı.** Bağımlılıkların `rust-version` alanları ≥1.74 öneriyor; yalnızca 1.99.1 ile derleme/test yapıldı.
 - **Tema tercihleri uygulanır** (`varsayilan` / `acik` / `orman` / `amber`); Ayarlar sekmesinden döngülenir ve `state.toml`’a yazılır.
 - **PTY kapanınca alt ekrandan çıkış dizisi yazılamaz.** Terminal (tty) yoksa `leave_alternate_screen` IO hatası verir; hook bunu bilinçli olarak yutar ve Nova panik üretmeden çıkar.
-- **Dağıtım paketi/yayın yok.** Proje MIT OR Apache-2.0 çift lisanslıdır (`LICENSE.md`); crates.io, AUR, distro paketi ve ikili yayın yapılmadı. `docs/VERSIONING.md` akışı önerir.
+- **Dağıtım paketi/yayın yok.** Proje SPDX `MIT OR Apache-2.0` çift lisanslıdır (`LICENSE.md` seçim özeti; metinler `LICENSE-MIT` / `LICENSE-APACHE`). crates.io, AUR, distro paketi ve ikili yayın yapılmadı. `docs/VERSIONING.md` akışı önerir.
 - **Mağaza sürüm denetimi kullanıcı isteğine bağlı.** Otomatik denetim yok; kullanıcı mağazada `U` tuşuna bastığında GitHub Releases sorgulanır.
 - **Mağaza kataloğu uzaktan güncellenmiyor.** Katalog gömülü `assets/store.toml` içinde sabittir; canlı akış yalnızca sürüm ipucu getirir. Bu bilinçli bir tasarım kararıdır (bkz. "Canlı Sürüm Takibi → Tasarım kararı").
 - **GitHub API hız sınırı kimliksiz IP başına saatte 60 istek.** `GITHUB_TOKEN` ile saatte 5000'e yükseltilebilir; 6 saatlik önbellek taze kayıtları ağa hiç çıkarmadığı için sınırı büyük ölçüde azaltır. `ETag` yalnızca bant genişliği tasarrufu sağlar (`304` de sınırdan düşer).
 - **Mağazada 6 uygulama indirilebilir.** Kalan 13 kayıt `manual` yöntemdedir; upstream doğrulanabilir SHA-256 özeti yayımlamadığı için "Kur" eylemi sunulmaz.
 - **Tek çalıştırılabilir dosya kurulur.** Arşivdeki man sayfaları, tamamlayıcılar ve ek belgeler kurulmaz; yalnızca katalogdaki `executable` yerleştirilir.
 - **Güncelleme sağlayıcısı GitHub Releases’a bağlıdır** (`Teknoloji-Filozoflari/Nova`). Ayarlar→Güncelle / `U` denetimi durumu durum satırında ve modalda gösterir (`denetleniyor` / `yayın yok` / `güncel` / `yeni sürüm` / `hata`). Yayın yoksa (`404`) “ikili yayın yok” sonucudur — `cargo`/kaynak güncellemesi yapılmaz. Uygun Linux ikilisi varsa kullanıcı onayından sonra `~/.local/bin/nova` kurulur.
-- **Güvenlik denetimi çalıştırılmadı** (`cargo-audit`/`cargo-deny` bu ortamda kurulu değildi).
+- **Bağımlılık güvenliği CI'da.** `cargo audit` ve `cargo deny check` (bkz. `deny.toml`) her PR/push'ta ve haftalık zamanlamada çalışır; Dependabot Cargo ve Actions güncellemelerini açar.
 
 ## Proje Dizinini Geçersiz Kılma (Faz 5)
 
