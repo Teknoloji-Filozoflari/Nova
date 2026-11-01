@@ -57,6 +57,7 @@ pub fn draw(f: &mut Frame, app: &App) {
             default_ai_tool,
             default_image_app,
             default_video_app,
+            language,
             focus,
             error,
         } => draw_settings(
@@ -69,6 +70,7 @@ pub fn draw(f: &mut Frame, app: &App) {
             default_ai_tool,
             default_image_app,
             default_video_app,
+            language,
             *focus,
             error.as_deref(),
         ),
@@ -747,54 +749,62 @@ fn draw_settings(
     default_ai_tool: &str,
     default_image_app: &str,
     default_video_app: &str,
+    language: &str,
     focus: usize,
     error: Option<&str>,
 ) {
+    use crate::i18n::{Language, Msg};
+    let lang = app.ui_lang();
     let width = 68.min(screen.width.saturating_sub(MODAL_MARGIN * 2));
     let inner_w = width.saturating_sub(2) as usize;
+    let lang_value = {
+        let parsed = Language::parse(language);
+        format!("{} ({})", parsed.native_name(), parsed.id())
+    };
     let mut lines = Vec::new();
     for (index, (label, value)) in [
-        ("Varsayılan terminal", preferred_terminal),
+        (lang.t(Msg::AdvTerminal), preferred_terminal),
         (
-            "Varsayılan çalışma dizini",
+            lang.t(Msg::AdvWorkdir),
             if default_working_dir.is_empty() {
-                "(boş: ev dizini)"
+                lang.t(Msg::AdvEmptyHome)
             } else {
                 default_working_dir
             },
         ),
         (
-            "Tema",
+            lang.t(Msg::AdvTheme),
             if theme.is_empty() {
-                "(varsayılan)"
+                lang.t(Msg::AdvEmptyDefault)
             } else {
                 theme
             },
         ),
         (
-            "Varsayılan AI aracı",
+            lang.t(Msg::AdvAi),
             if default_ai_tool.is_empty() {
-                "(seçilmedi)"
+                lang.t(Msg::AdvEmptyNone)
             } else {
                 default_ai_tool
             },
         ),
         (
-            "Varsayılan resim uygulaması",
+            lang.t(Msg::AdvImage),
             if default_image_app.is_empty() {
-                "(seçilmedi)"
+                lang.t(Msg::AdvEmptyNone)
             } else {
                 default_image_app
             },
         ),
         (
-            "Varsayılan video uygulaması",
+            lang.t(Msg::AdvVideo),
             if default_video_app.is_empty() {
-                "(seçilmedi)"
+                lang.t(Msg::AdvEmptyNone)
             } else {
                 default_video_app
             },
         ),
+        (lang.t(Msg::AdvLanguage), lang_value.as_str()),
     ]
     .into_iter()
     .enumerate()
@@ -819,35 +829,51 @@ fn draw_settings(
         ]));
     }
     lines.push(Line::from(Span::styled(
-        "Boş = otomatik ($TERMINAL, xdg-terminal-exec, kitty, …). Desteklenen adları yazabilirsin.",
+        lang.t(Msg::AdvKonsoleHint),
         Style::default().fg(Color::DarkGray),
     )));
     lines.push(Line::from(vec![
-        Span::styled("Katalog: ", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            truncate(&app.config_path_display, inner_w.saturating_sub(9)),
+            format!("{}: ", lang.t(Msg::AdvCatalog)),
+            Style::default().fg(Color::DarkGray),
+        ),
+        Span::styled(
+            truncate(
+                &app.config_path_display,
+                inner_w.saturating_sub(lang.t(Msg::AdvCatalog).chars().count() + 2),
+            ),
             Style::default().fg(Color::Gray),
         ),
     ]));
     lines.push(Line::from(vec![
-        Span::styled("Kullanıcı ayarları: ", Style::default().fg(Color::DarkGray)),
         Span::styled(
-            truncate(&app.state_path_display, inner_w.saturating_sub(19)),
+            format!("{}: ", lang.t(Msg::AdvUserSettings)),
+            Style::default().fg(Color::DarkGray),
+        ),
+        Span::styled(
+            truncate(
+                &app.state_path_display,
+                inner_w.saturating_sub(lang.t(Msg::AdvUserSettings).chars().count() + 2),
+            ),
             Style::default().fg(Color::Gray),
         ),
     ]));
     if let Some(error) = error {
         lines.push(Line::from(Span::styled(
-            format!("Hata: {}", truncate(error, inner_w.saturating_sub(7))),
+            format!(
+                "{}: {}",
+                lang.t(Msg::AdvErrorPrefix),
+                truncate(error, inner_w.saturating_sub(7))
+            ),
             Style::default().fg(Color::Red),
         )));
     }
     lines.push(Line::from(Span::styled(
-        "Tab/↑↓: alan   Enter: kaydet   Esc: vazgeç",
+        lang.t(Msg::AdvKeys),
         Style::default().fg(Color::Cyan),
     )));
     let area = modal_area(screen, width, lines.len() as u16);
-    let inner = frame(f, area, "Ayarlar");
+    let inner = frame(f, area, lang.t(Msg::Settings));
     f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 

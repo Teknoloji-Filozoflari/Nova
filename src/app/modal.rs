@@ -74,7 +74,7 @@ pub enum Modal {
     },
     /// Geçmiş görünümü (salt okunur; `X` onaylı temizleme).
     History,
-    /// Kullanıcı tercihleri: terminal, çalışma dizini, tema ve varsayılan
+    /// Kullanıcı tercihleri: terminal, çalışma dizini, tema, dil ve varsayılan
     /// uygulamalar.
     Settings {
         /// Tercih edilen terminal adı.
@@ -89,8 +89,10 @@ pub enum Modal {
         default_image_app: String,
         /// Video dosyaları için varsayılan uygulama.
         default_video_app: String,
+        /// Arayüz dili kodu (`tr`/`en`/`ru`/`az`/`uz`/`kk`).
+        language: String,
         /// Odaklı alan (0 terminal, 1 çalışma dizini, 2 tema, 3 AI, 4 resim,
-        /// 5 video).
+        /// 5 video, 6 dil).
         focus: usize,
         /// Son doğrulama/kaydetme hatası.
         error: Option<String>,

@@ -56,6 +56,8 @@ pub enum PanelFocus {
     StoreApp,
     /// Ayarlar → Tema seçici paneli odaklı.
     ThemePicker,
+    /// Ayarlar → Dil seçici paneli odaklı.
+    LanguagePicker,
 }
 
 /// Uygulama durumu.
@@ -132,12 +134,16 @@ pub struct App {
     pub store_tab: bool,
     /// Ayarlar sekmesi etkin mi? (Mağaza'nın altındaki satır)
     pub settings_tab: bool,
-    /// Ayarlar sekmesinde seçili eylem: 0 = Güncelle, 1 = Tema.
+    /// Ayarlar sekmesinde seçili eylem: 0 = Güncelle, 1 = Tema, 2 = Dil.
     pub settings_action_index: usize,
     /// Tema seçici yan paneli açık mı?
     pub theme_picker_open: bool,
     /// Tema seçici listesindeki seçili indeks.
     pub theme_picker_index: usize,
+    /// Dil seçici yan paneli açık mı?
+    pub language_picker_open: bool,
+    /// Dil seçici listesindeki seçili indeks.
+    pub language_picker_index: usize,
     /// Seçili mağaza kategorisinin indeksi.
     pub store_category_index: usize,
     /// Seçili mağaza uygulamasının indeksi (filtrelenmiş liste üzerinden).
@@ -270,6 +276,8 @@ impl App {
             settings_action_index: 0,
             theme_picker_open: false,
             theme_picker_index: 0,
+            language_picker_open: false,
+            language_picker_index: 0,
             store_category_index: 0,
             store_app_index: 0,
             tool_index: 0,
@@ -509,25 +517,35 @@ impl App {
         }
     }
 
-    /// Ayarlar sekmesi fare tıklaması (tema paneli açık/kapalı, geniş/dar).
+    /// Ayarlar sekmesi fare tıklaması (tema/dil paneli açık/kapalı, geniş/dar).
     fn handle_settings_mouse_click(&mut self, x: u16, y: u16, areas: crate::ui::ClickAreas) {
         use crate::ui::list_index_at_y;
 
         let panel_top = areas.content_top;
         let panel_h = areas.content_height;
-        const SETTINGS_ACTIONS: usize = 2;
+        const SETTINGS_ACTIONS: usize = 3;
 
-        if self.theme_picker_open && areas.wide {
-            let theme_start = areas
+        if self.settings_side_picker_open() && areas.wide {
+            let side_start = areas
                 .category_end_x
                 .saturating_add(crate::ui::STORE_CATEGORY_PANEL_WIDTH);
-            if x >= theme_start {
-                let themes = crate::ui::UiTheme::all().len();
-                if let Some(row) =
-                    list_index_at_y(y, panel_top, panel_h, self.theme_picker_index, themes)
-                {
-                    self.theme_picker_index = row;
-                    self.focus = PanelFocus::ThemePicker;
+            if x >= side_start {
+                if self.language_picker_open {
+                    let langs = crate::i18n::Language::all().len();
+                    if let Some(row) =
+                        list_index_at_y(y, panel_top, panel_h, self.language_picker_index, langs)
+                    {
+                        self.language_picker_index = row;
+                        self.focus = PanelFocus::LanguagePicker;
+                    }
+                } else {
+                    let themes = crate::ui::UiTheme::all().len();
+                    if let Some(row) =
+                        list_index_at_y(y, panel_top, panel_h, self.theme_picker_index, themes)
+                    {
+                        self.theme_picker_index = row;
+                        self.focus = PanelFocus::ThemePicker;
+                    }
                 }
             } else if let Some(row) = list_index_at_y(
                 y,
@@ -541,8 +559,8 @@ impl App {
             return;
         }
 
-        if self.theme_picker_open && !areas.wide {
-            // `draw_content` ile aynı: üst yarı eylemler, alt yarı temalar.
+        if self.settings_side_picker_open() && !areas.wide {
+            // `draw_content` ile aynı: üst yarı eylemler, alt yarı tema/dil.
             let half = (panel_h / 2).max(3);
             if y < panel_top.saturating_add(half) {
                 if let Some(row) = list_index_at_y(
@@ -553,6 +571,19 @@ impl App {
                     SETTINGS_ACTIONS,
                 ) {
                     self.apply_settings_action_click(row);
+                }
+            } else if self.language_picker_open {
+                let langs = crate::i18n::Language::all().len();
+                let side_h = panel_h.saturating_sub(half);
+                if let Some(row) = list_index_at_y(
+                    y,
+                    panel_top.saturating_add(half),
+                    side_h,
+                    self.language_picker_index,
+                    langs,
+                ) {
+                    self.language_picker_index = row;
+                    self.focus = PanelFocus::LanguagePicker;
                 }
             } else {
                 let themes = crate::ui::UiTheme::all().len();
@@ -582,14 +613,17 @@ impl App {
         }
     }
 
-    /// Ayarlar listesinde tıklanan eylemi uygular (Tema → paneli aç).
+    /// Ayarlar listesinde tıklanan eylemi uygular (Tema / Dil → paneli aç).
     fn apply_settings_action_click(&mut self, index: usize) {
-        self.settings_action_index = index.min(1);
+        self.settings_action_index = index.min(2);
         self.focus = PanelFocus::Tool;
-        if self.settings_action_index == 1 {
-            self.open_theme_picker();
-        } else {
-            self.theme_picker_open = false;
+        match self.settings_action_index {
+            1 => self.open_theme_picker(),
+            2 => self.open_language_picker(),
+            _ => {
+                self.theme_picker_open = false;
+                self.language_picker_open = false;
+            }
         }
     }
 
@@ -627,6 +661,8 @@ impl App {
             KeyCode::Esc => {
                 if self.theme_picker_open {
                     self.close_theme_picker();
+                } else if self.language_picker_open {
+                    self.close_language_picker();
                 } else if self.show_help {
                     self.show_help = false;
                 } else {
@@ -687,6 +723,9 @@ impl App {
                 PanelFocus::StoreApp => self.select_store_app(),
                 PanelFocus::ThemePicker => {
                     let _ = self.apply_theme_at_picker_index();
+                }
+                PanelFocus::LanguagePicker => {
+                    let _ = self.apply_language_at_picker_index();
                 }
             },
             KeyCode::Char('r') | KeyCode::Char('R') => {
@@ -864,7 +903,7 @@ impl App {
             PanelFocus::Category => self.move_tab_down(),
             PanelFocus::Tool => {
                 if self.settings_tab {
-                    self.settings_action_index = (self.settings_action_index + 1).min(1);
+                    self.settings_action_index = (self.settings_action_index + 1).min(2);
                     return;
                 }
                 let tools = self.filtered_tools();
@@ -892,6 +931,10 @@ impl App {
                 let max = crate::ui::UiTheme::all().len().saturating_sub(1);
                 self.theme_picker_index = (self.theme_picker_index + 1).min(max);
             }
+            PanelFocus::LanguagePicker => {
+                let max = crate::i18n::Language::all().len().saturating_sub(1);
+                self.language_picker_index = (self.language_picker_index + 1).min(max);
+            }
         }
     }
 
@@ -915,6 +958,9 @@ impl App {
             }
             PanelFocus::ThemePicker => {
                 self.theme_picker_index = self.theme_picker_index.saturating_sub(1);
+            }
+            PanelFocus::LanguagePicker => {
+                self.language_picker_index = self.language_picker_index.saturating_sub(1);
             }
         }
     }
@@ -963,6 +1009,7 @@ impl App {
             self.store_tab = true;
             self.settings_tab = false;
             self.theme_picker_open = false;
+            self.language_picker_open = false;
             self.store_category_index = 0;
             self.store_app_index = 0;
             return;
@@ -995,6 +1042,7 @@ impl App {
         self.store_tab = true;
         self.settings_tab = false;
         self.theme_picker_open = false;
+        self.language_picker_open = false;
         self.store_category_index = 0;
         self.store_app_index = 0;
         self.focus = PanelFocus::StoreApp;
@@ -1007,10 +1055,10 @@ impl App {
         self.settings_tab = true;
         self.store_tab = false;
         self.theme_picker_open = false;
+        self.language_picker_open = false;
         self.settings_action_index = 0;
         self.focus = PanelFocus::Tool;
-        self.status_message =
-            "Ayarlar: Güncelle = GitHub ikili self-update; Tema = panel. Enter uygular.".into();
+        self.status_message = "Ayarlar: Güncelle / Tema / Dil. Enter uygular.".into();
     }
 
     /// Sol panelde seçili sekmenin satır indeksi (çizilen liste üzerinden).
@@ -1038,6 +1086,8 @@ impl App {
         if row < visible.len() {
             self.store_tab = false;
             self.settings_tab = false;
+            self.theme_picker_open = false;
+            self.language_picker_open = false;
             self.category_index = visible[row];
             self.tool_index = 0;
             self.store_app_index = 0;
@@ -1054,29 +1104,42 @@ impl App {
     /// ve mağaza uygulamaları. Araç/Ayarlar sekmesinde iki panel vardır. Dar
     /// terminalde gizlenen paneller zincirden çıkarılır.
     fn focus_chain(&self) -> &'static [PanelFocus] {
-        match (
-            self.store_tab,
-            self.settings_tab,
-            self.theme_picker_open,
-            self.narrow_mode,
-        ) {
+        let side = if self.language_picker_open {
+            2u8
+        } else if self.theme_picker_open {
+            1u8
+        } else {
+            0u8
+        };
+        match (self.store_tab, self.settings_tab, side, self.narrow_mode) {
             (true, _, _, false) => &[
                 PanelFocus::Category,
                 PanelFocus::StoreCategory,
                 PanelFocus::StoreApp,
             ],
             (true, _, _, true) => &[PanelFocus::StoreCategory, PanelFocus::StoreApp],
-            (_, true, true, false) => &[
+            (_, true, 1, false) => &[
                 PanelFocus::Category,
                 PanelFocus::Tool,
                 PanelFocus::ThemePicker,
             ],
-            (_, true, true, true) => &[PanelFocus::Tool, PanelFocus::ThemePicker],
-            (_, true, false, false) | (false, false, _, false) => {
+            (_, true, 1, true) => &[PanelFocus::Tool, PanelFocus::ThemePicker],
+            (_, true, 2, false) => &[
+                PanelFocus::Category,
+                PanelFocus::Tool,
+                PanelFocus::LanguagePicker,
+            ],
+            (_, true, 2, true) => &[PanelFocus::Tool, PanelFocus::LanguagePicker],
+            (_, true, _, false) | (false, false, _, false) => {
                 &[PanelFocus::Category, PanelFocus::Tool]
             }
-            (_, true, false, true) | (false, false, _, true) => &[PanelFocus::Tool],
+            (_, true, _, true) | (false, false, _, true) => &[PanelFocus::Tool],
         }
+    }
+
+    /// Ayarlar yan paneli (tema veya dil) açık mı?
+    pub fn settings_side_picker_open(&self) -> bool {
+        self.theme_picker_open || self.language_picker_open
     }
 
     /// Odak zincirinde bir sonraki panele geçer (son panelde kalır).
@@ -1365,6 +1428,11 @@ impl App {
         crate::ui::UiTheme::parse(self.state.file.prefs.theme.as_deref().unwrap_or(""))
     }
 
+    /// Etkin arayüz dili (`prefs.language`).
+    pub fn ui_lang(&self) -> crate::i18n::Language {
+        crate::i18n::Language::parse(self.state.file.prefs.language.as_deref().unwrap_or(""))
+    }
+
     /// Temayı bir sonraki değere alır ve state.toml'a yazar (geriye dönük).
     pub fn cycle_theme(&mut self) -> Result<crate::ui::UiTheme, String> {
         self.set_theme(self.ui_theme().next())
@@ -1378,13 +1446,25 @@ impl App {
         Ok(theme)
     }
 
+    /// Seçilen dili uygular ve kalıcılaştırır.
+    pub fn set_language(
+        &mut self,
+        language: crate::i18n::Language,
+    ) -> Result<crate::i18n::Language, String> {
+        self.state.file.prefs.language = Some(language.id().to_string());
+        self.persist_state()
+            .map_err(|e| format!("Dil kaydedilemedi: {e}"))?;
+        Ok(language)
+    }
+
     /// Tema seçici yan panelini açar.
     pub fn open_theme_picker(&mut self) {
+        self.language_picker_open = false;
         self.theme_picker_open = true;
         self.theme_picker_index = self.ui_theme().index();
         self.settings_action_index = 1;
         self.focus = PanelFocus::ThemePicker;
-        self.status_message = "Tema: ↑↓ ile seç, Enter uygula, Esc paneli kapat.".into();
+        self.status_message = self.ui_lang().t(crate::i18n::Msg::ThemePickHint).into();
     }
 
     /// Tema seçiciyi kapatır (Ayarlar listesine döner).
@@ -1393,7 +1473,26 @@ impl App {
         if self.focus == PanelFocus::ThemePicker {
             self.focus = PanelFocus::Tool;
         }
-        self.status_message = "Tema paneli kapatıldı.".into();
+        self.status_message = self.ui_lang().t(crate::i18n::Msg::ThemeClosed).into();
+    }
+
+    /// Dil seçici yan panelini açar.
+    pub fn open_language_picker(&mut self) {
+        self.theme_picker_open = false;
+        self.language_picker_open = true;
+        self.language_picker_index = self.ui_lang().index();
+        self.settings_action_index = 2;
+        self.focus = PanelFocus::LanguagePicker;
+        self.status_message = self.ui_lang().t(crate::i18n::Msg::LanguagePickHint).into();
+    }
+
+    /// Dil seçiciyi kapatır (Ayarlar listesine döner).
+    pub fn close_language_picker(&mut self) {
+        self.language_picker_open = false;
+        if self.focus == PanelFocus::LanguagePicker {
+            self.focus = PanelFocus::Tool;
+        }
+        self.status_message = self.ui_lang().t(crate::i18n::Msg::LanguageClosed).into();
     }
 
     /// Seçici satırındaki temayı uygular.
@@ -1405,11 +1504,46 @@ impl App {
             .unwrap_or_default();
         match self.set_theme(theme) {
             Ok(theme) => {
-                self.status_message = format!("✓ Tema: {} ({})", theme.label(), theme.id());
+                let lang = self.ui_lang();
+                self.status_message = format!(
+                    "{}: {} ({})",
+                    lang.t(crate::i18n::Msg::ThemeSaved),
+                    theme.label_for(lang),
+                    theme.id()
+                );
                 Ok(theme)
             }
             Err(e) => {
-                self.status_message = format!("Hata: {e}");
+                self.status_message =
+                    format!("{} {e}", self.ui_lang().t(crate::i18n::Msg::ErrorPrefix));
+                Err(e)
+            }
+        }
+    }
+
+    /// Seçici satırındaki dili uygular.
+    pub fn apply_language_at_picker_index(&mut self) -> Result<crate::i18n::Language, String> {
+        let languages = crate::i18n::Language::all();
+        let language = languages
+            .get(
+                self.language_picker_index
+                    .min(languages.len().saturating_sub(1)),
+            )
+            .copied()
+            .unwrap_or_default();
+        match self.set_language(language) {
+            Ok(language) => {
+                self.status_message = format!(
+                    "{}: {} ({})",
+                    language.t(crate::i18n::Msg::LanguageSaved),
+                    language.native_name(),
+                    language.id()
+                );
+                Ok(language)
+            }
+            Err(e) => {
+                self.status_message =
+                    format!("{} {e}", self.ui_lang().t(crate::i18n::Msg::ErrorPrefix));
                 Err(e)
             }
         }
@@ -1517,7 +1651,8 @@ impl App {
     pub fn activate_settings_action(&mut self) {
         match self.settings_action_index {
             0 => self.start_nova_update_check(),
-            _ => self.open_theme_picker(),
+            1 => self.open_theme_picker(),
+            _ => self.open_language_picker(),
         }
     }
 
@@ -1560,6 +1695,7 @@ impl App {
                 .default_video_app
                 .clone()
                 .unwrap_or_default(),
+            language: self.ui_lang().id().to_string(),
             focus: 0,
             error: None,
         };
@@ -2580,15 +2716,25 @@ impl App {
                 default_ai_tool,
                 default_image_app,
                 default_video_app,
+                language,
                 focus,
                 error,
             } => match code {
                 KeyCode::Esc => {
-                    self.status_message = "Ayarlar değiştirilmedi.".into();
+                    self.status_message =
+                        self.ui_lang().t(crate::i18n::Msg::SettingsUnchanged).into();
                     take(modal::Modal::None);
                 }
-                KeyCode::Tab | KeyCode::Down => *focus = (*focus + 1) % 6,
-                KeyCode::BackTab | KeyCode::Up => *focus = (*focus + 5) % 6,
+                KeyCode::Tab | KeyCode::Down => *focus = (*focus + 1) % 7,
+                KeyCode::BackTab | KeyCode::Up => *focus = (*focus + 6) % 7,
+                KeyCode::Left if *focus == 6 => {
+                    *language = crate::i18n::Language::parse(language).prev().id().into();
+                    *error = None;
+                }
+                KeyCode::Right if *focus == 6 => {
+                    *language = crate::i18n::Language::parse(language).next().id().into();
+                    *error = None;
+                }
                 KeyCode::Backspace => {
                     match *focus {
                         0 => {
@@ -2609,6 +2755,9 @@ impl App {
                         5 => {
                             default_video_app.pop();
                         }
+                        6 => {
+                            language.pop();
+                        }
                         _ => {}
                     }
                     *error = None;
@@ -2620,13 +2769,18 @@ impl App {
                     default_ai_tool,
                     default_image_app,
                     default_video_app,
+                    language,
                 ) {
                     Ok(()) => {
-                        self.status_message = "✓ Ayarlar kaydedildi.".into();
+                        self.status_message =
+                            self.ui_lang().t(crate::i18n::Msg::SettingsSaved).into();
                         take(modal::Modal::None);
                     }
                     Err(message) => {
-                        self.status_message = format!("Hata: {message}");
+                        self.status_message = format!(
+                            "{} {message}",
+                            self.ui_lang().t(crate::i18n::Msg::ErrorPrefix)
+                        );
                         *error = Some(message);
                     }
                 },
@@ -2638,6 +2792,7 @@ impl App {
                         3 => default_ai_tool.push(c),
                         4 => default_image_app.push(c),
                         5 => default_video_app.push(c),
+                        6 => language.push(c),
                         _ => {}
                     }
                     *error = None;
@@ -2850,6 +3005,7 @@ impl App {
         default_ai_tool: &str,
         default_image_app: &str,
         default_video_app: &str,
+        language: &str,
     ) -> Result<(), String> {
         let terminal = preferred_terminal.trim();
         let preferred_terminal = if terminal.is_empty() {
@@ -2923,6 +3079,8 @@ impl App {
         let default_image_app = validate_app(default_image_app, "resim")?;
         let default_video_app = validate_app(default_video_app, "video")?;
 
+        let language = crate::i18n::Language::parse(language).id().to_string();
+
         let old = self.state.file.prefs.clone();
         self.state.file.prefs.preferred_terminal = preferred_terminal;
         self.state.file.prefs.default_working_dir = default_working_dir;
@@ -2930,6 +3088,7 @@ impl App {
         self.state.file.prefs.default_ai_tool = default_ai_tool;
         self.state.file.prefs.default_image_app = default_image_app;
         self.state.file.prefs.default_video_app = default_video_app;
+        self.state.file.prefs.language = Some(language);
         if let Err(error) = self.persist_state() {
             self.state.file.prefs = old;
             return Err(format!("Ayarlar kaydedilemedi: {error}"));
@@ -3867,6 +4026,28 @@ mod tests {
         app.theme_picker_index = before.next().index();
         app.apply_theme_at_picker_index().unwrap();
         assert_eq!(app.ui_theme(), before.next());
+    }
+
+    #[test]
+    fn language_picker_persists_and_switches_ui_strings() {
+        let mut app = sample_app();
+        assert_eq!(app.ui_lang(), crate::i18n::Language::Tr);
+        app.select_settings_tab();
+        app.settings_action_index = 2;
+        app.focus = PanelFocus::Tool;
+        app.activate_settings_action();
+        assert!(app.language_picker_open);
+        assert!(!app.theme_picker_open);
+        assert_eq!(app.focus, PanelFocus::LanguagePicker);
+        app.language_picker_index = crate::i18n::Language::En.index();
+        app.apply_language_at_picker_index().unwrap();
+        assert_eq!(app.ui_lang(), crate::i18n::Language::En);
+        assert_eq!(app.state.file.prefs.language.as_deref(), Some("en"));
+        assert_eq!(app.ui_lang().t(crate::i18n::Msg::Settings), "Settings");
+        // Dil paneli açıkken tema paneli açılırsa dil kapanır.
+        app.open_theme_picker();
+        assert!(app.theme_picker_open);
+        assert!(!app.language_picker_open);
     }
 
     #[test]

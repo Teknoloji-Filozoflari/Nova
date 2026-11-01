@@ -117,6 +117,9 @@ pub struct Prefs {
     /// Video dosyaları için varsayılan uygulama (katalog `id` veya executable adı).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default_video_app: Option<String>,
+    /// Arayüz dili (`tr`, `en`, `ru`, `az`, `uz`, `kk`). `None` → Türkçe.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
 }
 
 impl StateFile {
