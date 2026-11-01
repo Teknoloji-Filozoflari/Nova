@@ -1055,6 +1055,7 @@ mod tests {
             install_command: Some(argv.iter().map(|s| (*s).to_string()).collect()),
             install_notes: Some(notes.into()),
             release: None,
+            signature: None,
         }
     }
 
