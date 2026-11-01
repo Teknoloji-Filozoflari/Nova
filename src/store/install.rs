@@ -702,25 +702,38 @@ pub fn run_package_manager_argv(
     let _ = status;
 
     let install_dir = crate::store::store_app_dir(&entry.id).unwrap_or_else(|| PathBuf::from("."));
-    let executable_path = crate::detection::resolve(&entry.executable)
+    let mut executable_path = crate::detection::resolve(&entry.executable)
         .1
         .unwrap_or_else(|| PathBuf::from(&entry.executable));
-    let verb = if is_upgrade {
-        "güncellendi"
-    } else {
-        "kuruldu"
+    let mut summary = {
+        let verb = if is_upgrade {
+            "güncellendi"
+        } else {
+            "kuruldu"
+        };
+        format!(
+            "'{}' {verb} ({}): {rendered}",
+            entry.name,
+            plan.method.short_label()
+        )
     };
+    // Yeni kabuklarda `which qwen` bulunsun diye ~/.local/bin shim.
+    match crate::store::path::shim_installed_executable(&entry.executable, &executable_path) {
+        Ok(shim) => {
+            executable_path = shim;
+            summary.push_str(" · PATH: ~/.local/bin");
+        }
+        Err(err) => {
+            summary.push_str(&format!(" · PATH uyarısı: {err}"));
+        }
+    }
     Ok(InstallOutcome {
         app_id: entry.id.clone(),
         app_name: entry.name.clone(),
         version: entry.version.clone().unwrap_or_default(),
         executable_path,
         install_dir,
-        summary: format!(
-            "'{}' {verb} ({}): {rendered}",
-            entry.name,
-            plan.method.short_label()
-        ),
+        summary,
     })
 }
 
@@ -894,16 +907,26 @@ fn install_with_source(
             })?;
         }
 
-        let summary = format!(
+        let mut executable_path = final_path.clone();
+        let mut summary = format!(
             "'{}' başarıyla kuruldu: {}",
             entry.name,
             final_path.display()
         );
+        match crate::store::path::shim_installed_executable(&entry.executable, &final_path) {
+            Ok(shim) => {
+                executable_path = shim;
+                summary.push_str(" · PATH: ~/.local/bin");
+            }
+            Err(err) => {
+                summary.push_str(&format!(" · PATH uyarısı: {err}"));
+            }
+        }
         Ok(InstallOutcome {
             app_id: entry.id.clone(),
             app_name: entry.name.clone(),
             version: version.to_string(),
-            executable_path: final_path.clone(),
+            executable_path,
             install_dir: dest_dir.to_path_buf(),
             summary,
         })
@@ -1342,8 +1365,22 @@ mod tests {
         let downloader = FakeDownloader::with_payload(payload);
         let outcome = install_app(&entry, &dest, &downloader).unwrap();
         assert_eq!(outcome.app_id, "ornek");
-        assert_eq!(outcome.executable_path, dest.join("bin/rg"));
-        assert!(outcome.executable_path.is_file());
+        let store_bin = dest.join("bin/rg");
+        assert!(store_bin.is_file(), "store bin yazılmalı");
+        // PATH shim ~/.local/bin/rg olabilir; yoksa store yolu kalır.
+        assert!(
+            outcome.executable_path.is_file(),
+            "outcome path: {}",
+            outcome.executable_path.display()
+        );
+        assert!(
+            outcome.executable_path == store_bin
+                || outcome
+                    .executable_path
+                    .ends_with(std::path::Path::new(".local/bin/rg")),
+            "beklenen store veya ~/.local/bin shim, got {}",
+            outcome.executable_path.display()
+        );
         assert!(outcome.summary.contains("başarıyla"));
         // Geçici çalışma alanı temizlenmeli.
         assert!(!dest.join(".nova-work").exists());
@@ -1454,7 +1491,16 @@ mod tests {
         let dest = crate::store::test_store_dir().join("test-release");
         let downloader = FakeDownloader::with_payload(payload);
         let outcome = install_release(&entry, &dest, &release, &downloader).unwrap();
-        assert_eq!(outcome.executable_path, dest.join("bin/rg"));
+        let store_bin = dest.join("bin/rg");
+        assert!(store_bin.is_file());
+        assert!(
+            outcome.executable_path == store_bin
+                || outcome
+                    .executable_path
+                    .ends_with(std::path::Path::new(".local/bin/rg")),
+            "got {}",
+            outcome.executable_path.display()
+        );
 
         let calls = downloader.calls.borrow();
         assert_eq!(calls.len(), 1);

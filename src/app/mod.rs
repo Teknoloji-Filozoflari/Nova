@@ -295,8 +295,10 @@ impl App {
             store_host_tools_override: None,
         };
         // Mağaza uygulamalarının kurulum durumu başlangıçta bir kez hesaplanır;
-        // liste her karede bu önbellekten okur.
+        // liste her karede bu önbellekten okur. Kurulu mağaza uygulamaları
+        // ana katalogda yoksa (ör. gemini-cli) AI vb. kategoriye eklenir.
         app.refresh_store_status();
+        app.sync_installed_store_apps_to_catalog();
         app
     }
 
@@ -1447,8 +1449,79 @@ impl App {
         self.store
             .mark_installed(&outcome.app_id, &outcome.version, &checksum, &download_url);
         self.store_pm_updates.remove(&outcome.app_id);
+        // Mağaza ✓ → ana katalog (eşleşen araç veya otomatik ekleme).
+        self.sync_store_app_to_catalog(&outcome.app_id);
         self.status_message = format!("✓ {}", outcome.summary);
         self.refresh_detection();
+    }
+
+    /// Kurulu mağaza uygulamalarını ana katalogla senkronize eder.
+    ///
+    /// Başlangıçta yalnızca kullanıcı alanı PM / arşiv kurulumlarını
+    /// (pipx/npm/cargo/brew/uv/archive) taşır — apt/dnf/pacman ile
+    /// sistemde zaten var olan paketler kataloğu şişirmez. Enter ile
+    /// kurulum sonrası [`Self::sync_store_app_to_catalog`] her yöntemi
+    /// kapsar.
+    ///
+    /// - Katalogda aynı `id` veya `executable` varsa eklenmez.
+    /// - Yoksa mağaza kaydı `custom_tools` + kategoriye eklenir
+    ///   (ör. store `AI` → katalog `AI ve Kodlama`).
+    /// - Gizlenmiş kimlikler yeniden eklenmez.
+    pub fn sync_installed_store_apps_to_catalog(&mut self) {
+        use crate::store::InstallMethod;
+        let installed_ids: Vec<String> = self
+            .store
+            .entries()
+            .iter()
+            .filter(|e| {
+                matches!(
+                    e.install_method,
+                    InstallMethod::Pipx
+                        | InstallMethod::Npm
+                        | InstallMethod::Cargo
+                        | InstallMethod::Brew
+                        | InstallMethod::Uv
+                        | InstallMethod::DownloadArchive
+                ) && self.store_status.get(&e.id).copied().unwrap_or_default()
+                    == crate::detection::InstalledStatus::Installed
+            })
+            .map(|e| e.id.clone())
+            .collect();
+        for id in installed_ids {
+            self.sync_store_app_to_catalog(&id);
+        }
+    }
+
+    /// Tek bir mağaza uygulamasını ana kataloğa bağlar (eşleş veya ekle).
+    pub fn sync_store_app_to_catalog(&mut self, store_id: &str) {
+        let Some(store_entry) = self.store.get_by_id(store_id).cloned() else {
+            return;
+        };
+        if self.hidden.contains(&store_entry.id) {
+            return;
+        }
+
+        let already = self.catalog.entries().iter().any(|e| {
+            crate::store::sync::catalog_matches_store(&e.id, &e.executable, &store_entry)
+        });
+        if already {
+            return;
+        }
+
+        let tool = crate::store::sync::tool_entry_from_store(&store_entry);
+        let id = tool.id.clone();
+        if let Err(e) = self.catalog.insert_entry(tool.clone()) {
+            // Kimlik çakışması vb. — sessizce atla; kurulum yine başarılı.
+            self.status_message = format!(
+                "Uyarı: '{}' kataloğa eklenemedi ({e}); Mağaza’dan çalıştırılabilir.",
+                store_entry.name
+            );
+            return;
+        }
+        if !self.state.file.custom_tools.iter().any(|t| t.id == id) {
+            self.state.file.custom_tools.push(tool);
+            let _ = self.persist_state();
+        }
     }
 
     /// sudo parola isteyen apt/dnf planını TUI askıda çalıştırır.
@@ -3458,5 +3531,78 @@ mod tests {
             }
             other => panic!("kurulum onayı beklenirdi: {other:?}"),
         }
+    }
+
+    #[test]
+    fn store_install_syncs_gemini_into_ai_catalog_category() {
+        // gemini-cli mağazada AI’da; ana katalogda yok. Kurulum sonrası
+        // "AI ve Kodlama" altında görünmeli ve başlatılabilir olmalı.
+        let mut app = sample_app_with_category("AI ve Kodlama");
+        assert!(
+            app.catalog.get_by_id("gemini-cli").is_none(),
+            "önkoşul: gemini-cli gömülü katalogda olmamalı"
+        );
+        let outcome = crate::store::install::InstallOutcome {
+            app_id: "gemini-cli".into(),
+            app_name: "Gemini CLI".into(),
+            version: "0.0.0".into(),
+            executable_path: PathBuf::from("/tmp/fake-gemini"),
+            install_dir: PathBuf::from("/tmp"),
+            summary: "test kurulum".into(),
+        };
+        app.apply_install_outcome(outcome);
+        let entry = app
+            .catalog
+            .get_by_id("gemini-cli")
+            .expect("kurulum sonrası katalogda olmalı");
+        assert_eq!(entry.category, "AI ve Kodlama");
+        assert_eq!(entry.executable, "gemini");
+        assert!(
+            app.state.file.custom_tools.iter().any(|t| t.id == "gemini-cli"),
+            "state.toml custom_tools’a yazılmalı"
+        );
+        // AI filtresinde listelenmeli.
+        let tools = app.filtered_tools();
+        assert!(
+            tools.iter().any(|t| t.id == "gemini-cli"),
+            "AI kategorisi filtresinde görünmeli"
+        );
+    }
+
+    #[test]
+    fn store_sync_skips_when_catalog_already_has_matching_executable() {
+        // opencode hem store hem catalog’da; ikinci ekleme olmamalı.
+        let mut app = sample_app();
+        let before = app.catalog.entries().len();
+        app.store_status.insert(
+            "opencode".into(),
+            crate::detection::InstalledStatus::Installed,
+        );
+        app.sync_store_app_to_catalog("opencode");
+        assert_eq!(app.catalog.entries().len(), before);
+        assert!(!app.state.file.custom_tools.iter().any(|t| t.id == "opencode"));
+    }
+
+    #[test]
+    fn apply_install_outcome_is_idempotent_for_catalog_sync() {
+        let mut app = sample_app();
+        let outcome = crate::store::install::InstallOutcome {
+            app_id: "qwen-code".into(),
+            app_name: "Qwen Code".into(),
+            version: String::new(),
+            executable_path: PathBuf::from("/tmp/qwen"),
+            install_dir: PathBuf::from("/tmp"),
+            summary: "ok".into(),
+        };
+        app.apply_install_outcome(outcome.clone());
+        app.apply_install_outcome(outcome);
+        assert_eq!(
+            app.catalog
+                .entries()
+                .iter()
+                .filter(|e| e.id == "qwen-code")
+                .count(),
+            1
+        );
     }
 }
