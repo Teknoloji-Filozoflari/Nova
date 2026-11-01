@@ -193,10 +193,14 @@ fn draw_update_check(
     match status {
         UpdateStatus::Idle => {
             lines.push(Line::from(Span::styled(
-                "Güncellemeleri denetlemek için Enter'a basın.",
+                "GitHub Releases ikili denetimi için Enter veya U.",
                 Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(Span::styled(
+                "Kaynak/tema için cargo rebuild gerekir; bu ekran git pull yapmaz.",
+                Style::default().fg(Color::DarkGray),
             )));
             lines.push(Line::from(""));
             if let Some(current) = current_version() {
@@ -208,20 +212,54 @@ fn draw_update_check(
         }
         UpdateStatus::Checking => {
             lines.push(Line::from(Span::styled(
-                "Güncellemeler denetleniyor...",
+                "GitHub Releases denetleniyor…",
                 Style::default().fg(Color::Yellow),
             )));
         }
         UpdateStatus::Done => match check {
             Some(UpdateCheck::UpToDate { current }) => {
                 lines.push(Line::from(Span::styled(
-                    "Güncelleme yok; sürüm zaten güncel.",
+                    "Yayınlanan ikiliye göre güncelsiniz.",
                     Style::default().fg(Color::Green),
                 )));
                 lines.push(Line::from(vec![
                     Span::styled("Sürüm: ", Style::default().fg(Color::DarkGray)),
                     Span::styled(current.to_string(), Style::default().fg(Color::White)),
                 ]));
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    "main’deki tema/özellik için kaynak koddan yeniden derleyin.",
+                    Style::default().fg(Color::DarkGray),
+                )));
+                lines.push(Line::from(Span::styled(
+                    "Enter/U: yeniden denetle   Esc: kapat",
+                    Style::default().fg(Color::Cyan),
+                )));
+            }
+            Some(UpdateCheck::NoPublishedRelease { current }) => {
+                lines.push(Line::from(Span::styled(
+                    "GitHub’da yayınlanmış Nova ikilisi yok.",
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                )));
+                lines.push(Line::from(vec![
+                    Span::styled("Çalışan sürüm: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled(current.to_string(), Style::default().fg(Color::White)),
+                ]));
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    "Self-update yalnızca Releases ikilisiyle çalışır.",
+                    Style::default().fg(Color::Gray),
+                )));
+                lines.push(Line::from(Span::styled(
+                    "Tema (#9) vb. için: git pull && cargo build --release",
+                    Style::default().fg(Color::Gray),
+                )));
+                lines.push(Line::from(Span::styled(
+                    "Enter/U: yeniden denetle   Esc: kapat",
+                    Style::default().fg(Color::Cyan),
+                )));
             }
             Some(UpdateCheck::UpdateAvailable {
                 current,
@@ -229,7 +267,7 @@ fn draw_update_check(
                 release,
             }) => {
                 lines.push(Line::from(Span::styled(
-                    "Güncelleme mevcut!",
+                    "Yeni GitHub sürümü var!",
                     Style::default()
                         .fg(Color::Green)
                         .add_modifier(Modifier::BOLD),
@@ -253,6 +291,12 @@ fn draw_update_check(
                         Style::default().fg(Color::Blue),
                     ),
                 ]));
+                if release.download_url.is_none() {
+                    lines.push(Line::from(Span::styled(
+                        "Uyarı: uygun Linux ikili varlığı yok; kurulum yapılamaz.",
+                        Style::default().fg(Color::Yellow),
+                    )));
+                }
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
                     "Enter: kurulum onayı   Esc: kapat",
@@ -266,11 +310,19 @@ fn draw_update_check(
                     "Denetim sonucu yok.",
                     Style::default().fg(Color::Yellow),
                 )));
+                lines.push(Line::from(Span::styled(
+                    "Enter/U: denetle   Esc: kapat",
+                    Style::default().fg(Color::Cyan),
+                )));
             }
             Some(UpdateCheck::Error(msg)) => {
                 lines.push(Line::from(Span::styled(
                     format!("Denetim hatası: {msg}"),
                     Style::default().fg(Color::Red),
+                )));
+                lines.push(Line::from(Span::styled(
+                    "Enter/U: yeniden dene   Esc: kapat",
+                    Style::default().fg(Color::Cyan),
                 )));
             }
         },

@@ -139,8 +139,11 @@ pub struct GitHubRelease {
 /// Güncelleme denetimi sonucu.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UpdateCheck {
-    /// Güncelleme yok; mevcut sürüm zaten güncel.
+    /// Güncelleme yok; mevcut sürüm yayınlanan sürümle aynı veya daha yeni.
     UpToDate { current: Version },
+    /// Depoda henüz (kararlı) GitHub Release yok — ikili self-update yapılamaz.
+    /// Kaynak/tema değişiklikleri için `cargo build` / `cargo install` gerekir.
+    NoPublishedRelease { current: Version },
     /// Güncelleme mevcut.
     UpdateAvailable {
         /// Mevcut sürüm.
