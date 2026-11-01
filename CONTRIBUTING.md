@@ -16,12 +16,19 @@ cargo test
 
 ## Göndermeden önce
 
-Üç komut geçmeli (CI bunları çalıştırır):
+CI'daki `check` işi şu komutları çalıştırır:
 
 ```bash
 cargo fmt --check
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test
+cargo clippy --locked --all-targets --all-features -- -D warnings
+cargo test --locked
+```
+
+Bağımlılık veya `deny.toml` değiştiyse `security` işi de geçer olmalı:
+
+```bash
+cargo audit
+cargo deny check
 ```
 
 ## Kurallar

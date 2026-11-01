@@ -223,8 +223,15 @@ Değişiklik göndermeden önce:
 
 ~~~~bash
 cargo fmt --check
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test
+cargo clippy --locked --all-targets --all-features -- -D warnings
+cargo test --locked
+~~~~
+
+Bağımlılık veya <code>deny.toml</code> değiştiyse ayrıca:
+
+~~~~bash
+cargo audit
+cargo deny check
 ~~~~
 
 Katkı süreci için [CONTRIBUTING.md](CONTRIBUTING.md), modül sınırları ve
