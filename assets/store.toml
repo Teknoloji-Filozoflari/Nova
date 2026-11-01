@@ -33,6 +33,12 @@
 #                     checksum_asset_pattern
 #                     Checksum dosyasının adı; {version} sürümle değişir.
 #                     Verilmezse özet yayın notlarından okunur.
+#   signature         İsteğe bağlı upstream imza (download_archive).
+#                     kind             minisign | cosign | gpg | attestation
+#                     signature_url    İmza dosyasının https:// adresi ({version} olabilir)
+#                     public_key       minisign/gpg anahtarı veya cosign --key
+#                     identity/issuer  cosign/attestation OIDC alanları
+#                     UI rozeti: hash+sig. Doğrulama, ilgili CLI PATH'teyse yapılır.
 #
 # Canlı takip "uzaktan gelen katalog" değildir: depo ve dosya adı desenleri
 # burada sabittir, ağdan yalnızca sürüm ipucu gelir. Çalıştırılacak dosyanın
