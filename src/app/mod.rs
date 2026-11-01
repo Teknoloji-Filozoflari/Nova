@@ -372,9 +372,16 @@ impl App {
     }
 
     /// Fare olayını işler: kategori/araç tıklaması ve kaydırma. Tıklama
-    /// alanları mevcut terminal boyutundan yeniden hesaplanır.
+    /// alanları mevcut terminal boyutundan yeniden hesaplanır; liste
+    /// panellerinde `Borders::ALL` ve seçime bağlı kaydırma penceresi
+    /// hesaba katılır.
     fn handle_mouse(&mut self, mouse: crossterm::event::MouseEvent) -> Result<(), NovaError> {
         use crossterm::event::{MouseButton, MouseEventKind};
+
+        // Modal açıkken ana ekran fare olayları yoksayılır (klavye gibi).
+        if self.modal.is_open() {
+            return Ok(());
+        }
 
         let size = match self.terminal_size {
             Some(s) => s,
@@ -384,88 +391,7 @@ impl App {
 
         match mouse.kind {
             MouseEventKind::Down(MouseButton::Left) => {
-                let x = mouse.column;
-                let y = mouse.row;
-                // İçerik alanı dışındaki tıklamalar yok sayılır.
-                if y < areas.content_top
-                    || y >= areas.content_top.saturating_add(areas.content_height)
-                {
-                    return Ok(());
-                }
-                let row = (y - areas.content_top) as usize;
-                if areas.wide && x < areas.category_end_x {
-                    // Sekme listesi: araç kategorileri ve mağaza sekmesi.
-                    self.set_tab_index(row);
-                    self.focus = PanelFocus::Category;
-                    self.tool_index = 0;
-                } else if self.store_tab {
-                    // Mağaza görünümü: ortadaki sütun mağaza kategorileri,
-                    // sağdaki sütun o kategorideki uygulamalar.
-                    if areas.wide {
-                        if x < areas.store_category_end_x {
-                            self.store_category_index =
-                                row.min(STORE_CATEGORIES.len().saturating_sub(1));
-                            self.store_app_index = 0;
-                            self.focus = PanelFocus::StoreCategory;
-                        } else {
-                            let apps = self.filtered_store_apps();
-                            if !apps.is_empty() {
-                                self.store_app_index = row.min(apps.len().saturating_sub(1));
-                                self.focus = PanelFocus::StoreApp;
-                            }
-                        }
-                    } else {
-                        // Dar modda kategoriler üstte, uygulamalar altta.
-                        let cat_rows =
-                            areas.store_category_end_y.saturating_sub(areas.content_top) as usize;
-                        if row < cat_rows {
-                            self.store_category_index =
-                                row.min(STORE_CATEGORIES.len().saturating_sub(1));
-                            self.store_app_index = 0;
-                            self.focus = PanelFocus::StoreCategory;
-                        } else {
-                            let apps = self.filtered_store_apps();
-                            if !apps.is_empty() {
-                                self.store_app_index = row
-                                    .saturating_sub(cat_rows)
-                                    .min(apps.len().saturating_sub(1));
-                                self.focus = PanelFocus::StoreApp;
-                            }
-                        }
-                    }
-                } else if self.settings_tab {
-                    if self.theme_picker_open && areas.wide {
-                        // Geniş: orta panel eylemler, sağ panel temalar.
-                        let theme_start = areas
-                            .category_end_x
-                            .saturating_add(crate::ui::STORE_CATEGORY_PANEL_WIDTH);
-                        if x >= theme_start {
-                            self.theme_picker_index = row.min(crate::ui::UiTheme::all().len() - 1);
-                            self.focus = PanelFocus::ThemePicker;
-                        } else {
-                            self.settings_action_index = row.min(1);
-                            self.focus = PanelFocus::Tool;
-                            if self.settings_action_index == 1 {
-                                self.open_theme_picker();
-                            } else {
-                                self.theme_picker_open = false;
-                            }
-                        }
-                    } else {
-                        self.settings_action_index = row.min(1);
-                        self.focus = PanelFocus::Tool;
-                        if self.settings_action_index == 1 {
-                            self.open_theme_picker();
-                        }
-                    }
-                } else {
-                    // Araç paneli.
-                    let tools = self.filtered_tools();
-                    if !tools.is_empty() {
-                        self.tool_index = row.min(tools.len().saturating_sub(1));
-                        self.focus = PanelFocus::Tool;
-                    }
-                }
+                self.handle_mouse_click(mouse.column, mouse.row, areas);
             }
             MouseEventKind::ScrollUp => {
                 self.status_message.clear();
@@ -478,6 +404,193 @@ impl App {
             _ => {}
         }
         Ok(())
+    }
+
+    /// Sol tık: kenarlıklı liste satırına isabet eden öğeyi seçer.
+    fn handle_mouse_click(&mut self, x: u16, y: u16, areas: crate::ui::ClickAreas) {
+        use crate::ui::list_index_at_y;
+
+        if y < areas.content_top || y >= areas.content_top.saturating_add(areas.content_height) {
+            return;
+        }
+
+        let panel_top = areas.content_top;
+        let panel_h = areas.content_height;
+
+        if areas.wide && x < areas.category_end_x {
+            let tab_len = self.visible_category_indices().len() + 2; // +Mağaza +Ayarlar
+            if let Some(row) =
+                list_index_at_y(y, panel_top, panel_h, self.selected_tab_index(), tab_len)
+            {
+                self.set_tab_index(row);
+                self.focus = PanelFocus::Category;
+                self.tool_index = 0;
+            }
+            return;
+        }
+
+        if self.store_tab {
+            self.handle_store_mouse_click(x, y, areas);
+            return;
+        }
+
+        if self.settings_tab {
+            self.handle_settings_mouse_click(x, y, areas);
+            return;
+        }
+
+        // Araç paneli (genişte sağ sütun; darda tüm içerik).
+        let tools = self.filtered_tools();
+        if let Some(row) = list_index_at_y(y, panel_top, panel_h, self.tool_index, tools.len()) {
+            self.tool_index = row;
+            self.focus = PanelFocus::Tool;
+        }
+    }
+
+    /// Mağaza sekmesi fare tıklaması (geniş: üç sütun; dar: dikey iki panel).
+    fn handle_store_mouse_click(&mut self, x: u16, y: u16, areas: crate::ui::ClickAreas) {
+        use crate::ui::list_index_at_y;
+
+        let panel_top = areas.content_top;
+        let panel_h = areas.content_height;
+
+        if areas.wide {
+            if x < areas.store_category_end_x {
+                if let Some(row) = list_index_at_y(
+                    y,
+                    panel_top,
+                    panel_h,
+                    self.store_category_index,
+                    STORE_CATEGORIES.len(),
+                ) {
+                    self.store_category_index = row;
+                    self.store_app_index = 0;
+                    self.focus = PanelFocus::StoreCategory;
+                }
+            } else {
+                let apps = self.filtered_store_apps();
+                if let Some(row) =
+                    list_index_at_y(y, panel_top, panel_h, self.store_app_index, apps.len())
+                {
+                    self.store_app_index = row;
+                    self.focus = PanelFocus::StoreApp;
+                }
+            }
+            return;
+        }
+
+        // Dar: kategoriler üstte, uygulamalar altta.
+        let cat_h = areas.store_category_end_y.saturating_sub(areas.content_top);
+        if y < areas.store_category_end_y {
+            if let Some(row) = list_index_at_y(
+                y,
+                panel_top,
+                cat_h,
+                self.store_category_index,
+                STORE_CATEGORIES.len(),
+            ) {
+                self.store_category_index = row;
+                self.store_app_index = 0;
+                self.focus = PanelFocus::StoreCategory;
+            }
+        } else {
+            let apps = self.filtered_store_apps();
+            let apps_h = panel_h.saturating_sub(cat_h);
+            if let Some(row) = list_index_at_y(
+                y,
+                areas.store_category_end_y,
+                apps_h,
+                self.store_app_index,
+                apps.len(),
+            ) {
+                self.store_app_index = row;
+                self.focus = PanelFocus::StoreApp;
+            }
+        }
+    }
+
+    /// Ayarlar sekmesi fare tıklaması (tema paneli açık/kapalı, geniş/dar).
+    fn handle_settings_mouse_click(&mut self, x: u16, y: u16, areas: crate::ui::ClickAreas) {
+        use crate::ui::list_index_at_y;
+
+        let panel_top = areas.content_top;
+        let panel_h = areas.content_height;
+        const SETTINGS_ACTIONS: usize = 2;
+
+        if self.theme_picker_open && areas.wide {
+            let theme_start = areas
+                .category_end_x
+                .saturating_add(crate::ui::STORE_CATEGORY_PANEL_WIDTH);
+            if x >= theme_start {
+                let themes = crate::ui::UiTheme::all().len();
+                if let Some(row) =
+                    list_index_at_y(y, panel_top, panel_h, self.theme_picker_index, themes)
+                {
+                    self.theme_picker_index = row;
+                    self.focus = PanelFocus::ThemePicker;
+                }
+            } else if let Some(row) = list_index_at_y(
+                y,
+                panel_top,
+                panel_h,
+                self.settings_action_index,
+                SETTINGS_ACTIONS,
+            ) {
+                self.apply_settings_action_click(row);
+            }
+            return;
+        }
+
+        if self.theme_picker_open && !areas.wide {
+            // `draw_content` ile aynı: üst yarı eylemler, alt yarı temalar.
+            let half = (panel_h / 2).max(3);
+            if y < panel_top.saturating_add(half) {
+                if let Some(row) = list_index_at_y(
+                    y,
+                    panel_top,
+                    half,
+                    self.settings_action_index,
+                    SETTINGS_ACTIONS,
+                ) {
+                    self.apply_settings_action_click(row);
+                }
+            } else {
+                let themes = crate::ui::UiTheme::all().len();
+                let theme_h = panel_h.saturating_sub(half);
+                if let Some(row) = list_index_at_y(
+                    y,
+                    panel_top.saturating_add(half),
+                    theme_h,
+                    self.theme_picker_index,
+                    themes,
+                ) {
+                    self.theme_picker_index = row;
+                    self.focus = PanelFocus::ThemePicker;
+                }
+            }
+            return;
+        }
+
+        if let Some(row) = list_index_at_y(
+            y,
+            panel_top,
+            panel_h,
+            self.settings_action_index,
+            SETTINGS_ACTIONS,
+        ) {
+            self.apply_settings_action_click(row);
+        }
+    }
+
+    /// Ayarlar listesinde tıklanan eylemi uygular (Tema → paneli aç).
+    fn apply_settings_action_click(&mut self, index: usize) {
+        self.settings_action_index = index.min(1);
+        self.focus = PanelFocus::Tool;
+        if self.settings_action_index == 1 {
+            self.open_theme_picker();
+        } else {
+            self.theme_picker_open = false;
+        }
     }
 
     /// Terminal yeniden boyutlandığında dar/geniş modu, odak ve fare
@@ -3456,8 +3569,9 @@ mod tests {
         mark_all_installed(&mut app);
         app.terminal_size = Some((100, 30));
         app.focus = PanelFocus::Tool;
-        // Kategori paneli: x < 26; içerik satırı 2'den başlar, satır 1 → y = 3.
-        app.handle_mouse(mouse_down(5, 3)).unwrap();
+        // Borders::ALL: içerik_top=2 üst kenarlık; ilk öğe y=3 → index 0.
+        // İkinci kategori: y = 4.
+        app.handle_mouse(mouse_down(5, 4)).unwrap();
         assert_eq!(app.focus, PanelFocus::Category);
         let visible = app.visible_category_indices();
         assert_eq!(app.category_index, visible[1]);
@@ -3471,11 +3585,45 @@ mod tests {
         app.terminal_size = Some((100, 30));
         app.focus = PanelFocus::Category;
         app.category_index = category_index("Sistem ve Kaynak Kullanımı");
-        // Araç paneli: x >= 26; ilk araç satırı y = 2.
-        app.handle_mouse(mouse_down(40, 2)).unwrap();
+        // Araç paneli: x >= 26; Borders::ALL sonrası ilk araç y = 3.
+        app.handle_mouse(mouse_down(40, 3)).unwrap();
         assert_eq!(app.focus, PanelFocus::Tool);
         assert!(!app.filtered_tools().is_empty());
         assert_eq!(app.tool_index, 0);
+    }
+
+    #[test]
+    fn mouse_click_on_list_border_is_ignored() {
+        let mut app = sample_app();
+        mark_all_installed(&mut app);
+        app.terminal_size = Some((100, 30));
+        app.focus = PanelFocus::Tool;
+        let before = app.category_index;
+        // y=2 üst kenarlık; seçim değişmemeli.
+        app.handle_mouse(mouse_down(5, 2)).unwrap();
+        assert_eq!(app.category_index, before);
+        assert_eq!(app.focus, PanelFocus::Tool);
+    }
+
+    #[test]
+    fn mouse_click_accounts_for_scrolled_tool_list() {
+        let mut app = sample_app();
+        mark_all_installed(&mut app);
+        app.terminal_size = Some((100, 30));
+        app.focus = PanelFocus::Tool;
+        app.category_index = category_index("Sistem ve Kaynak Kullanımı");
+        let tool_count = app.filtered_tools().len();
+        assert!(tool_count > 5, "kaydırma için yeterli araç olmalı");
+        // Seçimi alta indir; ratatui penceresi kayar. Görünür ilk satır
+        // artık tool_index - (inner_h - 1) olmalı.
+        app.tool_index = tool_count - 1;
+        let areas = crate::ui::click_areas((100, 30), false, false);
+        let inner_h = areas.content_height.saturating_sub(2);
+        let offset = crate::ui::list_scroll_offset(app.tool_index, inner_h, tool_count);
+        // Görünür ilk satıra tıkla → offset indeksini seçer.
+        app.handle_mouse(mouse_down(40, areas.content_top + 1))
+            .unwrap();
+        assert_eq!(app.tool_index, offset);
     }
 
     #[test]
@@ -3497,10 +3645,52 @@ mod tests {
         app.terminal_size = Some((40, 30));
         app.focus = PanelFocus::Category;
         app.category_index = app.visible_category_indices()[0];
-        // Dar modda kategori paneli yok; ekranın sağ tarafındaki tıklama
-        // yine aracı seçmelidir.
-        app.handle_mouse(mouse_down(39, 2)).unwrap();
+        // Dar modda kategori paneli yok; kenarlık sonrası ilk araç y=3.
+        app.handle_mouse(mouse_down(39, 3)).unwrap();
         assert_eq!(app.focus, PanelFocus::Tool);
+    }
+
+    #[test]
+    fn mouse_click_ignores_open_modal() {
+        let mut app = sample_app();
+        mark_all_installed(&mut app);
+        app.terminal_size = Some((100, 30));
+        app.focus = PanelFocus::Tool;
+        app.modal = modal::Modal::History;
+        let before = app.category_index;
+        app.handle_mouse(mouse_down(5, 4)).unwrap();
+        assert_eq!(app.category_index, before);
+        assert_eq!(app.focus, PanelFocus::Tool);
+    }
+
+    #[test]
+    fn mouse_click_settings_first_row_is_update_not_theme() {
+        let mut app = sample_app();
+        mark_all_installed(&mut app);
+        app.terminal_size = Some((100, 30));
+        app.select_settings_tab();
+        // İlk Ayarlar satırı (Güncelle) y=3; eski kod kenarlık yüzünden Tema açıyordu.
+        app.handle_mouse(mouse_down(40, 3)).unwrap();
+        assert_eq!(app.settings_action_index, 0);
+        assert!(!app.theme_picker_open);
+        assert_eq!(app.focus, PanelFocus::Tool);
+    }
+
+    #[test]
+    fn mouse_click_narrow_theme_picker_selects_theme() {
+        let mut app = sample_app();
+        mark_all_installed(&mut app);
+        app.terminal_size = Some((50, 30));
+        app.narrow_mode = true;
+        app.select_settings_tab();
+        app.open_theme_picker();
+        let areas = crate::ui::click_areas((50, 30), false, false);
+        let half = (areas.content_height / 2).max(3);
+        // Alt yarıda tema paneli; kenarlık sonrası ilk tema.
+        let y = areas.content_top + half + 1;
+        app.handle_mouse(mouse_down(10, y)).unwrap();
+        assert_eq!(app.focus, PanelFocus::ThemePicker);
+        assert_eq!(app.theme_picker_index, 0);
     }
 
     #[test]

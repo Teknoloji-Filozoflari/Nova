@@ -43,7 +43,7 @@ başlat.
   özeti olan yayınlar kullanıcı alanına kurulabilir; diğer uygulamalar için
   resmî kurulum yönergeleri gösterilir.
 - **Dosya seçici:** resim veya videoyu seçip ayarladığın uygulamayla aç.
-- **Klavye ve fare:** ana ekrandaki kategori ve araç listelerinde tıklama ve
+- **Klavye ve fare:** ana ekrandaki kategori, araç, mağaza ve Ayarlar listelerinde tıklama ve
   kaydırma desteği; dar terminal pencerelerine uyumlu arayüz.
 - **Türkçe arayüz:** kategori adları kısa ve kolay taranır.
 
@@ -216,8 +216,8 @@ kuralları için [mimari belgesine](ARCHITECTURE.md) bak.
 - Tema tercihi (<code>varsayilan</code>, <code>acik</code>, <code>orman</code>,
   <code>amber</code>) kalıcıdır ve Ayarlar→Tema ile değişir. Varsayılan AI CLI
   tercihi Ayarlar→Gelişmiş'te saklanır; <code>a</code> tuşu o aracı başlatır.
-- Fare desteği ana ekrandaki listeler içindir; ayarlar ve diğer pencerelerde
-  klavye kullanılır.
+- Fare desteği ana ekrandaki listeler içindir (kenarlık/kaydırma hesaba katılır);
+  dosya seçici ve onay pencerelerinde klavye kullanılır.
 
 ## Geliştirici kontrolleri
 
