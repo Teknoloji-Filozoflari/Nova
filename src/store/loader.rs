@@ -70,18 +70,15 @@ mod tests {
     }
 
     #[test]
-    fn builtin_store_installable_entries_are_fully_described() {
+    fn builtin_store_archive_entries_are_fully_described() {
         let store = load_builtin_store().expect("mağaza kataloğu yüklenmeli");
-        let installable: Vec<_> = store
+        let archives: Vec<_> = store
             .entries()
             .iter()
-            .filter(|e| e.install_method.is_installable())
+            .filter(|e| e.install_method.is_archive())
             .collect();
-        assert!(
-            !installable.is_empty(),
-            "indirilebilir en az bir kayıt olmalı"
-        );
-        for entry in installable {
+        assert!(!archives.is_empty(), "indirilebilir en az bir kayıt olmalı");
+        for entry in archives {
             let url = entry.download_url.as_deref().unwrap_or_default();
             assert!(url.starts_with("https://"), "{}: {}", entry.id, url);
             let sum = entry.checksum.as_deref().unwrap_or_default();
@@ -99,6 +96,26 @@ mod tests {
                 "{}: sürüm belirtilmeli",
                 entry.id
             );
+        }
+    }
+
+    #[test]
+    fn builtin_store_package_manager_entries_have_commands() {
+        let store = load_builtin_store().expect("mağaza kataloğu yüklenmeli");
+        let pms: Vec<_> = store
+            .entries()
+            .iter()
+            .filter(|e| e.install_method.is_package_manager())
+            .collect();
+        assert!(
+            pms.len() >= 50,
+            "paket yöneticisiyle kurulabilir kayıtlar beklenir, bulunan {}",
+            pms.len()
+        );
+        for entry in pms {
+            let argv = entry.install_command.as_deref().unwrap_or_default();
+            crate::store::validate_install_command(entry.install_method, argv)
+                .unwrap_or_else(|e| panic!("{}: {e}", entry.id));
         }
     }
 
@@ -147,15 +164,15 @@ mod tests {
     }
 
     #[test]
-    fn builtin_store_release_sources_cover_installable_entries() {
+    fn builtin_store_release_sources_cover_archive_entries() {
         let store = load_builtin_store().expect("mağaza kataloğu yüklenmeli");
         for entry in store.entries() {
-            if !entry.install_method.is_installable() {
+            if !entry.install_method.is_archive() {
                 continue;
             }
             assert!(
                 entry.release.is_some(),
-                "{}: indirilebilir kayıtların canlı takip kaynağı olmalı",
+                "{}: arşiv kayıtlarının canlı takip kaynağı olmalı",
                 entry.id
             );
         }
