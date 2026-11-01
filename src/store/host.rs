@@ -1,22 +1,28 @@
 //! Host’a göre paket yöneticisi seçimi ve PM güncelleme planı.
 //!
 //! Katalogda tek `install_method` / `install_command` vardır; alternatifler
-//! `install_notes` satırlarında (`apt: …`, `dnf: …`, `brew: …`, `uv: …`, …)
-//! tutulur. Bu modül:
+//! `install_notes` satırlarında (`apt: …`, `dnf: …`, `pacman: …`, `brew: …`,
+//! `uv: …`, …) tutulur. Bu modül:
 //!
 //! 1. Host’ta hangi PM’lerin PATH’te olduğunu tespit eder.
-//! 2. OS tercihine göre (Linux: apt > dnf > pipx > uv > npm > cargo > brew)
-//!    uygun komutu seçer.
+//! 2. OS tercihine göre uygun komutu seçer:
+//!    - Arch: **pacman > apt > dnf > pipx > uv > npm > cargo > brew**
+//!    - diğer Linux: **apt > dnf > pacman > pipx > uv > npm > cargo > brew**
 //! 3. Kurulu PM uygulamaları için `install` → `upgrade` argv üretir ve
-//!    apt/dnf/brew/npm için “outdated” çıktısından güncelleme adaylarını bulur.
+//!    apt/dnf/pacman/brew/npm için “outdated” çıktısından güncelleme adaylarını
+//!    bulur.
 
 use crate::store::{format_install_command, validate_install_command, InstallMethod, StoreEntry};
 use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
 use std::process::{Command, Stdio};
 
 /// Çalıştığımız işletim sistemi ailesi (tercih sırası için).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HostOs {
+    /// Arch Linux ve türevleri (`ID=arch` / `ID_LIKE` içinde arch).
+    Arch,
+    /// Diğer Linux dağıtımları.
     Linux,
     MacOs,
     Other,
@@ -27,6 +33,7 @@ pub enum HostOs {
 pub struct HostTools {
     pub apt: bool,
     pub dnf: bool,
+    pub pacman: bool,
     pub brew: bool,
     pub pipx: bool,
     pub uv: bool,
@@ -40,6 +47,7 @@ impl HostTools {
         Self {
             apt: which::which("apt").is_ok(),
             dnf: which::which("dnf").is_ok(),
+            pacman: which::which("pacman").is_ok(),
             brew: which::which("brew").is_ok(),
             pipx: which::which("pipx").is_ok(),
             uv: which::which("uv").is_ok(),
@@ -48,11 +56,12 @@ impl HostTools {
         }
     }
 
-    /// Testler için sabit bir küme (dnf/uv kapalı).
+    /// Testler için sabit bir küme (dnf/pacman/uv kapalı).
     pub fn from_flags(apt: bool, brew: bool, pipx: bool, npm: bool, cargo: bool) -> Self {
         Self {
             apt,
             dnf: false,
+            pacman: false,
             brew,
             pipx,
             uv: false,
@@ -67,6 +76,12 @@ impl HostTools {
         self
     }
 
+    /// pacman bayrağını ayarlar (builder).
+    pub fn with_pacman(mut self, pacman: bool) -> Self {
+        self.pacman = pacman;
+        self
+    }
+
     /// uv bayrağını ayarlar (builder).
     pub fn with_uv(mut self, uv: bool) -> Self {
         self.uv = uv;
@@ -78,6 +93,7 @@ impl HostTools {
         match method {
             InstallMethod::Apt => self.apt,
             InstallMethod::Dnf => self.dnf,
+            InstallMethod::Pacman => self.pacman,
             InstallMethod::Brew => self.brew,
             InstallMethod::Pipx => self.pipx,
             InstallMethod::Uv => self.uv,
@@ -108,13 +124,13 @@ impl InstallPlan {
     /// TUI’yi askıya alıp gerçek TTY ile çalıştırmak gerekir mi?
     ///
     /// `sudo` parola isterse (önbellekte değilse) ham modda parola okunamaz;
-    /// apt/dnf planlarında kimlik bilgisi yoksa `true` döner.
+    /// apt/dnf/pacman planlarında kimlik bilgisi yoksa `true` döner.
     pub fn needs_tty_suspend(&self) -> bool {
         if !self.method.needs_elevated_tty() && !self.uses_sudo() {
             return false;
         }
         if !self.uses_sudo() {
-            // Kök kullanıcısı / sudo’suz apt|dnf — TTY askısı gerekmez.
+            // Kök kullanıcısı / sudo’suz apt|dnf|pacman — TTY askısı gerekmez.
             return false;
         }
         !sudo_credentials_cached()
@@ -159,26 +175,85 @@ pub fn sudo_credentials_cached() -> bool {
         .unwrap_or(false)
 }
 
-/// Derleme hedefinden host OS tahmini.
+/// Host OS tahmini (macOS / Arch / diğer Linux).
+///
+/// Arch: `/etc/os-release` içinde `ID=arch` veya `ID_LIKE` … `arch`, ya da
+/// `/etc/arch-release` dosyasının varlığı.
 pub fn detect_host_os() -> HostOs {
-    if cfg!(target_os = "linux") {
-        HostOs::Linux
-    } else if cfg!(target_os = "macos") {
+    if cfg!(target_os = "macos") {
         HostOs::MacOs
+    } else if cfg!(target_os = "linux") {
+        if is_arch_linux() {
+            HostOs::Arch
+        } else {
+            HostOs::Linux
+        }
     } else {
         HostOs::Other
     }
 }
 
+/// Arch Linux (ve `ID_LIKE=arch` türevleri) mi?
+pub fn is_arch_linux() -> bool {
+    if fs::metadata("/etc/arch-release").is_ok() {
+        return true;
+    }
+    let Ok(text) = fs::read_to_string("/etc/os-release") else {
+        return false;
+    };
+    parse_os_release_is_arch(&text)
+}
+
+/// Test edilebilir os-release ayrıştırıcısı.
+pub fn parse_os_release_is_arch(text: &str) -> bool {
+    let mut id = None;
+    let mut id_like = None;
+    for line in text.lines() {
+        let line = line.trim();
+        if let Some(rest) = line.strip_prefix("ID=") {
+            id = Some(unquote_os_release(rest));
+        } else if let Some(rest) = line.strip_prefix("ID_LIKE=") {
+            id_like = Some(unquote_os_release(rest));
+        }
+    }
+    if id.as_deref() == Some("arch") {
+        return true;
+    }
+    id_like
+        .as_deref()
+        .is_some_and(|s| s.split_whitespace().any(|t| t == "arch"))
+}
+
+fn unquote_os_release(value: &str) -> String {
+    let v = value.trim();
+    if (v.starts_with('"') && v.ends_with('"')) || (v.starts_with('\'') && v.ends_with('\'')) {
+        v[1..v.len() - 1].to_string()
+    } else {
+        v.to_string()
+    }
+}
+
 /// OS’e göre tercih sırası (soldan sağa yüksek öncelik).
 ///
-/// Linux: **apt > dnf > pipx > uv > npm > cargo > brew**.
+/// Arch: **pacman > apt > dnf > pipx > uv > npm > cargo > brew**.
+/// Diğer Linux: **apt > dnf > pacman > pipx > uv > npm > cargo > brew**.
 /// macOS’ta brew öne alınır; uv pipx’ten sonra gelir.
 pub fn preferred_methods(os: HostOs) -> &'static [InstallMethod] {
     match os {
+        HostOs::Arch => &[
+            InstallMethod::Pacman,
+            InstallMethod::Apt,
+            InstallMethod::Dnf,
+            InstallMethod::Pipx,
+            InstallMethod::Uv,
+            InstallMethod::Npm,
+            InstallMethod::Cargo,
+            InstallMethod::Brew,
+        ],
         HostOs::Linux | HostOs::Other => &[
             InstallMethod::Apt,
             InstallMethod::Dnf,
+            InstallMethod::Pacman,
             InstallMethod::Pipx,
             InstallMethod::Uv,
             InstallMethod::Npm,
@@ -193,14 +268,15 @@ pub fn preferred_methods(os: HostOs) -> &'static [InstallMethod] {
             InstallMethod::Cargo,
             InstallMethod::Apt,
             InstallMethod::Dnf,
+            InstallMethod::Pacman,
         ],
     }
 }
 
 /// `install_notes` satırlarından desteklenen PM seçeneklerini çıkarır.
 ///
-/// Tanınan etiketler: `apt`, `dnf`, `brew`, `pipx`, `uv`, `npm`, `cargo`.
-/// `curl` / `go` / `pip` / `gh` / `Resmî` yok sayılır.
+/// Tanınan etiketler: `apt`, `dnf`, `pacman`, `brew`, `pipx`, `uv`, `npm`,
+/// `cargo`. `curl` / `go` / `pip` / `gh` / `Resmî` yok sayılır.
 pub fn parse_notes_options(notes: &str) -> Vec<InstallPlan> {
     let mut out = Vec::new();
     for raw in notes.lines() {
@@ -215,6 +291,7 @@ pub fn parse_notes_options(notes: &str) -> Vec<InstallPlan> {
         let method = match label.as_str() {
             "apt" => InstallMethod::Apt,
             "dnf" => InstallMethod::Dnf,
+            "pacman" => InstallMethod::Pacman,
             "brew" => InstallMethod::Brew,
             "pipx" => InstallMethod::Pipx,
             "uv" => InstallMethod::Uv,
@@ -235,6 +312,9 @@ pub fn parse_notes_options(notes: &str) -> Vec<InstallPlan> {
         }
         if method == InstallMethod::Dnf {
             ensure_sys_yes(&mut argv, "install");
+        }
+        if method == InstallMethod::Pacman {
+            ensure_pacman_noconfirm(&mut argv);
         }
         if validate_install_command(method, &argv).is_ok() {
             out.push(InstallPlan { method, argv });
@@ -344,6 +424,16 @@ pub fn upgrade_argv(method: InstallMethod, install_argv: &[String]) -> Option<Ve
             out.extend(["dnf".into(), "upgrade".into(), "-y".into(), pkg]);
             Some(out)
         }
+        InstallMethod::Pacman => {
+            // sudo pacman -S --noconfirm PKG → aynı (kurulu paketi yükseltir)
+            let pkg = sys_package_name(install_argv)?;
+            let mut out = Vec::new();
+            if install_argv.first().map(String::as_str) == Some("sudo") {
+                out.push("sudo".into());
+            }
+            out.extend(["pacman".into(), "-S".into(), "--noconfirm".into(), pkg]);
+            Some(out)
+        }
         InstallMethod::Cargo => {
             // cargo install … → aynı argv + --force (yoksa)
             let mut out = install_argv.to_vec();
@@ -357,11 +447,12 @@ pub fn upgrade_argv(method: InstallMethod, install_argv: &[String]) -> Option<Ve
     }
 }
 
-/// apt/dnf/brew/npm “outdated” çıktılarından paket adı kümeleri.
+/// apt/dnf/pacman/brew/npm “outdated” çıktılarından paket adı kümeleri.
 #[derive(Debug, Clone, Default)]
 pub struct OutdatedPackages {
     pub apt: BTreeSet<String>,
     pub dnf: BTreeSet<String>,
+    pub pacman: BTreeSet<String>,
     pub brew: BTreeSet<String>,
     pub npm: BTreeSet<String>,
     /// pipx/uv/cargo için güvenilir toplu denetim yok; `true` ise kurulu
@@ -390,6 +481,11 @@ impl OutdatedPackages {
                 out.dnf = parse_dnf_check_update(&text);
             }
         }
+        if host.pacman {
+            if let Ok(text) = run_capture("pacman", &["-Qu"]) {
+                out.pacman = parse_pacman_outdated(&text);
+            }
+        }
         if host.brew {
             if let Ok(text) = run_capture("brew", &["outdated", "--quiet"]) {
                 out.brew = parse_brew_outdated(&text);
@@ -411,7 +507,7 @@ impl OutdatedPackages {
 
 /// Kurulu PM uygulamaları için güncelleme planları üretir.
 ///
-/// - apt/dnf/brew/npm: yalnızca outdated listesinde görünen paketler.
+/// - apt/dnf/pacman/brew/npm: yalnızca outdated listesinde görünen paketler.
 /// - pipx/uv/cargo: host’ta PM varsa ve uygulama kuruluysa iyimser aday
 ///   (güvenilir toplu “outdated” yok).
 pub fn collect_pm_updates(
@@ -447,6 +543,7 @@ pub fn collect_pm_updates(
                 let short = pkg.split('.').next().unwrap_or(&pkg);
                 outdated.dnf.contains(&pkg) || outdated.dnf.contains(short)
             }
+            InstallMethod::Pacman => outdated.pacman.contains(&pkg),
             InstallMethod::Brew => {
                 let short = pkg.rsplit('/').next().unwrap_or(&pkg);
                 outdated.brew.contains(&pkg) || outdated.brew.contains(short)
@@ -532,6 +629,7 @@ pub fn validate_upgrade_command(method: InstallMethod, argv: &[String]) -> Resul
             }
             Ok(())
         }
+        InstallMethod::Pacman => validate_install_command(method, argv),
         InstallMethod::Cargo if program == "cargo" => validate_install_command(method, argv),
         _ => Err(format!(
             "'{}' için upgrade argv geçersiz: {}",
@@ -543,7 +641,7 @@ pub fn validate_upgrade_command(method: InstallMethod, argv: &[String]) -> Resul
 
 fn package_name_for_method(method: InstallMethod, argv: &[String]) -> Option<String> {
     match method {
-        InstallMethod::Apt | InstallMethod::Dnf => sys_package_name(argv),
+        InstallMethod::Apt | InstallMethod::Dnf | InstallMethod::Pacman => sys_package_name(argv),
         InstallMethod::Brew => package_token(argv, "install"),
         InstallMethod::Pipx => package_token(argv, "install"),
         InstallMethod::Uv => uv_package_name(argv),
@@ -554,14 +652,14 @@ fn package_name_for_method(method: InstallMethod, argv: &[String]) -> Option<Str
 }
 
 fn sys_package_name(argv: &[String]) -> Option<String> {
-    // Son konumsal argüman paket adıdır (-y / --yes / --only-upgrade atlanır).
+    // Son konumsal argüman paket adıdır (-y / --yes / --only-upgrade / --noconfirm atlanır).
     argv.iter()
         .rev()
         .find(|a| {
             !a.starts_with('-')
                 && !matches!(
                     a.as_str(),
-                    "apt" | "dnf" | "sudo" | "install" | "upgrade" | "update"
+                    "apt" | "dnf" | "pacman" | "sudo" | "install" | "upgrade" | "update"
                 )
         })
         .cloned()
@@ -638,6 +736,21 @@ fn ensure_sys_yes(argv: &mut Vec<String>, verb: &str) {
     }
 }
 
+fn ensure_pacman_noconfirm(argv: &mut Vec<String>) {
+    if argv.iter().any(|a| a == "--noconfirm") {
+        return;
+    }
+    // -S / -Sy / -Syu / --sync sonrasına ekle.
+    if let Some(pos) = argv.iter().position(|a| {
+        let s = a.as_str();
+        s == "-S"
+            || s == "--sync"
+            || (s.starts_with('-') && !s.starts_with("--") && s.chars().skip(1).any(|c| c == 'S'))
+    }) {
+        argv.insert(pos + 1, "--noconfirm".into());
+    }
+}
+
 fn split_command_line(cmd: &str) -> Vec<String> {
     // Katalog notları tırnaksız basit argv kullanır; boşlukla bölmek yeterli.
     cmd.split_whitespace()
@@ -693,6 +806,28 @@ pub fn parse_dnf_check_update(text: &str) -> BTreeSet<String> {
             && name
                 .chars()
                 .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '+')
+        {
+            set.insert(name.to_string());
+        }
+    }
+    set
+}
+
+/// `pacman -Qu` çıktısından paket adları (`htop 3.2.0-1 -> 3.3.0-1`).
+pub fn parse_pacman_outdated(text: &str) -> BTreeSet<String> {
+    let mut set = BTreeSet::new();
+    for line in text.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        let Some(name) = line.split_whitespace().next() else {
+            continue;
+        };
+        if !name.is_empty()
+            && name
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '+' || c == '.')
         {
             set.insert(name.to_string());
         }
@@ -773,6 +908,7 @@ apt: sudo apt install bat  # bazen batcat
 brew: brew install bat
 cargo: cargo install bat
 dnf: sudo dnf install bat
+pacman: sudo pacman -S bat
 uv: uv tool install bat
 curl: curl -fsSL https://x | bash
 Resmî: https://example.org/
@@ -784,8 +920,9 @@ go: go install example@latest
         assert!(methods.contains(&InstallMethod::Brew));
         assert!(methods.contains(&InstallMethod::Cargo));
         assert!(methods.contains(&InstallMethod::Dnf));
+        assert!(methods.contains(&InstallMethod::Pacman));
         assert!(methods.contains(&InstallMethod::Uv));
-        assert_eq!(opts.len(), 5);
+        assert_eq!(opts.len(), 6);
         let apt = opts
             .iter()
             .find(|p| p.method == InstallMethod::Apt)
@@ -797,6 +934,12 @@ go: go install example@latest
             .find(|p| p.method == InstallMethod::Dnf)
             .unwrap();
         assert!(dnf.argv.iter().any(|a| a == "-y"));
+        let pacman = opts
+            .iter()
+            .find(|p| p.method == InstallMethod::Pacman)
+            .unwrap();
+        assert!(pacman.argv.iter().any(|a| a == "--noconfirm"));
+        assert_eq!(pacman.argv.last().map(String::as_str), Some("bat"));
         let uv = opts.iter().find(|p| p.method == InstallMethod::Uv).unwrap();
         assert_eq!(uv.argv, vec!["uv", "tool", "install", "bat"]);
     }
@@ -828,6 +971,45 @@ go: go install example@latest
         assert_eq!(plan.method, InstallMethod::Dnf);
         assert_eq!(plan.argv[1], "dnf");
         assert!(plan.argv.iter().any(|a| a == "-y"));
+    }
+
+    #[test]
+    fn arch_prefers_pacman_over_apt() {
+        let entry = pm_entry(
+            "htop",
+            InstallMethod::Apt,
+            &["sudo", "apt", "install", "-y", "htop"],
+            "apt: sudo apt install htop\npacman: sudo pacman -S htop\nbrew: brew install htop\n",
+        );
+        let host = HostTools::from_flags(true, true, false, false, false).with_pacman(true);
+        let plan = resolve_install_plan(&entry, &host, HostOs::Arch).unwrap();
+        assert_eq!(plan.method, InstallMethod::Pacman);
+        assert_eq!(plan.argv[1], "pacman");
+        assert!(plan.argv.iter().any(|a| a == "--noconfirm"));
+        assert!(plan.method.needs_elevated_tty());
+        assert!(plan.uses_sudo());
+    }
+
+    #[test]
+    fn linux_prefers_pacman_after_apt_dnf() {
+        let entry = pm_entry(
+            "htop",
+            InstallMethod::Apt,
+            &["sudo", "apt", "install", "-y", "htop"],
+            "apt: sudo apt install htop\npacman: sudo pacman -S htop\n",
+        );
+        let host = HostTools::from_flags(false, false, false, false, false).with_pacman(true);
+        let plan = resolve_install_plan(&entry, &host, HostOs::Linux).unwrap();
+        assert_eq!(plan.method, InstallMethod::Pacman);
+    }
+
+    #[test]
+    fn parse_os_release_detects_arch_and_derivatives() {
+        assert!(parse_os_release_is_arch("NAME=Arch Linux\nID=arch\n"));
+        assert!(parse_os_release_is_arch(
+            "ID=endeavouros\nID_LIKE=\"arch\"\n"
+        ));
+        assert!(!parse_os_release_is_arch("ID=ubuntu\nID_LIKE=debian\n"));
     }
 
     #[test]
@@ -963,6 +1145,25 @@ go: go install example@latest
                 "htop".into()
             ])
         );
+        assert_eq!(
+            upgrade_argv(
+                InstallMethod::Pacman,
+                &[
+                    "sudo".into(),
+                    "pacman".into(),
+                    "-S".into(),
+                    "--noconfirm".into(),
+                    "htop".into()
+                ]
+            ),
+            Some(vec![
+                "sudo".into(),
+                "pacman".into(),
+                "-S".into(),
+                "--noconfirm".into(),
+                "htop".into()
+            ])
+        );
         let cargo = upgrade_argv(
             InstallMethod::Cargo,
             &[
@@ -990,6 +1191,10 @@ go: go install example@latest
         );
         assert!(dnf.contains("htop"));
         assert!(dnf.contains("bat"));
+
+        let pacman = parse_pacman_outdated("htop 3.2.0-1 -> 3.3.0-1\nbat 0.24.0-1 -> 0.25.0-1\n");
+        assert!(pacman.contains("htop"));
+        assert!(pacman.contains("bat"));
 
         let brew = parse_brew_outdated("htop\nbat\n");
         assert!(brew.contains("htop") && brew.contains("bat"));
@@ -1056,6 +1261,26 @@ go: go install example@latest
             vec!["sudo", "dnf", "upgrade", "-y", "htop"]
         );
         assert_eq!(plans["llm"].argv, vec!["uv", "tool", "upgrade", "llm"]);
+    }
+
+    #[test]
+    fn collect_pm_updates_pacman_on_arch() {
+        let htop = pm_entry(
+            "htop",
+            InstallMethod::Apt,
+            &["sudo", "apt", "install", "-y", "htop"],
+            "apt: sudo apt install htop\npacman: sudo pacman -S htop\n",
+        );
+        let host = HostTools::from_flags(true, false, false, false, false).with_pacman(true);
+        let mut outdated = OutdatedPackages::empty();
+        outdated.pacman.insert("htop".into());
+        outdated.apt.insert("htop".into());
+        let installed = BTreeSet::from(["htop".into()]);
+        let plans = collect_pm_updates(&[htop], &installed, &host, HostOs::Arch, &outdated);
+        assert_eq!(
+            plans["htop"].argv,
+            vec!["sudo", "pacman", "-S", "--noconfirm", "htop"]
+        );
     }
 
     #[test]
