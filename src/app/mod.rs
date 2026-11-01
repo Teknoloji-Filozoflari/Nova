@@ -1325,7 +1325,7 @@ impl App {
     /// İki yol:
     /// 1. Arşiv / GitHub Releases: canlı denetimde çözülen adres + SHA-256.
     /// 2. Paket yöneticisi: `U` ile bulunan upgrade argv
-    ///    (pipx/npm/brew/apt/dnf/uv/cargo).
+    ///    (pipx/npm/brew/apt/dnf/pacman/uv/cargo).
     pub fn start_store_update(&mut self, id: &str) {
         if self.install_job.is_some() || self.pending_tty_pm.is_some() {
             self.status_message = "Zaten süren bir kurulum var; önce onun bitmesini bekle.".into();

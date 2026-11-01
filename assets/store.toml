@@ -244,7 +244,7 @@ executable = "gitui"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "gitui"]
 supported_platforms = ["linux-x64"]
-install_notes = """cargo: cargo install gitui\nbrew: brew install gitui\napt: sudo apt install gitui\nResmî: https://github.com/extrawurst/gitui#installation"""
+install_notes = """cargo: cargo install gitui\nbrew: brew install gitui\napt: sudo apt install gitui\npacman: sudo pacman -S gitui\nResmî: https://github.com/extrawurst/gitui#installation"""
 
 [[apps]]
 id = "gh"
@@ -257,7 +257,7 @@ executable = "gh"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "gh"]
 supported_platforms = ["linux-x64"]
-install_notes = """brew: brew install gh\napt: sudo apt install gh\nResmî: https://cli.github.com/"""
+install_notes = """brew: brew install gh\napt: sudo apt install gh\npacman: sudo pacman -S github-cli\nResmî: https://cli.github.com/"""
 
 [[apps]]
 id = "gh-dash"
@@ -282,7 +282,7 @@ executable = "delta"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "git-delta"]
 supported_platforms = ["linux-x64"]
-install_notes = """brew: brew install git-delta\ncargo: cargo install git-delta\napt: sudo apt install git-delta\nResmî: https://github.com/dandavison/delta#installation"""
+install_notes = """brew: brew install git-delta\ncargo: cargo install git-delta\napt: sudo apt install git-delta\npacman: sudo pacman -S git-delta\nResmî: https://github.com/dandavison/delta#installation"""
 
 [[apps]]
 id = "tig"
@@ -295,7 +295,7 @@ executable = "tig"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "tig"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install tig\nbrew: brew install tig\nResmî: https://jonas.github.io/tig/INSTALL.html"""
+install_notes = """apt: sudo apt install tig\nbrew: brew install tig\npacman: sudo pacman -S tig\nResmî: https://jonas.github.io/tig/INSTALL.html"""
 
 # ---------------------------------------------------------------------------
 # Dosya ve Arama
@@ -370,7 +370,7 @@ executable = "bat"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "bat"]
 supported_platforms = ["linux-x64"]
-install_notes = """brew: brew install bat\napt: sudo apt install bat  # ikili adı bazen batcat\ncargo: cargo install bat\nResmî: https://github.com/sharkdp/bat#installation"""
+install_notes = """brew: brew install bat\napt: sudo apt install bat  # ikili adı bazen batcat\ncargo: cargo install bat\npacman: sudo pacman -S bat\nResmî: https://github.com/sharkdp/bat#installation"""
 
 [[apps]]
 id = "fd"
@@ -383,7 +383,7 @@ executable = "fd"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "fd-find"]
 supported_platforms = ["linux-x64"]
-install_notes = """brew: brew install fd\napt: sudo apt install fd-find  # ikili adı bazen fdfind\ncargo: cargo install fd-find\nResmî: https://github.com/sharkdp/fd#installation"""
+install_notes = """brew: brew install fd\napt: sudo apt install fd-find  # ikili adı bazen fdfind\ncargo: cargo install fd-find\npacman: sudo pacman -S fd\nResmî: https://github.com/sharkdp/fd#installation"""
 
 [[apps]]
 id = "yazi"
@@ -409,7 +409,7 @@ executable = "ranger"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "ranger"]
 supported_platforms = ["linux-x64"]
-install_notes = """pipx: pipx install ranger-fm\napt: sudo apt install ranger\nbrew: brew install ranger\nResmî: https://ranger.github.io/"""
+install_notes = """pipx: pipx install ranger-fm\napt: sudo apt install ranger\nbrew: brew install ranger\npacman: sudo pacman -S ranger\nResmî: https://ranger.github.io/"""
 
 [[apps]]
 id = "nnn"
@@ -422,7 +422,7 @@ executable = "nnn"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "nnn"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install nnn\nbrew: brew install nnn\nResmî: https://github.com/jarun/nnn#installation"""
+install_notes = """apt: sudo apt install nnn\nbrew: brew install nnn\npacman: sudo pacman -S nnn\nResmî: https://github.com/jarun/nnn#installation"""
 
 [[apps]]
 id = "lf"
@@ -448,7 +448,7 @@ executable = "mc"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "mc"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install mc\nbrew: brew install midnight-commander\nResmî: https://midnight-commander.org/"""
+install_notes = """apt: sudo apt install mc\nbrew: brew install midnight-commander\npacman: sudo pacman -S mc\nResmî: https://midnight-commander.org/"""
 
 [[apps]]
 id = "broot"
@@ -513,7 +513,7 @@ executable = "ncdu"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "ncdu"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install ncdu\nbrew: brew install ncdu\nResmî: https://dev.yorhel.nl/ncdu/"""
+install_notes = """apt: sudo apt install ncdu\nbrew: brew install ncdu\npacman: sudo pacman -S ncdu\nResmî: https://dev.yorhel.nl/ncdu/"""
 
 # ---------------------------------------------------------------------------
 # Geliştirme
@@ -556,7 +556,7 @@ executable = "http"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "httpie"]
 supported_platforms = ["linux-x64"]
-install_notes = """brew: brew install httpie\npipx: pipx install httpie\napt: sudo apt install httpie\nResmî: https://httpie.io/docs/cli/installation"""
+install_notes = """brew: brew install httpie\npipx: pipx install httpie\napt: sudo apt install httpie\npacman: sudo pacman -S httpie\nResmî: https://httpie.io/docs/cli/installation"""
 
 [[apps]]
 id = "xh"
@@ -608,7 +608,7 @@ executable = "mitmproxy"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "mitmproxy"]
 supported_platforms = ["linux-x64"]
-install_notes = """pipx: pipx install mitmproxy\nbrew: brew install mitmproxy\napt: sudo apt install mitmproxy\nResmî: https://docs.mitmproxy.org/stable/overview-installation/"""
+install_notes = """pipx: pipx install mitmproxy\nbrew: brew install mitmproxy\napt: sudo apt install mitmproxy\npacman: sudo pacman -S mitmproxy\nResmî: https://docs.mitmproxy.org/stable/overview-installation/"""
 
 [[apps]]
 id = "hyperfine"
@@ -621,7 +621,7 @@ executable = "hyperfine"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "hyperfine"]
 supported_platforms = ["linux-x64"]
-install_notes = """cargo: cargo install hyperfine\nbrew: brew install hyperfine\napt: sudo apt install hyperfine\nResmî: https://github.com/sharkdp/hyperfine#installation"""
+install_notes = """cargo: cargo install hyperfine\nbrew: brew install hyperfine\napt: sudo apt install hyperfine\npacman: sudo pacman -S hyperfine\nResmî: https://github.com/sharkdp/hyperfine#installation"""
 
 [[apps]]
 id = "tokei"
@@ -647,7 +647,7 @@ executable = "just"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "just"]
 supported_platforms = ["linux-x64"]
-install_notes = """cargo: cargo install just\nbrew: brew install just\napt: sudo apt install just\nResmî: https://github.com/casey/just#installation"""
+install_notes = """cargo: cargo install just\nbrew: brew install just\napt: sudo apt install just\npacman: sudo pacman -S just\nResmî: https://github.com/casey/just#installation"""
 
 [[apps]]
 id = "watchexec"
@@ -673,7 +673,7 @@ executable = "direnv"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "direnv"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install direnv\nbrew: brew install direnv\nResmî: https://direnv.net/docs/installation.html"""
+install_notes = """apt: sudo apt install direnv\nbrew: brew install direnv\npacman: sudo pacman -S direnv\nResmî: https://direnv.net/docs/installation.html"""
 
 [[apps]]
 id = "mise"
@@ -725,7 +725,7 @@ executable = "shellcheck"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "shellcheck"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install shellcheck\nbrew: brew install shellcheck\nResmî: https://github.com/koalaman/shellcheck#installing"""
+install_notes = """apt: sudo apt install shellcheck\nbrew: brew install shellcheck\npacman: sudo pacman -S shellcheck\nResmî: https://github.com/koalaman/shellcheck#installing"""
 
 [[apps]]
 id = "act"
@@ -755,7 +755,7 @@ executable = "nvim"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "neovim"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install neovim\nbrew: brew install neovim\nResmî: https://github.com/neovim/neovim/blob/master/INSTALL.md"""
+install_notes = """apt: sudo apt install neovim\nbrew: brew install neovim\npacman: sudo pacman -S neovim\nResmî: https://github.com/neovim/neovim/blob/master/INSTALL.md"""
 
 [[apps]]
 id = "helix"
@@ -781,7 +781,7 @@ executable = "micro"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "micro"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install micro\nbrew: brew install micro\ncurl: curl https://getmic.ro | bash\nResmî: https://micro-editor.github.io/"""
+install_notes = """apt: sudo apt install micro\nbrew: brew install micro\ncurl: curl https://getmic.ro | bash\npacman: sudo pacman -S micro\nResmî: https://micro-editor.github.io/"""
 
 [[apps]]
 id = "kakoune"
@@ -794,7 +794,7 @@ executable = "kakoune"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "kakoune"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install kakoune\nbrew: brew install kakoune\nResmî: https://kakoune.org/"""
+install_notes = """apt: sudo apt install kakoune\nbrew: brew install kakoune\npacman: sudo pacman -S kakoune\nResmî: https://kakoune.org/"""
 
 [[apps]]
 id = "emacs"
@@ -807,7 +807,7 @@ executable = "emacs"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "emacs"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install emacs\nbrew: brew install emacs\nResmî: https://www.gnu.org/software/emacs/download.html"""
+install_notes = """apt: sudo apt install emacs\nbrew: brew install emacs\npacman: sudo pacman -S emacs\nResmî: https://www.gnu.org/software/emacs/download.html"""
 
 [[apps]]
 id = "vim"
@@ -820,7 +820,7 @@ executable = "vim"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "vim"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install vim\nbrew: brew install vim\nResmî: https://www.vim.org/download.php"""
+install_notes = """apt: sudo apt install vim\nbrew: brew install vim\npacman: sudo pacman -S vim\nResmî: https://www.vim.org/download.php"""
 
 # ---------------------------------------------------------------------------
 # Sistem
@@ -857,7 +857,7 @@ executable = "btop"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "btop"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install btop\nbrew: brew install btop\nResmî: https://github.com/aristocratos/btop#installation"""
+install_notes = """apt: sudo apt install btop\nbrew: brew install btop\npacman: sudo pacman -S btop\nResmî: https://github.com/aristocratos/btop#installation"""
 
 [[apps]]
 id = "htop"
@@ -870,7 +870,7 @@ executable = "htop"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "htop"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install htop\nbrew: brew install htop\ndnf: sudo dnf install htop\nResmî: https://htop.dev/"""
+install_notes = """apt: sudo apt install htop\nbrew: brew install htop\ndnf: sudo dnf install htop\npacman: sudo pacman -S htop\nResmî: https://htop.dev/"""
 
 [[apps]]
 id = "bottom"
@@ -896,7 +896,7 @@ executable = "glances"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "glances"]
 supported_platforms = ["linux-x64"]
-install_notes = """pipx: pipx install glances\napt: sudo apt install glances\nbrew: brew install glances\nResmî: https://glances.readthedocs.io/en/latest/install.html"""
+install_notes = """pipx: pipx install glances\napt: sudo apt install glances\nbrew: brew install glances\npacman: sudo pacman -S glances\nResmî: https://glances.readthedocs.io/en/latest/install.html"""
 
 [[apps]]
 id = "procs"
@@ -922,7 +922,7 @@ executable = "fastfetch"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "fastfetch"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install fastfetch\nbrew: brew install fastfetch\nResmî: https://github.com/fastfetch-cli/fastfetch#installation"""
+install_notes = """apt: sudo apt install fastfetch\nbrew: brew install fastfetch\npacman: sudo pacman -S fastfetch\nResmî: https://github.com/fastfetch-cli/fastfetch#installation"""
 
 [[apps]]
 id = "nvtop"
@@ -935,7 +935,7 @@ executable = "nvtop"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "nvtop"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install nvtop\nbrew: brew install nvtop\nResmî: https://github.com/Syllo/nvtop#nvtop-installation"""
+install_notes = """apt: sudo apt install nvtop\nbrew: brew install nvtop\npacman: sudo pacman -S nvtop\nResmî: https://github.com/Syllo/nvtop#nvtop-installation"""
 
 [[apps]]
 id = "kmon"
@@ -1003,7 +1003,7 @@ executable = "curl"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "curl"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install curl\nbrew: brew install curl\nResmî: https://curl.se/docs/install.html"""
+install_notes = """apt: sudo apt install curl\nbrew: brew install curl\npacman: sudo pacman -S curl\nResmî: https://curl.se/docs/install.html"""
 
 [[apps]]
 id = "mtr"
@@ -1016,7 +1016,7 @@ executable = "mtr"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "mtr"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install mtr\nbrew: brew install mtr\nResmî: https://github.com/traviscross/mtr"""
+install_notes = """apt: sudo apt install mtr\nbrew: brew install mtr\npacman: sudo pacman -S mtr\nResmî: https://github.com/traviscross/mtr"""
 
 [[apps]]
 id = "gping"
@@ -1055,7 +1055,7 @@ executable = "nmap"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "nmap"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install nmap\nbrew: brew install nmap\nResmî: https://nmap.org/download.html"""
+install_notes = """apt: sudo apt install nmap\nbrew: brew install nmap\npacman: sudo pacman -S nmap\nResmî: https://nmap.org/download.html"""
 
 [[apps]]
 id = "termshark"
@@ -1094,7 +1094,7 @@ executable = "wget"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "wget"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install wget\nbrew: brew install wget\nResmî: https://www.gnu.org/software/wget/"""
+install_notes = """apt: sudo apt install wget\nbrew: brew install wget\npacman: sudo pacman -S wget\nResmî: https://www.gnu.org/software/wget/"""
 
 [[apps]]
 id = "aria2"
@@ -1107,7 +1107,7 @@ executable = "aria2c"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "aria2"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install aria2\nbrew: brew install aria2\nResmî: https://aria2.github.io/"""
+install_notes = """apt: sudo apt install aria2\nbrew: brew install aria2\npacman: sudo pacman -S aria2\nResmî: https://aria2.github.io/"""
 
 # ---------------------------------------------------------------------------
 # Konteyner
@@ -1315,7 +1315,7 @@ executable = "sqlite3"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "sqlite3"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install sqlite3\nbrew: brew install sqlite\nResmî: https://www.sqlite.org/download.html"""
+install_notes = """apt: sudo apt install sqlite3\nbrew: brew install sqlite\npacman: sudo pacman -S sqlite\nResmî: https://www.sqlite.org/download.html"""
 
 [[apps]]
 id = "usql"
@@ -1358,7 +1358,7 @@ executable = "age"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "age"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install age\nbrew: brew install age\ngo: go install filippo.io/age/cmd/...@latest\nResmî: https://github.com/FiloSottile/age#installation"""
+install_notes = """apt: sudo apt install age\nbrew: brew install age\ngo: go install filippo.io/age/cmd/...@latest\npacman: sudo pacman -S age\nResmî: https://github.com/FiloSottile/age#installation"""
 
 [[apps]]
 id = "sops"
@@ -1397,7 +1397,7 @@ executable = "pass"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "pass"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install pass\nbrew: brew install pass\nResmî: https://www.passwordstore.org/"""
+install_notes = """apt: sudo apt install pass\nbrew: brew install pass\npacman: sudo pacman -S pass\nResmî: https://www.passwordstore.org/"""
 
 [[apps]]
 id = "vault"
@@ -1466,7 +1466,7 @@ executable = "cmus"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "cmus"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install cmus\nbrew: brew install cmus\nResmî: https://github.com/cmus/cmus"""
+install_notes = """apt: sudo apt install cmus\nbrew: brew install cmus\npacman: sudo pacman -S cmus\nResmî: https://github.com/cmus/cmus"""
 
 [[apps]]
 id = "mpv"
@@ -1479,7 +1479,7 @@ executable = "mpv"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "mpv"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install mpv\nbrew: brew install mpv\nResmî: https://mpv.io/installation/"""
+install_notes = """apt: sudo apt install mpv\nbrew: brew install mpv\npacman: sudo pacman -S mpv\nResmî: https://mpv.io/installation/"""
 
 [[apps]]
 id = "ffmpeg"
@@ -1492,7 +1492,7 @@ executable = "ffmpeg"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "ffmpeg"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install ffmpeg\nbrew: brew install ffmpeg\nResmî: https://ffmpeg.org/download.html"""
+install_notes = """apt: sudo apt install ffmpeg\nbrew: brew install ffmpeg\npacman: sudo pacman -S ffmpeg\nResmî: https://ffmpeg.org/download.html"""
 
 [[apps]]
 id = "yt-dlp"
@@ -1505,7 +1505,7 @@ executable = "yt-dlp"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "yt-dlp"]
 supported_platforms = ["linux-x64"]
-install_notes = """pipx: pipx install yt-dlp\nbrew: brew install yt-dlp\napt: sudo apt install yt-dlp\nResmî: https://github.com/yt-dlp/yt-dlp#installation"""
+install_notes = """pipx: pipx install yt-dlp\nbrew: brew install yt-dlp\napt: sudo apt install yt-dlp\npacman: sudo pacman -S yt-dlp\nResmî: https://github.com/yt-dlp/yt-dlp#installation"""
 
 [[apps]]
 id = "cava"
@@ -1518,7 +1518,7 @@ executable = "cava"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "cava"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install cava\nbrew: brew install cava\nResmî: https://github.com/karlstav/cava#installing"""
+install_notes = """apt: sudo apt install cava\nbrew: brew install cava\npacman: sudo pacman -S cava\nResmî: https://github.com/karlstav/cava#installing"""
 
 # ---------------------------------------------------------------------------
 # Mesajlaşma
@@ -1535,7 +1535,7 @@ executable = "aerc"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "aerc"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install aerc\nbrew: brew install aerc\nResmî: https://aerc-mail.org/"""
+install_notes = """apt: sudo apt install aerc\nbrew: brew install aerc\npacman: sudo pacman -S aerc\nResmî: https://aerc-mail.org/"""
 
 [[apps]]
 id = "neomutt"
@@ -1548,7 +1548,7 @@ executable = "neomutt"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "neomutt"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install neomutt\nbrew: brew install neomutt\nResmî: https://neomutt.org/"""
+install_notes = """apt: sudo apt install neomutt\nbrew: brew install neomutt\npacman: sudo pacman -S neomutt\nResmî: https://neomutt.org/"""
 
 [[apps]]
 id = "weechat"
@@ -1561,7 +1561,7 @@ executable = "weechat"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "weechat"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install weechat\nbrew: brew install weechat\nResmî: https://weechat.org/download/"""
+install_notes = """apt: sudo apt install weechat\nbrew: brew install weechat\npacman: sudo pacman -S weechat\nResmî: https://weechat.org/download/"""
 
 [[apps]]
 id = "irssi"
@@ -1574,7 +1574,7 @@ executable = "irssi"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "irssi"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install irssi\nbrew: brew install irssi\nResmî: https://irssi.org/download/"""
+install_notes = """apt: sudo apt install irssi\nbrew: brew install irssi\npacman: sudo pacman -S irssi\nResmî: https://irssi.org/download/"""
 
 [[apps]]
 id = "tut"
@@ -1641,7 +1641,7 @@ executable = "tmux"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "tmux"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install tmux\nbrew: brew install tmux\nResmî: https://github.com/tmux/tmux/wiki/Installing"""
+install_notes = """apt: sudo apt install tmux\nbrew: brew install tmux\npacman: sudo pacman -S tmux\nResmî: https://github.com/tmux/tmux/wiki/Installing"""
 
 [[apps]]
 id = "zellij"
@@ -1706,7 +1706,7 @@ executable = "calcurse"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "calcurse"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install calcurse\nbrew: brew install calcurse\nResmî: https://calcurse.org/"""
+install_notes = """apt: sudo apt install calcurse\nbrew: brew install calcurse\npacman: sudo pacman -S calcurse\nResmî: https://calcurse.org/"""
 
 [[apps]]
 id = "navi"
@@ -1745,7 +1745,7 @@ executable = "zoxide"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "zoxide"]
 supported_platforms = ["linux-x64"]
-install_notes = """cargo: cargo install zoxide --locked\nbrew: brew install zoxide\napt: sudo apt install zoxide\nResmî: https://github.com/ajeetdsouza/zoxide#installation"""
+install_notes = """cargo: cargo install zoxide --locked\nbrew: brew install zoxide\napt: sudo apt install zoxide\npacman: sudo pacman -S zoxide\nResmî: https://github.com/ajeetdsouza/zoxide#installation"""
 
 [[apps]]
 id = "starship"
@@ -1801,7 +1801,7 @@ executable = "nethack"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "nethack-console"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install nethack-console\nbrew: brew install nethack\nResmî: https://www.nethack.org/"""
+install_notes = """apt: sudo apt install nethack-console\nbrew: brew install nethack\npacman: sudo pacman -S nethack\nResmî: https://www.nethack.org/"""
 
 [[apps]]
 id = "bastet"
@@ -1814,7 +1814,7 @@ executable = "bastet"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "bastet"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install bastet\nResmî: https://fph.altervista.org/prog/bastet.html"""
+install_notes = """apt: sudo apt install bastet\npacman: sudo pacman -S bastet\nResmî: https://fph.altervista.org/prog/bastet.html"""
 
 [[apps]]
 id = "2048"
@@ -1827,7 +1827,7 @@ executable = "2048"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "2048"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install 2048\nbrew: brew install 2048-cli\nResmî: https://github.com/tiehuis/2048-cli"""
+install_notes = """apt: sudo apt install 2048\nbrew: brew install 2048-cli\npacman: sudo pacman -S 2048-cli\nResmî: https://github.com/tiehuis/2048-cli"""
 
 [[apps]]
 id = "cmatrix"
@@ -1840,7 +1840,7 @@ executable = "cmatrix"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "cmatrix"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install cmatrix\nbrew: brew install cmatrix\nResmî: https://github.com/abishekvashok/cmatrix"""
+install_notes = """apt: sudo apt install cmatrix\nbrew: brew install cmatrix\npacman: sudo pacman -S cmatrix\nResmî: https://github.com/abishekvashok/cmatrix"""
 
 [[apps]]
 id = "asciiquarium"
@@ -1853,7 +1853,7 @@ executable = "asciiquarium"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "asciiquarium"]
 supported_platforms = ["linux-x64"]
-install_notes = """brew: brew install asciiquarium\napt: sudo apt install asciiquarium\nResmî: https://robobunny.com/projects/asciiquarium/html/"""
+install_notes = """brew: brew install asciiquarium\napt: sudo apt install asciiquarium\npacman: sudo pacman -S asciiquarium\nResmî: https://robobunny.com/projects/asciiquarium/html/"""
 
 [[apps]]
 id = "nsnake"
@@ -1866,7 +1866,7 @@ executable = "nsnake"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "nsnake"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install nsnake\nResmî: https://github.com/alexdantas/nSnake"""
+install_notes = """apt: sudo apt install nsnake\npacman: sudo pacman -S nsnake\nResmî: https://github.com/alexdantas/nSnake"""
 
 # ---------------------------------------------------------------------------
 # Web
@@ -1883,7 +1883,7 @@ executable = "w3m"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "w3m"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install w3m\nbrew: brew install w3m\nResmî: https://w3m.sourceforge.net/"""
+install_notes = """apt: sudo apt install w3m\nbrew: brew install w3m\npacman: sudo pacman -S w3m\nResmî: https://w3m.sourceforge.net/"""
 
 [[apps]]
 id = "lynx"
@@ -1896,7 +1896,7 @@ executable = "lynx"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "lynx"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install lynx\nbrew: brew install lynx\nResmî: https://lynx.invisible-island.net/"""
+install_notes = """apt: sudo apt install lynx\nbrew: brew install lynx\npacman: sudo pacman -S lynx\nResmî: https://lynx.invisible-island.net/"""
 
 [[apps]]
 id = "browsh"
@@ -1922,7 +1922,7 @@ executable = "newsboat"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "newsboat"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install newsboat\nbrew: brew install newsboat\nResmî: https://newsboat.org/"""
+install_notes = """apt: sudo apt install newsboat\nbrew: brew install newsboat\npacman: sudo pacman -S newsboat\nResmî: https://newsboat.org/"""
 
 [[apps]]
 id = "chafa"
@@ -1935,7 +1935,7 @@ executable = "chafa"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "chafa"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install chafa\nbrew: brew install chafa\nResmî: https://hpjansson.org/chafa/"""
+install_notes = """apt: sudo apt install chafa\nbrew: brew install chafa\npacman: sudo pacman -S chafa\nResmî: https://hpjansson.org/chafa/"""
 
 [[apps]]
 id = "ddgr"
@@ -1948,7 +1948,7 @@ executable = "ddgr"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "ddgr"]
 supported_platforms = ["linux-x64"]
-install_notes = """pipx: pipx install ddgr\nbrew: brew install ddgr\napt: sudo apt install ddgr\nResmî: https://github.com/jarun/ddgr#installation"""
+install_notes = """pipx: pipx install ddgr\nbrew: brew install ddgr\napt: sudo apt install ddgr\npacman: sudo pacman -S ddgr\nResmî: https://github.com/jarun/ddgr#installation"""
 
 # ---------------------------------------------------------------------------
 # Günlük
@@ -1965,7 +1965,7 @@ executable = "tldr"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "tldr"]
 supported_platforms = ["linux-x64"]
-install_notes = """npm: npm install -g tldr\npipx: pipx install tldr\nbrew: brew install tldr\napt: sudo apt install tldr\nResmî: https://github.com/tldr-pages/tldr#install"""
+install_notes = """npm: npm install -g tldr\npipx: pipx install tldr\nbrew: brew install tldr\napt: sudo apt install tldr\npacman: sudo pacman -S tldr\nResmî: https://github.com/tldr-pages/tldr#install"""
 
 [[apps]]
 id = "jq"
@@ -1978,7 +1978,7 @@ executable = "jq"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "jq"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install jq\nbrew: brew install jq\nResmî: https://jqlang.github.io/jq/download/"""
+install_notes = """apt: sudo apt install jq\nbrew: brew install jq\npacman: sudo pacman -S jq\nResmî: https://jqlang.github.io/jq/download/"""
 
 [[apps]]
 id = "yq"
@@ -2043,7 +2043,7 @@ executable = "pandoc"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "pandoc"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install pandoc\nbrew: brew install pandoc\nResmî: https://pandoc.org/installing.html"""
+install_notes = """apt: sudo apt install pandoc\nbrew: brew install pandoc\npacman: sudo pacman -S pandoc\nResmî: https://pandoc.org/installing.html"""
 
 [[apps]]
 id = "tree"
@@ -2056,7 +2056,7 @@ executable = "tree"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "tree"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install tree\nbrew: brew install tree\nResmî paket yöneticinizden tree paketini kurun."""
+install_notes = """apt: sudo apt install tree\nbrew: brew install tree\nResmî paket yöneticinizden tree paketini kurun.\npacman: sudo pacman -S tree"""
 
 [[apps]]
 id = "rsync"
@@ -2069,7 +2069,7 @@ executable = "rsync"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "rsync"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install rsync\nbrew: brew install rsync\nResmî: https://rsync.samba.org/"""
+install_notes = """apt: sudo apt install rsync\nbrew: brew install rsync\npacman: sudo pacman -S rsync\nResmî: https://rsync.samba.org/"""
 
 [[apps]]
 id = "unzip"
@@ -2082,5 +2082,5 @@ executable = "unzip"
 install_method = "apt"
 install_command = ["sudo", "apt", "install", "-y", "unzip"]
 supported_platforms = ["linux-x64"]
-install_notes = """apt: sudo apt install unzip\nbrew: brew install unzip\nResmî paket yöneticinizden unzip paketini kurun."""
+install_notes = """apt: sudo apt install unzip\nbrew: brew install unzip\nResmî paket yöneticinizden unzip paketini kurun.\npacman: sudo pacman -S unzip"""
 
