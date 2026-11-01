@@ -175,6 +175,7 @@ mod tests {
             checksum_type: Some("sha256".into()),
             version: Some("1.0.0".into()),
             download_url: Some("https://example.org/a.tar.gz".into()),
+            artifacts: vec![],
             install_command: None,
             install_notes: None,
             release: None,

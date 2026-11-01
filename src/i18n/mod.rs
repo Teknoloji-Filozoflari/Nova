@@ -516,7 +516,8 @@ const EN: Table = Table {
     adv_empty_home: "(empty: home)",
     adv_empty_default: "(default)",
     adv_empty_none: "(none)",
-    adv_konsole_hint: "Empty = auto ($TERMINAL, xdg-terminal-exec, kitty, …). You can type a supported name.",
+    adv_konsole_hint:
+        "Empty = auto ($TERMINAL, xdg-terminal-exec, kitty, …). You can type a supported name.",
     adv_catalog: "Catalog",
     adv_user_settings: "User settings",
     adv_keys: "Tab/↑↓: field   ←→: language   Enter: save   Esc: cancel",
