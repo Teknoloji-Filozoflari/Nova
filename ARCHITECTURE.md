@@ -168,8 +168,8 @@ Düzen terminal boyutuna göre üç genişlik moduna ve bir yükseklik eşiğine
 | Yardım açık | `CONTENT_MIN_HEIGHT` (5) + `HELP_HELP_MAX_HEIGHT` (10) | Panel tuş tablosu, dosya yolları ve çalışma dizini için büyür |
 
 Detay panelinin yüksekliği sekmeye göre değişir: araç detayı 8 satır
-(`DETAIL_ROWS`), mağaza detayı 11 satır (`STORE_DETAIL_ROWS`) — mağaza detayı
-sürüm, canlı takip ve kurulum yöntemi gibi daha fazla alan taşır. Mağaza
+(`DETAIL_ROWS`), mağaza detayı 13 satır (`STORE_DETAIL_ROWS`) — mağaza detayı
+sürüm, canlı takip, kurulum yöntemi ve güven sınıfı (A/B/C/D) taşır. Mağaza
 detayı ekrana sığmayacak kadar büyürse içerik alanı korunacak şekilde
 kırpılır; yardım paneli büyürken mağaza sekmesinde içerik alanı daralmaz.
 
@@ -485,7 +485,7 @@ kullanıcıya durum satırında açıklanır.
 - **PTY kapanınca alt ekrandan çıkış dizisi yazılamaz.** Terminal (tty) yoksa `leave_alternate_screen` IO hatası verir; hook bunu bilinçli olarak yutar ve Nova panik üretmeden çıkar.
 - **Dağıtım paketi/yayın yok.** Proje SPDX `MIT OR Apache-2.0` çift lisanslıdır (`LICENSE.md` seçim özeti; metinler `LICENSE-MIT` / `LICENSE-APACHE`). crates.io, AUR, distro paketi ve ikili yayın yapılmadı. `docs/VERSIONING.md` akışı önerir.
 - **Mağaza sürüm denetimi kullanıcı isteğine bağlı.** Otomatik denetim yok; kullanıcı mağazada `U` tuşuna bastığında GitHub Releases sorgulanır.
-- **Mağaza kataloğu uzaktan güncellenmiyor.** Katalog gömülü `assets/store/*.toml` içinde sabittir; canlı akış yalnızca sürüm ipucu getirir. Bu bilinçli bir tasarım kararıdır (bkz. "Canlı Sürüm Takibi → Tasarım kararı").
+- **Mağaza kataloğu imzalı uzaktan güncellenebilir.** Varsayılan gömülü `assets/store/*.toml` (veya diskteki son doğrulanmış kopya) kullanılır. Mağazada `U` ile Nova-Store Releases’tan imzalı katalog denenir; **minisign imzası gömülü anahtarla doğrulanmazsa uzak veri uygulanmaz** (bkz. `store::remote`, "İmzalı Nova-Store kataloğu").
 - **GitHub API hız sınırı kimliksiz IP başına saatte 60 istek.** `GITHUB_TOKEN` ile saatte 5000'e yükseltilebilir; 6 saatlik önbellek taze kayıtları ağa hiç çıkarmadığı için sınırı büyük ölçüde azaltır. `ETag` yalnızca bant genişliği tasarrufu sağlar (`304` de sınırdan düşer).
 - **Mağazada 6 uygulama indirilebilir.** Kalan 13 kayıt `manual` yöntemdedir; upstream doğrulanabilir SHA-256 özeti yayımlamadığı için "Kur" eylemi sunulmaz.
 - **Tek çalıştırılabilir dosya kurulur.** Arşivdeki man sayfaları, tamamlayıcılar ve ek belgeler kurulmaz; yalnızca katalogdaki `executable` yerleştirilir.
@@ -627,27 +627,42 @@ Ağdan gelen veri yalnızca "şu sürümü kontrol et" diyebilir. Upstream'in
 yayımladığı özet değiştirilmeden tek bir bayt kurulamaz; çünkü doğrulama
 **indirilen dosyaya** karşı yapılır.
 
-### Tasarım kararı: katalog uzaktan güncellenmiyor
+### İmzalı Nova-Store kataloğu
 
-Bilinçli olarak **katalog Nova'nın kendi deposundan okunmuyor**. Canlı akış
-yalnızca uygulama başına GitHub Releases takibidir.
+Uygulama kataloğu artık yalnızca gömülü TOML’a kilitli değildir; ayrı depo
+`Teknoloji-Filozoflari/Nova-Store` imzalı yayın üretebilir. Güvenlik modeli:
 
-Gerekçe:
+```
+gömülü pubkey (Nova)  +  uzak store-catalog.toml + .minisig
+        │
+        ▼
+minisign doğrula ──başarısız──► son güvenilen yerel / gömülü katalog (değişmez)
+        │
+     başarılı
+        ▼
+Store::from_entries + trusted-store.toml[.minisig] yaz
+```
 
-- **Tek güvenlik sınırı korunur.** Katalog gömülü ve değiştirilemez kalırsa,
-  saldırgan yalnızca "hangi sürüm" bilgisini etkileyebilir. Katalog da
-  uzaktan geliyor olsaydı, saldırgan hem sürümü hem de indirilecek dosya adını
-  değiştirebilirdi; bütünlüğü ayakta tutan tek şey upstream'in checksum
-  dosyası kalırdı.
-- **"Hangi uygulamalar var" sorusunun tek kaynağı olur.** Katalog değişikliği
-  Nova'nın kendi sürümüyle gelir (uygulama güncellemesi); sürüm numarası ise
-  kullanıcı istediğinde canlı olarak çözülür. İkisi birbirine karışmaz.
-- **Test edilebilirlik.** Nova deposu henüz yayınlanmadığı için, uzaktan
-  katalog okuyan bir yol bugün uçtan uca doğrulanamazdı.
+- Uzak adres stub: GitHub Releases `…/Nova-Store/releases/latest/download/store-catalog.toml`
+  (+ `.minisig`). `NOVA_STORE_CATALOG_URL` / `_SIG_URL` ile override;
+  `NOVA_STORE_CATALOG_DISABLE_REMOTE=1` uzak denemeyi kapatır.
+- İmza doğrulanmadan katalog **asla** uygulanmaz; 404 / ağ / bozuk imza
+  mevcut güvenilen kopyayı korur.
+- Canlı sürüm takibi (uygulama başına GitHub Releases) ayrı kalır; katalog
+  yenileme mağazada `U` ile aynı turda denenir.
 
-Sonuç: yeni bir mağaza uygulaması eklemek `assets/store/<kategori>.toml` içine kayıt
-eklemek ve Nova'yı güncellemektir. Sürüm numarasının tazeliği ise kullanıcının
-`U` tuşuna basmasıyla ve 6 saatlik önbellek döngüsüyle sağlanır.
+### Trust class (A/B/C/D)
+
+Mağaza detayında kaynak sınıfı gösterilir; **A ile B karıştırılmaz**:
+
+| Sınıf | Anlam | Tipik `install_method` |
+|-------|--------|-------------------------|
+| A | Distro resmi | apt / dnf / pacman |
+| B | Proje resmi ikili + imza | `download_archive` + `signature` |
+| C | Kayıt defteri (risk notu) | cargo / npm / pipx / uv / brew |
+| D | Manuel belgeler (veya imzasız arşiv) | `manual` / imzasız archive |
+
+Bütünlük rozeti (`hash+sig` / `hash`) sınıf B/D arşiv satırlarında ek bilgi olarak kalır.
 
 ### API hız sınırı
 

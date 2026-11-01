@@ -27,7 +27,9 @@
 //! - `signature` — isteğe bağlı upstream imza (minisign/cosign/gpg/attestation)
 //!
 //! Katalog verisi UI koduna gömülmez; ayrı `assets/store/*.toml` dosyalarından
-//! (kategoriye göre) `include_str!` ile yüklenir.
+//! (kategoriye göre) `include_str!` ile yüklenir. Açılışta son imzası
+//! doğrulanmış yerel kopya tercih edilir; mağazada `U` ile Nova-Store
+//! Releases’tan imzalı uzak katalog denenir (`remote`).
 
 pub mod github;
 pub mod host;
@@ -38,6 +40,7 @@ pub mod manifest;
 pub mod net;
 pub mod path;
 pub mod platform;
+pub mod remote;
 pub mod signature;
 pub mod sync;
 pub mod trust;

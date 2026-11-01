@@ -116,6 +116,10 @@ pub struct StoreCheckOutcome {
     pub releases: BTreeMap<String, Result<ResolvedRelease, String>>,
     /// Paket yöneticisi güncelleme planları (kurulu + outdated / iyimser).
     pub pm_updates: BTreeMap<String, PmUpdatePlan>,
+    /// İmzası doğrulanmış uzak Nova-Store kataloğu (yoksa mevcut korunur).
+    pub signed_catalog: Option<Store>,
+    /// Katalog yenileme durumu (durum satırı için).
+    pub catalog_note: Option<String>,
 }
 
 pub struct App {
@@ -303,7 +307,7 @@ impl App {
                 .unwrap_or_else(|| "bulunamadı (HOME yok)".into()),
             state_path_display,
             terminal_size: None,
-            store: crate::store::loader::load_builtin_store().unwrap_or_default(),
+            store: crate::store::loader::load_store(),
             store_status: BTreeMap::new(),
             update_provider: Box::new(crate::update::DefaultUpdateProvider),
             install_job: None,
@@ -2384,17 +2388,27 @@ impl App {
             .filter(|(_, s)| **s == crate::detection::InstalledStatus::Installed)
             .map(|(id, _)| id.clone())
             .collect();
-        if sources.is_empty() && pm_entries.is_empty() {
-            self.status_message = "Canlı takip veya PM güncellemesi için uygulama yok.".into();
-            return;
-        }
-
         let (tx, rx) = mpsc::channel();
         let provider = Arc::clone(&self.store_release_provider);
         let cache_path = self.store_cache_path.clone().or_else(manifest::cache_path);
         let outdated_override = self.store_outdated_override.clone();
         let host_override = self.store_host_tools_override;
         std::thread::spawn(move || {
+            // İmzalı uzak katalog: doğrulanırsa uygulanır; aksi hâlde yok sayılır.
+            let (signed_catalog, catalog_note) =
+                match crate::store::remote::try_refresh_from_remote(None) {
+                    Ok((store, crate::store::remote::CatalogRefresh::Updated { entries })) => (
+                        Some(store),
+                        Some(format!(
+                            "Nova-Store kataloğu imzalı güncellendi ({entries} kayıt)."
+                        )),
+                    ),
+                    Ok((_, crate::store::remote::CatalogRefresh::KeptTrusted { reason })) => {
+                        (None, Some(format!("Katalog korundu: {reason}")))
+                    }
+                    Err(reason) => (None, Some(format!("Katalog: uzak yok/imza yok — {reason}"))),
+                };
+
             let mut results: BTreeMap<String, Result<ResolvedRelease, String>> = BTreeMap::new();
             let mut cache = cache_path
                 .as_ref()
@@ -2437,11 +2451,14 @@ impl App {
             let _ = tx.send(StoreCheckOutcome {
                 releases: results,
                 pm_updates,
+                signed_catalog,
+                catalog_note,
             });
         });
 
         self.store_check_job = Some(StoreCheckJob { receiver: rx });
-        self.status_message = "Mağaza sürümleri ve PM güncellemeleri denetleniyor...".into();
+        self.status_message =
+            "Mağaza kataloğu (imza), sürümler ve PM güncellemeleri denetleniyor...".into();
     }
 
     /// Arka plandaki sürüm denetimini kontrol eder.
@@ -2476,10 +2493,26 @@ impl App {
                     }
                 }
                 let pm_count = outcome.pm_updates.len();
+                if let Some(store) = outcome.signed_catalog {
+                    self.store = store;
+                    self.refresh_store_status();
+                    self.sync_installed_store_apps_to_catalog();
+                    // Seçim indekslerini güvenli aralığa çek.
+                    let cats = STORE_CATEGORIES.len();
+                    if cats > 0 {
+                        self.store_category_index = self.store_category_index.min(cats - 1);
+                    }
+                    let apps = self.filtered_store_apps().len();
+                    if apps > 0 {
+                        self.store_app_index = self.store_app_index.min(apps - 1);
+                    } else {
+                        self.store_app_index = 0;
+                    }
+                }
                 self.store_updates = updates;
                 self.store_pm_updates = outcome.pm_updates;
                 self.store_check_errors = errors;
-                self.status_message = match (newer, pm_count) {
+                let mut status = match (newer, pm_count) {
                     (0, 0) if self.store_check_errors.is_empty() => {
                         "Mağaza uygulamalarının tümü güncel.".into()
                     }
@@ -2489,8 +2522,18 @@ impl App {
                     ),
                     (n, 0) => format!("{n} mağaza uygulaması için yeni sürüm bulundu."),
                     (0, p) => format!("{p} paket yöneticisi güncellemesi bulundu."),
-                    (n, p) => format!("{n} yeni sürüm, {p} paket yöneticisi güncellemesi bulundu."),
+                    (n, p) => {
+                        format!("{n} yeni sürüm, {p} paket yöneticisi güncellemesi bulundu.")
+                    }
                 };
+                if let Some(note) = outcome.catalog_note {
+                    // Uzak katalog henüz yokken (404) gürültüyü kıs: yalnızca
+                    // başarılı güncellemede veya açık hata dışı kısa not.
+                    if note.contains("imzalı güncellendi") {
+                        status = format!("{note} {status}");
+                    }
+                }
+                self.status_message = status;
             }
             Err(TryRecvError::Empty) => {
                 // Denetim hâlâ sürüyor.

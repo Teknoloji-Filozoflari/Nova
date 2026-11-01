@@ -1,15 +1,68 @@
-//! Mağaza güven seviyeleri ve upstream imza üstverisi.
+//! Mağaza güven sınıfları (A/B/C/D) ve upstream imza üstverisi.
 //!
-//! UI rozetleri üç seviyeyi gösterir:
-//! - `hash+sig` — SHA-256 + upstream imza (minisign/cosign/GPG/attestation)
-//! - `hash` — yalnızca gömülü / upstream SHA-256
-//! - `manual` — Nova indirme doğrulamaz (`manual` veya paket yöneticisi)
+//! # Trust class (kaynak sınıfı)
+//!
+//! Nova-Store mimarisine göre dört sınıf — **A ile B karıştırılmaz**:
+//! - **A** — distro resmi (apt / dnf / pacman)
+//! - **B** — proje resmi ikili + imza (`download_archive` + `signature`)
+//! - **C** — kayıt defteri (cargo / npm / pipx / uv / brew); risk notu
+//! - **D** — yalnızca manuel belgeler
+//!
+//! # Integrity rozeti ([`TrustLevel`])
+//!
+//! Kurulum bütünlüğü için ek kısa etiket:
+//! - `hash+sig` / `hash` / `manual`
 
 use serde::{Deserialize, Serialize};
 
 use crate::store::{InstallMethod, StoreEntry};
 
-/// Kullanıcıya gösterilen güven rozeti.
+/// Kaynak güven sınıfı (A/B/C/D).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum TrustClass {
+    /// Distro resmi paket yöneticisi.
+    A,
+    /// Proje resmi ikili + upstream imza.
+    B,
+    /// Dil / araç kayıt defteri (üçüncü taraf riski).
+    C,
+    /// Yalnızca manuel kurulum belgeleri.
+    D,
+}
+
+impl TrustClass {
+    /// Tek harflik rozet.
+    pub fn badge(self) -> &'static str {
+        match self {
+            Self::A => "A",
+            Self::B => "B",
+            Self::C => "C",
+            Self::D => "D",
+        }
+    }
+
+    /// Detay / onay satırında gösterilecek kısa ad.
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::A => "distro resmi",
+            Self::B => "proje resmi + imza",
+            Self::C => "kayıt defteri",
+            Self::D => "manuel belgeler",
+        }
+    }
+
+    /// C sınıfı için risk notu; diğerlerinde `None`.
+    pub fn risk_note(self) -> Option<&'static str> {
+        match self {
+            Self::C => Some(
+                "Kayıt defteri paketleri üçüncü taraf dağıtır; Nova paket içeriğini imzalamaz.",
+            ),
+            _ => None,
+        }
+    }
+}
+
+/// Kullanıcıya gösterilen bütünlük rozeti (kurulum doğrulama kapasitesi).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TrustLevel {
     /// Arşiv: SHA-256 + katalogda tanımlı upstream imza.
@@ -143,7 +196,42 @@ impl SignatureSpec {
 }
 
 impl StoreEntry {
-    /// Bu kayıt için UI güven rozeti.
+    /// Kaynak güven sınıfı (A/B/C/D). A (distro) ile B (proje+imza) ayrılır.
+    ///
+    /// - A: `apt` / `dnf` / `pacman`
+    /// - B: `download_archive` **ve** katalogda `signature`
+    /// - C: `pipx` / `npm` / `cargo` / `uv` / `brew`
+    /// - D: `manual`
+    ///
+    /// İmzasız `download_archive` B değildir (yalnızca hash bütünlüğü);
+    /// UI’da sınıf D benzeri “proje arşivi (imzasız)” yerine bütünlük
+    /// rozeti (`hash`) ile birlikte özel etiket kullanılır — sınıf olarak
+    /// yine de B’ye yükseltilmez.
+    pub fn trust_class(&self) -> TrustClass {
+        match self.install_method {
+            InstallMethod::Apt | InstallMethod::Dnf | InstallMethod::Pacman => TrustClass::A,
+            InstallMethod::DownloadArchive if self.signature.is_some() => TrustClass::B,
+            InstallMethod::Pipx
+            | InstallMethod::Npm
+            | InstallMethod::Cargo
+            | InstallMethod::Uv
+            | InstallMethod::Brew => TrustClass::C,
+            InstallMethod::Manual | InstallMethod::DownloadArchive => TrustClass::D,
+        }
+    }
+
+    /// UI’da gösterilecek güven satırı (sınıf + isteğe bağlı bütünlük).
+    pub fn trust_display(&self) -> String {
+        let class = self.trust_class();
+        let mut line = format!("{} — {}", class.badge(), class.label());
+        if self.install_method == InstallMethod::DownloadArchive {
+            let level = self.trust_level();
+            line.push_str(&format!(" ({})", level.badge()));
+        }
+        line
+    }
+
+    /// Bu kayıt için UI bütünlük rozeti.
     pub fn trust_level(&self) -> TrustLevel {
         match self.install_method {
             InstallMethod::DownloadArchive if self.signature.is_some() => {
@@ -195,10 +283,13 @@ mod tests {
         let hash_sig = archive_entry(true);
         assert_eq!(hash_sig.trust_level(), TrustLevel::HashAndSignature);
         assert_eq!(hash_sig.trust_level().badge(), "hash+sig");
+        assert_eq!(hash_sig.trust_class(), TrustClass::B);
 
         let hash_only = archive_entry(false);
         assert_eq!(hash_only.trust_level(), TrustLevel::HashOnly);
         assert_eq!(hash_only.trust_level().badge(), "hash");
+        // İmzasız arşiv B değildir (A/B ayrımı + binary+sig tanımı).
+        assert_eq!(hash_only.trust_class(), TrustClass::D);
 
         let mut manual = archive_entry(false);
         manual.install_method = InstallMethod::Manual;
@@ -207,6 +298,7 @@ mod tests {
         manual.signature = None;
         assert_eq!(manual.trust_level(), TrustLevel::Manual);
         assert_eq!(manual.trust_level().badge(), "manual");
+        assert_eq!(manual.trust_class(), TrustClass::D);
 
         let mut pm = archive_entry(false);
         pm.install_method = InstallMethod::Pacman;
@@ -221,6 +313,36 @@ mod tests {
             "a".into(),
         ]);
         assert_eq!(pm.trust_level(), TrustLevel::Manual);
+        assert_eq!(pm.trust_class(), TrustClass::A);
+        assert_ne!(pm.trust_class(), TrustClass::B);
+    }
+
+    #[test]
+    fn trust_class_abcd_mapping() {
+        let mut cargo = archive_entry(false);
+        cargo.install_method = InstallMethod::Cargo;
+        cargo.download_url = None;
+        cargo.checksum = None;
+        cargo.signature = None;
+        cargo.install_command = Some(vec!["cargo".into(), "install".into(), "a".into()]);
+        assert_eq!(cargo.trust_class(), TrustClass::C);
+        assert!(cargo.trust_class().risk_note().is_some());
+
+        let mut apt = cargo.clone();
+        apt.install_method = InstallMethod::Apt;
+        apt.install_command = Some(vec![
+            "sudo".into(),
+            "apt".into(),
+            "install".into(),
+            "-y".into(),
+            "a".into(),
+        ]);
+        assert_eq!(apt.trust_class(), TrustClass::A);
+        assert!(apt.trust_class().risk_note().is_none());
+
+        let b = archive_entry(true);
+        assert_eq!(b.trust_class().badge(), "B");
+        assert!(b.trust_display().starts_with("B —"));
     }
 
     #[test]

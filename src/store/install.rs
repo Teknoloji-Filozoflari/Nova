@@ -668,6 +668,11 @@ pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
                 actions.push(format!("Notlar: {alt}"));
             }
         }
+        let class = entry.trust_class();
+        actions.push(format!("Güven: {}", entry.trust_display()));
+        if let Some(note) = class.risk_note() {
+            actions.push(format!("Risk: {note}"));
+        }
         (
             rendered,
             plan.method.short_label().to_string(),
@@ -707,8 +712,11 @@ pub fn prepare_confirmation(entry: &StoreEntry) -> InstallConfirmation {
         }
         actions
             .push("Kurulan dosyalar install-manifest.toml ile izlenir; kaldırma geri alır.".into());
-        let trust = entry.trust_level();
-        actions.push(format!("Güven: {} ({})", trust.badge(), trust.label()));
+        let class = entry.trust_class();
+        actions.push(format!("Güven: {}", entry.trust_display()));
+        if let Some(note) = class.risk_note() {
+            actions.push(format!("Risk: {note}"));
+        }
         if let Some(sig) = &entry.signature {
             actions.push(format!(
                 "Upstream imza ({}) mümkünse doğrulanacak.",
