@@ -464,3 +464,84 @@ fn help_screen_renders_without_panic_on_small_terminals() {
         assert!(text.contains("Nova"), "{w}x{h} ekranı boş çizildi");
     }
 }
+
+#[test]
+fn ai_tool_actions_are_visible_without_tab_and_focus_moves_with_arrows() {
+    // Aksiyon paneli AI aracı seçilince her zaman görünür (Tab/a ile açılmaz);
+    // Right odak taşır, Enter listede birincil açmayı çalıştırır.
+    use std::sync::Mutex;
+    static LAST: Mutex<Option<(String, Vec<String>, nova::config::LaunchKind)>> = Mutex::new(None);
+
+    fn capture(
+        entry: &nova::catalog::CatalogEntry,
+        _home: &std::path::Path,
+        _opts: &nova::launcher::LaunchOptions,
+    ) -> Result<nova::launcher::LaunchOutcome, nova::error::NovaError> {
+        *LAST.lock().unwrap() = Some((entry.id.clone(), entry.args.clone(), entry.launch_kind));
+        Ok(nova::launcher::LaunchOutcome {
+            tool: entry.name.clone(),
+            action: nova::launcher::LaunchAction::Program,
+            terminal: "Konsole (taklit)",
+            working_directory: std::path::PathBuf::from("/tmp"),
+            emulator_pid: 7,
+        })
+    }
+
+    let mut app = app_with_sample();
+    app.set_launcher(capture);
+    go_to_category(&mut app, "AI ve Kodlama");
+    // Codex'e git (aksiyon tohumu var).
+    let idx = app
+        .filtered_tools()
+        .iter()
+        .position(|e| e.id == "codex")
+        .expect("codex AI listesinde olmalı");
+    app.tool_index = idx;
+    assert!(
+        app.selected_tool_has_ai_actions(),
+        "seçili AI aracı aksiyon taşımalı"
+    );
+    assert_eq!(app.focus, PanelFocus::Tool);
+
+    // Enter listede → birincil açma (interactive, args yok).
+    *LAST.lock().unwrap() = None;
+    app.handle_key(key(crossterm::event::KeyCode::Enter))
+        .unwrap();
+    let primary = LAST.lock().unwrap().clone().expect("birincil açma");
+    assert_eq!(primary.0, "codex");
+    assert!(primary.1.is_empty());
+    assert_eq!(primary.2, nova::config::LaunchKind::Interactive);
+
+    // Right → aksiyon paneli; ↓ resume'a, Enter → custom_command + resume.
+    app.handle_key(key(crossterm::event::KeyCode::Right))
+        .unwrap();
+    assert_eq!(app.focus, PanelFocus::ToolActions);
+    assert_eq!(app.tool_action_index, 0);
+    app.handle_key(key(crossterm::event::KeyCode::Down))
+        .unwrap();
+    assert_eq!(app.tool_action_index, 1); // resume
+    *LAST.lock().unwrap() = None;
+    app.handle_key(key(crossterm::event::KeyCode::Enter))
+        .unwrap();
+    let resumed = LAST.lock().unwrap().clone().expect("resume aksiyonu");
+    assert_eq!(resumed.0, "codex");
+    assert_eq!(resumed.1, vec!["resume".to_string()]);
+    assert_eq!(resumed.2, nova::config::LaunchKind::CustomCommand);
+
+    // Left geri araç listesine.
+    app.handle_key(key(crossterm::event::KeyCode::Left))
+        .unwrap();
+    assert_eq!(app.focus, PanelFocus::Tool);
+}
+
+#[test]
+fn non_ai_tool_has_no_actions_focus_in_chain() {
+    let mut app = app_with_sample();
+    go_to_category(&mut app, "Sistem ve Kaynak Kullanımı");
+    assert!(!app.selected_tool_has_ai_actions());
+    assert_eq!(app.focus, PanelFocus::Tool);
+    app.handle_key(key(crossterm::event::KeyCode::Right))
+        .unwrap();
+    // Aksiyon paneli zincirde yok; sağda kalır (Tool).
+    assert_eq!(app.focus, PanelFocus::Tool);
+}

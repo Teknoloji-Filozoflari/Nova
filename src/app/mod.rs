@@ -50,6 +50,8 @@ pub enum PanelFocus {
     Category,
     /// Araç paneli odaklı.
     Tool,
+    /// AI araç eylemleri listesi (detay yanı) odaklı.
+    ToolActions,
     /// Mağaza kategorileri paneli odaklı.
     StoreCategory,
     /// Mağaza uygulamaları paneli odaklı.
@@ -154,6 +156,8 @@ pub struct App {
     pub store_app_index: usize,
     /// Seçili aracın indeksi (filtrelenmiş liste üzerinden).
     pub tool_index: usize,
+    /// Seçili AI araç eyleminin indeksi (detay yanı aksiyon listesi).
+    pub tool_action_index: usize,
     /// Arama sorgusu.
     pub search_query: String,
     /// Arama modu aktif mi.
@@ -285,6 +289,7 @@ impl App {
             store_category_index: 0,
             store_app_index: 0,
             tool_index: 0,
+            tool_action_index: 0,
             search_query: String::new(),
             search_active: false,
             favorite_only: false,
@@ -437,6 +442,7 @@ impl App {
                 self.set_tab_index(row);
                 self.focus = PanelFocus::Category;
                 self.tool_index = 0;
+                self.reset_tool_action_index();
             }
             return;
         }
@@ -454,7 +460,12 @@ impl App {
         // Araç paneli (genişte sağ sütun; darda tüm içerik).
         let tools = self.filtered_tools();
         if let Some(row) = list_index_at_y(y, panel_top, panel_h, self.tool_index, tools.len()) {
-            self.tool_index = row;
+            if row != self.tool_index {
+                self.tool_index = row;
+                self.reset_tool_action_index();
+            } else {
+                self.tool_index = row;
+            }
             self.focus = PanelFocus::Tool;
         }
     }
@@ -722,6 +733,7 @@ impl App {
                     self.focus = self.next_focus();
                 }
                 PanelFocus::Tool => self.select_tool(),
+                PanelFocus::ToolActions => self.select_tool_action(),
                 PanelFocus::StoreCategory => {
                     self.focus = PanelFocus::StoreApp;
                 }
@@ -843,6 +855,7 @@ impl App {
     fn reset_tool_selection(&mut self) {
         self.tool_index = 0;
         self.store_app_index = 0;
+        self.reset_tool_action_index();
     }
 
     /// Seçili aracın favorisini değiştirir.
@@ -916,7 +929,15 @@ impl App {
                     return;
                 }
                 let max = tools.len().saturating_sub(1);
-                self.tool_index = (self.tool_index + 1).min(max);
+                let next = (self.tool_index + 1).min(max);
+                if next != self.tool_index {
+                    self.tool_index = next;
+                    self.reset_tool_action_index();
+                }
+            }
+            PanelFocus::ToolActions => {
+                let max = self.selected_tool_actions_len().saturating_sub(1);
+                self.tool_action_index = (self.tool_action_index + 1).min(max);
             }
             PanelFocus::StoreCategory => {
                 let max = STORE_CATEGORIES.len().saturating_sub(1);
@@ -952,7 +973,14 @@ impl App {
                     self.settings_action_index = self.settings_action_index.saturating_sub(1);
                     return;
                 }
-                self.tool_index = self.tool_index.saturating_sub(1);
+                let prev = self.tool_index.saturating_sub(1);
+                if prev != self.tool_index {
+                    self.tool_index = prev;
+                    self.reset_tool_action_index();
+                }
+            }
+            PanelFocus::ToolActions => {
+                self.tool_action_index = self.tool_action_index.saturating_sub(1);
             }
             PanelFocus::StoreCategory => {
                 self.store_category_index = self.store_category_index.saturating_sub(1);
@@ -996,15 +1024,20 @@ impl App {
             if pos + 1 < visible.len() {
                 self.category_index = visible[pos + 1];
                 self.tool_index = 0;
+                self.reset_tool_action_index();
             } else {
                 self.store_tab = true;
                 self.settings_tab = false;
                 self.store_category_index = 0;
                 self.store_app_index = 0;
+                if self.focus == PanelFocus::ToolActions {
+                    self.focus = PanelFocus::Category;
+                }
             }
         } else {
             self.category_index = visible[0];
             self.tool_index = 0;
+            self.reset_tool_action_index();
         }
     }
 
@@ -1025,6 +1058,7 @@ impl App {
             let visible = self.visible_category_indices();
             self.category_index = visible.last().copied().unwrap_or(0);
             self.tool_index = 0;
+            self.reset_tool_action_index();
             return;
         }
         let visible = self.visible_category_indices();
@@ -1032,10 +1066,12 @@ impl App {
             if pos > 0 {
                 self.category_index = visible[pos - 1];
                 self.tool_index = 0;
+                self.reset_tool_action_index();
             }
         } else if let Some(&first) = visible.first() {
             self.category_index = first;
             self.tool_index = 0;
+            self.reset_tool_action_index();
         }
     }
 
@@ -1096,6 +1132,7 @@ impl App {
             self.category_index = visible[row];
             self.tool_index = 0;
             self.store_app_index = 0;
+            self.reset_tool_action_index();
         } else if row == visible.len() {
             self.select_store_tab();
         } else {
@@ -1106,8 +1143,9 @@ impl App {
     /// Etkin odak zinciri (soldan sağa).
     ///
     /// Mağaza sekmesinde üç panel vardır: sekme listesi, mağaza kategorileri
-    /// ve mağaza uygulamaları. Araç/Ayarlar sekmesinde iki panel vardır. Dar
-    /// terminalde gizlenen paneller zincirden çıkarılır.
+    /// ve mağaza uygulamaları. Araç/Ayarlar sekmesinde iki panel vardır. AI
+    /// aracı seçiliyken aksiyon listesi zincire eklenir (her zaman görünür;
+    /// Tab/a ile açılmaz). Dar terminalde gizlenen paneller zincirden çıkarılır.
     fn focus_chain(&self) -> &'static [PanelFocus] {
         let side = if self.language_picker_open {
             2u8
@@ -1116,29 +1154,42 @@ impl App {
         } else {
             0u8
         };
-        match (self.store_tab, self.settings_tab, side, self.narrow_mode) {
-            (true, _, _, false) => &[
+        let ai_actions = self.selected_tool_has_ai_actions();
+        match (
+            self.store_tab,
+            self.settings_tab,
+            side,
+            self.narrow_mode,
+            ai_actions,
+        ) {
+            (true, _, _, false, _) => &[
                 PanelFocus::Category,
                 PanelFocus::StoreCategory,
                 PanelFocus::StoreApp,
             ],
-            (true, _, _, true) => &[PanelFocus::StoreCategory, PanelFocus::StoreApp],
-            (_, true, 1, false) => &[
+            (true, _, _, true, _) => &[PanelFocus::StoreCategory, PanelFocus::StoreApp],
+            (_, true, 1, false, _) => &[
                 PanelFocus::Category,
                 PanelFocus::Tool,
                 PanelFocus::ThemePicker,
             ],
-            (_, true, 1, true) => &[PanelFocus::Tool, PanelFocus::ThemePicker],
-            (_, true, 2, false) => &[
+            (_, true, 1, true, _) => &[PanelFocus::Tool, PanelFocus::ThemePicker],
+            (_, true, 2, false, _) => &[
                 PanelFocus::Category,
                 PanelFocus::Tool,
                 PanelFocus::LanguagePicker,
             ],
-            (_, true, 2, true) => &[PanelFocus::Tool, PanelFocus::LanguagePicker],
-            (_, true, _, false) | (false, false, _, false) => {
-                &[PanelFocus::Category, PanelFocus::Tool]
-            }
-            (_, true, _, true) | (false, false, _, true) => &[PanelFocus::Tool],
+            (_, true, 2, true, _) => &[PanelFocus::Tool, PanelFocus::LanguagePicker],
+            (_, true, _, false, _) => &[PanelFocus::Category, PanelFocus::Tool],
+            (_, true, _, true, _) => &[PanelFocus::Tool],
+            (false, false, _, false, true) => &[
+                PanelFocus::Category,
+                PanelFocus::Tool,
+                PanelFocus::ToolActions,
+            ],
+            (false, false, _, true, true) => &[PanelFocus::Tool, PanelFocus::ToolActions],
+            (false, false, _, false, false) => &[PanelFocus::Category, PanelFocus::Tool],
+            (false, false, _, true, false) => &[PanelFocus::Tool],
         }
     }
 
@@ -1190,6 +1241,9 @@ impl App {
     /// Hata olsa bile Nova çalışmaya devam eder: başlatma hatası TUI'yi
     /// bozmaz, yalnızca durum satırında görünür. Başarı mesajı bilinçli
     /// olarak "istendi" der; aracın gerçekten çalıştığını Nova doğrulayamaz.
+    ///
+    /// AI eylem listesi odaklı değilken Enter her zaman birincil açmayı
+    /// çalıştırır (aksiyon paneli görünür olsa bile).
     pub fn select_tool(&mut self) {
         if self.settings_tab {
             self.activate_settings_action();
@@ -1204,6 +1258,45 @@ impl App {
             return;
         };
         self.launch_catalog_entry(entry);
+    }
+
+    /// Odak aksiyon listesindeyken seçili AI eylemini başlatır.
+    pub fn select_tool_action(&mut self) {
+        let Some(entry) = self.selected_tool().cloned() else {
+            self.status_message = "Başlatılacak araç yok.".into();
+            return;
+        };
+        if !entry.has_ai_actions() {
+            self.focus = PanelFocus::Tool;
+            self.status_message = "Bu araç için aksiyon yok.".into();
+            return;
+        }
+        let idx = self
+            .tool_action_index
+            .min(entry.actions.len().saturating_sub(1));
+        let Some(action) = entry.actions.get(idx).cloned() else {
+            self.status_message = "Başlatılacak aksiyon yok.".into();
+            return;
+        };
+        self.launch_catalog_entry(entry.with_action(&action));
+    }
+
+    /// Seçili araç AI aksiyonları taşıyor mu?
+    pub fn selected_tool_has_ai_actions(&self) -> bool {
+        self.selected_tool()
+            .map(|e| e.has_ai_actions())
+            .unwrap_or(false)
+    }
+
+    fn selected_tool_actions_len(&self) -> usize {
+        self.selected_tool().map(|e| e.actions.len()).unwrap_or(0)
+    }
+
+    fn reset_tool_action_index(&mut self) {
+        self.tool_action_index = 0;
+        if self.focus == PanelFocus::ToolActions && !self.selected_tool_has_ai_actions() {
+            self.focus = PanelFocus::Tool;
+        }
     }
 
     /// Ayarlardaki varsayılan AI CLI aracını başlatır (`a` kısayolu).

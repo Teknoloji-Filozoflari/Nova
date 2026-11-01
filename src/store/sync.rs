@@ -9,8 +9,60 @@
 //! 2. Eşleşme yoksa mağaza kaydından kullanıcı araç girişi üretilir
 //!    (`state.toml` `custom_tools`) ve ilgili katalog kategorisine eklenir.
 
-use crate::config::{LaunchKind, ToolEntry};
+use crate::config::{LaunchKind, ToolAction, ToolEntry};
 use crate::store::StoreEntry;
+
+/// Bilinen AI CLI'ler için varsayılan eylemler (mağazadan senkronize edilenler).
+fn default_ai_actions(id: &str, executable: &str) -> Vec<ToolAction> {
+    let key = if id.is_empty() { executable } else { id };
+    let key = key.to_ascii_lowercase();
+    let exe = executable.to_ascii_lowercase();
+    let known = match key.as_str() {
+        "codex" => Some(vec![
+            action("open", "Aç", &[]),
+            action("resume", "Devam et", &["resume"]),
+            action("logout", "Çıkış yap", &["logout"]),
+            action("help", "Yardım", &["--help"]),
+        ]),
+        "claude" => Some(vec![
+            action("open", "Aç", &[]),
+            action("resume", "Devam et", &["--resume"]),
+            action("logout", "Çıkış yap", &["auth", "logout"]),
+            action("help", "Yardım", &["--help"]),
+        ]),
+        "opencode" => Some(vec![
+            action("open", "Aç", &[]),
+            action("resume", "Devam et", &["-c"]),
+            action("logout", "Çıkış yap", &["auth", "logout"]),
+            action("help", "Yardım", &["--help"]),
+        ]),
+        "gemini-cli" | "gemini" => Some(vec![
+            action("open", "Aç", &[]),
+            action("resume", "Devam et", &["--resume"]),
+            action("help", "Yardım", &["--help"]),
+        ]),
+        _ => None,
+    };
+    if let Some(actions) = known {
+        return actions;
+    }
+    if exe == "gemini" {
+        return vec![
+            action("open", "Aç", &[]),
+            action("resume", "Devam et", &["--resume"]),
+            action("help", "Yardım", &["--help"]),
+        ];
+    }
+    Vec::new()
+}
+
+fn action(id: &str, label: &str, args: &[&str]) -> ToolAction {
+    ToolAction {
+        id: id.into(),
+        label: label.into(),
+        args: args.iter().map(|s| (*s).to_string()).collect(),
+    }
+}
 
 /// Mağaza kategorisini ana katalog `CATEGORIES` adına çevirir.
 pub fn catalog_category_for_store(store_category: &str) -> &'static str {
@@ -29,11 +81,17 @@ pub fn catalog_category_for_store(store_category: &str) -> &'static str {
 
 /// Mağaza kaydından kalıcı katalog `ToolEntry` üretir.
 pub fn tool_entry_from_store(entry: &StoreEntry) -> ToolEntry {
+    let category = catalog_category_for_store(&entry.category).to_string();
+    let actions = if category == "AI ve Kodlama" {
+        default_ai_actions(&entry.id, &entry.executable)
+    } else {
+        Vec::new()
+    };
     ToolEntry {
         id: entry.id.clone(),
         name: entry.name.clone(),
         description: entry.description.clone(),
-        category: catalog_category_for_store(&entry.category).to_string(),
+        category,
         executable: entry.executable.clone(),
         args: Vec::new(),
         launch_kind: LaunchKind::Interactive,
@@ -51,6 +109,7 @@ pub fn tool_entry_from_store(entry: &StoreEntry) -> ToolEntry {
             entry.install_method.short_label(),
             entry.executable
         )),
+        actions,
     }
 }
 
@@ -105,6 +164,11 @@ mod tests {
         assert_eq!(t.executable, "gemini");
         assert_eq!(t.category, "AI ve Kodlama");
         assert_eq!(t.launch_kind, LaunchKind::Interactive);
+        assert!(
+            t.actions.iter().any(|a| a.id == "resume"),
+            "AI mağaza senkronu bilinen aksiyonları eklemeli: {:?}",
+            t.actions
+        );
     }
 
     #[test]

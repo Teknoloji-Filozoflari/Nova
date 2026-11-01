@@ -54,6 +54,10 @@ pub const STORE_DETAIL_PANEL_WIDTH: u16 = 36;
 pub const STORE_DETAIL_SIDE_MIN_WIDTH: u16 = 110;
 /// Araç detay panelinin satır sayısı (üst kenarlık dâhil).
 pub const DETAIL_ROWS: u16 = 8;
+/// AI araç aksiyon listesinin genişliği (detay yanında).
+pub const TOOL_ACTIONS_PANEL_WIDTH: u16 = 28;
+/// Detay yanında aksiyon listesi göstermek için en az genişlik.
+pub const TOOL_ACTIONS_SIDE_MIN_WIDTH: u16 = 64;
 /// Mağaza detay panelinin satır sayısı (üst kenarlık dâhil; dar/orta düzen).
 ///
 /// Geniş terminalde detay sağ panele taşınır; bu yükseklik yalnızca
@@ -1043,98 +1047,240 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
     if app.store_tab && area.height == 0 {
         return;
     }
-    let lines = if app.store_tab {
-        store_detail_lines(app, area)
-    } else if let Some(entry) = app.selected_tool() {
-        let mut lines: Vec<Line> = Vec::new();
-        let inner_w = area.width.saturating_sub(4) as usize; // kenarlık + boşluk
-
-        // 1. Ad + kategori (bold).
-        lines.push(Line::from(vec![Span::styled(
-            format!("{} · {}", entry.name, entry.category),
-            Style::default().add_modifier(Modifier::BOLD),
-        )]));
-
-        // 2. Kısa ve anlaşılır açıklama (gray).
-        lines.push(Line::from(Span::styled(
-            truncate(&entry.description, inner_w),
-            Style::default().fg(Color::Gray),
-        )));
-
-        // 3. Kurulum durumu (renkli) + çözümlenen yol veya executable.
-        let status_line = match &entry.resolved_path {
-            Some(path) => format!("{} Kurulu ({})", entry.status.symbol(), path.display()),
-            None => format!(
-                "{} {}: {}",
-                entry.status.symbol(),
-                entry.status.label(),
-                entry.executable
-            ),
-        };
-        lines.push(Line::from(Span::styled(
-            truncate(&status_line, inner_w),
-            Style::default().fg(status_color(entry.status)),
-        )));
-
-        // 4. Çalıştırılacak komut (executable + ayrı argümanlar).
-        let cmd = if entry.args.is_empty() {
-            entry.executable.clone()
-        } else {
-            format!("{} {}", entry.executable, entry.args.join(" "))
-        };
-        lines.push(Line::from(vec![
-            Span::styled("Komut: ", Style::default().fg(Color::DarkGray)),
-            Span::styled(
-                truncate(&cmd, inner_w.saturating_sub(7)),
-                Style::default().fg(Color::White),
-            ),
-        ]));
-
-        // 5. Kullanım örnekleri (katalog metaverisi, doğrulanmış).
-        if !entry.examples.is_empty() {
-            lines.push(Line::from(Span::styled(
-                "Kullanım örnekleri:",
-                Style::default()
-                    .fg(Color::DarkGray)
-                    .add_modifier(Modifier::BOLD),
-            )));
-            for example in &entry.examples {
-                lines.push(Line::from(vec![
-                    Span::styled("  • ", Style::default().fg(Color::DarkGray)),
-                    Span::styled(
-                        truncate(example, inner_w.saturating_sub(4)),
-                        Style::default().fg(Color::White),
-                    ),
-                ]));
-            }
-        }
-
-        // 6. Kabuk entegrasyonu / ek kurulum bilgisi (varsa).
-        if let Some(info) = &entry.setup_info {
-            lines.push(Line::from(Span::styled(
-                truncate(info, inner_w),
-                Style::default().fg(Color::Yellow),
-            )));
-        }
-
-        lines
-    } else {
-        vec![Line::from(Span::styled(
-            "Henüz araç seçilmedi.",
-            Style::default().fg(Color::DarkGray),
-        ))]
-    };
     let lang = app.ui_lang();
+    if app.store_tab {
+        let lines = store_detail_lines(app, area);
+        let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
+            Block::default()
+                .borders(Borders::TOP)
+                .title(format!(" {} ", lang.t(Msg::StoreDetail))),
+        );
+        f.render_widget(detail, area);
+        return;
+    }
+
+    let show_actions = app
+        .selected_tool()
+        .map(|e| e.has_ai_actions())
+        .unwrap_or(false);
+    if show_actions && area.width >= TOOL_ACTIONS_SIDE_MIN_WIDTH {
+        let panels = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Min(20),
+                Constraint::Length(TOOL_ACTIONS_PANEL_WIDTH),
+            ])
+            .split(area);
+        draw_tool_detail_info(f, app, panels[0]);
+        draw_tool_actions(f, app, panels[1]);
+        return;
+    }
+
+    if show_actions {
+        // Dar detay: aksiyonlar bilgi satırlarının ardından inline listelenir
+        // (görünürlük Tab/a gerektirmez; odak Right/Tab ile ToolActions'a gider).
+        let lines = tool_detail_lines_with_actions(app, area);
+        let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
+            Block::default()
+                .borders(Borders::TOP)
+                .title(format!(" {} ", lang.t(Msg::ToolDetail))),
+        );
+        f.render_widget(detail, area);
+        return;
+    }
+
+    draw_tool_detail_info(f, app, area);
+}
+
+fn draw_tool_detail_info(f: &mut Frame, app: &App, area: Rect) {
+    let lang = app.ui_lang();
+    let lines = tool_detail_info_lines(app, area);
     let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
         Block::default()
             .borders(Borders::TOP)
-            .title(if app.store_tab {
-                format!(" {} ", lang.t(Msg::StoreDetail))
-            } else {
-                format!(" {} ", lang.t(Msg::ToolDetail))
-            }),
+            .title(format!(" {} ", lang.t(Msg::ToolDetail))),
     );
     f.render_widget(detail, area);
+}
+
+fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
+    let Some(entry) = app.selected_tool() else {
+        return vec![Line::from(Span::styled(
+            "Henüz araç seçilmedi.",
+            Style::default().fg(Color::DarkGray),
+        ))];
+    };
+    let mut lines: Vec<Line> = Vec::new();
+    let inner_w = area.width.saturating_sub(4) as usize;
+
+    lines.push(Line::from(vec![Span::styled(
+        format!("{} · {}", entry.name, entry.category),
+        Style::default().add_modifier(Modifier::BOLD),
+    )]));
+
+    lines.push(Line::from(Span::styled(
+        truncate(&entry.description, inner_w),
+        Style::default().fg(Color::Gray),
+    )));
+
+    let status_line = match &entry.resolved_path {
+        Some(path) => format!("{} Kurulu ({})", entry.status.symbol(), path.display()),
+        None => format!(
+            "{} {}: {}",
+            entry.status.symbol(),
+            entry.status.label(),
+            entry.executable
+        ),
+    };
+    lines.push(Line::from(Span::styled(
+        truncate(&status_line, inner_w),
+        Style::default().fg(status_color(entry.status)),
+    )));
+
+    let cmd = if entry.args.is_empty() {
+        entry.executable.clone()
+    } else {
+        format!("{} {}", entry.executable, entry.args.join(" "))
+    };
+    lines.push(Line::from(vec![
+        Span::styled("Komut: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            truncate(&cmd, inner_w.saturating_sub(7)),
+            Style::default().fg(Color::White),
+        ),
+    ]));
+
+    if !entry.examples.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "Kullanım örnekleri:",
+            Style::default()
+                .fg(Color::DarkGray)
+                .add_modifier(Modifier::BOLD),
+        )));
+        for example in &entry.examples {
+            lines.push(Line::from(vec![
+                Span::styled("  • ", Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    truncate(example, inner_w.saturating_sub(4)),
+                    Style::default().fg(Color::White),
+                ),
+            ]));
+        }
+    }
+
+    if let Some(info) = &entry.setup_info {
+        lines.push(Line::from(Span::styled(
+            truncate(info, inner_w),
+            Style::default().fg(Color::Yellow),
+        )));
+    }
+
+    lines
+}
+
+fn tool_detail_lines_with_actions<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
+    let mut lines = tool_detail_info_lines(app, area);
+    let Some(entry) = app.selected_tool() else {
+        return lines;
+    };
+    if !entry.has_ai_actions() {
+        return lines;
+    }
+    let inner_w = area.width.saturating_sub(4) as usize;
+    let pal = palette(app);
+    lines.push(Line::from(Span::styled(
+        "Aksiyonlar:",
+        Style::default()
+            .fg(Color::DarkGray)
+            .add_modifier(Modifier::BOLD),
+    )));
+    for (i, action) in entry.actions.iter().enumerate() {
+        let selected = i == app.tool_action_index;
+        let focused = selected && app.focus == PanelFocus::ToolActions;
+        let style = if focused {
+            Style::default()
+                .fg(pal.accent_on)
+                .bg(pal.accent)
+                .add_modifier(Modifier::BOLD)
+        } else if selected {
+            Style::default().fg(pal.accent)
+        } else {
+            Style::default().fg(pal.text)
+        };
+        let prefix = if selected { "▶ " } else { "  " };
+        let cmd = if action.args.is_empty() {
+            entry.executable.clone()
+        } else {
+            format!("{} {}", entry.executable, action.args.join(" "))
+        };
+        lines.push(Line::from(vec![
+            Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
+            Span::styled(
+                truncate(
+                    &format!("{} · {}", action.label, cmd),
+                    inner_w.saturating_sub(2),
+                ),
+                style,
+            ),
+        ]));
+    }
+    lines
+}
+
+/// AI araç aksiyon listesi (detay yanında; seçili AI aracında her zaman görünür).
+fn draw_tool_actions(f: &mut Frame, app: &App, area: Rect) {
+    let pal = palette(app);
+    let Some(entry) = app.selected_tool() else {
+        return;
+    };
+    if !entry.has_ai_actions() {
+        return;
+    }
+    let items: Vec<ListItem> = entry
+        .actions
+        .iter()
+        .enumerate()
+        .map(|(i, action)| {
+            let selected = i == app.tool_action_index;
+            let focused = selected && app.focus == PanelFocus::ToolActions;
+            let style = if focused {
+                Style::default()
+                    .fg(pal.accent_on)
+                    .bg(pal.accent)
+                    .add_modifier(Modifier::BOLD)
+            } else if selected {
+                Style::default().fg(pal.accent)
+            } else {
+                Style::default().fg(pal.text)
+            };
+            let prefix = if selected { "▶ " } else { "  " };
+            let hint = if action.args.is_empty() {
+                entry.executable.clone()
+            } else {
+                format!("{} {}", entry.executable, action.args.join(" "))
+            };
+            ListItem::new(Line::from(vec![
+                Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
+                Span::styled(format!("{}  ", action.label), style),
+                Span::styled(hint, Style::default().fg(pal.muted)),
+            ]))
+        })
+        .collect();
+    let border = if app.focus == PanelFocus::ToolActions {
+        Style::default().fg(pal.accent)
+    } else {
+        Style::default().fg(pal.muted)
+    };
+    let list = List::new(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(border)
+                .title(" Aksiyonlar "),
+        )
+        .highlight_style(Style::default());
+    let mut state = ListState::default().with_selected(Some(app.tool_action_index));
+    f.render_stateful_widget(list, area, &mut state);
 }
 
 /// Mağaza uygulamasının detay satırlarını üretir.
@@ -1547,6 +1693,10 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
         "↑↓ araç   / ara   Enter   F favori   ? yardım"
     } else if app.focus == PanelFocus::Category {
         "↑↓ kategori   →/l araçlar   / ara   ? yardım"
+    } else if app.focus == PanelFocus::ToolActions {
+        "↑↓ aksiyon   ←/h araçlar   Enter çalıştır   ? yardım"
+    } else if app.selected_tool_has_ai_actions() {
+        "↑↓ araç   →/l aksiyon   Enter aç   F favori   ? yardım"
     } else {
         "↑↓ araç   ←/h kategori   Enter başlat   F favori   ? yardım"
     };

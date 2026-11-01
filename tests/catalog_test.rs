@@ -652,3 +652,61 @@ fn catalog_entry_examples_are_verified_not_invented() {
         }
     }
 }
+
+#[test]
+fn ai_tools_seed_open_resume_logout_help_actions() {
+    let cat = builtin_catalog();
+    for id in ["codex", "claude", "opencode"] {
+        let entry = cat
+            .get_by_id(id)
+            .unwrap_or_else(|| panic!("eksik AI araç: {id}"));
+        assert!(entry.has_ai_actions(), "{id} AI aksiyonları taşımalı");
+        let ids: Vec<&str> = entry.actions.iter().map(|a| a.id.as_str()).collect();
+        assert!(ids.contains(&"open"), "{id}: {ids:?}");
+        assert!(ids.contains(&"resume"), "{id}: {ids:?}");
+        assert!(ids.contains(&"logout"), "{id}: {ids:?}");
+        assert!(ids.contains(&"help"), "{id}: {ids:?}");
+        let open = entry.actions.iter().find(|a| a.id == "open").unwrap();
+        assert!(open.args.is_empty(), "open birincil açma args'sız olmalı");
+    }
+    let minimax = cat.get_by_id("minimax-code").expect("minimax");
+    assert!(minimax.has_ai_actions());
+    assert!(minimax.actions.iter().any(|a| a.id == "open"));
+    assert!(minimax.actions.iter().any(|a| a.id == "help"));
+}
+
+#[test]
+fn tool_action_rejects_empty_id_or_empty_arg() {
+    let mut tool = user_tool("aksiyonlu", "aksiyonlu-xyz");
+    tool.category = "AI ve Kodlama".into();
+    tool.actions = vec![nova::config::ToolAction {
+        id: String::new(),
+        label: "Aç".into(),
+        args: vec![],
+    }];
+    let err = catalog_entry_from_tool(&tool).unwrap_err();
+    assert!(err.contains("id"), "{err}");
+
+    tool.actions = vec![nova::config::ToolAction {
+        id: "resume".into(),
+        label: "Devam".into(),
+        args: vec![String::new()],
+    }];
+    let err = catalog_entry_from_tool(&tool).unwrap_err();
+    assert!(err.contains("args"), "{err}");
+}
+
+#[test]
+fn with_action_switches_to_custom_command_when_args_present() {
+    let cat = builtin_catalog();
+    let codex = cat.get_by_id("codex").unwrap();
+    let resume = codex.actions.iter().find(|a| a.id == "resume").unwrap();
+    let launched = codex.with_action(resume);
+    assert_eq!(launched.launch_kind, LaunchKind::CustomCommand);
+    assert_eq!(launched.args, resume.args);
+
+    let open = codex.actions.iter().find(|a| a.id == "open").unwrap();
+    let primary = codex.with_action(open);
+    assert_eq!(primary.launch_kind, LaunchKind::Interactive);
+    assert!(primary.args.is_empty());
+}
