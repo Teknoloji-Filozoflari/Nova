@@ -42,9 +42,31 @@ fn base_app() -> App {
     mark_installed(
         &mut app,
         &[
-            "btop", "fastfetch", "procs", "btm", "dust", "duf", "lazygit", "rg", "fd", "fzf",
-            "eza", "bat", "yazi", "claude", "opencode", "codex", "minimax-code", "spf", "gdu",
-            "bandwhich", "curl", "jq", "gh", "delta", "lazydocker",
+            "btop",
+            "fastfetch",
+            "procs",
+            "btm",
+            "dust",
+            "duf",
+            "lazygit",
+            "rg",
+            "fd",
+            "fzf",
+            "eza",
+            "bat",
+            "yazi",
+            "claude",
+            "opencode",
+            "codex",
+            "minimax-code",
+            "spf",
+            "gdu",
+            "bandwhich",
+            "curl",
+            "jq",
+            "gh",
+            "delta",
+            "lazydocker",
         ],
     );
     // Mağaza durumunu da kısmen işaretle (liste rozetleri).
@@ -102,8 +124,7 @@ fn capture_settings(out: &Path) {
     app.select_settings_tab();
     app.settings_action_index = 0; // Güncelle (Nova)
     app.focus = PanelFocus::Tool; // Ayarlar listesi vurgulu
-    app.status_message =
-        "Ayarlar: Güncelle (Releases + repo main) · Tema · Dil · Gelişmiş.".into();
+    app.status_message = "Ayarlar: Güncelle (Releases + repo main) · Tema · Dil · Gelişmiş.".into();
     // Ayarlar alt detay şeridini sade tutmak için AI kategorisinden çık.
     set_category(&mut app, "Sistem ve Kaynak Kullanımı");
     dump(&app, 100, 32, out.join("03-settings.json"));
@@ -117,11 +138,7 @@ fn capture_ai_actions(out: &Path) {
         .filtered_tools()
         .iter()
         .position(|e| e.id == "claude")
-        .or_else(|| {
-            app.filtered_tools()
-                .iter()
-                .position(|e| e.has_ai_actions())
-        })
+        .or_else(|| app.filtered_tools().iter().position(|e| e.has_ai_actions()))
     {
         app.tool_index = idx;
     }
@@ -133,9 +150,7 @@ fn capture_ai_actions(out: &Path) {
 
 fn dump(app: &App, width: u16, height: u16, path: PathBuf) {
     let mut terminal = Terminal::new(TestBackend::new(width, height)).expect("TestBackend");
-    terminal
-        .draw(|f| nova::ui::draw(f, app))
-        .expect("draw");
+    terminal.draw(|f| nova::ui::draw(f, app)).expect("draw");
     let buffer = terminal.backend().buffer();
 
     let mut cells = Vec::with_capacity((width as usize) * (height as usize));
