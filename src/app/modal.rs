@@ -35,6 +35,8 @@ pub enum ConfirmAction {
         name: String,
         version: String,
     },
+    /// Kurulu mağaza uygulamasını kaldır (arşiv dizini veya PM uninstall).
+    UninstallStoreApp { id: String, name: String },
 }
 
 /// Açık olan modal.
@@ -115,6 +117,15 @@ pub enum Modal {
         latest: Version,
         /// Yayın kaydı.
         release: GitHubRelease,
+    },
+    /// Kurulu mağaza uygulaması için eylem menüsü (kaldır / güncelleme denetle).
+    StoreInstalledMenu {
+        /// Mağaza kimliği.
+        id: String,
+        /// Görünen ad.
+        name: String,
+        /// Seçili satır: 0 = Kaldır, 1 = Güncelleme denetle.
+        index: usize,
     },
 }
 

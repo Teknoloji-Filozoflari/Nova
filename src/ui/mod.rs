@@ -23,7 +23,7 @@ use crate::store::{SETTINGS_TAB_LABEL, STORE_CATEGORIES, STORE_TAB_LABEL};
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
+use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph, Wrap};
 use ratatui::Frame;
 
 /// Uygulamanın etkin tema paleti.
@@ -177,6 +177,17 @@ pub fn draw(f: &mut Frame, app: &App) {
         return;
     }
 
+    // Açık temada yüzey boyanır; aksi hâlde kategori etiketleri (siyah metin)
+    // koyu emülatör arka planında kaybolur.
+    let pal = palette(app);
+    if let Some(bg) = pal.surface {
+        f.render_widget(Clear, area);
+        f.render_widget(
+            Block::default().style(Style::default().bg(bg).fg(pal.text)),
+            area,
+        );
+    }
+
     let wide = area.width >= WIDE_MIN_WIDTH;
     let show_detail = area.width >= MEDIUM_MIN_WIDTH && area.height >= 10;
     let tall = area.height >= TALL_MIN_HEIGHT;
@@ -280,15 +291,37 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
         draw_store_content(f, app, area, wide);
     } else if app.settings_tab {
         if wide {
+            if app.theme_picker_open {
+                let panels = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([
+                        Constraint::Length(CATEGORY_PANEL_WIDTH),
+                        Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
+                        Constraint::Min(20),
+                    ])
+                    .split(area);
+                draw_categories(f, app, panels[0]);
+                draw_settings_panel(f, app, panels[1]);
+                draw_theme_picker(f, app, panels[2]);
+            } else {
+                let panels = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([
+                        Constraint::Length(CATEGORY_PANEL_WIDTH),
+                        Constraint::Min(20),
+                    ])
+                    .split(area);
+                draw_categories(f, app, panels[0]);
+                draw_settings_panel(f, app, panels[1]);
+            }
+        } else if app.theme_picker_open {
+            let half = (area.height / 2).max(3);
             let panels = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints([
-                    Constraint::Length(CATEGORY_PANEL_WIDTH),
-                    Constraint::Min(20),
-                ])
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Length(half), Constraint::Min(3)])
                 .split(area);
-            draw_categories(f, app, panels[0]);
-            draw_settings_panel(f, app, panels[1]);
+            draw_settings_panel(f, app, panels[0]);
+            draw_theme_picker(f, app, panels[1]);
         } else {
             draw_settings_panel(f, app, area);
         }
@@ -439,14 +472,18 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
     let border = if app.focus == PanelFocus::Category {
         Style::default().fg(pal.accent)
     } else {
-        Style::default()
+        Style::default().fg(pal.muted)
     };
-    let list = List::new(items).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(border)
-            .title(" Kategoriler "),
-    );
+    // Satır stilleri zaten seçimi gösteriyor; List’in varsayılan REVERSED
+    // vurgusu açık temada kategori adlarını siler — kapatılır.
+    let list = List::new(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(border)
+                .title(" Kategoriler "),
+        )
+        .highlight_style(Style::default());
     let mut state = ListState::default().with_selected(Some(app.selected_tab_index()));
     f.render_stateful_widget(list, area, &mut state);
 }
@@ -455,11 +492,15 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
 fn draw_settings_panel(f: &mut Frame, app: &App, area: Rect) {
     let pal = palette(app);
     let theme = app.ui_theme();
-    let theme_hint = format!(
-        "Şu an: {} ({}) — Enter ile değiştir",
-        theme.label(),
-        theme.id()
-    );
+    let theme_hint = if app.theme_picker_open {
+        format!("Şu an: {} — sağ panelden seç", theme.label())
+    } else {
+        format!(
+            "Şu an: {} ({}) — Enter ile seçenekler",
+            theme.label(),
+            theme.id()
+        )
+    };
     let actions = [
         ("Güncelle", "GitHub’da yeni Nova sürümü var mı bak ve kur"),
         ("Tema", theme_hint.as_str()),
@@ -491,20 +532,69 @@ fn draw_settings_panel(f: &mut Frame, app: &App, area: Rect) {
     let border = if app.focus == PanelFocus::Tool {
         Style::default().fg(pal.accent)
     } else {
-        Style::default()
+        Style::default().fg(pal.muted)
     };
-    let list = List::new(items).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(border)
-            .title(" Ayarlar "),
-    );
+    let list = List::new(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(border)
+                .title(" Ayarlar "),
+        )
+        .highlight_style(Style::default());
     let mut state = ListState::default().with_selected(Some(app.settings_action_index));
+    f.render_stateful_widget(list, area, &mut state);
+}
+
+/// Tema seçici yan paneli (Ayarlar → Tema).
+fn draw_theme_picker(f: &mut Frame, app: &App, area: Rect) {
+    let pal = palette(app);
+    let current = app.ui_theme();
+    let items: Vec<ListItem> = UiTheme::all()
+        .iter()
+        .enumerate()
+        .map(|(i, theme)| {
+            let selected = i == app.theme_picker_index;
+            let focused = selected && app.focus == PanelFocus::ThemePicker;
+            let style = if focused {
+                Style::default()
+                    .fg(pal.accent_on)
+                    .bg(pal.accent)
+                    .add_modifier(Modifier::BOLD)
+            } else if selected {
+                Style::default().fg(pal.accent)
+            } else {
+                Style::default().fg(pal.text)
+            };
+            let mark = if *theme == current { "● " } else { "○ " };
+            let prefix = if selected { "▶ " } else { "  " };
+            ListItem::new(Line::from(vec![
+                Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
+                Span::styled(mark, Style::default().fg(pal.accent)),
+                Span::styled(format!("{} ({})", theme.label(), theme.id()), style),
+            ]))
+        })
+        .collect();
+    let border = if app.focus == PanelFocus::ThemePicker {
+        Style::default().fg(pal.accent)
+    } else {
+        Style::default().fg(pal.muted)
+    };
+    let list = List::new(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(border)
+                .title(" Tema seç "),
+        )
+        .highlight_style(Style::default());
+    let mut state = ListState::default().with_selected(Some(app.theme_picker_index));
     f.render_stateful_widget(list, area, &mut state);
 }
 
 /// Mağaza kategorileri panelini çizer.
 fn draw_store_categories(f: &mut Frame, app: &App, area: Rect) {
+    let pal = palette(app);
     let items: Vec<ListItem> = STORE_CATEGORIES
         .iter()
         .enumerate()
@@ -514,15 +604,15 @@ fn draw_store_categories(f: &mut Frame, app: &App, area: Rect) {
             let focused = selected && app.focus == PanelFocus::StoreCategory;
             let style = if focused {
                 Style::default()
-                    .fg(Color::Black)
-                    .bg(Color::Cyan)
+                    .fg(pal.accent_on)
+                    .bg(pal.accent)
                     .add_modifier(Modifier::BOLD)
             } else if selected {
-                Style::default().fg(Color::Cyan)
+                Style::default().fg(pal.accent)
             } else if count == 0 {
-                Style::default().fg(Color::DarkGray)
+                Style::default().fg(pal.muted)
             } else {
-                Style::default()
+                Style::default().fg(pal.text)
             };
             let prefix = if selected { "▶ " } else { "  " };
             // Panelin iç genişliği (kenarlıklar düşülmüş) ve "▶ " öneki
@@ -539,16 +629,18 @@ fn draw_store_categories(f: &mut Frame, app: &App, area: Rect) {
         .collect();
 
     let border = if app.focus == PanelFocus::StoreCategory {
-        Style::default().fg(Color::Cyan)
+        Style::default().fg(pal.accent)
     } else {
-        Style::default()
+        Style::default().fg(pal.muted)
     };
-    let list = List::new(items).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(border)
-            .title(" Mağaza Kategorileri "),
-    );
+    let list = List::new(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(border)
+                .title(" Mağaza Kategorileri "),
+        )
+        .highlight_style(Style::default());
     let mut state = ListState::default().with_selected(Some(app.store_category_index));
     f.render_stateful_widget(list, area, &mut state);
 }
@@ -1023,9 +1115,12 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     ]));
 
     // 9. Kullanıcıya ne yapılacağını söyleyen satır (tuiui: Enter: Install).
+    let installed = status == crate::detection::InstalledStatus::Installed;
     lines.push(Line::from(Span::styled(
         if has_update {
             "Enter: güncelle   U: sürümleri denetle"
+        } else if installed {
+            "Enter: kaldır / güncelleme denetle   U: sürümleri denetle"
         } else if entry.install_method.is_package_manager() {
             "Enter: Install   U: sürümleri denetle"
         } else if entry.install_method.is_archive() {

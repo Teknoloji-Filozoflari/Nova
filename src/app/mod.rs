@@ -54,6 +54,8 @@ pub enum PanelFocus {
     StoreCategory,
     /// Mağaza uygulamaları paneli odaklı.
     StoreApp,
+    /// Ayarlar → Tema seçici paneli odaklı.
+    ThemePicker,
 }
 
 /// Uygulama durumu.
@@ -80,6 +82,8 @@ pub struct InstallJob {
     pub app_id: String,
     /// Kurulan uygulamanın adı.
     pub app_name: String,
+    /// Kaldırma işi mi? (sonuç işleme yolu değişir).
+    pub is_uninstall: bool,
     /// İşin sonucunu taşıyan kanal.
     receiver: Receiver<Result<crate::store::install::InstallOutcome, String>>,
 }
@@ -89,7 +93,7 @@ pub struct InstallJob {
 pub struct PendingTtyPm {
     pub entry: crate::store::StoreEntry,
     pub plan: host::InstallPlan,
-    pub is_upgrade: bool,
+    pub operation: crate::store::install::PmOperation,
 }
 
 /// Arka planda süren mağaza canlı sürüm / PM güncelleme denetimi.
@@ -130,6 +134,10 @@ pub struct App {
     pub settings_tab: bool,
     /// Ayarlar sekmesinde seçili eylem: 0 = Güncelle, 1 = Tema.
     pub settings_action_index: usize,
+    /// Tema seçici yan paneli açık mı?
+    pub theme_picker_open: bool,
+    /// Tema seçici listesindeki seçili indeks.
+    pub theme_picker_index: usize,
     /// Seçili mağaza kategorisinin indeksi.
     pub store_category_index: usize,
     /// Seçili mağaza uygulamasının indeksi (filtrelenmiş liste üzerinden).
@@ -260,6 +268,8 @@ impl App {
             store_tab: false,
             settings_tab: false,
             settings_action_index: 0,
+            theme_picker_open: false,
+            theme_picker_index: 0,
             store_category_index: 0,
             store_app_index: 0,
             tool_index: 0,
@@ -424,8 +434,30 @@ impl App {
                         }
                     }
                 } else if self.settings_tab {
-                    self.settings_action_index = row.min(1);
-                    self.focus = PanelFocus::Tool;
+                    if self.theme_picker_open && areas.wide {
+                        // Geniş: orta panel eylemler, sağ panel temalar.
+                        let theme_start = areas
+                            .category_end_x
+                            .saturating_add(crate::ui::STORE_CATEGORY_PANEL_WIDTH);
+                        if x >= theme_start {
+                            self.theme_picker_index = row.min(crate::ui::UiTheme::all().len() - 1);
+                            self.focus = PanelFocus::ThemePicker;
+                        } else {
+                            self.settings_action_index = row.min(1);
+                            self.focus = PanelFocus::Tool;
+                            if self.settings_action_index == 1 {
+                                self.open_theme_picker();
+                            } else {
+                                self.theme_picker_open = false;
+                            }
+                        }
+                    } else {
+                        self.settings_action_index = row.min(1);
+                        self.focus = PanelFocus::Tool;
+                        if self.settings_action_index == 1 {
+                            self.open_theme_picker();
+                        }
+                    }
                 } else {
                     // Araç paneli.
                     let tools = self.filtered_tools();
@@ -480,7 +512,9 @@ impl App {
 
         match key.code {
             KeyCode::Esc => {
-                if self.show_help {
+                if self.theme_picker_open {
+                    self.close_theme_picker();
+                } else if self.show_help {
                     self.show_help = false;
                 } else {
                     self.running = false;
@@ -538,6 +572,9 @@ impl App {
                     self.focus = PanelFocus::StoreApp;
                 }
                 PanelFocus::StoreApp => self.select_store_app(),
+                PanelFocus::ThemePicker => {
+                    let _ = self.apply_theme_at_picker_index();
+                }
             },
             KeyCode::Char('r') | KeyCode::Char('R') => {
                 self.modal = modal::Modal::History;
@@ -735,6 +772,10 @@ impl App {
                 let max = apps.len().saturating_sub(1);
                 self.store_app_index = (self.store_app_index + 1).min(max);
             }
+            PanelFocus::ThemePicker => {
+                let max = crate::ui::UiTheme::all().len().saturating_sub(1);
+                self.theme_picker_index = (self.theme_picker_index + 1).min(max);
+            }
         }
     }
 
@@ -755,6 +796,9 @@ impl App {
             }
             PanelFocus::StoreApp => {
                 self.store_app_index = self.store_app_index.saturating_sub(1);
+            }
+            PanelFocus::ThemePicker => {
+                self.theme_picker_index = self.theme_picker_index.saturating_sub(1);
             }
         }
     }
@@ -802,6 +846,7 @@ impl App {
         if self.settings_tab {
             self.store_tab = true;
             self.settings_tab = false;
+            self.theme_picker_open = false;
             self.store_category_index = 0;
             self.store_app_index = 0;
             return;
@@ -833,6 +878,7 @@ impl App {
     pub fn select_store_tab(&mut self) {
         self.store_tab = true;
         self.settings_tab = false;
+        self.theme_picker_open = false;
         self.store_category_index = 0;
         self.store_app_index = 0;
         self.focus = PanelFocus::StoreApp;
@@ -844,9 +890,11 @@ impl App {
     pub fn select_settings_tab(&mut self) {
         self.settings_tab = true;
         self.store_tab = false;
+        self.theme_picker_open = false;
         self.settings_action_index = 0;
         self.focus = PanelFocus::Tool;
-        self.status_message = "Ayarlar: Güncelle (GitHub) veya Tema — Enter ile uygula.".into();
+        self.status_message =
+            "Ayarlar: Güncelle (GitHub) veya Tema — Enter ile seçenekleri aç.".into();
     }
 
     /// Sol panelde seçili sekmenin satır indeksi (çizilen liste üzerinden).
@@ -890,15 +938,28 @@ impl App {
     /// ve mağaza uygulamaları. Araç/Ayarlar sekmesinde iki panel vardır. Dar
     /// terminalde gizlenen paneller zincirden çıkarılır.
     fn focus_chain(&self) -> &'static [PanelFocus] {
-        match (self.store_tab, self.settings_tab, self.narrow_mode) {
-            (true, _, false) => &[
+        match (
+            self.store_tab,
+            self.settings_tab,
+            self.theme_picker_open,
+            self.narrow_mode,
+        ) {
+            (true, _, _, false) => &[
                 PanelFocus::Category,
                 PanelFocus::StoreCategory,
                 PanelFocus::StoreApp,
             ],
-            (true, _, true) => &[PanelFocus::StoreCategory, PanelFocus::StoreApp],
-            (_, true, false) | (false, false, false) => &[PanelFocus::Category, PanelFocus::Tool],
-            (_, true, true) | (false, false, true) => &[PanelFocus::Tool],
+            (true, _, _, true) => &[PanelFocus::StoreCategory, PanelFocus::StoreApp],
+            (_, true, true, false) => &[
+                PanelFocus::Category,
+                PanelFocus::Tool,
+                PanelFocus::ThemePicker,
+            ],
+            (_, true, true, true) => &[PanelFocus::Tool, PanelFocus::ThemePicker],
+            (_, true, false, false) | (false, false, _, false) => {
+                &[PanelFocus::Category, PanelFocus::Tool]
+            }
+            (_, true, false, true) | (false, false, _, true) => &[PanelFocus::Tool],
         }
     }
 
@@ -1161,13 +1222,54 @@ impl App {
         crate::ui::UiTheme::parse(self.state.file.prefs.theme.as_deref().unwrap_or(""))
     }
 
-    /// Temayı bir sonraki değere alır ve state.toml'a yazar.
+    /// Temayı bir sonraki değere alır ve state.toml'a yazar (geriye dönük).
     pub fn cycle_theme(&mut self) -> Result<crate::ui::UiTheme, String> {
-        let next = self.ui_theme().next();
-        self.state.file.prefs.theme = Some(next.id().to_string());
+        self.set_theme(self.ui_theme().next())
+    }
+
+    /// Seçilen temayı uygular ve kalıcılaştırır.
+    pub fn set_theme(&mut self, theme: crate::ui::UiTheme) -> Result<crate::ui::UiTheme, String> {
+        self.state.file.prefs.theme = Some(theme.id().to_string());
         self.persist_state()
             .map_err(|e| format!("Tema kaydedilemedi: {e}"))?;
-        Ok(next)
+        Ok(theme)
+    }
+
+    /// Tema seçici yan panelini açar.
+    pub fn open_theme_picker(&mut self) {
+        self.theme_picker_open = true;
+        self.theme_picker_index = self.ui_theme().index();
+        self.settings_action_index = 1;
+        self.focus = PanelFocus::ThemePicker;
+        self.status_message = "Tema: ↑↓ ile seç, Enter uygula, Esc paneli kapat.".into();
+    }
+
+    /// Tema seçiciyi kapatır (Ayarlar listesine döner).
+    pub fn close_theme_picker(&mut self) {
+        self.theme_picker_open = false;
+        if self.focus == PanelFocus::ThemePicker {
+            self.focus = PanelFocus::Tool;
+        }
+        self.status_message = "Tema paneli kapatıldı.".into();
+    }
+
+    /// Seçici satırındaki temayı uygular.
+    pub fn apply_theme_at_picker_index(&mut self) -> Result<crate::ui::UiTheme, String> {
+        let themes = crate::ui::UiTheme::all();
+        let theme = themes
+            .get(self.theme_picker_index.min(themes.len().saturating_sub(1)))
+            .copied()
+            .unwrap_or_default();
+        match self.set_theme(theme) {
+            Ok(theme) => {
+                self.status_message = format!("✓ Tema: {} ({})", theme.label(), theme.id());
+                Ok(theme)
+            }
+            Err(e) => {
+                self.status_message = format!("Hata: {e}");
+                Err(e)
+            }
+        }
     }
 
     /// Nova güncelleme denetimini başlatır (Ayarlar / `U`).
@@ -1221,14 +1323,7 @@ impl App {
                     }
                 }
             }
-            _ => match self.cycle_theme() {
-                Ok(theme) => {
-                    self.status_message = format!("✓ Tema: {} ({})", theme.label(), theme.id());
-                }
-                Err(e) => {
-                    self.status_message = format!("Hata: {e}");
-                }
-            },
+            _ => self.open_theme_picker(),
         }
     }
 
@@ -1313,10 +1408,11 @@ impl App {
     ///
     /// 1. Canlı denetimde bulunmuş **yeni sürüm** varsa güncelleme onayı
     ///    sorulur.
-    /// 2. Doğrulanabilir özeti olmayan kayıtta Nova kurulum yapmaz; resmî
+    /// 2. **Kurulu** uygulamada yeniden kurulum sorulmaz; kaldırma /
+    ///    güncelleme denetimi menüsü açılır.
+    /// 3. Doğrulanabilir özeti olmayan kayıtta Nova kurulum yapmaz; resmî
     ///    yönergeyi gösterir.
-    /// 3. Diğer hâllerde indirme + SHA-256 doğrulamalı kurulum onayı
-    ///    sorulur.
+    /// 4. Diğer hâllerde kurulum onayı sorulur.
     pub fn select_store_app(&mut self) {
         let apps = self.filtered_store_apps();
         let Some(entry) = apps
@@ -1332,6 +1428,8 @@ impl App {
             manifest::is_newer(&r.version, &entry.version.clone().unwrap_or_default())
         });
         let pm_update = self.store_pm_update_for(&entry.id).cloned();
+        let installed =
+            self.store_status(&entry.id) == crate::detection::InstalledStatus::Installed;
 
         if has_archive_update {
             let release = update.expect("güncelleme var");
@@ -1363,6 +1461,13 @@ impl App {
                     name: entry.name.clone(),
                     version: format!("pm:{}", pm.hint),
                 },
+            };
+        } else if installed {
+            // Kurulu: yeniden kurma yok — kaldır veya güncelleme denetle.
+            self.modal = modal::Modal::StoreInstalledMenu {
+                id: entry.id.clone(),
+                name: entry.name.clone(),
+                index: 0,
             };
         } else if !entry.install_method.is_installable() {
             // curl|bash vb. manual kayıtlarda "Kur" sunulmaz; talimat gösterilir.
@@ -1456,7 +1561,7 @@ impl App {
                 self.pending_tty_pm = Some(PendingTtyPm {
                     entry,
                     plan,
-                    is_upgrade: false,
+                    operation: crate::store::install::PmOperation::Install,
                 });
                 self.status_message =
                     format!("'{app_name}' kuruluyor ({method_label}, sudo TTY): {cmd}...");
@@ -1467,7 +1572,7 @@ impl App {
                 let result = crate::store::install::run_package_manager_argv(
                     &entry,
                     &plan_bg,
-                    false,
+                    crate::store::install::PmOperation::Install,
                     crate::store::install::PmIoMode::Captured,
                 )
                 .map_err(|e| e.to_string());
@@ -1476,6 +1581,7 @@ impl App {
             self.install_job = Some(InstallJob {
                 app_id: id.to_string(),
                 app_name: app_name.clone(),
+                is_uninstall: false,
                 receiver: rx,
             });
             self.status_message = format!("'{app_name}' kuruluyor ({method_label}): {cmd}...");
@@ -1497,6 +1603,7 @@ impl App {
         self.install_job = Some(InstallJob {
             app_id: id.to_string(),
             app_name: app_name.clone(),
+            is_uninstall: false,
             receiver: rx,
         });
         self.status_message = format!("'{}' indiriliyor ve SHA-256 ile doğrulanıyor...", app_name);
@@ -1528,7 +1635,7 @@ impl App {
                 self.pending_tty_pm = Some(PendingTtyPm {
                     entry,
                     plan,
-                    is_upgrade: true,
+                    operation: crate::store::install::PmOperation::Upgrade,
                 });
                 self.status_message =
                     format!("'{app_name}' güncelleniyor ({method_label}, sudo TTY): {cmd}...");
@@ -1538,7 +1645,7 @@ impl App {
                 let result = crate::store::install::run_package_manager_argv(
                     &entry,
                     &plan,
-                    true,
+                    crate::store::install::PmOperation::Upgrade,
                     crate::store::install::PmIoMode::Captured,
                 )
                 .map_err(|e| e.to_string());
@@ -1547,6 +1654,7 @@ impl App {
             self.install_job = Some(InstallJob {
                 app_id: id.to_string(),
                 app_name: app_name.clone(),
+                is_uninstall: false,
                 receiver: rx,
             });
             self.status_message = format!("'{app_name}' güncelleniyor ({method_label}): {cmd}...");
@@ -1579,6 +1687,7 @@ impl App {
         self.install_job = Some(InstallJob {
             app_id: id.to_string(),
             app_name: app_name.clone(),
+            is_uninstall: false,
             receiver: rx,
         });
         self.status_message = format!(
@@ -1597,7 +1706,11 @@ impl App {
         };
         match job.receiver.try_recv() {
             Ok(Ok(outcome)) => {
-                self.apply_install_outcome(outcome);
+                if job.is_uninstall {
+                    self.apply_uninstall_outcome(outcome);
+                } else {
+                    self.apply_install_outcome(outcome);
+                }
             }
             Ok(Err(message)) => {
                 self.status_message = format!("Hata: {message}");
@@ -1610,6 +1723,83 @@ impl App {
                 self.status_message = "Hata: kurulum işi beklenmedik şekilde sonlandı.".into();
             }
         }
+    }
+
+    /// Kurulu mağaza uygulamasını kaldırır (arşiv dizini veya PM uninstall).
+    pub fn start_store_uninstall(&mut self, id: &str) {
+        if self.install_job.is_some() || self.pending_tty_pm.is_some() {
+            self.status_message = "Zaten süren bir işlem var; önce onun bitmesini bekle.".into();
+            return;
+        }
+        let Some(entry) = self.store.get_by_id(id).cloned() else {
+            self.status_message = format!("Mağazada '{}' bulunamadı.", id);
+            return;
+        };
+        let app_name = entry.name.clone();
+
+        if entry.install_method.is_archive() {
+            let (tx, rx) = mpsc::channel();
+            std::thread::spawn(move || {
+                let result =
+                    crate::store::install::uninstall_archive_app(&entry).map_err(|e| e.to_string());
+                let _ = tx.send(result);
+            });
+            self.install_job = Some(InstallJob {
+                app_id: id.to_string(),
+                app_name: app_name.clone(),
+                is_uninstall: true,
+                receiver: rx,
+            });
+            self.status_message = format!("'{app_name}' kaldırılıyor...");
+            return;
+        }
+
+        if entry.install_method.is_package_manager() {
+            let host = self
+                .store_host_tools_override
+                .unwrap_or_else(host::HostTools::detect);
+            let os = host::detect_host_os();
+            let Some(plan) = host::resolve_uninstall_plan(&entry, &host, os) else {
+                self.status_message =
+                    format!("'{app_name}' için kaldırma komutu üretilemedi; elle kaldırın.");
+                return;
+            };
+            let cmd = plan.rendered();
+            let method_label = plan.method.short_label().to_string();
+            if plan.needs_tty_suspend() {
+                self.pending_tty_pm = Some(PendingTtyPm {
+                    entry,
+                    plan,
+                    operation: crate::store::install::PmOperation::Uninstall,
+                });
+                self.status_message =
+                    format!("'{app_name}' kaldırılıyor ({method_label}, sudo TTY): {cmd}...");
+                return;
+            }
+            let (tx, rx) = mpsc::channel();
+            let plan_bg = plan.clone();
+            std::thread::spawn(move || {
+                let result = crate::store::install::run_package_manager_argv(
+                    &entry,
+                    &plan_bg,
+                    crate::store::install::PmOperation::Uninstall,
+                    crate::store::install::PmIoMode::Captured,
+                )
+                .map_err(|e| e.to_string());
+                let _ = tx.send(result);
+            });
+            self.install_job = Some(InstallJob {
+                app_id: id.to_string(),
+                app_name: app_name.clone(),
+                is_uninstall: true,
+                receiver: rx,
+            });
+            self.status_message = format!("'{app_name}' kaldırılıyor ({method_label}): {cmd}...");
+            return;
+        }
+
+        self.status_message =
+            format!("'{app_name}' Nova ile kaldırılamaz (manual kayıt); resmi yönergeyi izleyin.");
     }
 
     /// Kurulum/güncelleme sonucunu mağaza durumuna işler.
@@ -1631,6 +1821,30 @@ impl App {
         self.store_pm_updates.remove(&outcome.app_id);
         // Mağaza ✓ → ana katalog (eşleşen araç veya otomatik ekleme).
         self.sync_store_app_to_catalog(&outcome.app_id);
+        self.status_message = format!("✓ {}", outcome.summary);
+        self.refresh_detection();
+    }
+
+    /// Kaldırma sonucunu mağaza / katalog durumuna işler.
+    fn apply_uninstall_outcome(&mut self, outcome: crate::store::install::InstallOutcome) {
+        self.store_updates.remove(&outcome.app_id);
+        self.store_pm_updates.remove(&outcome.app_id);
+        self.store_check_errors.remove(&outcome.app_id);
+        // Mağazadan senkron eklenen özel araç kaydını temizle.
+        let was_custom = self
+            .state
+            .file
+            .custom_tools
+            .iter()
+            .any(|t| t.id == outcome.app_id);
+        if was_custom {
+            self.state
+                .file
+                .custom_tools
+                .retain(|t| t.id != outcome.app_id);
+            let _ = self.catalog.remove_entry(&outcome.app_id);
+            let _ = self.persist_state();
+        }
         self.status_message = format!("✓ {}", outcome.summary);
         self.refresh_detection();
     }
@@ -1718,10 +1932,10 @@ impl App {
         };
         let cmd = pending.plan.rendered();
         let name = pending.entry.name.clone();
-        let verb = if pending.is_upgrade {
-            "güncelleniyor"
-        } else {
-            "kuruluyor"
+        let verb = match pending.operation {
+            crate::store::install::PmOperation::Upgrade => "güncelleniyor",
+            crate::store::install::PmOperation::Uninstall => "kaldırılıyor",
+            crate::store::install::PmOperation::Install => "kuruluyor",
         };
 
         crate::terminal_guard::suspend_tui()?;
@@ -1734,7 +1948,7 @@ impl App {
         let result = crate::store::install::run_package_manager_argv(
             &pending.entry,
             &pending.plan,
-            pending.is_upgrade,
+            pending.operation,
             crate::store::install::PmIoMode::Inherited,
         );
 
@@ -1752,7 +1966,13 @@ impl App {
         terminal.clear()?;
 
         match result {
-            Ok(outcome) => self.apply_install_outcome(outcome),
+            Ok(outcome) => {
+                if pending.operation == crate::store::install::PmOperation::Uninstall {
+                    self.apply_uninstall_outcome(outcome);
+                } else {
+                    self.apply_install_outcome(outcome);
+                }
+            }
             Err(err) => self.status_message = format!("Hata: {err}"),
         }
         Ok(())
@@ -2327,6 +2547,28 @@ impl App {
                 }
                 _ => {}
             },
+            modal::Modal::StoreInstalledMenu { id, name, index } => match code {
+                KeyCode::Esc => take(modal::Modal::None),
+                KeyCode::Up | KeyCode::Char('k') => *index = index.saturating_sub(1),
+                KeyCode::Down | KeyCode::Char('j') => *index = (*index + 1).min(1),
+                KeyCode::Enter => {
+                    if *index == 0 {
+                        take(modal::Modal::Confirm {
+                            question: format!(
+                                "'{name}' kaldırılsın mı? Enter onaylar, Esc vazgeçer."
+                            ),
+                            action: modal::ConfirmAction::UninstallStoreApp {
+                                id: id.clone(),
+                                name: name.clone(),
+                            },
+                        });
+                    } else {
+                        take(modal::Modal::None);
+                        self.check_store_updates();
+                    }
+                }
+                _ => {}
+            },
         }
         // Dal modal değiştirmediyse, yerinde güncellenmiş düğüm geri konur.
         Ok(decided.or(Some(next)))
@@ -2675,6 +2917,10 @@ impl App {
             modal::ConfirmAction::UpdateStoreApp { id, name, version } => {
                 self.status_message = format!("'{}' {} sürümüne güncelleniyor...", name, version);
                 self.start_store_update(&id);
+            }
+            modal::ConfirmAction::UninstallStoreApp { id, name } => {
+                self.status_message = format!("'{name}' kaldırılıyor...");
+                self.start_store_uninstall(&id);
             }
             modal::ConfirmAction::InstallUpdate { version, release } => {
                 match (
@@ -3206,6 +3452,8 @@ mod tests {
     #[test]
     fn store_tab_enter_on_package_manager_entry_asks_for_confirmation() {
         let mut app = sample_app();
+        app.store_status
+            .insert("aider".into(), crate::detection::InstalledStatus::Missing);
         app.handle_key(typed('m')).unwrap();
         assert!(app.store_tab, "mağaza sekmesi seçili olmalı");
         assert!(matches!(app.modal, modal::Modal::None));
@@ -3258,6 +3506,9 @@ mod tests {
     #[test]
     fn store_tab_enter_on_installable_entry_asks_for_confirmation() {
         let mut app = sample_app();
+        // Host’ta ripgrep kurulu olsa bile “kurulmamış” varsay — Install onayı.
+        app.store_status
+            .insert("ripgrep".into(), crate::detection::InstalledStatus::Missing);
         app.handle_key(typed('m')).unwrap();
         // Mağaza kategori paneline geç: "Dosya ve Arama"
         // (AI → Git → Dosya ve Arama).
@@ -3282,6 +3533,60 @@ mod tests {
             }
             other => panic!("onay ekranı bekleniyordu: {other:?}"),
         }
+    }
+
+    #[test]
+    fn store_enter_on_installed_opens_menu_not_reinstall() {
+        let mut app = sample_app();
+        app.select_store_tab();
+        if let Some(idx) = STORE_CATEGORIES.iter().position(|c| *c == "Dosya ve Arama") {
+            app.store_category_index = idx;
+        }
+        let apps = app.filtered_store_apps();
+        let pos = apps
+            .iter()
+            .position(|e| e.id == "ripgrep")
+            .expect("ripgrep");
+        app.store_app_index = pos;
+        app.store_status.insert(
+            "ripgrep".into(),
+            crate::detection::InstalledStatus::Installed,
+        );
+        app.select_store_app();
+        match &app.modal {
+            modal::Modal::StoreInstalledMenu { id, index, .. } => {
+                assert_eq!(id, "ripgrep");
+                assert_eq!(*index, 0);
+            }
+            other => panic!("kurulu menü beklenirdi: {other:?}"),
+        }
+        // Enter → kaldırma onayı
+        app.handle_key(key(crossterm::event::KeyCode::Enter))
+            .unwrap();
+        match &app.modal {
+            modal::Modal::Confirm {
+                action: modal::ConfirmAction::UninstallStoreApp { id, .. },
+                ..
+            } => assert_eq!(id, "ripgrep"),
+            other => panic!("kaldırma onayı beklenirdi: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn theme_enter_opens_side_panel_instead_of_cycling() {
+        let mut app = sample_app();
+        let before = app.ui_theme();
+        app.select_settings_tab();
+        app.settings_action_index = 1;
+        app.focus = PanelFocus::Tool;
+        app.activate_settings_action();
+        assert!(app.theme_picker_open);
+        assert_eq!(app.focus, PanelFocus::ThemePicker);
+        assert_eq!(app.ui_theme(), before, "Enter temayı hemen değiştirmemeli");
+        // Seçici satırını sonraki temaya alıp uygula.
+        app.theme_picker_index = before.next().index();
+        app.apply_theme_at_picker_index().unwrap();
+        assert_eq!(app.ui_theme(), before.next());
     }
 
     #[test]
@@ -3765,6 +4070,8 @@ mod tests {
         // Bu test yalnızca resolve_install_plan birimini app confirm metninde
         // yansıtır: pipx-only host’ta aider pipx gösterir.
         let mut app = sample_app();
+        app.store_status
+            .insert("aider".into(), crate::detection::InstalledStatus::Missing);
         app.select_store_tab();
         if let Some(idx) = STORE_CATEGORIES.iter().position(|c| *c == "AI") {
             app.store_category_index = idx;
