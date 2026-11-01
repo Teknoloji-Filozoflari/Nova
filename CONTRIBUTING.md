@@ -1,9 +1,10 @@
 # Katkı
 
-Katkılar memnuniyetle karşılanır. Nova MIT veya Apache-2.0 lisanslarından biri
-altında sunulur (bkz. `LICENSE.md`). Katkı göndererek, katkınızın her iki
-lisans koşulu altında projeye dahil edilip dağıtılmasına izin vermiş olursunuz.
-Ayrı bir yazılı lisans anlaşması varsa o anlaşma geçerlidir.
+Katkılar memnuniyetle karşılanır. Nova `MIT OR Apache-2.0` (SPDX) çift
+lisanslıdır; kullanıcı iki lisanstan birini seçer (bkz. `LICENSE.md`,
+`LICENSE-MIT`, `LICENSE-APACHE`). Katkı göndererek, katkınızın her iki lisans
+koşulu altında projeye dahil edilip dağıtılmasına izin vermiş olursunuz. Ayrı
+bir yazılı lisans anlaşması varsa o anlaşma geçerlidir.
 
 ## Kurulum
 

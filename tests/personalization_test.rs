@@ -834,3 +834,117 @@ fn relative_time_labels() {
         "2 gün önce"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Varsayılan AI CLI (`a`)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn default_ai_hotkey_requires_preference() {
+    let mut app = app_with_state(None, false);
+    app.set_launcher(|_, _, _| panic!("tercih yokken başlatıcı çağrılmamalı"));
+    app.handle_key(key(crossterm::event::KeyCode::Char('a')))
+        .unwrap();
+    assert!(
+        app.status_message.contains("Varsayılan AI aracı seçilmedi"),
+        "mesaj: {}",
+        app.status_message
+    );
+    assert!(app.state.file.recents.is_empty());
+}
+
+#[test]
+fn default_ai_hotkey_launches_configured_tool() {
+    let tmp = TempDir::new("default-ai");
+    let state_path = tmp.path().join("state.toml");
+    let mut app = app_with_state(Some(state_path.clone()), false);
+    if let Some(entry) = app
+        .catalog
+        .entries_mut()
+        .iter_mut()
+        .find(|e| e.id == "opencode")
+    {
+        entry.status = InstalledStatus::Installed;
+    } else {
+        panic!("opencode katalogda olmalı");
+    }
+    app.state.file.prefs.default_ai_tool = Some("opencode".into());
+    app.persist_state().unwrap();
+    app.set_launcher(fake_ok);
+
+    app.handle_key(key(crossterm::event::KeyCode::Char('a')))
+        .unwrap();
+    assert_eq!(app.state.file.recents.len(), 1);
+    assert_eq!(app.state.file.recents[0].id, "opencode");
+    assert_eq!(app.state.file.recents[0].status, AttemptStatus::RequestSent);
+    assert!(
+        app.status_message.contains("istendi"),
+        "mesaj: {}",
+        app.status_message
+    );
+
+    let reopened = app_with_state(Some(state_path), false);
+    assert_eq!(
+        reopened.state.file.prefs.default_ai_tool.as_deref(),
+        Some("opencode")
+    );
+}
+
+#[test]
+fn default_ai_hotkey_refuses_missing_tool_without_calling_launcher() {
+    let mut app = app_with_state(None, false);
+    if let Some(entry) = app
+        .catalog
+        .entries_mut()
+        .iter_mut()
+        .find(|e| e.id == "claude")
+    {
+        entry.status = InstalledStatus::Missing;
+    }
+    app.state.file.prefs.default_ai_tool = Some("claude".into());
+    app.set_launcher(|_, _, _| panic!("kurulu olmayan varsayılan AI başlatılmamalı"));
+    app.handle_key(key(crossterm::event::KeyCode::Char('A')))
+        .unwrap();
+    assert!(
+        app.status_message.contains("kurulu değil"),
+        "mesaj: {}",
+        app.status_message
+    );
+    assert_eq!(app.state.file.recents[0].status, AttemptStatus::Rejected);
+}
+
+#[test]
+fn settings_persist_default_ai_tool_id() {
+    let tmp = TempDir::new("settings-ai");
+    let state_path = tmp.path().join("state.toml");
+    let mut app = app_with_state(Some(state_path.clone()), false);
+    if let Some(entry) = app
+        .catalog
+        .entries_mut()
+        .iter_mut()
+        .find(|e| e.id == "codex")
+    {
+        entry.status = InstalledStatus::Installed;
+    }
+    app.open_advanced_settings_modal();
+    // focus: 0 terminal, 1 workdir, 2 theme, 3 AI
+    for _ in 0..3 {
+        app.handle_key(key(crossterm::event::KeyCode::Tab)).unwrap();
+    }
+    type_str(&mut app, "codex");
+    app.handle_key(key(crossterm::event::KeyCode::Enter))
+        .unwrap();
+    assert_eq!(app.modal, modal::Modal::None);
+    assert_eq!(
+        app.state.file.prefs.default_ai_tool.as_deref(),
+        Some("codex")
+    );
+    assert_eq!(
+        load_state(&state_path)
+            .state
+            .prefs
+            .default_ai_tool
+            .as_deref(),
+        Some("codex")
+    );
+}

@@ -1356,6 +1356,7 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
             ("M", "Mağaza sekmesi"),
             ("U", "Güncellemeyi denetle"),
             ("O", "Dosya seçici"),
+            ("A", "Varsayılan AI"),
         ]),
         help_line(&[("Q", "Çıkış"), ("Ctrl+C", "Çıkış")]),
     ];
@@ -1378,7 +1379,7 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
 /// Yükseklik sınırlı olduğu için kırpma kaçınılmaz; bu sıralama kırpılan
 /// kısmın en az kritik tuşlar olmasını sağlar.
 fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
-    let entries: [(&'static str, &'static str); 16] = [
+    let entries: [(&'static str, &'static str); 17] = [
         ("↑↓", "Gezin"),
         ("←→", "Panel"),
         ("/", "Ara"),
@@ -1393,6 +1394,7 @@ fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
         ("M", "Mağaza"),
         ("U", "Güncellemeyi denetle"),
         ("O", "Dosya seçici"),
+        ("A", "Varsayılan AI"),
         ("C", "Yalnızca favoriler"),
         ("Q", "Çıkış"),
     ];
