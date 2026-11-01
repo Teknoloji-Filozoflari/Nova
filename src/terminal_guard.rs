@@ -283,8 +283,7 @@ pub fn suspend_tui() -> Result<(), NovaError> {
     let mut out = stdout();
     let _ = out.execute(DisableMouseCapture);
     disable_raw_mode().map_err(raw_mode_error)?;
-    out.execute(LeaveAlternateScreen)
-        .map_err(raw_mode_error)?;
+    out.execute(LeaveAlternateScreen).map_err(raw_mode_error)?;
     let _ = out.flush();
     Ok(())
 }
@@ -298,10 +297,8 @@ pub fn resume_tui() -> Result<(), NovaError> {
 
     enable_raw_mode().map_err(raw_mode_error)?;
     let mut out = stdout();
-    out.execute(EnterAlternateScreen)
-        .map_err(raw_mode_error)?;
-    out.execute(EnableMouseCapture)
-        .map_err(raw_mode_error)?;
+    out.execute(EnterAlternateScreen).map_err(raw_mode_error)?;
+    out.execute(EnableMouseCapture).map_err(raw_mode_error)?;
     Ok(())
 }
 

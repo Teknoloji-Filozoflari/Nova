@@ -305,23 +305,13 @@ pub fn upgrade_argv(method: InstallMethod, install_argv: &[String]) -> Option<Ve
         InstallMethod::Uv => {
             // uv tool install [flags…] PKG → uv tool upgrade PKG
             let pkg = uv_package_name(install_argv)?;
-            Some(vec![
-                "uv".into(),
-                "tool".into(),
-                "upgrade".into(),
-                pkg,
-            ])
+            Some(vec!["uv".into(), "tool".into(), "upgrade".into(), pkg])
         }
         InstallMethod::Npm => {
             // npm install|-i -g PKG → npm update -g PKG
             let pkg = package_token(install_argv, "install")
                 .or_else(|| package_token(install_argv, "i"))?;
-            Some(vec![
-                "npm".into(),
-                "update".into(),
-                "-g".into(),
-                pkg,
-            ])
+            Some(vec!["npm".into(), "update".into(), "-g".into(), pkg])
         }
         InstallMethod::Brew => {
             // brew install FORMULA → brew upgrade FORMULA
@@ -358,11 +348,8 @@ pub fn upgrade_argv(method: InstallMethod, install_argv: &[String]) -> Option<Ve
             // cargo install … → aynı argv + --force (yoksa)
             let mut out = install_argv.to_vec();
             if !out.iter().any(|a| a == "--force") {
-                if let Some(pos) = out.iter().position(|a| a == "install") {
-                    out.insert(pos + 1, "--force".into());
-                } else {
-                    return None;
-                }
+                let pos = out.iter().position(|a| a == "install")?;
+                out.insert(pos + 1, "--force".into());
             }
             Some(out)
         }
@@ -560,9 +547,7 @@ fn package_name_for_method(method: InstallMethod, argv: &[String]) -> Option<Str
         InstallMethod::Brew => package_token(argv, "install"),
         InstallMethod::Pipx => package_token(argv, "install"),
         InstallMethod::Uv => uv_package_name(argv),
-        InstallMethod::Npm => {
-            package_token(argv, "install").or_else(|| package_token(argv, "i"))
-        }
+        InstallMethod::Npm => package_token(argv, "install").or_else(|| package_token(argv, "i")),
         InstallMethod::Cargo => cargo_package_name(argv),
         InstallMethod::Manual | InstallMethod::DownloadArchive => None,
     }
@@ -642,7 +627,9 @@ fn package_token(argv: &[String], verb: &str) -> Option<String> {
 }
 
 fn ensure_sys_yes(argv: &mut Vec<String>, verb: &str) {
-    let has_yes = argv.iter().any(|a| a == "-y" || a == "--yes" || a == "--assumeyes");
+    let has_yes = argv
+        .iter()
+        .any(|a| a == "-y" || a == "--yes" || a == "--assumeyes");
     if has_yes {
         return;
     }
@@ -758,12 +745,7 @@ pub fn parse_npm_outdated(text: &str) -> BTreeSet<String> {
 mod tests {
     use super::*;
 
-    fn pm_entry(
-        id: &str,
-        method: InstallMethod,
-        argv: &[&str],
-        notes: &str,
-    ) -> StoreEntry {
+    fn pm_entry(id: &str, method: InstallMethod, argv: &[&str], notes: &str) -> StoreEntry {
         StoreEntry {
             id: id.into(),
             name: id.into(),
@@ -804,16 +786,19 @@ go: go install example@latest
         assert!(methods.contains(&InstallMethod::Dnf));
         assert!(methods.contains(&InstallMethod::Uv));
         assert_eq!(opts.len(), 5);
-        let apt = opts.iter().find(|p| p.method == InstallMethod::Apt).unwrap();
+        let apt = opts
+            .iter()
+            .find(|p| p.method == InstallMethod::Apt)
+            .unwrap();
         assert!(apt.argv.iter().any(|a| a == "-y"));
         assert_eq!(apt.argv.last().map(String::as_str), Some("bat"));
-        let dnf = opts.iter().find(|p| p.method == InstallMethod::Dnf).unwrap();
+        let dnf = opts
+            .iter()
+            .find(|p| p.method == InstallMethod::Dnf)
+            .unwrap();
         assert!(dnf.argv.iter().any(|a| a == "-y"));
         let uv = opts.iter().find(|p| p.method == InstallMethod::Uv).unwrap();
-        assert_eq!(
-            uv.argv,
-            vec!["uv", "tool", "install", "bat"]
-        );
+        assert_eq!(uv.argv, vec!["uv", "tool", "install", "bat"]);
     }
 
     #[test]
@@ -980,7 +965,12 @@ go: go install example@latest
         );
         let cargo = upgrade_argv(
             InstallMethod::Cargo,
-            &["cargo".into(), "install".into(), "--locked".into(), "yazi-fm".into()],
+            &[
+                "cargo".into(),
+                "install".into(),
+                "--locked".into(),
+                "yazi-fm".into(),
+            ],
         )
         .unwrap();
         assert!(cargo.iter().any(|a| a == "--force"));
@@ -1030,25 +1020,12 @@ go: go install example@latest
         outdated.apt.insert("htop".into());
         // fx outdated değil → plan yok
         let installed = BTreeSet::from(["htop".into(), "fx".into()]);
-        let plans = collect_pm_updates(
-            &[htop, fx],
-            &installed,
-            &host,
-            HostOs::Linux,
-            &outdated,
-        );
+        let plans = collect_pm_updates(&[htop, fx], &installed, &host, HostOs::Linux, &outdated);
         assert!(plans.contains_key("htop"));
         assert!(!plans.contains_key("fx"));
         assert_eq!(
             plans["htop"].argv,
-            vec![
-                "sudo",
-                "apt",
-                "install",
-                "--only-upgrade",
-                "-y",
-                "htop"
-            ]
+            vec!["sudo", "apt", "install", "--only-upgrade", "-y", "htop"]
         );
     }
 
@@ -1073,16 +1050,12 @@ go: go install example@latest
         outdated.dnf.insert("htop".into());
         outdated.optimistic_uv = true;
         let installed = BTreeSet::from(["htop".into(), "llm".into()]);
-        let plans =
-            collect_pm_updates(&[htop, llm], &installed, &host, HostOs::Linux, &outdated);
+        let plans = collect_pm_updates(&[htop, llm], &installed, &host, HostOs::Linux, &outdated);
         assert_eq!(
             plans["htop"].argv,
             vec!["sudo", "dnf", "upgrade", "-y", "htop"]
         );
-        assert_eq!(
-            plans["llm"].argv,
-            vec!["uv", "tool", "upgrade", "llm"]
-        );
+        assert_eq!(plans["llm"].argv, vec!["uv", "tool", "upgrade", "llm"]);
     }
 
     #[test]
@@ -1097,12 +1070,8 @@ go: go install example@latest
         let mut outdated = OutdatedPackages::empty();
         outdated.optimistic_pipx = true;
         let installed = BTreeSet::from(["aider".into()]);
-        let plans =
-            collect_pm_updates(&[aider], &installed, &host, HostOs::Linux, &outdated);
-        assert_eq!(
-            plans["aider"].argv,
-            vec!["pipx", "upgrade", "aider-chat"]
-        );
+        let plans = collect_pm_updates(&[aider], &installed, &host, HostOs::Linux, &outdated);
+        assert_eq!(plans["aider"].argv, vec!["pipx", "upgrade", "aider-chat"]);
     }
 
     #[test]

@@ -17,7 +17,7 @@
 //! için [`Downloader`] ve [`Installer`] trait'leri taklit edilebilir.
 
 use crate::store::host::{self, HostTools, InstallPlan};
-use crate::store::{format_install_command, validate_install_command, InstallMethod, StoreEntry};
+use crate::store::{format_install_command, validate_install_command, StoreEntry};
 use sha2::{Digest, Sha256};
 use std::ffi::{OsStr, OsString};
 use std::fs;
@@ -622,7 +622,9 @@ pub fn run_package_manager_argv(
 
     // sudo dışındaki programın PATH'te olması gerekir; yoksa anlaşılır hata.
     let lookup = if program == "sudo" {
-        argv.get(1).map(String::as_str).unwrap_or(plan.method.short_label())
+        argv.get(1)
+            .map(String::as_str)
+            .unwrap_or(plan.method.short_label())
     } else {
         program.as_str()
     };
@@ -630,7 +632,12 @@ pub fn run_package_manager_argv(
         let alts = entry
             .install_notes
             .as_deref()
-            .map(|n| format!(" Alternatifler: {}", n.lines().take(3).collect::<Vec<_>>().join(" · ")))
+            .map(|n| {
+                format!(
+                    " Alternatifler: {}",
+                    n.lines().take(3).collect::<Vec<_>>().join(" · ")
+                )
+            })
             .unwrap_or_default();
         return Err(InstallError::Internal(format!(
             "'{lookup}' bulunamadı (PATH).{alts}"
@@ -698,7 +705,11 @@ pub fn run_package_manager_argv(
     let executable_path = crate::detection::resolve(&entry.executable)
         .1
         .unwrap_or_else(|| PathBuf::from(&entry.executable));
-    let verb = if is_upgrade { "güncellendi" } else { "kuruldu" };
+    let verb = if is_upgrade {
+        "güncellendi"
+    } else {
+        "kuruldu"
+    };
     Ok(InstallOutcome {
         app_id: entry.id.clone(),
         app_name: entry.name.clone(),
@@ -909,6 +920,7 @@ fn install_with_source(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::store::InstallMethod;
     use std::cell::RefCell;
     use std::io::Write;
     use std::rc::Rc;

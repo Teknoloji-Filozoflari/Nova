@@ -1190,7 +1190,7 @@ impl App {
                 .unwrap_or("resmî kurulum yönergelerini takip edin");
             self.status_message = format!("'{}' için {note}", entry.name);
         } else if entry.install_method.is_package_manager() {
-            let plan = crate::store::install::resolve_entry_install_plan(&entry).unwrap_or(
+            let plan = crate::store::install::resolve_entry_install_plan(entry).unwrap_or(
                 crate::store::host::InstallPlan {
                     method: entry.install_method,
                     argv: entry.install_command.clone().unwrap_or_default(),
@@ -1276,9 +1276,8 @@ impl App {
                     plan,
                     is_upgrade: false,
                 });
-                self.status_message = format!(
-                    "'{app_name}' kuruluyor ({method_label}, sudo TTY): {cmd}..."
-                );
+                self.status_message =
+                    format!("'{app_name}' kuruluyor ({method_label}, sudo TTY): {cmd}...");
                 return;
             }
             let plan_bg = plan.clone();
@@ -1297,8 +1296,7 @@ impl App {
                 app_name: app_name.clone(),
                 receiver: rx,
             });
-            self.status_message =
-                format!("'{app_name}' kuruluyor ({method_label}): {cmd}...");
+            self.status_message = format!("'{app_name}' kuruluyor ({method_label}): {cmd}...");
             return;
         }
 
@@ -1350,9 +1348,8 @@ impl App {
                     plan,
                     is_upgrade: true,
                 });
-                self.status_message = format!(
-                    "'{app_name}' güncelleniyor ({method_label}, sudo TTY): {cmd}..."
-                );
+                self.status_message =
+                    format!("'{app_name}' güncelleniyor ({method_label}, sudo TTY): {cmd}...");
                 return;
             }
             std::thread::spawn(move || {
@@ -1370,8 +1367,7 @@ impl App {
                 app_name: app_name.clone(),
                 receiver: rx,
             });
-            self.status_message =
-                format!("'{app_name}' güncelleniyor ({method_label}): {cmd}...");
+            self.status_message = format!("'{app_name}' güncelleniyor ({method_label}): {cmd}...");
             return;
         }
 
@@ -1448,12 +1444,8 @@ impl App {
             .map(|r| r.download_url.clone())
             .or_else(|| current.as_ref().and_then(|e| e.download_url.clone()))
             .unwrap_or_default();
-        self.store.mark_installed(
-            &outcome.app_id,
-            &outcome.version,
-            &checksum,
-            &download_url,
-        );
+        self.store
+            .mark_installed(&outcome.app_id, &outcome.version, &checksum, &download_url);
         self.store_pm_updates.remove(&outcome.app_id);
         self.status_message = format!("✓ {}", outcome.summary);
         self.refresh_detection();
@@ -1673,9 +1665,7 @@ impl App {
                     ),
                     (n, 0) => format!("{n} mağaza uygulaması için yeni sürüm bulundu."),
                     (0, p) => format!("{p} paket yöneticisi güncellemesi bulundu."),
-                    (n, p) => format!(
-                        "{n} yeni sürüm, {p} paket yöneticisi güncellemesi bulundu."
-                    ),
+                    (n, p) => format!("{n} yeni sürüm, {p} paket yöneticisi güncellemesi bulundu."),
                 };
             }
             Err(TryRecvError::Empty) => {
@@ -3371,12 +3361,11 @@ mod tests {
         app.store_cache_path = Some(cache_path.clone());
         // GitHub tarafını sessizleştir; yalnızca PM yolunu ölç.
         app.store_release_provider = Arc::new(FakeProvider::new(vec![]));
-        app.store_host_tools_override =
-            Some(host::HostTools::from_flags(true, false, false, false, false));
-        app.store_status.insert(
-            "htop".into(),
-            crate::detection::InstalledStatus::Installed,
-        );
+        app.store_host_tools_override = Some(host::HostTools::from_flags(
+            true, false, false, false, false,
+        ));
+        app.store_status
+            .insert("htop".into(), crate::detection::InstalledStatus::Installed);
         let mut outdated = host::OutdatedPackages::empty();
         outdated.apt.insert("htop".into());
         app.store_outdated_override = Some(outdated);
