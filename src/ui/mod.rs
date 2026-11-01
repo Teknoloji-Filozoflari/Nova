@@ -38,7 +38,7 @@ pub const HELP_HELP_MAX_HEIGHT: u16 = 10;
 /// Sol panelin (sekme listesi) genişliği.
 pub const CATEGORY_PANEL_WIDTH: u16 = 26;
 /// Mağaza kategori panelinin genişliği (üç sütunlu mağaza görünümünde).
-pub const STORE_CATEGORY_PANEL_WIDTH: u16 = 22;
+pub const STORE_CATEGORY_PANEL_WIDTH: u16 = 26;
 /// Araç detay panelinin satır sayısı (üst kenarlık dâhil).
 pub const DETAIL_ROWS: u16 = 8;
 /// Mağaza detay panelinin satır sayısı (üst kenarlık dâhil).

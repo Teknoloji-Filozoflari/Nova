@@ -2640,8 +2640,12 @@ mod tests {
         app.handle_key(key(crossterm::event::KeyCode::Enter))
             .unwrap();
         assert_eq!(app.modal, modal::Modal::None, "onay ekranı açılmamalı");
+        // İlk AI kaydı (Aider) manual; durum satırında install_notes görünür.
         assert!(
-            app.status_message.contains("Resmî kurulum yönergesi"),
+            app.status_message.contains("Aider")
+                && (app.status_message.contains("pipx")
+                    || app.status_message.contains("Resmî")
+                    || app.status_message.contains("kurulum")),
             "mesaj: {}",
             app.status_message
         );
