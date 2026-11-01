@@ -32,6 +32,8 @@ pub mod http;
 pub mod install;
 pub mod loader;
 pub mod manifest;
+pub mod path;
+pub mod sync;
 
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
