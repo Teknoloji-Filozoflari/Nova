@@ -477,7 +477,7 @@ kullanıcıya durum satırında açıklanır.
 - **`Özel Araçlar` gömülü katalogda boş.** UI boş kategori mesajı gösterir; araçlar kullanıcı dosyasından veya formdan gelir. Gömülü `lazygit`, `Git ve Geliştirici Araçları` kategorisindedir.
 - **SSH için ayrı profil ekranı yok.** Profiller `custom_command` kayıtları olarak TOML'da tanımlanır.
 - **Cloudflare örneği varsayılan olarak 25 MB indirir** ve `curl` ortalama indirme hızını gösterir; `executable` ve `args` kullanıcı `config.toml` dosyasından değiştirilebilir.
-- **Fare desteği yalnızca ana ekranda.** Kategori/araç panellerinde tıklama ve kaydırma çalışır; mağaza, dosya seçici, ayarlar ve onay modallarında fare olayları yok sayılır.
+- **Fare desteği ana ekran listelerinde.** Kategori, araç, mağaza ve Ayarlar/tema panellerinde tıklama (kenarlık + kaydırma penceresi hesaba katılır) ve kaydırma çalışır; dosya seçici / onay / form modallarında fare yok sayılır.
 - **Arama sıralaması yok.** Sonuçlar katalog sırasındadır; alaka sırasına göre sıralama yapılmaz.
 - **Süreç yeniden sahiplenilmiyor.** Konsole süreci Nova tarafından `wait` edilmez (bilinçli); PID yalnızca raporlama içindir.
 - **Asgari Rust sürümü doğrulanmadı.** Bağımlılıkların `rust-version` alanları ≥1.74 öneriyor; yalnızca 1.99.1 ile derleme/test yapıldı.
