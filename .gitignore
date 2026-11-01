@@ -2,3 +2,6 @@
 
 /target
 /dist
+
+# Ekran görüntüsü ara çıktısı (PNG’ler kalır; yeniden üret: docs/screenshots/README.md)
+/docs/screenshots/frames/

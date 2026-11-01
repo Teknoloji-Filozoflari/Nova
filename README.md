@@ -1,89 +1,86 @@
 # Nova
 
 <p align="center">
-  <strong>Linux terminal araçlarını keşfet, kur, güncelle ve yeni bir terminal sekmesinde başlat.</strong>
+  <img alt="Nova ana liste" src="docs/screenshots/main-list.png" width="820">
+</p>
+
+<p align="center">
+  <strong>Linux terminal araçlarını keşfet, kur, güncelle — tek TUI’de başlat.</strong><br>
+  <em>Kurulu olanlar bir Enter uzakta. Geri kalanı Mağaza’da, imzalı katalogla.</em>
 </p>
 
 <p align="center">
   <a href="https://github.com/Teknoloji-Filozoflari/Nova/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/Teknoloji-Filozoflari/Nova?style=flat-square&logo=github"></a>
+  <a href="https://github.com/Teknoloji-Filozoflari/Nova-Store"><img alt="Nova-Store" src="https://img.shields.io/badge/catalog-Nova--Store-cyan?style=flat-square"></a>
   <a href="LICENSE.md"><img alt="SPDX: MIT OR Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=flat-square"></a>
   <img alt="Platform: Linux" src="https://img.shields.io/badge/platform-Linux-333?style=flat-square&logo=linux">
   <img alt="Rust 2021" src="https://img.shields.io/badge/Rust-2021-orange?style=flat-square&logo=rust">
 </p>
 
-Nova, sık kullanılan komut satırı araçlarını **klavye odaklı bir TUI** içinde
-kategorilere ayırır. Kurulu araçları anında başlatır; kurulu olmayanları
-**Mağaza** üzerinden keşfeder, (mümkünse) kurar ve günceller. Araç yeni bir
-terminal sekmesinde açılır; Nova oturumu açık kalır.
+Nova, sık kullandığınız CLI araçlarını **klavye odaklı bir TUI** içinde
+kategorilere ayırır. Kurulu araçları yeni bir terminal sekmesinde başlatır;
+kurulu olmayanları **Mağaza** üzerinden keşfeder, (mümkünse) kurar ve günceller.
+Nova oturumu açık kalır — emülatörünüzün yerini almaz, paket yöneticinizi
+değiştirmez; onları bir araya getirir.
 
-Nova bir terminal emülatörü veya sistem paket yöneticisi değildir. Mevcut
-araçları yeniden yazmaz — onları bulmayı, güvenle kurmayı ve başlatmayı
-kolaylaştırır.
-
-## İçindekiler
-
-- [Özellikler](#özellikler)
-- [Kurulum](#kurulum)
-- [Kullanım](#kullanım)
-- [Kurulu uygulamalar vs Mağaza](#kurulu-uygulamalar-vs-mağaza)
-- [Çalışma şeması](#çalışma-şeması)
-- [Ayarlar ve i18n](#ayarlar-ve-i18n)
-- [Nova-Store](#nova-store)
-- [Yapılandırma](#yapılandırma)
-- [Güvenlik](#güvenlik)
-- [Katkı ve lisans](#katkı-ve-lisans)
+> Arch kullanıcıları için: kurulum ve güncellemede **`pacman` tercih edilir**
+> (ortamda varsa). Diğer distrolarda `dnf` / `apt` / `brew` / `cargo` /
+> `npm` / `pipx` / `uv` yolları da kullanılır.
 
 ## Özellikler
 
-- **Araç kataloğu** — AI, Git, dosya/arama, sistem, ağ, Docker, yardımcılar ve özel araçlar; arama, favoriler, başlatma geçmişi, proje dizinleri.
-- **Kurulum durumu** — `PATH` ve Nova mağaza `bin` dizinleri taranır; tespit sırasında araçlar **çalıştırılmaz**. Ana listede yalnızca kurulu olanlar görünür.
-- **Mağaza** — ayrı katalog; indirme + SHA-256, paket yöneticisi (`pacman` / `dnf` / `apt` / `brew` / `cargo` / `npm` / `pipx` / `uv`) veya resmi yönerge. Arch’ta `pacman` tercih edilir.
-- **İmzalı uzak katalog** — Mağazada `U` ile [Nova-Store](https://github.com/Teknoloji-Filozoflari/Nova-Store) Releases’tan katalog denenir; minisign imzası gömülü anahtarla doğrulanmazsa uzak veri **uygulanmaz**.
-- **Self-update** — Ayarlar→Güncelle / araç sekmesinde `U`, GitHub Releases’taki Linux ikilisini onayla `~/.local/bin/nova` kurar.
-- **Terminal backend’leri** — `$TERMINAL`, `xdg-terminal-exec`, kitty, alacritty, wezterm, gnome-terminal, konsole, foot, xterm, tmux.
-- **Dosya seçici** — `o` ile resim/videoyu ayarlardaki uygulamayla kabuksuz açar.
-- **Tema + dil** — dokuz tema; Türkçe varsayılan, English / Русский / Azərbaycan / Oʻzbekcha / Қазақша / Türkmençe.
-- **Klavye + fare** — ana listelerde tıklama ve kaydırma; dar pencereye uyumlu düzen.
+| | |
+| --- | --- |
+| **Başlatıcı katalog** | AI, Git, dosya/arama, sistem, ağ, Docker, yardımcılar, özel araçlar — arama, favoriler, geçmiş, proje dizinleri |
+| **Kurulum durumu** | `PATH` + Nova mağaza `bin` taranır; tespit sırasında araç **çalıştırılmaz**. Ana listede yalnızca kurulu olanlar |
+| **Mağaza** | Ayrı katalog; arşiv+SHA-256, paket yöneticisi veya resmi yönerge. Arch’ta `pacman` önce |
+| **İmzalı + repo katalog** | [Nova-Store](https://github.com/Teknoloji-Filozoflari/Nova-Store) **Releases** (minisign) ve **`main` repo** senkronu — imza doğrulanmazsa uzak Releases verisi uygulanmaz |
+| **Nova self-update** | **GitHub Releases** ikilisi *ve* repo **`main`** üzerinden `cargo install --git` (ağ + derleme). İkisi birbirinin yerine geçmez |
+| **AI aksiyonları** | Seçili AI aracında detay yanında Aç / Devam / Çıkış / Yardım |
+| **Tema + dil** | Dokuz tema; `tr` varsayılan — en / ru / az / uz / kk / tk |
+| **Klavye + fare** | Liste tıklama/kaydırma; dar terminale uyumlu düzen |
+
+<p align="center">
+  <img alt="Nova Mağaza" src="docs/screenshots/store.png" width="820">
+</p>
 
 ## Kurulum
 
 ### İkili (önerilen)
 
 [Releases](https://github.com/Teknoloji-Filozoflari/Nova/releases) sayfasından
-`nova-v*-x86_64-unknown-linux-gnu.tar.gz` indirin:
+`nova-v*-x86_64-unknown-linux-gnu.tar.gz` (+ `SHA256SUMS.txt`) indirin:
 
 ```bash
 tar -xzf nova-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
 install -m 755 nova-v0.1.0-x86_64-unknown-linux-gnu/nova ~/.local/bin/nova
 ```
 
-`~/.local/bin` PATH’te olsun. Sonraki sürümler için Nova içinde
-**Ayarlar → Güncelle** (veya araç sekmesinde `U`) aynı kanalı kullanır.
-Checksum dosyası (`SHA256SUMS.txt`) yayınla birlikte gelir.
+`~/.local/bin` PATH’te olsun. Sonraki sürümler için **Ayarlar → Nova güncelle**
+(`U`) Releases kanalını kullanır; `main`’deki commit’ler için aynı ekranda
+**`G`** → `cargo install --git` (ağ + derleme).
 
-### Kaynaktan
-
-Gereksinimler: Linux, Rust araç zinciri (`cargo` / `rustc`), desteklenen bir
-terminal emülatörü (yukarıdaki liste). Katalog yardım metinleri için
-`less` veya `more` isteğe bağlıdır.
+### Kaynaktan / repo `main`
 
 ```bash
 git clone https://github.com/Teknoloji-Filozoflari/Nova.git
 cd Nova
-cargo run            # geliştirme
-cargo build --release
-./target/release/nova
+cargo run                 # geliştirme
+cargo build --release && ./target/release/nova
+# veya:
+cargo install --git https://github.com/Teknoloji-Filozoflari/Nova.git --branch main --force --locked
 ```
 
-Emülatör yokken arayüz ve katalog gezilebilir; araç başlatma, uygun backend
-bulunamazsa hata verir.
+Gereksinimler: Linux, Rust toolchain, desteklenen bir terminal backend
+(`$TERMINAL`, kitty, alacritty, wezterm, gnome-terminal, konsole, foot, xterm,
+tmux, …). Emülatör yokken arayüz gezilebilir; başlatma backend bulamazsa hata verir.
 
 ## Kullanım
 
 ```text
 ┌──────────────┬──────────────────┬────────────────────────────┐
-│ Kategoriler  │ Araçlar          │ Ayrıntı / eylemler         │
-│  (+ Mağaza)  │  / Mağaza apps   │                            │
+│ Kategoriler  │ Araçlar / Mağaza │ Ayrıntı / AI eylemleri     │
+│  (+ Ayarlar) │                  │                            │
 └──────────────┴──────────────────┴────────────────────────────┘
 ```
 
@@ -91,40 +88,43 @@ bulunamazsa hata verir.
 | --- | --- |
 | `↑`/`↓`, `j`/`k` | Listede gezin |
 | `←`/`→`, `h`/`l`, `Tab` | Paneller arası |
-| `Enter` | Kategoriye gir / aracı başlat / mağazada kur/onay |
+| `Enter` | Kategoriye gir / başlat / mağazada kur·onay |
 | `/` | Ara |
-| `f` | Favori ekle/çıkar |
-| `c` | Yalnızca favoriler |
-| `r` | Başlatma geçmişi |
-| `p` | Proje dizinleri |
-| `s` | Ayarlar (Güncelle, Tema, Dil, …) |
-| `m` | Mağaza sekmesi |
-| `u` / `U` | Bağlama duyarlı güncelleme: araç sekmesinde Nova; mağazada katalog + uygulama sürümleri |
+| `f` | Favori |
+| `c` / `r` / `p` | Yalnızca favoriler / geçmiş / proje dizinleri |
+| `s` | Ayarlar |
+| `m` | Mağaza |
+| `u` / `U` | Bağlama duyarlı güncelleme (Nova veya Mağaza) |
+| `G` | Nova: repo `main` → `cargo install --git` (güncelleme penceresinde) |
 | `o` | Dosya seçici |
 | `a` | Varsayılan AI CLI |
 | `n` / `d` | Özel araç ekle / sil |
 | `?` | Yardım |
-| `Esc` / `q` | Geri / çık (`/` aramasında `q` metne yazılır) |
+| `Esc` / `q` | Geri / çık |
 
 Onay pencerelerinde `Enter` onaylar, `Esc` vazgeçer.
 
+<p align="center">
+  <img alt="Nova AI aksiyonları" src="docs/screenshots/ai-actions.png" width="820">
+</p>
+
 ## Kurulu uygulamalar vs Mağaza
 
-Nova’da **iki ayrı katalog** vardır; karıştırmayın:
+Nova’da **iki katalog** vardır; karıştırmayın:
 
-| | Araç kataloğu | Mağaza |
+| | Araç kataloğu (ana liste) | Mağaza |
 | --- | --- | --- |
-| Kaynak | `assets/catalog/*.toml` (gömülü) + kullanıcı `config.toml` | Gömülü `assets/store/*.toml` → imzası doğrulanmış Nova-Store yayını |
+| Kaynak | `assets/catalog/*.toml` + `~/.config/nova/config.toml` | Gömülü `assets/store/*.toml` → imzalı Nova-Store Releases **ve** repo `main` senkronu |
 | Amaç | Kurulu araçları başlatmak | Kurulu olmayanları keşfetmek / kurmak / güncellemek |
-| Ana listede | Yalnızca kurulu olanlar | Kurulu + kurulabilir / yönergeli kayıtlar |
-| Sürüm / checksum | Yok | Var (indirme ve canlı denetim için) |
+| Ana listede | Yalnızca kurulu olanlar | Kurulu + kurulabilir / yönergeli |
+| Sürüm / checksum | Yok | Var (indirme ve canlı denetim) |
 
-Akış kısaca:
+Akış:
 
 1. Nova açılır → kurulum durumu taranır.
-2. Kurulu araçlar kategori listesinde görünür → `Enter` ile yeni sekmede başlar.
-3. Kurulu olmayanlar Mağaza’da kalır → kaynak, lisans, güven sınıfı ve yöntem incelenir.
-4. Onay sonrası kurulum: arşiv+SHA-256, paket yöneticisi (Arch’ta `pacman`) veya yalnızca resmi yönerge.
+2. Kurulu araçlar kategori listesinde → `Enter` ile yeni sekmede başlar.
+3. Kurulu olmayanlar Mağaza’da kalır → kaynak, lisans, güven sınıfı, yöntem.
+4. Onay sonrası kurulum: arşiv+SHA-256, paket yöneticisi (**Arch’ta `pacman`**), veya yalnızca resmi yönerge.
 5. Kurulumdan sonra araç ana katalogda görünür.
 
 **Güven sınıfları (A/B/C/D):** A distro resmi (`pacman`/`dnf`/`apt`), B proje ikili+imza, C kayıt defteri (cargo/npm/pypi) risk notuyla, D yalnızca dokümantasyon. A ile B birleştirilmez.
@@ -139,11 +139,11 @@ flowchart TB
     Settings[Ayarlar / Tema / Dil]
   end
 
-  subgraph Core["Uygulama çekirdeği"]
+  subgraph Core["Çekirdek"]
     App[app: durum + olaylar]
     Detect[detection: PATH + store bin]
     Launch[launcher: TerminalAdapter]
-    Update[update: GitHub Releases]
+    Update[update: Releases + git main]
   end
 
   subgraph Data["Veri"]
@@ -151,14 +151,16 @@ flowchart TB
     EmbStore["assets/store/*.toml"]
     UserCfg["~/.config/nova/config.toml"]
     State["~/.config/nova/state.toml"]
-    Trusted["trusted-store.toml + .minisig"]
+    Trusted["trusted-store + .minisig"]
   end
 
   subgraph External["Dış dünya"]
     Term[Terminal sekmesi]
     GH[Nova Releases ikili]
-    NS[Nova-Store imzalı katalog]
-    PM[pacman / dnf / apt / …]
+    GitMain["Nova git main (cargo install)"]
+    NSRel[Nova-Store imzalı Releases]
+    NSRepo["Nova-Store repo main"]
+    PM["pacman / dnf / apt / …"]
   end
 
   Cat --> App
@@ -171,55 +173,60 @@ flowchart TB
   App --> Detect
   App --> Launch --> Term
   App --> Update --> GH
-  StoreTab -->|"U: imza doğrula"| NS
+  Update --> GitMain
+  StoreTab -->|"U: imza doğrula"| NSRel
+  StoreTab -->|"repo senkron"| NSRepo
   StoreTab -->|kurulum| PM
   State -.-> App
 ```
 
-Modül sınırları ve tasarım kararları: [ARCHITECTURE.md](ARCHITECTURE.md).
+Modül sınırları: [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## Ayarlar ve i18n
+## Ayarlar
 
 `s` ile Ayarlar sekmesi:
 
+<p align="center">
+  <img alt="Nova Ayarlar" src="docs/screenshots/settings.png" width="720">
+</p>
+
 | Bölüm | Ne yapar |
 | --- | --- |
-| Güncelle | `Teknoloji-Filozoflari/Nova` Releases’ı sorgular; uygun Linux ikilisi varsa onayla `~/.local/bin/nova` kurar. Yayın yoksa bunu açıkça bildirir (sessiz no-op yok). |
-| Tema | `varsayilan`, `acik`, `orman`, `amber`, `okyanus`, `gece`, `gul`, `arduvaz`, `kizil` — `state.toml`’a yazılır. |
-| Dil | `tr` (varsayılan), `en`, `ru`, `az`, `uz`, `kk`, `tk`. |
-| Gelişmiş | Varsayılan AI CLI, medya uygulamaları, tercih edilen terminal vb. |
+| **Nova güncelle** | GitHub **Releases** ikilisini denetler → onayla `~/.local/bin/nova`. Yayın yoksa veya `main` istiyorsanız **`G`**: `cargo install --git` (ağ + derleme; Releases etiketi gerekmez). |
+| **Mağaza kataloğu** | İmzalı Nova-Store **Releases** + repo **`main`** senkronu. İmzası geçmeyen Releases gövdesi uygulanmaz. |
+| **Özel araç ekle** | Yerel TUI/komutu kataloğa yazmadan kaydet |
+| **Tema** | `varsayilan`, `acik`, `orman`, `amber`, `okyanus`, `gece`, `gul`, `arduvaz`, `kizil` |
+| **Dil** | `tr` (varsayılan), `en`, `ru`, `az`, `uz`, `kk`, `tk` |
 
-Dil ve tema çalışma anında dosyadan okunmaz; metinler derleme zamanı tablolarındadır (`src/i18n`).
+Dil/tema metinleri derleme zamanı tablolarındadır (`src/i18n`).
 
 ## Nova-Store
 
-Mağaza kataloğunun uzun vadeli sahibi ayrı depodur:
+Mağaza kataloğunun uzun vadeli sahibi:
 
 **[Teknoloji-Filozoflari/Nova-Store](https://github.com/Teknoloji-Filozoflari/Nova-Store)**
 
 - Katkı: kategori TOML/JSON PR’ları Nova-Store’a (Nova Rust’ına uygulama kaydı eklemeyin).
 - Yayın: CI şema / benzersiz id / SPDX / kaynak URL / kurulum yöntemi doğrular; imzalı `store-catalog.toml` (+ `.minisig`) Releases’a konur.
-- Nova: gömülü minisign genel anahtarıyla doğrular (`assets/keys/nova-store-catalog.pub`); başarısızlığa karşı son güvenilen kopyaya düşer.
+- Nova: gömülü minisign genel anahtarıyla doğrular (`assets/keys/nova-store-catalog.pub`); başarısızlığa karşı son güvenilen kopyaya düşer. Repo `main` senkronu imzasızdır — UI bunu açıkça belirtir.
 
-Ortam değişkenleri (isteğe bağlı):
-
-| Değişken | Anlam |
+| Ortam değişkeni | Anlam |
 | --- | --- |
 | `NOVA_STORE_DIR` | Mağaza kurulum kökü (varsayılan `~/.local/share/nova/store/`) |
-| `NOVA_STORE_CATALOG_URL` / `NOVA_STORE_CATALOG_SIG_URL` | Uzak katalog / imza adresi |
+| `NOVA_STORE_CATALOG_URL` / `NOVA_STORE_CATALOG_SIG_URL` | Uzak imzalı katalog / imza |
+| `NOVA_STORE_REPO_CATALOG_URL` | Repo `main` katalog JSON override |
 | `NOVA_STORE_CATALOG_DISABLE_REMOTE=1` | Uzak katalog denemesini kapat |
+| `NOVA_GIT_SOURCE_URL` / `NOVA_GIT_BRANCH` | Nova kaynak güncellemesi (`cargo install --git`) |
 
 ## Yapılandırma
 
 | Dosya | Amaç |
 | --- | --- |
-| `~/.config/nova/config.toml` | Elle düzenlenen araç ayarları ve özel girdiler (Nova üzerine yazmaz) |
+| `~/.config/nova/config.toml` | Elle araç ayarları ve özel girdiler (Nova üzerine yazmaz) |
 | `~/.config/nova/state.toml` | Favoriler, geçmiş, proje dizinleri, dil, tema |
 
-`XDG_CONFIG_HOME` tanımlıysa dosyalar onun altındaki `nova/` dizinine gider.
-Bozuk `state.toml` silinmeden yedeklenir.
-
-Örnek:
+`XDG_CONFIG_HOME` tanımlıysa dosyalar `nova/` altına gider. Bozuk `state.toml`
+silinmeden yedeklenir.
 
 ```toml
 [[tools]]
@@ -236,21 +243,26 @@ description = "Geliştirme sunucusuna bağlanır"
 launch_kind = "custom_command"
 ```
 
-Program ve argümanlar ayrı değerlerdir; `args` içinde kabuk genişletmesi /
-boru / yönlendirme yoktur. Şema: [ARCHITECTURE.md](ARCHITECTURE.md).
+Program ve argümanlar ayrıdır; `args` içinde kabuk genişletmesi / boru /
+yönlendirme yoktur. Şema: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Güvenlik
 
 - Shell birleştirme yok: `Command` + ayrı argv.
 - Tespit için program çalıştırılmaz.
 - Mağaza arşivleri: indir → SHA-256 → yol geçişi korumalı çıkarma → kullanıcı alanı.
-- İmzası doğrulanmayan uzak katalog uygulanmaz.
+- İmzası doğrulanmayan uzak Releases kataloğu uygulanmaz.
 - Sistem dizinlerine yazmaz; `sudo` yalnızca kullanıcı onaylı sistem PM kurulumlarında (apt/dnf/pacman), kabuksuz argv ile.
 - Özel araçlar mevcut kullanıcı yetkileriyle çalışır; Nova onların güvenliğini garanti etmez.
 
-## Katkı ve lisans
+## Ekran görüntüleri
 
-Göndermeden önce:
+README’deki görseller `ratatui` `TestBackend` ile gerçek `ui::draw`
+çıktısından üretilir (mock değil). Yeniden üretmek için:
+
+[`docs/screenshots/README.md`](docs/screenshots/README.md)
+
+## Katkı ve lisans
 
 ```bash
 cargo fmt --check

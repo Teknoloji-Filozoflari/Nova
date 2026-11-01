@@ -32,4 +32,9 @@ minisign-verify = "0.3"
 name = "nova"
 path = "src/main.rs"
 
+[[bin]]
+name = "capture-screens"
+path = "tools/capture_screens.rs"
+doc = false
+
 [workspace]
