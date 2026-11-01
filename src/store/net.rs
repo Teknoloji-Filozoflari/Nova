@@ -8,13 +8,15 @@
 use std::time::Duration;
 
 /// İndirilecek en büyük dosya boyutu (byte).
-pub const MAX_DOWNLOAD_BYTES: u64 = 256 * 1024 * 1024;
+///
+/// Claude Code native ikilisi ~300 MB+; 256 MB sınırı kurulumu kesiyordu.
+pub const MAX_DOWNLOAD_BYTES: u64 = 512 * 1024 * 1024;
 /// Metin (checksum / imza / API) yanıtları için üst sınır.
 pub const MAX_TEXT_BYTES: u64 = 2 * 1024 * 1024;
 /// İzlenecek en fazla HTTPS yönlendirmesi.
 pub const MAX_REDIRECTS: u32 = 3;
-/// Tek isteğin toplam zaman sınırı.
-pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(180);
+/// Tek isteğin toplam zaman sınırı (büyük native ikililer için geniş).
+pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(600);
 
 /// Mağaza istekleri için sertleştirilmiş `ureq` ajanı.
 pub fn secure_agent() -> ureq::Agent {

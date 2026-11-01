@@ -803,6 +803,14 @@ pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome,
             entry.name
         )));
     }
+    // Claude Code: npm optional-deps/postinstall kırılgan; Anthropic CDN native
+    // ikili tercih edilir (gerçek ELF, doğru mimari, kırık shim yok).
+    if crate::store::native_cli::is_claude_code(entry) {
+        // Ağ/CDN hatasında npm’e düşülür; npm sonrası ikili yine doğrulanır.
+        if let Ok(outcome) = crate::store::native_cli::install_claude_native(entry) {
+            return Ok(outcome);
+        }
+    }
     let plan = resolve_entry_install_plan(entry).ok_or_else(|| {
         InstallError::Internal(format!(
             "'{}' için host’a uygun kurulum komutu bulunamadı.",
@@ -877,6 +885,15 @@ pub fn run_package_manager_argv(
     let rendered = format_install_command(argv);
     let mut cmd = Command::new(program);
     cmd.args(args);
+    // npm native CLI paketleri optionalDeps + postinstall ister; kullanıcının
+    // --omit=optional / ignore-scripts ortamını ezmemek için yalnızca
+    // kurulumda açıkça optional’ı aç.
+    if plan.method == InstallMethod::Npm
+        && matches!(op, PmOperation::Install | PmOperation::Upgrade)
+    {
+        cmd.env("npm_config_optional", "true");
+        cmd.env("npm_config_ignore_scripts", "false");
+    }
 
     let status = match io {
         PmIoMode::Captured => {
@@ -957,6 +974,10 @@ pub fn run_package_manager_argv(
             install_dir,
             summary,
         });
+    }
+    // npm native CLI’ler: yer tutucu / yanlış mimariyi reddet; kırık shim bırakma.
+    if plan.method == InstallMethod::Npm {
+        crate::store::native_cli::reject_broken_npm_cli(&entry.executable, &executable_path)?;
     }
     // Yeni kabuklarda `which qwen` bulunsun diye ~/.local/bin shim.
     match crate::store::path::shim_installed_executable(&entry.executable, &executable_path) {

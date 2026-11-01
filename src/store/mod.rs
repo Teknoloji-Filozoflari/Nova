@@ -37,6 +37,7 @@ pub mod http;
 pub mod install;
 pub mod loader;
 pub mod manifest;
+pub mod native_cli;
 pub mod net;
 pub mod path;
 pub mod platform;
