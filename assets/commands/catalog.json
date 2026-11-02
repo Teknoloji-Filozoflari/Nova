@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-02T19:42:25Z",
-  "content_sha256": "b3261f4208be110c1e455f74cbdddced7510b6afe2db4be10e1d0913b427de68",
+  "generated_at": "2026-11-02T20:12:20Z",
+  "content_sha256": "7331be6bdefb792afb20616f0a7d2aa64f74918bda7ba119c56a5d4f79622750",
   "command_count": 143,
   "concept_count": 12,
   "commands": [
@@ -3648,12 +3648,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 free"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase17",
+        "notes": "Flag -h/--human confirmed via --help; read-only memory summary."
       },
       "category": "monitoring",
       "nova": {
@@ -4012,12 +4013,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 getent"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-coverage"
+        "reviewer": "nova-commands-phase17",
+        "notes": "Read-only NSS queries; passwd/group/hosts examples informational."
       },
       "nova": {
         "concepts": [
@@ -4410,12 +4412,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 groups"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-coverage"
+        "reviewer": "nova-commands-phase17",
+        "notes": "Read-only group membership; coreutils --help checked."
       },
       "nova": {
         "concepts": [
@@ -6657,12 +6660,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 lscpu"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase17",
+        "notes": "Read-only CPU topology; util-linux --help checked."
       },
       "category": "hardware",
       "nova": {
@@ -9404,12 +9408,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 pgrep"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase17",
+        "notes": "Read-only PID search; -a/--list-full confirmed via --help."
       },
       "category": "processes",
       "nova": {
@@ -9814,12 +9819,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 ps"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase17",
+        "notes": "Read-only process snapshot; aux/-ef flags already marked verified."
       },
       "category": "processes",
       "nova": {
@@ -12252,12 +12258,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 stat"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase17",
+        "notes": "Read-only file metadata; -c/-L already marked verified."
       },
       "category": "filesystem",
       "nova": {
@@ -14222,12 +14229,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 uptime"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase17",
+        "notes": "Read-only uptime/load; --help flags cross-checked."
       },
       "category": "system",
       "nova": {
@@ -15028,12 +15036,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 whereis"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase17",
+        "notes": "Read-only binary/man path lookup; util-linux --help checked."
       },
       "category": "search",
       "nova": {
@@ -15107,12 +15116,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 which"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase17",
+        "notes": "PATH locator only; debianutils/which -- usage checked."
       },
       "category": "search",
       "nova": {

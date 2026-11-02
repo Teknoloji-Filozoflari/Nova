@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "kind": "nova-commands-manifest",
-  "generated_at": "2026-11-02T19:42:25Z",
-  "content_sha256": "b3261f4208be110c1e455f74cbdddced7510b6afe2db4be10e1d0913b427de68",
+  "generated_at": "2026-11-02T20:12:20Z",
+  "content_sha256": "7331be6bdefb792afb20616f0a7d2aa64f74918bda7ba119c56a5d4f79622750",
   "command_count": 143,
   "concept_count": 12,
   "artifacts": {
