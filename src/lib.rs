@@ -14,6 +14,7 @@
 pub mod app;
 pub mod browser;
 pub mod catalog;
+pub mod commands;
 pub mod config;
 pub mod detection;
 pub mod error;
