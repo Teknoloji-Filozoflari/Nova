@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kind": "nova-commands-search-index",
-  "entry_count": 147,
+  "entry_count": 155,
   "entries": [
     {
       "type": "command",
@@ -160,7 +160,7 @@
       "name": "cat",
       "category": "text",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "text",
         "view"
@@ -427,7 +427,7 @@
       "name": "date",
       "category": "system",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "system",
         "time"
@@ -487,7 +487,7 @@
       "name": "df",
       "category": "disks",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "disk"
       ],
@@ -725,7 +725,7 @@
       "name": "du",
       "category": "disks",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "disk"
       ],
@@ -753,7 +753,7 @@
       "name": "echo",
       "category": "shell",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "shell"
       ],
@@ -905,7 +905,7 @@
       "name": "findmnt",
       "category": "disks",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "disk",
         "storage",
@@ -1019,6 +1019,39 @@
       },
       "concepts": [
         "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "fsck",
+      "name": "fsck",
+      "category": "disks",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "repair"
+      ],
+      "summary": {
+        "tr": "Dosya sistemi bütünlük kontrolü / onarım ön yüzü.",
+        "en": "Check and repair Linux filesystems (frontend)."
+      },
+      "intent": {
+        "tr": [
+          "dosya sistemi kontrol",
+          "fsck onar",
+          "disk bütünlük"
+        ],
+        "en": [
+          "filesystem check",
+          "fsck repair",
+          "disk integrity"
+        ]
+      },
+      "concepts": [
+        "storage"
       ]
     },
     {
@@ -1233,7 +1266,7 @@
       "name": "head",
       "category": "text",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "text"
       ],
@@ -1411,7 +1444,7 @@
       "name": "id",
       "category": "users",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "users"
       ],
@@ -1771,7 +1804,7 @@
       "name": "ls",
       "category": "filesystem",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "files",
         "directory",
@@ -1804,7 +1837,7 @@
       "name": "lsblk",
       "category": "disks",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "disk"
       ],
@@ -1977,7 +2010,7 @@
       "name": "mkdir",
       "category": "filesystem",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "files",
         "directory"
@@ -2003,13 +2036,183 @@
     },
     {
       "type": "command",
+      "id": "mkfs",
+      "name": "mkfs",
+      "category": "disks",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "format"
+      ],
+      "summary": {
+        "tr": "Dosya sistemi oluşturma ön yüzü (yıkıcı).",
+        "en": "Frontend to build a Linux filesystem (destructive)."
+      },
+      "intent": {
+        "tr": [
+          "dosya sistemi oluştur",
+          "disk formatla mkfs",
+          "mkfs nedir"
+        ],
+        "en": [
+          "create filesystem",
+          "format disk mkfs",
+          "what is mkfs"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "mkfs.btrfs",
+      "name": "mkfs.btrfs",
+      "category": "disks",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "btrfs",
+        "format"
+      ],
+      "summary": {
+        "tr": "Btrfs dosya sistemi oluşturur (yıkıcı).",
+        "en": "Create a Btrfs filesystem (destructive)."
+      },
+      "intent": {
+        "tr": [
+          "btrfs formatla",
+          "mkfs.btrfs"
+        ],
+        "en": [
+          "format btrfs",
+          "mkfs.btrfs"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "mkfs.ext4",
+      "name": "mkfs.ext4",
+      "category": "disks",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "ext4",
+        "format"
+      ],
+      "summary": {
+        "tr": "ext4 dosya sistemi oluşturur (yıkıcı).",
+        "en": "Create an ext4 filesystem (destructive)."
+      },
+      "intent": {
+        "tr": [
+          "ext4 formatla",
+          "mkfs.ext4",
+          "ext4 oluştur"
+        ],
+        "en": [
+          "format ext4",
+          "mkfs.ext4",
+          "create ext4 filesystem"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "mkfs.fat",
+      "name": "mkfs.fat",
+      "category": "disks",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "fat",
+        "vfat",
+        "format"
+      ],
+      "summary": {
+        "tr": "FAT/VFAT dosya sistemi oluşturur (yıkıcı).",
+        "en": "Create a FAT/VFAT filesystem (destructive)."
+      },
+      "intent": {
+        "tr": [
+          "fat formatla",
+          "vfat oluştur",
+          "mkfs.vfat",
+          "efi fat32"
+        ],
+        "en": [
+          "format fat",
+          "create vfat",
+          "mkfs.vfat",
+          "efi fat32"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "mkfs.xfs",
+      "name": "mkfs.xfs",
+      "category": "disks",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "xfs",
+        "format"
+      ],
+      "summary": {
+        "tr": "XFS dosya sistemi oluşturur (yıkıcı).",
+        "en": "Construct an XFS filesystem (destructive)."
+      },
+      "intent": {
+        "tr": [
+          "xfs formatla",
+          "mkfs.xfs"
+        ],
+        "en": [
+          "format xfs",
+          "mkfs.xfs"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
       "id": "mount",
       "name": "mount",
       "category": "disks",
       "risk": "dangerous",
       "verification": "reviewed",
       "tags": [
-        "disk"
+        "disk",
+        "storage",
+        "mount"
       ],
       "summary": {
         "tr": "Dosya sistemi bağlar.",
@@ -2018,11 +2221,13 @@
       "intent": {
         "tr": [
           "disk bağla",
-          "mount nedir"
+          "mount nedir",
+          "iso bağla"
         ],
         "en": [
           "mount disk",
-          "what is mounted"
+          "what is mounted",
+          "mount iso"
         ]
       },
       "concepts": [
@@ -2242,6 +2447,38 @@
         "packages",
         "arch",
         "package-managers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "parted",
+      "name": "parted",
+      "category": "disks",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage",
+        "partition"
+      ],
+      "summary": {
+        "tr": "GNU Parted — bölüm tablosu düzenleyici (yıkıcı).",
+        "en": "GNU Parted — partition table manipulator (destructive)."
+      },
+      "intent": {
+        "tr": [
+          "parted bölüm",
+          "gpt oluştur",
+          "disk partition parted"
+        ],
+        "en": [
+          "parted partition",
+          "create gpt",
+          "disk partition parted"
+        ]
+      },
+      "concepts": [
+        "storage"
       ]
     },
     {
@@ -2517,7 +2754,7 @@
       "name": "pwd",
       "category": "filesystem",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "files",
         "directory",
@@ -3251,7 +3488,7 @@
       "name": "tail",
       "category": "text",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "text",
         "log"
@@ -3549,7 +3786,7 @@
       "name": "uname",
       "category": "system",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "system",
         "info"
@@ -3809,7 +4046,7 @@
       "name": "wc",
       "category": "text",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "text",
         "count"
@@ -3930,7 +4167,7 @@
       "name": "whoami",
       "category": "users",
       "risk": "safe",
-      "verification": "reviewed",
+      "verification": "verified",
       "tags": [
         "users"
       ],
@@ -3950,6 +4187,39 @@
       },
       "concepts": [
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "wipefs",
+      "name": "wipefs",
+      "category": "disks",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "signature"
+      ],
+      "summary": {
+        "tr": "Dosya sistemi/RAID imzalarını listeler veya siler (yıkıcı).",
+        "en": "List or wipe filesystem/RAID signatures (destructive)."
+      },
+      "intent": {
+        "tr": [
+          "dosya sistemi imzası sil",
+          "wipefs",
+          "superblock temizle"
+        ],
+        "en": [
+          "wipe filesystem signature",
+          "wipefs",
+          "clear superblock"
+        ]
+      },
+      "concepts": [
+        "storage"
       ]
     },
     {
@@ -4318,8 +4588,16 @@
         "findmnt",
         "blkid",
         "fdisk",
+        "parted",
         "dd",
-        "sync"
+        "sync",
+        "mkfs",
+        "mkfs.ext4",
+        "mkfs.xfs",
+        "mkfs.btrfs",
+        "mkfs.fat",
+        "wipefs",
+        "fsck"
       ]
     },
     {
@@ -4375,6 +4653,6 @@
       ]
     }
   ],
-  "content_sha256": "c0f3ab0a0f06248f5091c8c3d482ccaa37d325584852b5e90b23f9cc1a2693e8",
-  "generated_at": "2026-11-02T18:55:46Z"
+  "content_sha256": "b3261f4208be110c1e455f74cbdddced7510b6afe2db4be10e1d0913b427de68",
+  "generated_at": "2026-11-02T19:42:25Z"
 }
