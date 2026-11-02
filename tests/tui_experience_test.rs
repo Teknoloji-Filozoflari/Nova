@@ -523,7 +523,7 @@ fn ai_tool_actions_sit_in_horizontal_strip_between_list_and_detail() {
         strip_body.contains("Aç") || strip_body.contains("Devam") || strip_body.contains("Yardım"),
         "aksiyon etiketleri şeritte tam görünmeli:\n{strip_body}"
     );
-    let areas = nova::ui::click_areas_ex((120, 36), false, false, false, true);
+    let areas = nova::ui::click_areas_ex((120, 36), false, false, false, false, true);
     assert!(!areas.tool_detail_side);
     assert_eq!(areas.actions_height, nova::ui::ACTIONS_STRIP_ROWS);
     assert_eq!(areas.tools_end_x, 120);

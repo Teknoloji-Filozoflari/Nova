@@ -3,7 +3,9 @@
 //! terminal arayüzünün ana döngüsünü sürdürür.
 
 use crate::catalog::{Catalog, CATEGORIES};
-use crate::commands::{self, bank_categories, CommandBank, CommandsSource, LocalCommandsSnapshot};
+use crate::commands::{
+    self, bank_categories, CommandBank, CommandsSource, LocalCommandsSnapshot, SearchIndex,
+};
 use crate::error::NovaError;
 use crate::event::{Event, EventReader};
 use crate::file_picker::FilePickerState;
@@ -180,6 +182,8 @@ pub struct App {
     pub commands_entry_index: usize,
     /// Gömülü Nova-Commands bankası (`nova-commands-bank`).
     pub commands_bank: CommandBank,
+    /// Gömülü arama indeksi (`nova-commands-search-index`) — banka ile ayrı kind.
+    pub commands_search_index: SearchIndex,
     /// Yerel PATH keşfi anlık görüntüsü (`nova-local-commands` stub).
     pub commands_local: LocalCommandsSnapshot,
     /// Seçili aracın indeksi (filtrelenmiş liste üzerinden).
@@ -190,8 +194,10 @@ pub struct App {
     pub search_query: String,
     /// Arama modu aktif mi.
     pub search_active: bool,
-    /// Sadece favoriler gösterilsin mi.
+    /// Sadece favoriler gösterilsin mi (araç listesi).
     pub favorite_only: bool,
+    /// Komut Rehberi bankasında yalnızca favori komutlar (araç/Mağaza favorisinden ayrı).
+    pub command_favorite_only: bool,
     /// Klavye yardımı gösterilsin mi.
     pub show_help: bool,
     /// Terminal dar mı (tek panel gösteriliyor)? UI her karede günceller.
@@ -334,12 +340,23 @@ impl App {
                     concepts: Vec::new(),
                 }
             }),
+            commands_search_index: commands::load_search_index().unwrap_or_else(|e| {
+                eprintln!("Nova-Commands search-index yüklenemedi: {e}");
+                SearchIndex {
+                    schema_version: 1,
+                    kind: commands::loader::SEARCH_INDEX_KIND.to_string(),
+                    entry_count: Some(0),
+                    content_sha256: None,
+                    entries: Vec::new(),
+                }
+            }),
             commands_local: LocalCommandsSnapshot::empty_stub(),
             tool_index: 0,
             tool_action_index: 0,
             search_query: String::new(),
             search_active: false,
             favorite_only: false,
+            command_favorite_only: false,
             show_help: false,
             narrow_mode: false,
             status_message: String::new(),
@@ -456,8 +473,12 @@ impl App {
             size,
             self.show_help,
             self.store_tab,
+            self.commands_tab,
             tool_detail_side,
-            !self.store_tab && !self.settings_tab && self.selected_tool_has_ai_actions(),
+            !self.store_tab
+                && !self.settings_tab
+                && !self.commands_tab
+                && self.selected_tool_has_ai_actions(),
         );
 
         match mouse.kind {
@@ -554,17 +575,23 @@ impl App {
         }
     }
 
-    /// Komut Rehberi fare tıklaması (kaynak / kategori / liste).
+    /// Komut Rehberi fare tıklaması (kaynak / kategori / liste / yan detay).
     fn handle_commands_mouse_click(&mut self, x: u16, y: u16, areas: crate::ui::ClickAreas) {
         use crate::ui::list_index_at_y;
 
         let panel_top = areas.content_top;
         let panel_h = areas.content_height;
-        // Geniş düzende: sekmeler | kaynak | (kategori) | liste — store sütun
-        // eşiklerini yeniden kullanıyoruz (store_category_end_x / store_apps_end_x).
+        // Geniş: sekmeler | kaynak | (bank kategori) | liste [| yan detay]
         if areas.wide {
-            if x < areas.store_category_end_x {
-                // Kaynak paneli: 0 = Bank, 1 = Local
+            let source_end = areas.category_end_x + crate::ui::STORE_CATEGORY_PANEL_WIDTH;
+            let bank_cat_end = source_end + crate::ui::STORE_CATEGORY_PANEL_WIDTH;
+            let list_end = if areas.commands_detail_side {
+                areas.commands_list_end_x
+            } else {
+                u16::MAX
+            };
+
+            if x < source_end {
                 if let Some(row) =
                     list_index_at_y(y, panel_top, panel_h, self.commands_source.index(), 2)
                 {
@@ -577,11 +604,7 @@ impl App {
                     self.commands_category_index = 0;
                     self.focus = PanelFocus::CommandsSource;
                 }
-            } else if self.commands_source == CommandsSource::Bank
-                && x < areas
-                    .store_apps_end_x
-                    .saturating_sub(areas.store_apps_end_x / 2)
-            {
+            } else if self.commands_source == CommandsSource::Bank && x < bank_cat_end {
                 let cats = self.commands_bank_categories();
                 if let Some(row) = list_index_at_y(
                     y,
@@ -594,7 +617,7 @@ impl App {
                     self.commands_entry_index = 0;
                     self.focus = PanelFocus::CommandsCategory;
                 }
-            } else {
+            } else if x < list_end {
                 let n = match self.commands_source {
                     CommandsSource::Bank => self.filtered_bank_commands().len(),
                     CommandsSource::Local => self.filtered_local_commands().len(),
@@ -607,6 +630,7 @@ impl App {
                     self.show_selected_command_info();
                 }
             }
+            // Sağ detay tıklaması: yalnızca odak (bağlantı yok).
         } else {
             let n = match self.commands_source {
                 CommandsSource::Bank => self.filtered_bank_commands().len(),
@@ -869,9 +893,12 @@ impl App {
                 self.focus = self.search_target_focus();
             }
             KeyCode::Char('f') | KeyCode::Char('F') => {
-                // Favoriler araç kataloğuna aittir; mağaza / komut rehberinde yok.
-                if self.store_tab || self.commands_tab {
-                    self.status_message = "Favoriler araç listesinde çalışır.".into();
+                if self.store_tab {
+                    self.status_message =
+                        "Favoriler Mağaza'da yok — araç listesi veya Komut Rehberi bankası.".into();
+                } else if self.commands_tab {
+                    // Banka favorileri (command_favorites); PATH / Mağaza ile karışmaz.
+                    self.toggle_selected_command_favorite();
                 } else {
                     self.toggle_selected_favorite();
                 }
@@ -998,7 +1025,23 @@ impl App {
             }
             KeyCode::Char('c') | KeyCode::Char('C') => {
                 if self.store_tab {
-                    self.status_message = "Favori filtresi araç listesinde çalışır.".into();
+                    self.status_message =
+                        "Favori filtresi Mağaza'da yok — araç veya Komut Rehberi.".into();
+                } else if self.commands_tab {
+                    if self.commands_source != CommandsSource::Bank {
+                        self.status_message =
+                            "Favori filtresi yalnız Bilgi Bankası'nda (PATH değil).".into();
+                    } else {
+                        self.command_favorite_only = !self.command_favorite_only;
+                        self.commands_entry_index = 0;
+                        if self.command_favorite_only {
+                            self.status_message =
+                                "Sadece banka favori komutları (Mağaza/araç favorisi değil)."
+                                    .into();
+                        } else {
+                            self.status_message = "Tüm banka komutları gösteriliyor.".into();
+                        }
+                    }
                 } else {
                     self.favorite_only = !self.favorite_only;
                     if self.favorite_only {
@@ -1060,7 +1103,46 @@ impl App {
     fn reset_tool_selection(&mut self) {
         self.tool_index = 0;
         self.store_app_index = 0;
+        self.commands_entry_index = 0;
         self.reset_tool_action_index();
+    }
+
+    /// Seçili banka komutunun favorisini değiştirir (PATH / Mağaza değil).
+    fn toggle_selected_command_favorite(&mut self) {
+        if self.commands_source != CommandsSource::Bank {
+            self.status_message =
+                "Favori yalnız Bilgi Bankası komutlarında (Sistemimde Bulunan değil).".into();
+            return;
+        }
+        let cmds = self.filtered_bank_commands();
+        if cmds.is_empty() {
+            self.status_message = "Favorilenecek banka komutu yok.".into();
+            return;
+        }
+        let idx = self.commands_entry_index.min(cmds.len() - 1);
+        let id = cmds[idx].id.clone();
+        let name = cmds[idx].name.clone();
+        let now_fav = if self.state.file.command_favorites.contains(&id) {
+            self.state.file.command_favorites.remove(&id);
+            false
+        } else {
+            self.state.file.command_favorites.insert(id.clone());
+            true
+        };
+        if let Err(msg) = self.persist_state() {
+            self.status_message = format!("Hata: komut favorisi kaydedilemedi ({msg})");
+            return;
+        }
+        self.status_message = if now_fav {
+            format!("★ Banka favorisi: {name} (araç/Mağaza favorisi değil)")
+        } else {
+            format!("☆ Banka favorisi kaldırıldı: {name}")
+        };
+    }
+
+    /// Banka komutu favori mi?
+    pub fn is_command_favorite(&self, id: &str) -> bool {
+        self.state.file.command_favorites.contains(id)
     }
 
     /// Seçili aracın favorisini değiştirir.
@@ -1454,21 +1536,33 @@ impl App {
         bank_categories(&self.commands_bank)
     }
 
-    /// Seçili banka kategorisindeki (ve aramaya uyan) komutlar.
+    /// Banka komutları: kategori + arama + isteğe bağlı favori süzgeci.
+    ///
+    /// Arama doluyken **tüm kategoriler** taranır (search-index alanları dahil);
+    /// boşken seçili banka kategorisi listelenir. Listeler Local ile birleştirilmez.
     pub fn filtered_bank_commands(&self) -> Vec<&commands::CommandEntry> {
+        let searching = !self.search_query.is_empty();
         let cats = self.commands_bank_categories();
         let cat = cats
             .get(self.commands_category_index)
             .copied()
             .unwrap_or("");
         self.commands_bank
-            .by_category(cat)
-            .into_iter()
-            .filter(|c| self.matches_command_search(c))
+            .commands
+            .iter()
+            .filter(|c| {
+                if self.command_favorite_only && !self.is_command_favorite(&c.id) {
+                    return false;
+                }
+                if !searching && c.category != cat {
+                    return false;
+                }
+                self.matches_command_search(c)
+            })
             .collect()
     }
 
-    /// Yerel PATH girişleri (arama süzgeçli).
+    /// Yerel PATH girişleri (arama süzgeçli) — bank verification süzgeci yok.
     pub fn filtered_local_commands(&self) -> Vec<&commands::LocalEntry> {
         self.commands_local
             .entries
@@ -1494,15 +1588,59 @@ impl App {
         }
         let q = self.search_query.to_ascii_lowercase();
         let lang = self.ui_lang().id();
-        cmd.id.to_ascii_lowercase().contains(&q)
+        if cmd.id.to_ascii_lowercase().contains(&q)
             || cmd.name.to_ascii_lowercase().contains(&q)
+            || cmd.category.to_ascii_lowercase().contains(&q)
             || cmd.summary.pick(lang).to_ascii_lowercase().contains(&q)
+            || cmd.description.pick(lang).to_ascii_lowercase().contains(&q)
+            || cmd.risk.as_str().contains(&q)
+            || cmd.verification.status.as_str().contains(&q)
             || cmd.tags.iter().any(|t| t.to_ascii_lowercase().contains(&q))
             || cmd
                 .intent
                 .all_for_lang(lang)
                 .iter()
                 .any(|p| p.to_ascii_lowercase().contains(&q))
+            || cmd
+                .examples
+                .iter()
+                .any(|ex| ex.command.to_ascii_lowercase().contains(&q))
+        {
+            return true;
+        }
+        // search-index.json (ayrı kind) — intent/tag UI araması.
+        self.commands_search_index.entries.iter().any(|e| {
+            e.entry_type == "command"
+                && e.id == cmd.id
+                && (e
+                    .name
+                    .as_ref()
+                    .map(|n| n.to_ascii_lowercase().contains(&q))
+                    .unwrap_or(false)
+                    || e.tags.iter().any(|t| t.to_ascii_lowercase().contains(&q))
+                    || e.category
+                        .as_ref()
+                        .map(|c| c.to_ascii_lowercase().contains(&q))
+                        .unwrap_or(false)
+                    || e.risk
+                        .as_ref()
+                        .map(|r| r.to_ascii_lowercase().contains(&q))
+                        .unwrap_or(false)
+                    || e.verification
+                        .as_ref()
+                        .map(|v| v.to_ascii_lowercase().contains(&q))
+                        .unwrap_or(false))
+        })
+    }
+
+    /// Geniş terminalde Komut Rehberi detayı sağ sütunda mı?
+    pub fn commands_detail_side_active(&self) -> bool {
+        let Some((w, _)) = self.terminal_size else {
+            return false;
+        };
+        self.commands_tab
+            && w >= crate::ui::WIDE_MIN_WIDTH
+            && w >= crate::ui::STORE_DETAIL_SIDE_MIN_WIDTH
     }
 
     /// Etkin odak zinciri (soldan sağa).

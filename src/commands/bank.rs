@@ -25,6 +25,31 @@ impl RiskLevel {
             Self::Destructive => "destructive",
         }
     }
+
+    /// Liste/detay rozeti (TR/EN kısa etiket).
+    pub fn label(self, lang: &str) -> &'static str {
+        let en = lang.to_ascii_lowercase().starts_with("en");
+        match (self, en) {
+            (Self::Safe, false) => "güvenli",
+            (Self::Safe, true) => "safe",
+            (Self::Caution, false) => "dikkat",
+            (Self::Caution, true) => "caution",
+            (Self::Dangerous, false) => "tehlikeli",
+            (Self::Dangerous, true) => "dangerous",
+            (Self::Destructive, false) => "yıkıcı",
+            (Self::Destructive, true) => "destructive",
+        }
+    }
+
+    /// Liste satırında kısa işaret (safe → boş).
+    pub fn marker(self) -> &'static str {
+        match self {
+            Self::Safe => "",
+            Self::Caution => " !",
+            Self::Dangerous => " !!",
+            Self::Destructive => " !!!",
+        }
+    }
 }
 
 /// Doğrulama yaşam döngüsü — PATH varlığı bunu yükseltmez.
@@ -131,6 +156,43 @@ impl Packages {
                 .or(self.arch.as_deref())
                 .or(self.rhel.as_deref())
         }
+    }
+
+    /// Detay paneli için (etiket, paket) çiftleri — Arch önce.
+    pub fn labeled_pairs(&self, arch_first: bool) -> Vec<(&'static str, &str)> {
+        let order: &[(&'static str, &Option<String>)] = if arch_first {
+            &[
+                ("arch/pacman", &self.arch),
+                ("debian", &self.debian),
+                ("ubuntu", &self.ubuntu),
+                ("fedora", &self.fedora),
+                ("rhel", &self.rhel),
+            ]
+        } else {
+            &[
+                ("debian", &self.debian),
+                ("ubuntu", &self.ubuntu),
+                ("fedora", &self.fedora),
+                ("arch/pacman", &self.arch),
+                ("rhel", &self.rhel),
+            ]
+        };
+        order
+            .iter()
+            .filter_map(|(label, v)| {
+                v.as_deref()
+                    .filter(|s| !s.is_empty())
+                    .map(|pkg| (*label, pkg))
+            })
+            .collect()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.arch.is_none()
+            && self.debian.is_none()
+            && self.ubuntu.is_none()
+            && self.fedora.is_none()
+            && self.rhel.is_none()
     }
 }
 
