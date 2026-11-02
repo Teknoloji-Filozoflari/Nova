@@ -105,6 +105,10 @@ pub struct ClickAreas {
     pub store_category_end_y: u16,
     /// Geniş mağazada detay sağda mı? (değilse alt şeritte veya gizli).
     pub store_detail_side: bool,
+    /// Geniş Komut Rehberi'nde detay sağda mı?
+    pub commands_detail_side: bool,
+    /// Komut listesinin bitiş sütunu (hariç); yan detay açıkken daralır.
+    pub commands_list_end_x: u16,
     /// Geniş araç sekmesinde AI detay sağda mı? (artık her zaman false).
     pub tool_detail_side: bool,
     /// AI aksiyon şeridinin üst satırı (yoksa `u16::MAX`).
@@ -188,7 +192,7 @@ pub fn click_areas(
     store_tab: bool,
     tool_detail_side: bool,
 ) -> ClickAreas {
-    click_areas_ex(size, show_help, store_tab, tool_detail_side, false)
+    click_areas_ex(size, show_help, store_tab, false, tool_detail_side, false)
 }
 
 /// `has_ai_actions` ile aksiyon şeridi yüksekliğini hesaba katar.
@@ -196,23 +200,31 @@ pub fn click_areas_ex(
     size: (u16, u16),
     show_help: bool,
     store_tab: bool,
+    commands_tab: bool,
     tool_detail_side: bool,
     has_ai_actions: bool,
 ) -> ClickAreas {
     let (w, h) = size;
     let wide = w >= WIDE_MIN_WIDTH;
     let store_detail_side = store_tab && wide && w >= STORE_DETAIL_SIDE_MIN_WIDTH;
+    let commands_detail_side = commands_tab && wide && w >= STORE_DETAIL_SIDE_MIN_WIDTH;
     let show_detail = w >= MEDIUM_MIN_WIDTH && h >= 10;
     let tall = h >= TALL_MIN_HEIGHT;
-    let actions_h = if show_detail && !store_tab && has_ai_actions {
+    let actions_h = if show_detail && !store_tab && !commands_tab && has_ai_actions {
         ACTIONS_STRIP_ROWS
     } else {
         0
     };
-    // Geniş mağazada detay sağ paneledir; araç sekmesinde detay her zaman alt şerit.
+    // Geniş mağaza / Komut Rehberi: detay sağ panel; araçta alt şerit.
     let detail_h = if show_detail {
         if store_tab {
             if store_detail_side {
+                0
+            } else {
+                STORE_DETAIL_ROWS.min(h.saturating_sub(CONTENT_MIN_HEIGHT + 3 + actions_h))
+            }
+        } else if commands_tab {
+            if commands_detail_side {
                 0
             } else {
                 STORE_DETAIL_ROWS.min(h.saturating_sub(CONTENT_MIN_HEIGHT + 3 + actions_h))
@@ -227,7 +239,7 @@ pub fn click_areas_ex(
     };
     let help_height = if show_help {
         let reserved = 1 + 1 + CONTENT_MIN_HEIGHT + if show_detail { 2 } else { 0 } + 1;
-        let reserved = if store_tab || tool_detail_side || actions_h > 0 {
+        let reserved = if store_tab || commands_tab || tool_detail_side || actions_h > 0 {
             1 + 1 + CONTENT_MIN_HEIGHT + actions_h + detail_h + 1
         } else {
             reserved
@@ -253,6 +265,11 @@ pub fn click_areas_ex(
     } else {
         w
     };
+    let commands_list_end_x = if commands_detail_side {
+        w.saturating_sub(STORE_DETAIL_PANEL_WIDTH)
+    } else {
+        w
+    };
     let tools_end_x = if tool_detail_side {
         w.saturating_sub(TOOL_DETAIL_PANEL_WIDTH)
     } else {
@@ -273,6 +290,8 @@ pub fn click_areas_ex(
         tools_end_x,
         store_category_end_y: content_top + store_category_rows,
         store_detail_side,
+        commands_detail_side,
+        commands_list_end_x,
         tool_detail_side,
         actions_top,
         actions_height: actions_h,
@@ -484,6 +503,8 @@ pub fn draw(f: &mut Frame, app: &App) {
 
     let wide = area.width >= WIDE_MIN_WIDTH;
     let store_detail_side = app.store_tab && wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH;
+    let commands_detail_side =
+        app.commands_tab && wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH;
     let show_detail = area.width >= MEDIUM_MIN_WIDTH && area.height >= 10;
     let tall = area.height >= TALL_MIN_HEIGHT;
     let show_actions = show_detail
@@ -493,8 +514,7 @@ pub fn draw(f: &mut Frame, app: &App) {
         && app.selected_tool_has_ai_actions();
     let actions_h = if show_actions { ACTIONS_STRIP_ROWS } else { 0 };
 
-    // Detay: geniş mağazada sağ sütun; araç sekmesinde her zaman alt şerit
-    // (aksiyon şeridinin altında — etiketler okunaklı, detay kullanılabilir).
+    // Detay: geniş mağaza / Komut Rehberi sağ sütun; araçta alt şerit.
     let detail_h = if show_detail {
         if app.store_tab {
             if store_detail_side {
@@ -506,10 +526,14 @@ pub fn draw(f: &mut Frame, app: &App) {
                 )
             }
         } else if app.commands_tab {
-            STORE_DETAIL_ROWS.min(
-                area.height
-                    .saturating_sub(CONTENT_MIN_HEIGHT + 3 + actions_h),
-            )
+            if commands_detail_side {
+                0
+            } else {
+                STORE_DETAIL_ROWS.min(
+                    area.height
+                        .saturating_sub(CONTENT_MIN_HEIGHT + 3 + actions_h),
+                )
+            }
         } else if app.settings_tab {
             0
         } else {
@@ -582,10 +606,27 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
 fn draw_search(f: &mut Frame, app: &App, area: Rect) {
     let lang = app.ui_lang();
     let (text, style) = if app.search_active || !app.search_query.is_empty() {
+        let prefix = if app.commands_tab {
+            match app.commands_source {
+                crate::commands::CommandsSource::Bank => "bank / ",
+                crate::commands::CommandsSource::Local => "PATH / ",
+            }
+        } else if app.store_tab {
+            "mağaza / "
+        } else {
+            "/ "
+        };
         (
-            format!("/ {}", app.search_query),
+            format!("{prefix}{}", app.search_query),
             Style::default().fg(Color::Yellow),
         )
+    } else if app.commands_tab {
+        let hint = if area.width < TIGHT_HINT_WIDTH {
+            lang.t(Msg::CommandsSearchHintTight)
+        } else {
+            lang.t(Msg::CommandsSearchHintWide)
+        };
+        (hint.to_string(), Style::default().fg(Color::DarkGray))
     } else if area.width < TIGHT_HINT_WIDTH {
         (
             lang.t(Msg::SearchHintTight).to_string(),
@@ -674,21 +715,54 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
 fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
     use crate::commands::CommandsSource;
 
+    let side = wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH;
     if wide {
         if app.commands_source == CommandsSource::Bank {
+            if side {
+                let panels = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([
+                        Constraint::Length(CATEGORY_PANEL_WIDTH),
+                        Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
+                        Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
+                        Constraint::Min(LIST_PANEL_MIN_WIDTH),
+                        Constraint::Length(STORE_DETAIL_PANEL_WIDTH),
+                    ])
+                    .split(area);
+                draw_categories(f, app, panels[0]);
+                draw_commands_source(f, app, panels[1]);
+                draw_commands_categories(f, app, panels[2]);
+                draw_commands_list(f, app, panels[3]);
+                draw_commands_detail_panel(f, app, panels[4]);
+            } else {
+                let panels = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([
+                        Constraint::Length(CATEGORY_PANEL_WIDTH),
+                        Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
+                        Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
+                        Constraint::Min(LIST_PANEL_MIN_WIDTH),
+                    ])
+                    .split(area);
+                draw_categories(f, app, panels[0]);
+                draw_commands_source(f, app, panels[1]);
+                draw_commands_categories(f, app, panels[2]);
+                draw_commands_list(f, app, panels[3]);
+            }
+        } else if side {
             let panels = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([
                     Constraint::Length(CATEGORY_PANEL_WIDTH),
                     Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
-                    Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
                     Constraint::Min(LIST_PANEL_MIN_WIDTH),
+                    Constraint::Length(STORE_DETAIL_PANEL_WIDTH),
                 ])
                 .split(area);
             draw_categories(f, app, panels[0]);
             draw_commands_source(f, app, panels[1]);
-            draw_commands_categories(f, app, panels[2]);
-            draw_commands_list(f, app, panels[3]);
+            draw_commands_list(f, app, panels[2]);
+            draw_commands_detail_panel(f, app, panels[3]);
         } else {
             let panels = Layout::default()
                 .direction(Direction::Horizontal)
@@ -718,14 +792,23 @@ fn draw_commands_source(f: &mut Frame, app: &App, area: Rect) {
     let lang = app.ui_lang();
     let bank_count = app.commands_bank.commands.len();
     let local_count = app.commands_local.entries.len();
+    let fav_n = app.state.file.command_favorites.len();
     let rows = [
         (
             CommandsSource::Bank,
-            format!("{} ({bank_count})", lang.t(Msg::CommandsBank)),
+            format!(
+                "{} ({bank_count}) · {}",
+                lang.t(Msg::CommandsBank),
+                lang.t(Msg::CommandsBankKind)
+            ),
         ),
         (
             CommandsSource::Local,
-            format!("{} ({local_count})", lang.t(Msg::CommandsLocal)),
+            format!(
+                "{} ({local_count}) · {}",
+                lang.t(Msg::CommandsLocal),
+                lang.t(Msg::CommandsLocalKind)
+            ),
         ),
     ];
     let items: Vec<ListItem> = rows
@@ -760,12 +843,17 @@ fn draw_commands_source(f: &mut Frame, app: &App, area: Rect) {
     } else {
         Style::default().fg(pal.muted)
     };
+    let title = if fav_n > 0 {
+        format!(" {} · ★{fav_n} ", lang.t(Msg::CommandsSourceTitle))
+    } else {
+        format!(" {} ", lang.t(Msg::CommandsSourceTitle))
+    };
     let list = List::new(items)
         .block(
             Block::default()
                 .borders(Borders::ALL)
                 .border_style(border)
-                .title(format!(" {} ", lang.t(Msg::CommandsGuide))),
+                .title(title),
         )
         .highlight_style(Style::default());
     let mut state = ListState::default().with_selected(Some(app.commands_source.index()));
@@ -827,12 +915,20 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
     use crate::commands::CommandsSource;
     let pal = palette(app);
     let lang = app.ui_lang();
+    let searching = !app.search_query.is_empty();
     let (title, items): (String, Vec<ListItem>) = match app.commands_source {
         CommandsSource::Bank => {
             let cmds = app.filtered_bank_commands();
             let items = if cmds.is_empty() {
+                let empty = if searching {
+                    lang.t(Msg::EmptyCommandsSearch)
+                } else if app.command_favorite_only {
+                    lang.t(Msg::EmptyCommandsFavorites)
+                } else {
+                    lang.t(Msg::EmptyCommandsCategory)
+                };
                 vec![ListItem::new(Span::styled(
-                    lang.t(Msg::EmptyCommandsCategory),
+                    empty,
                     Style::default().fg(pal.muted),
                 ))]
             } else {
@@ -851,15 +947,26 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
                         } else {
                             Style::default().fg(pal.text)
                         };
+                        let fav = if app.is_command_favorite(&cmd.id) {
+                            "★"
+                        } else {
+                            " "
+                        };
                         let draft = if cmd.verification.status
                             == crate::commands::VerificationStatus::Draft
                         {
-                            " [draft]"
+                            "·draft"
                         } else {
                             ""
                         };
+                        let risk = cmd.risk.marker();
+                        let cat = if searching {
+                            format!(" [{}]", cmd.category)
+                        } else {
+                            String::new()
+                        };
                         let label = truncate(
-                            &format!("{}{draft}", cmd.name),
+                            &format!("{fav}{}{risk}{draft}{cat}", cmd.name),
                             area.width.saturating_sub(6) as usize,
                         );
                         ListItem::new(Line::from(vec![
@@ -872,13 +979,25 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
                     })
                     .collect()
             };
-            (format!(" {} ", lang.t(Msg::CommandsList)), items)
+            let mut title = format!(" {} ({}) ", lang.t(Msg::CommandsList), cmds.len());
+            if app.command_favorite_only {
+                title = format!(" {} ★ ", lang.t(Msg::CommandsList));
+            }
+            if searching {
+                title = format!(
+                    " {} /{} ({}) ",
+                    lang.t(Msg::CommandsList),
+                    truncate(&app.search_query, 12),
+                    cmds.len()
+                );
+            }
+            (title, items)
         }
         CommandsSource::Local => {
             let ents = app.filtered_local_commands();
             let items = if ents.is_empty() {
                 vec![ListItem::new(Span::styled(
-                    "PATH stub boş veya süzüldü (bank doğrulaması değil)",
+                    lang.t(Msg::EmptyLocalCommands),
                     Style::default().fg(pal.muted),
                 ))]
             } else {
@@ -897,11 +1016,12 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
                         } else {
                             Style::default().fg(pal.text)
                         };
-                        let bank = ent
-                            .bank_id
-                            .as_ref()
-                            .map(|id| format!(" ↔ bank:{id}"))
-                            .unwrap_or_default();
+                        // bank_id eşleşmesi ≠ verified (dual-concept).
+                        let bank = if ent.bank_id.is_some() {
+                            " ·bank?"
+                        } else {
+                            ""
+                        };
                         let label = truncate(
                             &format!("{}{bank}", ent.name),
                             area.width.saturating_sub(6) as usize,
@@ -916,7 +1036,17 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
                     })
                     .collect()
             };
-            (format!(" {} ", lang.t(Msg::CommandsLocal)), items)
+            let title = if searching {
+                format!(
+                    " {} /{} ({}) ",
+                    lang.t(Msg::CommandsLocalList),
+                    truncate(&app.search_query, 12),
+                    ents.len()
+                )
+            } else {
+                format!(" {} ({}) ", lang.t(Msg::CommandsLocalList), ents.len())
+            };
+            (title, items)
         }
     };
     let border = if app.focus == PanelFocus::CommandsList {
@@ -1607,8 +1737,21 @@ fn draw_store_detail_panel(f: &mut Frame, app: &App, area: Rect) {
     f.render_widget(detail, area);
 }
 
+fn draw_commands_detail_panel(f: &mut Frame, app: &App, area: Rect) {
+    let lang = app.ui_lang();
+    let pal = palette(app);
+    let lines = commands_detail_lines(app);
+    let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(pal.muted))
+            .title(format!(" {} ", lang.t(Msg::CommandsDetail))),
+    );
+    f.render_widget(detail, area);
+}
+
 fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
-    // Geniş mağaza / AI araç sağ-detayında alt şerit boş bırakılır.
+    // Geniş mağaza / Komut Rehberi sağ-detayında alt şerit boş bırakılır.
     if area.height == 0 {
         return;
     }
@@ -1639,7 +1782,7 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
-    use crate::commands::CommandsSource;
+    use crate::commands::{CommandsSource, VerificationStatus};
     let lang = app.ui_lang();
     let lang_id = lang.id();
     let mut lines = Vec::new();
@@ -1653,13 +1796,28 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 lines.push(Line::from(lang.t(Msg::NoCommandSelected).to_string()));
                 return lines;
             };
+            let fav = if app.is_command_favorite(&cmd.id) {
+                "★ "
+            } else {
+                ""
+            };
+            lines.push(Line::from(Span::styled(
+                format!("{fav}{}", cmd.name),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
             lines.push(Line::from(format!(
-                "{}  ·  {}  ·  risk={}  ·  {}",
-                cmd.name,
+                "{} · {} · {} · {}",
                 cmd.category,
-                cmd.risk.as_str(),
+                lang.t(Msg::CommandsRisk),
+                cmd.risk.label(lang_id),
                 cmd.verification.status.as_str()
             )));
+            if cmd.verification.status == VerificationStatus::Draft {
+                lines.push(Line::from(Span::styled(
+                    lang.t(Msg::CommandsDraftWarn).to_string(),
+                    Style::default().fg(Color::Yellow),
+                )));
+            }
             let summary = cmd.summary.pick(lang_id);
             if !summary.is_empty() {
                 lines.push(Line::from(summary.to_string()));
@@ -1669,27 +1827,73 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 lines.push(Line::from(desc.to_string()));
             }
             if cmd.requires_elevated {
-                lines.push(Line::from("requires_elevated: yes".to_string()));
+                lines.push(Line::from(lang.t(Msg::CommandsElevated).to_string()));
             }
-            let is_arch = std::path::Path::new("/etc/arch-release").exists();
-            if let Some(pkg) = cmd.packages.preferred_hint(is_arch) {
-                let mgr = if is_arch { "pacman/arch" } else { "pkg" };
-                lines.push(Line::from(format!("package ({mgr}): {pkg}")));
+            let is_arch = crate::commands::host_is_arch();
+            if !cmd.packages.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    format!("{}:", lang.t(Msg::CommandsPackages)),
+                    Style::default().add_modifier(Modifier::BOLD),
+                )));
+                for (label, pkg) in cmd.packages.labeled_pairs(is_arch) {
+                    let mark = if is_arch && label.starts_with("arch") {
+                        " ←"
+                    } else {
+                        ""
+                    };
+                    lines.push(Line::from(format!("  {label}: {pkg}{mark}")));
+                }
             }
             let notes = cmd.install_notes.pick(lang_id);
             if !notes.is_empty() {
-                lines.push(Line::from(format!("install: {notes}")));
-            }
-            if let Some(ex) = cmd.examples.first() {
                 lines.push(Line::from(format!(
-                    "örnek: {}  ({})",
-                    ex.command,
-                    ex.risk.as_str()
+                    "{}: {notes}",
+                    lang.t(Msg::CommandsInstallNotes)
                 )));
             }
-            lines.push(Line::from(
-                "Kaynak: nova-commands-bank (kürate) — Mağaza / PATH değil.".to_string(),
-            ));
+            if !cmd.examples.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    format!("{}:", lang.t(Msg::CommandsExamples)),
+                    Style::default().add_modifier(Modifier::BOLD),
+                )));
+                for ex in cmd.examples.iter().take(4) {
+                    let title = ex.title.pick(lang_id);
+                    let elev = if ex.requires_elevated { " · sudo" } else { "" };
+                    if !title.is_empty() {
+                        lines.push(Line::from(format!(
+                            "  · {title} [{}{}]",
+                            ex.risk.label(lang_id),
+                            elev
+                        )));
+                    }
+                    lines.push(Line::from(Span::styled(
+                        format!("    {}", ex.command),
+                        Style::default().fg(Color::Cyan),
+                    )));
+                    let expl = ex.explanation.pick(lang_id);
+                    if !expl.is_empty() {
+                        lines.push(Line::from(format!("    {expl}")));
+                    }
+                }
+            }
+            if !cmd.related.is_empty() {
+                lines.push(Line::from(format!(
+                    "{}: {}",
+                    lang.t(Msg::CommandsRelated),
+                    cmd.related.join(", ")
+                )));
+            }
+            if !cmd.nova.concepts.is_empty() {
+                lines.push(Line::from(format!(
+                    "{}: {}",
+                    lang.t(Msg::CommandsConcepts),
+                    cmd.nova.concepts.join(", ")
+                )));
+            }
+            lines.push(Line::from(Span::styled(
+                lang.t(Msg::CommandsBankFooter).to_string(),
+                Style::default().fg(Color::DarkGray),
+            )));
         }
         CommandsSource::Local => {
             let ents = app.filtered_local_commands();
@@ -1697,26 +1901,36 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 .get(app.commands_entry_index.min(ents.len().saturating_sub(1)))
                 .copied()
             else {
-                lines.push(Line::from(
-                    "PATH stub boş — bank doğrulaması değil.".to_string(),
-                ));
+                lines.push(Line::from(lang.t(Msg::EmptyLocalCommands).to_string()));
                 return lines;
             };
-            lines.push(Line::from(format!("{}  ·  {}", ent.name, ent.path)));
+            lines.push(Line::from(Span::styled(
+                ent.name.clone(),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(ent.path.clone()));
             lines.push(Line::from(format!(
-                "source={}  ·  kind={}",
+                "source={} · kind={}",
                 ent.source.as_str(),
                 crate::commands::LOCAL_KIND
             )));
             match &ent.bank_id {
-                Some(id) => lines.push(Line::from(format!(
-                    "bank_id={id} (eşleşme) — verified miras alınmaz"
-                ))),
-                None => lines.push(Line::from("bank eşleşmesi yok".to_string())),
+                Some(id) => {
+                    lines.push(Line::from(format!(
+                        "bank_id={id} ({})",
+                        ent.bank_match.as_deref().unwrap_or("match")
+                    )));
+                    lines.push(Line::from(Span::styled(
+                        lang.t(Msg::CommandsLocalNoVerify).to_string(),
+                        Style::default().fg(Color::Yellow),
+                    )));
+                }
+                None => lines.push(Line::from(lang.t(Msg::CommandsLocalNoBank).to_string())),
             }
-            lines.push(Line::from(
-                "Sistemimde Bulunan ≠ Bilgi Bankası ≠ Mağaza.".to_string(),
-            ));
+            lines.push(Line::from(Span::styled(
+                lang.t(Msg::CommandsLocalFooter).to_string(),
+                Style::default().fg(Color::DarkGray),
+            )));
         }
     }
     lines
@@ -2341,9 +2555,9 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
         }
     } else if app.commands_tab {
         if tight {
-            "↑↓ · g · ?"
+            "↑↓ · / · F · ?"
         } else {
-            "↑↓ kaynak/liste   ←→ panel   Enter bilgi   g rehber   m mağaza"
+            "↑↓ kaynak/liste   ←→ panel   / ara   F banka favori   C süz   Enter bilgi"
         }
     } else if app.store_tab {
         match app.focus {
@@ -2489,6 +2703,11 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
             lang.t(Msg::CommandsGuide),
             "Bilgi Bankası ≠ Sistemimde Bulunan ≠ Mağaza",
         )]));
+        lines.push(help_line(&[
+            ("F", lang.t(Msg::HelpCommandFavorite)),
+            ("C", lang.t(Msg::HelpCommandFavOnly)),
+            ("/", lang.t(Msg::HelpSearch)),
+        ]));
     }
     // Mağaza sekmesinin kendi tuşları ayrı satırda anlatılır; sekme
     // görünümü farklı bir gezinme düzeni sunduğu için tek satırlık tablo
@@ -2635,8 +2854,8 @@ mod tests {
             TOOL_DETAIL_SIDE_MIN_WIDTH,
             true
         ));
-        let plain = click_areas_ex((120, 30), false, false, false, false);
-        let with_actions = click_areas_ex((120, 30), false, false, false, true);
+        let plain = click_areas_ex((120, 30), false, false, false, false, false);
+        let with_actions = click_areas_ex((120, 30), false, false, false, false, true);
         assert!(!plain.tool_detail_side);
         assert!(!with_actions.tool_detail_side);
         assert_eq!(plain.actions_height, 0);

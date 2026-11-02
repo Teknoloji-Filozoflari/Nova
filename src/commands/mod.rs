@@ -19,8 +19,15 @@ pub use bank::{
     CommandBank, CommandEntry, ConceptEntry, LocalizedString, RiskLevel, VerificationStatus,
     BANK_KIND,
 };
-pub use loader::{load_bank, load_manifest, load_search_index, CommandsManifest, SearchIndex};
+pub use loader::{
+    load_bank, load_manifest, load_search_index, CommandsManifest, SearchEntry, SearchIndex,
+};
 pub use local::{LocalCommandsSnapshot, LocalEntry, LOCAL_KIND};
+
+/// Host Arch mi? (`/etc/arch-release`) — paket ipuçlarında pacman önceliği.
+pub fn host_is_arch() -> bool {
+    std::path::Path::new("/etc/arch-release").exists()
+}
 
 /// Sol paneldeki Komut Rehberi sekmesi etiketi (TR varsayılan; i18n `Msg` ile çizilir).
 pub const COMMANDS_TAB_LABEL: &str = "Komut Rehberi";

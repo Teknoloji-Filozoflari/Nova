@@ -66,6 +66,12 @@ pub struct StateFile {
     /// Favori araç kimlikleri (sıralı ve tekrarsız).
     #[serde(default)]
     pub favorites: BTreeSet<String>,
+    /// Komut Rehberi banka favorileri (`CommandEntry.id`).
+    ///
+    /// Araç `favorites` ve Mağaza ile **karışmaz**; yalnızca kürate banka
+    /// kayıtları. Yerel PATH keşfi (`nova-local-commands`) burada tutulmaz.
+    #[serde(default)]
+    pub command_favorites: BTreeSet<String>,
     /// Son kullanılanlar, **en yeni önce**.
     #[serde(default)]
     pub recents: Vec<RecentEntry>,
@@ -396,6 +402,7 @@ mod tests {
     fn old_state_without_new_fields_loads() {
         let state: StateFile = toml::from_str("favorites = [\"btop\"]\n").unwrap();
         assert!(state.favorites.contains("btop"));
+        assert!(state.command_favorites.is_empty());
         assert!(state.recents.is_empty());
         assert_eq!(state.recent_limit(), RECENT_LIMIT_DEFAULT);
     }
