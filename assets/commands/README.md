@@ -16,3 +16,34 @@ Bu dizin **Mağaza** (`assets/store/`) ve **kurulu araç kataloğu**
 **Sistemimde Bulunan Komutlar** (PATH keşfi) buraya yazılmaz; istemci
 tarafında `kind: nova-local-commands` stub'ı üretir
 ([local-discovery-contract](https://github.com/Teknoloji-Filozoflari/Nova-Commands/blob/main/docs/local-discovery-contract.md)).
+
+## Yenileme yolları
+
+### 1) Vendor kopyası (bu dizin — release / PR)
+
+Nova kökünden:
+
+```bash
+./tools/sync_commands_catalog.sh
+# veya yerel clone:
+# NOVA_COMMANDS_SRC=/path/to/Nova-Commands ./tools/sync_commands_catalog.sh
+```
+
+`main` (veya `NOVA_COMMANDS_REF`) üzerindeki `metadata/{catalog,manifest,search-index}.json`
+dosyalarını buraya kopyalar; `kind` + `content_sha256` tutarlılığını doğrular.
+Gömülü kopya bir sonraki Nova sürümüne / PR’ye gider.
+
+### 2) Çalışma zamanı (isteğe bağlı — Ayarlar)
+
+Ayarlar → **Komut bankası**: Nova-Commands `main` ham HTTPS URL’lerinden
+manifest (+ gerekirse catalog/search-index) çeker.
+
+- İmzasızdır; güven = sabit GitHub raw URL + HTTPS + `kind` / `content_sha256`.
+- Aynı SHA ise catalog indirmez (“güncel”).
+- Başarıda `~/.local/share/nova/commands/` (veya `NOVA_COMMANDS_DIR`) önbelleğine yazar.
+- Açılışta geçerli önbellek gömülünün önüne geçer; ağ çağrısı yok.
+- Mağaza (`assets/store`, Releases imzası) bu yoldan **etkilenmez**.
+
+Ortam değişkenleri: `NOVA_COMMANDS_MANIFEST_URL`, `NOVA_COMMANDS_CATALOG_URL`,
+`NOVA_COMMANDS_SEARCH_INDEX_URL`, `NOVA_COMMANDS_DISABLE_REMOTE=1`,
+`NOVA_COMMANDS_DIR`.

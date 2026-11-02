@@ -1290,6 +1290,10 @@ fn draw_settings_panel(f: &mut Frame, app: &App, area: Rect) {
     let actions = [
         (lang.t(Msg::Update), lang.t(Msg::UpdateHint)),
         (lang.t(Msg::UpdateCatalog), lang.t(Msg::UpdateCatalogHint)),
+        (
+            lang.t(Msg::UpdateCommandsBank),
+            lang.t(Msg::UpdateCommandsBankHint),
+        ),
         (lang.t(Msg::AddCustomTool), lang.t(Msg::AddCustomToolHint)),
         (lang.t(Msg::Theme), theme_hint.as_str()),
         (lang.t(Msg::Language), language_hint.as_str()),

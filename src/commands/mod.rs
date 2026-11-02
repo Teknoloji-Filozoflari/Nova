@@ -14,15 +14,20 @@
 pub mod bank;
 pub mod loader;
 pub mod local;
+pub mod repo_sync;
 
 pub use bank::{
     CommandBank, CommandEntry, ConceptEntry, LocalizedString, RiskLevel, VerificationStatus,
     BANK_KIND,
 };
 pub use loader::{
-    load_bank, load_manifest, load_search_index, CommandsManifest, SearchEntry, SearchIndex,
+    load_bank, load_bank_preferring_cache, load_manifest, load_search_index, CommandsManifest,
+    SearchEntry, SearchIndex,
 };
 pub use local::{LocalCommandsSnapshot, LocalEntry, LOCAL_KIND};
+pub use repo_sync::{
+    format_sync_note, refresh_commands_from_repo, CommandsRepoSync, FetchedCommandsBank,
+};
 
 /// Host Arch mi? (`/etc/arch-release`) — paket ipuçlarında pacman önceliği.
 pub fn host_is_arch() -> bool {
