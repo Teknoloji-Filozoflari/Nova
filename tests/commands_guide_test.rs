@@ -28,6 +28,21 @@ fn all_text(lines: &[String]) -> String {
 }
 
 #[test]
+fn settings_lists_commands_bank_refresh_action() {
+    let mut app = app();
+    app.select_settings_tab();
+    let text = all_text(&render(&app, 120, 28));
+    assert!(
+        text.contains("Komut bankası") || text.contains("Commands bank"),
+        "Ayarlar Komut bankası eylemini göstermeli:\n{text}"
+    );
+    assert!(
+        text.contains("Mağaza kataloğu") || text.contains("Store catalog"),
+        "Mağaza kataloğu eylemi korunmalı:\n{text}"
+    );
+}
+
+#[test]
 fn commands_tab_renders_bank_surface_distinct_from_store() {
     let mut app = app();
     app.select_commands_tab();

@@ -162,10 +162,35 @@ pub fn load_manifest_from_str(json: &str) -> Result<CommandsManifest, String> {
 }
 
 pub fn load_search_index() -> Result<SearchIndex, String> {
-    let idx: SearchIndex = serde_json::from_str(EMBEDDED_SEARCH_INDEX)
-        .map_err(|e| format!("search-index.json parse: {e}"))?;
+    load_search_index_from_str(EMBEDDED_SEARCH_INDEX)
+}
+
+pub fn load_search_index_from_str(json: &str) -> Result<SearchIndex, String> {
+    let idx: SearchIndex =
+        serde_json::from_str(json).map_err(|e| format!("search-index.json parse: {e}"))?;
     idx.validate_contract()?;
     Ok(idx)
+}
+
+/// Gömülü bankanın `content_sha256` değeri (yoksa `None`).
+pub fn embedded_content_sha256() -> Option<String> {
+    load_manifest().ok().map(|m| m.content_sha256)
+}
+
+/// Açılış yüklemesi: geçerli disk önbelleği varsa o, yoksa gömülü.
+///
+/// Ağ çağrısı **yapmaz**. Uzak yenileme için [`crate::commands::repo_sync`].
+pub fn load_bank_preferring_cache() -> Result<(CommandBank, SearchIndex, String), String> {
+    if let Ok(cached) = crate::commands::repo_sync::load_cached_commands_bank() {
+        return Ok((
+            cached.bank,
+            cached.search_index,
+            format!("önbellek ({})", cached.source),
+        ));
+    }
+    let bank = load_bank()?;
+    let idx = load_search_index()?;
+    Ok((bank, idx, "gömülü assets/commands".into()))
 }
 
 #[cfg(test)]

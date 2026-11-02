@@ -158,7 +158,8 @@ pub struct App {
     /// Ayarlar sekmesi etkin mi? (Mağaza'nın altındaki satır)
     pub settings_tab: bool,
     /// Ayarlar sekmesinde seçili eylem:
-    /// 0 = Nova güncelle, 1 = Mağaza kataloğu, 2 = Özel araç, 3 = Tema, 4 = Dil.
+    /// 0 = Nova güncelle, 1 = Mağaza kataloğu, 2 = Komut bankası,
+    /// 3 = Özel araç, 4 = Tema, 5 = Dil.
     pub settings_action_index: usize,
     /// Tema seçici yan paneli açık mı?
     pub theme_picker_open: bool,
@@ -308,6 +309,31 @@ impl App {
         for entry in catalog.entries_mut() {
             entry.favorite = state.file.favorites.contains(&entry.id);
         }
+        let (commands_bank, commands_search_index) = match commands::load_bank_preferring_cache() {
+            Ok((bank, idx, _)) => (bank, idx),
+            Err(e) => {
+                eprintln!("Nova-Commands bankası yüklenemedi: {e}");
+                (
+                    CommandBank {
+                        schema_version: 1,
+                        kind: commands::BANK_KIND.to_string(),
+                        generated_at: None,
+                        content_sha256: None,
+                        command_count: Some(0),
+                        concept_count: Some(0),
+                        commands: Vec::new(),
+                        concepts: Vec::new(),
+                    },
+                    SearchIndex {
+                        schema_version: 1,
+                        kind: commands::loader::SEARCH_INDEX_KIND.to_string(),
+                        entry_count: Some(0),
+                        content_sha256: None,
+                        entries: Vec::new(),
+                    },
+                )
+            }
+        };
         let mut app = Self {
             running: true,
             catalog,
@@ -327,29 +353,8 @@ impl App {
             commands_source: CommandsSource::Bank,
             commands_category_index: 0,
             commands_entry_index: 0,
-            commands_bank: commands::load_bank().unwrap_or_else(|e| {
-                eprintln!("Nova-Commands bankası yüklenemedi: {e}");
-                CommandBank {
-                    schema_version: 1,
-                    kind: commands::BANK_KIND.to_string(),
-                    generated_at: None,
-                    content_sha256: None,
-                    command_count: Some(0),
-                    concept_count: Some(0),
-                    commands: Vec::new(),
-                    concepts: Vec::new(),
-                }
-            }),
-            commands_search_index: commands::load_search_index().unwrap_or_else(|e| {
-                eprintln!("Nova-Commands search-index yüklenemedi: {e}");
-                SearchIndex {
-                    schema_version: 1,
-                    kind: commands::loader::SEARCH_INDEX_KIND.to_string(),
-                    entry_count: Some(0),
-                    content_sha256: None,
-                    entries: Vec::new(),
-                }
-            }),
+            commands_bank,
+            commands_search_index,
             commands_local: LocalCommandsSnapshot::empty_stub(),
             tool_index: 0,
             tool_action_index: 0,
@@ -730,7 +735,7 @@ impl App {
 
         let panel_top = areas.content_top;
         let panel_h = areas.content_height;
-        const SETTINGS_ACTIONS: usize = 5;
+        const SETTINGS_ACTIONS: usize = 6;
 
         if self.settings_side_picker_open() && areas.wide {
             let side_start = areas
@@ -822,12 +827,12 @@ impl App {
 
     /// Ayarlar listesinde tıklanan eylemi uygular (Tema / Dil → paneli aç).
     fn apply_settings_action_click(&mut self, index: usize) {
-        self.settings_action_index = index.min(4);
+        self.settings_action_index = index.min(5);
         self.focus = PanelFocus::Tool;
         match self.settings_action_index {
-            3 => self.open_theme_picker(),
-            4 => self.open_language_picker(),
-            2 => {
+            4 => self.open_theme_picker(),
+            5 => self.open_language_picker(),
+            3 => {
                 self.theme_picker_open = false;
                 self.language_picker_open = false;
                 self.modal = modal::Modal::ToolForm(Box::default());
@@ -1208,7 +1213,7 @@ impl App {
             PanelFocus::Category => self.move_tab_down(),
             PanelFocus::Tool => {
                 if self.settings_tab {
-                    self.settings_action_index = (self.settings_action_index + 1).min(4);
+                    self.settings_action_index = (self.settings_action_index + 1).min(5);
                     return;
                 }
                 let tools = self.filtered_tools();
@@ -1478,9 +1483,8 @@ impl App {
         self.language_picker_open = false;
         self.settings_action_index = 0;
         self.focus = PanelFocus::Tool;
-        self.status_message =
-            "Ayarlar: Nova güncelle / Mağaza kataloğu / Özel araç / Tema / Dil. Enter uygular."
-                .into();
+        self.status_message = "Ayarlar: Nova güncelle / Mağaza kataloğu / Komut bankası / Özel araç / Tema / Dil. Enter uygular."
+            .into();
     }
 
     /// Sol panelde seçili sekmenin satır indeksi (çizilen liste üzerinden).
@@ -2181,7 +2185,7 @@ impl App {
         self.language_picker_open = false;
         self.theme_picker_open = true;
         self.theme_picker_index = self.ui_theme().index();
-        self.settings_action_index = 3;
+        self.settings_action_index = 4;
         self.focus = PanelFocus::ThemePicker;
         self.status_message = self.ui_lang().t(crate::i18n::Msg::ThemePickHint).into();
     }
@@ -2200,7 +2204,7 @@ impl App {
         self.theme_picker_open = false;
         self.language_picker_open = true;
         self.language_picker_index = self.ui_lang().index();
-        self.settings_action_index = 4;
+        self.settings_action_index = 5;
         self.focus = PanelFocus::LanguagePicker;
         self.status_message = self.ui_lang().t(crate::i18n::Msg::LanguagePickHint).into();
     }
@@ -2372,12 +2376,13 @@ impl App {
         match self.settings_action_index {
             0 => self.start_nova_update_check(),
             1 => self.start_store_catalog_refresh(),
-            2 => {
+            2 => self.start_commands_bank_refresh(),
+            3 => {
                 self.modal = modal::Modal::ToolForm(Box::default());
                 self.status_message =
                     "Özel araç: ad, program, kategori… Esc iptal, Enter gözden geçir.".into();
             }
-            3 => self.open_theme_picker(),
+            4 => self.open_theme_picker(),
             _ => self.open_language_picker(),
         }
     }
@@ -2389,6 +2394,28 @@ impl App {
         self.store = store;
         self.refresh_store_status();
         self.status_message = note;
+    }
+
+    /// Komut bankasını Nova-Commands repo (main) ile yeniler (imzasız HTTPS + SHA).
+    ///
+    /// Mağaza kataloğundan ayrıdır; `kind: nova-commands-bank` korunur.
+    pub fn start_commands_bank_refresh(&mut self) {
+        self.status_message =
+            "Komut bankası yenileniyor (Nova-Commands repo main; imzasız HTTPS)…".into();
+        let current_sha = self
+            .commands_bank
+            .content_sha256
+            .clone()
+            .or_else(commands::loader::embedded_content_sha256);
+        let (fetched, sync) = commands::refresh_commands_from_repo(current_sha.as_deref());
+        if let Some(fetched) = fetched {
+            self.commands_bank = fetched.bank;
+            self.commands_search_index = fetched.search_index;
+            self.commands_category_index = 0;
+            self.commands_entry_index = 0;
+            self.refresh_local_commands_stub();
+        }
+        self.status_message = commands::format_sync_note(&sync);
     }
 
     /// Gelişmiş ayarlar modalını açar (terminal, medya varsayılanları…).
@@ -4831,7 +4858,7 @@ mod tests {
         let mut app = sample_app();
         let before = app.ui_theme();
         app.select_settings_tab();
-        app.settings_action_index = 3;
+        app.settings_action_index = 4;
         app.focus = PanelFocus::Tool;
         app.activate_settings_action();
         assert!(app.theme_picker_open);
@@ -4848,7 +4875,7 @@ mod tests {
         let mut app = sample_app();
         assert_eq!(app.ui_lang(), crate::i18n::Language::Tr);
         app.select_settings_tab();
-        app.settings_action_index = 4;
+        app.settings_action_index = 5;
         app.focus = PanelFocus::Tool;
         app.activate_settings_action();
         assert!(app.language_picker_open);
@@ -5012,6 +5039,29 @@ mod tests {
             "mesaj: {}",
             app.status_message
         );
+    }
+
+    #[test]
+    fn settings_commands_bank_refresh_keeps_embedded_when_remote_skipped() {
+        let mut app = sample_app();
+        let before_sha = app.commands_bank.content_sha256.clone();
+        let before_n = app.commands_bank.commands.len();
+        app.select_settings_tab();
+        app.settings_action_index = 2;
+        app.focus = PanelFocus::Tool;
+        app.activate_settings_action();
+        assert_eq!(app.commands_bank.kind, crate::commands::BANK_KIND);
+        assert_eq!(app.commands_bank.content_sha256, before_sha);
+        assert_eq!(app.commands_bank.commands.len(), before_n);
+        assert!(
+            app.status_message.contains("Komut bankası")
+                || app.status_message.contains("yenilenemedi")
+                || app.status_message.contains("test:"),
+            "mesaj: {}",
+            app.status_message
+        );
+        // Mağaza kind sızmamalı.
+        assert!(!app.commands_bank.kind.contains("store"));
     }
 
     #[test]
