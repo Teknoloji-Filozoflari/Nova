@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-02T18:55:46Z",
-  "content_sha256": "c0f3ab0a0f06248f5091c8c3d482ccaa37d325584852b5e90b23f9cc1a2693e8",
-  "command_count": 135,
+  "generated_at": "2026-11-02T19:42:25Z",
+  "content_sha256": "b3261f4208be110c1e455f74cbdddced7510b6afe2db4be10e1d0913b427de68",
+  "command_count": 143,
   "concept_count": 12,
   "commands": [
     {
@@ -573,12 +573,13 @@
       ],
       "requires_elevated": false,
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 cat"
+          "man 1 cat (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flag -n/--number and safe read example confirmed."
       },
       "id": "cat",
       "name": "cat",
@@ -1587,12 +1588,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 date"
+          "man 1 date (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flag -u and -Iseconds (GNU --iso-8601) confirmed; print-only examples (no set)."
       },
       "category": "system",
       "nova": {
@@ -1705,6 +1707,8 @@
       "related": [
         "lsblk",
         "fdisk",
+        "parted",
+        "wipefs",
         "sync",
         "cp"
       ],
@@ -1803,12 +1807,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 df"
+          "man 1 df (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flag -h/--human-readable confirmed; read-only space report."
       },
       "category": "disks",
       "nova": {
@@ -2712,12 +2717,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 du"
+          "man 1 du (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flags -h/-s/-d confirmed; read-only directory usage."
       },
       "category": "disks",
       "nova": {
@@ -2792,12 +2798,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 echo"
+          "man 1 echo (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flag -n confirmed for /bin/echo; note shell builtin may differ slightly."
       },
       "category": "shell",
       "nova": {
@@ -3026,7 +3033,9 @@
         "lsblk",
         "blkid",
         "parted",
-        "mkfs"
+        "mkfs",
+        "mkfs.ext4",
+        "wipefs"
       ],
       "intent": {
         "tr": [
@@ -3281,12 +3290,14 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 8 findmnt"
+          "man 8 findmnt (util-linux)",
+          "https://man.archlinux.org/man/findmnt.8"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-coverage"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flags -t/-J/-s confirmed; read-only mount listing."
       },
       "nova": {
         "concepts": [
@@ -3651,6 +3662,144 @@
         ],
         "favorite_eligible": true
       }
+    },
+    {
+      "id": "fsck",
+      "name": "fsck",
+      "summary": {
+        "tr": "Dosya sistemi bütünlük kontrolü / onarım ön yüzü.",
+        "en": "Check and repair Linux filesystems (frontend)."
+      },
+      "description": {
+        "tr": "util-linux `fsck`, türe göre `fsck.<type>` (ör. e2fsck) çağırır. Bağlı (mounted) FS’te onarım tehlikelidir; `-N` yalnızca planı gösterir, `-M` bağlı olanları atlar. Yanlış onarım veri kaybına yol açabilir — dangerous. reviewed, verified değil.\n",
+        "en": "util-linux `fsck` dispatches to `fsck.<type>` (e.g. e2fsck). Repairing a mounted FS is hazardous; `-N` shows the plan only, `-M` skips mounted. Bad repairs can lose data — dangerous. Reviewed, not verified.\n"
+      },
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "repair"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "packages": {
+        "arch": "util-linux",
+        "debian": "util-linux",
+        "ubuntu": "util-linux",
+        "fedora": "util-linux"
+      },
+      "install_notes": {
+        "tr": "Arch: pacman -S util-linux; ext için ayrıca e2fsprogs, XFS için xfsprogs.\nDebian/Ubuntu: apt install util-linux e2fsprogs\nFedora: dnf install util-linux e2fsprogs\n",
+        "en": "Arch: pacman -S util-linux; also e2fsprogs for ext, xfsprogs for XFS.\nDebian/Ubuntu: apt install util-linux e2fsprogs\nFedora: dnf install util-linux e2fsprogs\n"
+      },
+      "flags": [
+        {
+          "flag": "-N",
+          "meaning": {
+            "tr": "Çalıştırma; yalnızca ne yapılacağını göster.",
+            "en": "Do not execute; show what would be done."
+          },
+          "verified": true
+        },
+        {
+          "flag": "-M",
+          "meaning": {
+            "tr": "Bağlı dosya sistemlerini kontrol etme.",
+            "en": "Do not check mounted filesystems."
+          },
+          "verified": true
+        },
+        {
+          "flag": "-t",
+          "meaning": {
+            "tr": "FS türü süz (virgülle ayrılmış liste).",
+            "en": "Specify filesystem types to check."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "type"
+        },
+        {
+          "flag": "-A",
+          "meaning": {
+            "tr": "fstab’daki tüm dosya sistemlerini kontrol et.",
+            "en": "Check all filesystems listed in fstab."
+          },
+          "verified": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Planı göster",
+            "en": "Show plan"
+          },
+          "command": "sudo fsck -N /dev/sdXN",
+          "explanation": {
+            "tr": "Yazmadan / onarmadan ne yapılacağını basar; yer tutucu aygıt.",
+            "en": "Prints the plan without running checks/repairs; placeholder device."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Bağlı değilken kontrol (UYARI)",
+            "en": "Check while unmounted (CAUTION)"
+          },
+          "command": "sudo fsck -M /dev/sdXN",
+          "explanation": {
+            "tr": "Aygıtın umount edildiğinden emin olun. Otomatik onarım bayrakları (`-y` vb.) bu örnekte yok — bilinçli kullanım gerektirir.\n",
+            "en": "Ensure the device is unmounted. Auto-repair flags (`-y`, etc.) are omitted here — they need deliberate use.\n"
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "mkfs.ext4",
+        "lsblk",
+        "findmnt",
+        "mount",
+        "umount",
+        "blkid"
+      ],
+      "see_also": [
+        "man 8 fsck",
+        "man 8 e2fsck"
+      ],
+      "intent": {
+        "tr": [
+          "dosya sistemi kontrol",
+          "fsck onar",
+          "disk bütünlük"
+        ],
+        "en": [
+          "filesystem check",
+          "fsck repair",
+          "disk integrity"
+        ]
+      },
+      "verification": {
+        "status": "reviewed",
+        "sources": [
+          "man 8 fsck",
+          "fsck --help"
+        ],
+        "last_reviewed": "2026-11-02",
+        "reviewer": "nova-commands-phase15",
+        "notes": "No auto-repair (-y) recipes. Prefer -N/-M. Not verified. Helper tools (e2fsck) remain separate future entries if needed.\n"
+      },
+      "nova": {
+        "concepts": [
+          "storage"
+        ],
+        "favorite_eligible": false
+      },
+      "category": "disks"
     },
     {
       "id": "gcc",
@@ -4383,12 +4532,13 @@
       ],
       "requires_elevated": false,
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 head"
+          "man 1 head (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flag -n/--lines confirmed; safe text preview."
       },
       "id": "head",
       "name": "head",
@@ -4928,12 +5078,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 id"
+          "man 1 id (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "UID/GID display; safe identity helper."
       },
       "category": "users",
       "nova": {
@@ -6310,13 +6461,14 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
           "man 1 ls (GNU coreutils)",
-          "https://www.gnu.org/software/coreutils/manual/"
+          "https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flags -a/-l/-h/-R and examples checked against GNU coreutils man/--help. Safe read-only listing."
       },
       "nova": {
         "favorite_eligible": true,
@@ -6353,12 +6505,36 @@
         "ubuntu": "util-linux",
         "fedora": "util-linux"
       },
+      "install_notes": {
+        "tr": "Arch: pacman -S util-linux (taban)\nDebian/Ubuntu: apt install util-linux\nFedora: dnf install util-linux\n",
+        "en": "Arch: pacman -S util-linux (base)\nDebian/Ubuntu: apt install util-linux\nFedora: dnf install util-linux\n"
+      },
       "flags": [
         {
           "flag": "-f",
           "meaning": {
             "tr": "Dosya sistemi bilgisi ekle.",
             "en": "Include filesystem info."
+          },
+          "verified": true
+        },
+        {
+          "flag": "-o",
+          "long": "--output",
+          "meaning": {
+            "tr": "Sütun listesi (NAME,SIZE,TYPE,MOUNTPOINTS,…).",
+            "en": "Output column list (NAME,SIZE,TYPE,MOUNTPOINTS,…)."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "list"
+        },
+        {
+          "flag": "-J",
+          "long": "--json",
+          "meaning": {
+            "tr": "JSON çıktı.",
+            "en": "JSON output."
           },
           "verified": true
         }
@@ -6371,8 +6547,20 @@
           },
           "command": "lsblk -f",
           "explanation": {
-            "tr": "Aygıtlar + FS.",
-            "en": "Devices + filesystems."
+            "tr": "Aygıtlar + FS; format/mkfs öncesi doğrulama için ilk adım.",
+            "en": "Devices + filesystems; first step before any format/mkfs."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "JSON",
+            "en": "JSON"
+          },
+          "command": "lsblk -J -o NAME,SIZE,FSTYPE,MOUNTPOINTS",
+          "explanation": {
+            "tr": "Betiklenebilir JSON özet.",
+            "en": "Script-friendly JSON summary."
           },
           "risk": "safe"
         }
@@ -6380,7 +6568,10 @@
       "related": [
         "df",
         "mount",
-        "fdisk"
+        "findmnt",
+        "blkid",
+        "fdisk",
+        "mkfs"
       ],
       "intent": {
         "tr": [
@@ -6393,12 +6584,15 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 8 lsblk"
+          "man 8 lsblk (util-linux)",
+          "https://man.archlinux.org/man/lsblk.8",
+          "lsblk --help"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flags -f/-o/-J confirmed; read-only block device tree; Arch util-linux."
       },
       "category": "disks",
       "nova": {
@@ -6943,12 +7137,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 mkdir"
+          "man 1 mkdir (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flags -p/--parents and -m/--mode confirmed in man page."
       },
       "category": "filesystem",
       "nova": {
@@ -6960,6 +7155,679 @@
       }
     },
     {
+      "id": "mkfs",
+      "name": "mkfs",
+      "summary": {
+        "tr": "Dosya sistemi oluşturma ön yüzü (yıkıcı).",
+        "en": "Frontend to build a Linux filesystem (destructive)."
+      },
+      "description": {
+        "tr": "util-linux `mkfs`, seçilen türe göre `mkfs.<type>` yardımcılarını çağırır. Varsayılan tür çoğu kurulumda ext2’dir; modern kullanımda doğrudan `mkfs.ext4` / `mkfs.xfs` / `mkfs.btrfs` tercih edilir. Yanlış aygıt = tüm verinin silinmesi. Bu girdi verified değildir; yalnızca belgelenmiş uyarılarla reviewed.\n",
+        "en": "util-linux `mkfs` dispatches to `mkfs.<type>` helpers. Default type is often ext2; prefer calling `mkfs.ext4` / `mkfs.xfs` / `mkfs.btrfs` directly. Wrong device wipes all data. Kept reviewed (not verified) with strong warnings only.\n"
+      },
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "format"
+      ],
+      "risk": "destructive",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "packages": {
+        "arch": "util-linux",
+        "debian": "util-linux",
+        "ubuntu": "util-linux",
+        "fedora": "util-linux",
+        "rhel": "util-linux"
+      },
+      "install_notes": {
+        "tr": "Arch: pacman -S util-linux (genelde taban). Tür yardımcıları ayrı paketlerde:\ne2fsprogs, xfsprogs, btrfs-progs, dosfstools.\nDebian/Ubuntu: apt install util-linux (+ ilgili mkfs.* paketleri)\nFedora: dnf install util-linux\n",
+        "en": "Arch: pacman -S util-linux (usually base). Type helpers live in separate\npackages: e2fsprogs, xfsprogs, btrfs-progs, dosfstools.\nDebian/Ubuntu: apt install util-linux (+ matching mkfs.* packages)\nFedora: dnf install util-linux\n"
+      },
+      "flags": [
+        {
+          "flag": "-t",
+          "long": "--type",
+          "meaning": {
+            "tr": "Dosya sistemi türü (ör. ext4, xfs, btrfs, vfat).",
+            "en": "Filesystem type (e.g. ext4, xfs, btrfs, vfat)."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "type"
+        },
+        {
+          "flag": "-V",
+          "long": "--verbose",
+          "meaning": {
+            "tr": "Ayrıntı; birden fazla -V kuru koşu (dry-run) yapabilir.",
+            "en": "Verbose; multiple -V may dry-run without writing."
+          },
+          "verified": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yardım (güvenli)",
+            "en": "Help (safe)"
+          },
+          "command": "mkfs --help",
+          "explanation": {
+            "tr": "Seçenekleri gösterir; diske yazmaz.",
+            "en": "Shows options; does not write to disk."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Tür ile oluştur (UYARI)",
+            "en": "Create by type (DANGER)"
+          },
+          "command": "sudo mkfs -t ext4 /dev/sdXN",
+          "explanation": {
+            "tr": "Yer tutucu aygıt — gerçek yolda ASLA çalıştırmayın. Önce `lsblk -f` / `blkid` ile doğru bölümü doğrulayın. Tercihen `mkfs.ext4` kullanın.\n",
+            "en": "Placeholder device — never run on a real path as-is. Confirm the partition with `lsblk -f` / `blkid` first. Prefer `mkfs.ext4` directly.\n"
+          },
+          "risk": "destructive",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "mkfs.ext4",
+        "mkfs.xfs",
+        "mkfs.btrfs",
+        "mkfs.fat",
+        "lsblk",
+        "blkid",
+        "fdisk",
+        "parted",
+        "wipefs"
+      ],
+      "see_also": [
+        "man 8 mkfs",
+        "https://wiki.archlinux.org/title/File_systems"
+      ],
+      "intent": {
+        "tr": [
+          "dosya sistemi oluştur",
+          "disk formatla mkfs",
+          "mkfs nedir"
+        ],
+        "en": [
+          "create filesystem",
+          "format disk mkfs",
+          "what is mkfs"
+        ]
+      },
+      "verification": {
+        "status": "reviewed",
+        "sources": [
+          "man 8 mkfs (util-linux)",
+          "https://wiki.archlinux.org/title/File_systems",
+          "mkfs --help"
+        ],
+        "last_reviewed": "2026-11-02",
+        "reviewer": "nova-commands-phase15",
+        "notes": "Destructive formatter frontend. Examples use placeholders only; no verified promotion. Never execute against real disks to validate.\n"
+      },
+      "nova": {
+        "concepts": [
+          "storage"
+        ],
+        "favorite_eligible": false,
+        "ui_priority": 40
+      },
+      "category": "disks"
+    },
+    {
+      "id": "mkfs.btrfs",
+      "name": "mkfs.btrfs",
+      "summary": {
+        "tr": "Btrfs dosya sistemi oluşturur (yıkıcı).",
+        "en": "Create a Btrfs filesystem (destructive)."
+      },
+      "description": {
+        "tr": "btrfs-progs `mkfs.btrfs` bir veya birden fazla aygıtta Btrfs oluşturur. Mevcut FS’yi ezmek `-f` ister. Çok diskli RAID profilleri (`-d`/`-m`) karmaşıktır — yanlış aygıt listesi veri kaybıdır. reviewed, verified değil.\n",
+        "en": "btrfs-progs `mkfs.btrfs` creates Btrfs on one or more devices. Overwrite needs `-f`. Multi-disk RAID profiles (`-d`/`-m`) are easy to get wrong — bad device lists destroy data. Reviewed, not verified.\n"
+      },
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "btrfs",
+        "format"
+      ],
+      "risk": "destructive",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "packages": {
+        "arch": "btrfs-progs",
+        "debian": "btrfs-progs",
+        "ubuntu": "btrfs-progs",
+        "fedora": "btrfs-progs"
+      },
+      "install_notes": {
+        "tr": "Arch: pacman -S btrfs-progs\nDebian/Ubuntu: apt install btrfs-progs\nFedora: dnf install btrfs-progs\n",
+        "en": "Arch: pacman -S btrfs-progs\nDebian/Ubuntu: apt install btrfs-progs\nFedora: dnf install btrfs-progs\n"
+      },
+      "flags": [
+        {
+          "flag": "-L",
+          "long": "--label",
+          "meaning": {
+            "tr": "Dosya sistemi etiketi.",
+            "en": "Set filesystem label."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "label"
+        },
+        {
+          "flag": "-f",
+          "long": "--force",
+          "meaning": {
+            "tr": "Mevcut dosya sisteminin üzerine yazmayı zorla.",
+            "en": "Force overwrite of an existing filesystem."
+          },
+          "verified": true
+        },
+        {
+          "flag": "-m",
+          "long": "--metadata",
+          "meaning": {
+            "tr": "Meta veri profili (single, raid1, …).",
+            "en": "Metadata profile (single, raid1, …)."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "profile"
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm / yardım",
+            "en": "Version / help"
+          },
+          "command": "mkfs.btrfs --help",
+          "explanation": {
+            "tr": "Seçenekleri listeler; aygıta yazmaz.",
+            "en": "Lists options; does not write to a device."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Tek aygıt Btrfs (UYARI)",
+            "en": "Single-device Btrfs (DANGER)"
+          },
+          "command": "sudo mkfs.btrfs -L root /dev/sdXN",
+          "explanation": {
+            "tr": "Yer tutucu. Çok aygıtlı komutları kopyalamayın; önce lsblk ile her üyeyi doğrulayın. Üzerine yazma için `-f` ekstra risk.\n",
+            "en": "Placeholder. Do not copy multi-device recipes blindly; verify each member with lsblk. `-f` adds overwrite risk.\n"
+          },
+          "risk": "destructive",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "mkfs",
+        "mkfs.ext4",
+        "mkfs.xfs",
+        "lsblk",
+        "blkid",
+        "wipefs"
+      ],
+      "see_also": [
+        "man 8 mkfs.btrfs",
+        "https://wiki.archlinux.org/title/Btrfs"
+      ],
+      "intent": {
+        "tr": [
+          "btrfs formatla",
+          "mkfs.btrfs"
+        ],
+        "en": [
+          "format btrfs",
+          "mkfs.btrfs"
+        ]
+      },
+      "verification": {
+        "status": "reviewed",
+        "sources": [
+          "man 8 mkfs.btrfs",
+          "https://wiki.archlinux.org/title/File_systems",
+          "mkfs.btrfs --help"
+        ],
+        "last_reviewed": "2026-11-02",
+        "reviewer": "nova-commands-phase15",
+        "notes": "Destructive; help-first examples; placeholder device only."
+      },
+      "nova": {
+        "concepts": [
+          "storage"
+        ],
+        "favorite_eligible": false
+      },
+      "category": "disks"
+    },
+    {
+      "id": "mkfs.ext4",
+      "name": "mkfs.ext4",
+      "summary": {
+        "tr": "ext4 dosya sistemi oluşturur (yıkıcı).",
+        "en": "Create an ext4 filesystem (destructive)."
+      },
+      "description": {
+        "tr": "`mke2fs` / `mkfs.ext4` (e2fsprogs) belirtilen blok aygıtta ext4 oluşturur; mevcut imza ve veriyi yok eder. Yanlış `/dev/...` seçimi kalıcı veri kaybıdır. Etiket için `-L` kullanın. Bu banka girdisi reviewed — verified değil; örnekler yer tutucu ve uyarı odaklıdır.\n",
+        "en": "`mke2fs` / `mkfs.ext4` (e2fsprogs) creates ext4 on a block device and destroys existing signatures/data. Wrong `/dev/...` means permanent loss. Use `-L` for a label. Entry is reviewed, not verified; examples are placeholder- and warning-focused.\n"
+      },
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "ext4",
+        "format"
+      ],
+      "risk": "destructive",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "packages": {
+        "arch": "e2fsprogs",
+        "debian": "e2fsprogs",
+        "ubuntu": "e2fsprogs",
+        "fedora": "e2fsprogs",
+        "rhel": "e2fsprogs"
+      },
+      "install_notes": {
+        "tr": "Arch: pacman -S e2fsprogs\nDebian/Ubuntu: apt install e2fsprogs\nFedora/RHEL: dnf install e2fsprogs\n",
+        "en": "Arch: pacman -S e2fsprogs\nDebian/Ubuntu: apt install e2fsprogs\nFedora/RHEL: dnf install e2fsprogs\n"
+      },
+      "flags": [
+        {
+          "flag": "-L",
+          "meaning": {
+            "tr": "Dosya sistemi etiketi (LABEL).",
+            "en": "Set filesystem volume label."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "label"
+        },
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "Aygıta yazmadan ne yapılacağını göster (kuru koşu).",
+            "en": "Show what would be done without writing (dry-run)."
+          },
+          "verified": true
+        },
+        {
+          "flag": "-V",
+          "meaning": {
+            "tr": "Sürüm bilgisi / ayrıntılı çıktı.",
+            "en": "Print version / verbose output."
+          },
+          "verified": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kuru koşu (güvenliye yakın)",
+            "en": "Dry-run (near-safe)"
+          },
+          "command": "sudo mkfs.ext4 -n /dev/sdXN",
+          "explanation": {
+            "tr": "`-n` yazmadan planı gösterir. Yine de doğru aygıtı `lsblk -f` ile doğrulayın; yer tutucuyu olduğu gibi çalıştırmayın.\n",
+            "en": "`-n` prints the plan without writing. Still confirm the device with `lsblk -f`; do not run the placeholder as-is.\n"
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Etiketli oluştur (UYARI)",
+            "en": "Create with label (DANGER)"
+          },
+          "command": "sudo mkfs.ext4 -L DATA /dev/sdXN",
+          "explanation": {
+            "tr": "Yer tutucu bölüm yolu. Yanlış aygıt tüm veriyi siler; önce lsblk/blkid, yedek, ardından bilinçli onay.\n",
+            "en": "Placeholder partition path. Wrong device wipes data; confirm with lsblk/blkid, back up, then proceed deliberately.\n"
+          },
+          "risk": "destructive",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "mkfs",
+        "mkfs.xfs",
+        "mkfs.btrfs",
+        "mkfs.fat",
+        "lsblk",
+        "blkid",
+        "fdisk",
+        "fsck",
+        "wipefs"
+      ],
+      "see_also": [
+        "man 8 mke2fs",
+        "man 8 mkfs.ext4",
+        "https://wiki.archlinux.org/title/Ext4"
+      ],
+      "intent": {
+        "tr": [
+          "ext4 formatla",
+          "mkfs.ext4",
+          "ext4 oluştur"
+        ],
+        "en": [
+          "format ext4",
+          "mkfs.ext4",
+          "create ext4 filesystem"
+        ]
+      },
+      "verification": {
+        "status": "reviewed",
+        "sources": [
+          "man 8 mke2fs",
+          "man 8 mkfs.ext4",
+          "https://wiki.archlinux.org/title/File_systems",
+          "mkfs.ext4 -h"
+        ],
+        "last_reviewed": "2026-11-02",
+        "reviewer": "nova-commands-phase15",
+        "notes": "Destructive. Prefer -n dry-run example; create example uses /dev/sdXN placeholder only. Not verified.\n"
+      },
+      "nova": {
+        "concepts": [
+          "storage"
+        ],
+        "favorite_eligible": false,
+        "ui_priority": 45
+      },
+      "category": "disks"
+    },
+    {
+      "id": "mkfs.fat",
+      "name": "mkfs.fat",
+      "summary": {
+        "tr": "FAT/VFAT dosya sistemi oluşturur (yıkıcı).",
+        "en": "Create a FAT/VFAT filesystem (destructive)."
+      },
+      "description": {
+        "tr": "dosfstools `mkfs.fat` (çoğu sistemde `mkfs.vfat` aynı ikili) FAT12/16/32 oluşturur; USB, EFI sistem bölümü ve SD kartlarda yaygındır. Yanlış aygıt veriyi siler. `-n` etiket, `-F` FAT boyutu seçer. reviewed.\n",
+        "en": "dosfstools `mkfs.fat` (often same binary as `mkfs.vfat`) creates FAT12/16/32 — common for USB, ESP, and SD cards. Wrong device wipes data. `-n` sets label, `-F` selects FAT size. Reviewed, not verified.\n"
+      },
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "fat",
+        "vfat",
+        "format"
+      ],
+      "risk": "destructive",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "packages": {
+        "arch": "dosfstools",
+        "debian": "dosfstools",
+        "ubuntu": "dosfstools",
+        "fedora": "dosfstools"
+      },
+      "install_notes": {
+        "tr": "Arch: pacman -S dosfstools\nDebian/Ubuntu: apt install dosfstools\nFedora: dnf install dosfstools\nNot: mkfs.vfat genelde mkfs.fat ile aynı aracı işaret eder.\n",
+        "en": "Arch: pacman -S dosfstools\nDebian/Ubuntu: apt install dosfstools\nFedora: dnf install dosfstools\nNote: mkfs.vfat usually points at the same tool as mkfs.fat.\n"
+      },
+      "flags": [
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "Birim adı / etiket (en fazla 11 karakter).",
+            "en": "Volume name / label (up to 11 characters)."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "label"
+        },
+        {
+          "flag": "-F",
+          "meaning": {
+            "tr": "FAT boyutu (12, 16 veya 32).",
+            "en": "FAT size (12, 16, or 32)."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "size"
+        },
+        {
+          "flag": "-v",
+          "meaning": {
+            "tr": "Ayrıntılı çıktı.",
+            "en": "Verbose execution."
+          },
+          "verified": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yardım",
+            "en": "Help"
+          },
+          "command": "mkfs.fat --help",
+          "explanation": {
+            "tr": "Seçenekleri gösterir; diske yazmaz.",
+            "en": "Shows options; does not write to disk."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "FAT32 etiketli (UYARI)",
+            "en": "Labeled FAT32 (DANGER)"
+          },
+          "command": "sudo mkfs.fat -F 32 -n ESP /dev/sdXN",
+          "explanation": {
+            "tr": "Yer tutucu — özellikle USB/ESP yollarında lsblk ile doğrulayın. Windows/EFI paylaşımlı ortamlarda yanlış disk seçimi yaygındır.\n",
+            "en": "Placeholder — double-check with lsblk, especially for USB/ESP paths. Wrong-disk mistakes are common in shared Windows/EFI setups.\n"
+          },
+          "risk": "destructive",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "mkfs",
+        "mkfs.ext4",
+        "lsblk",
+        "blkid",
+        "parted",
+        "wipefs"
+      ],
+      "see_also": [
+        "man 8 mkfs.fat",
+        "https://wiki.archlinux.org/title/FAT"
+      ],
+      "intent": {
+        "tr": [
+          "fat formatla",
+          "vfat oluştur",
+          "mkfs.vfat",
+          "efi fat32"
+        ],
+        "en": [
+          "format fat",
+          "create vfat",
+          "mkfs.vfat",
+          "efi fat32"
+        ]
+      },
+      "verification": {
+        "status": "reviewed",
+        "sources": [
+          "man 8 mkfs.fat",
+          "https://wiki.archlinux.org/title/File_systems",
+          "mkfs.fat --help"
+        ],
+        "last_reviewed": "2026-11-02",
+        "reviewer": "nova-commands-phase15",
+        "notes": "Destructive FAT creator; help-first; placeholder only. Not verified."
+      },
+      "nova": {
+        "concepts": [
+          "storage"
+        ],
+        "favorite_eligible": false
+      },
+      "category": "disks"
+    },
+    {
+      "id": "mkfs.xfs",
+      "name": "mkfs.xfs",
+      "summary": {
+        "tr": "XFS dosya sistemi oluşturur (yıkıcı).",
+        "en": "Construct an XFS filesystem (destructive)."
+      },
+      "description": {
+        "tr": "xfsprogs `mkfs.xfs` aygıt üzerinde XFS oluşturur. Mevcut FS imzasını ezmek için çoğu zaman `-f` gerekir — bu da yanlış aygıtta felakettir. `-N` yalnızca bilgi basar (yazmaz). XFS küçültülemez; reviewed, verified değil.\n",
+        "en": "xfsprogs `mkfs.xfs` builds XFS on a device. Overwriting an existing signature usually needs `-f` — catastrophic on the wrong device. `-N` prints info only (no write). XFS cannot be shrunk; reviewed, not verified.\n"
+      },
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "xfs",
+        "format"
+      ],
+      "risk": "destructive",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "packages": {
+        "arch": "xfsprogs",
+        "debian": "xfsprogs",
+        "ubuntu": "xfsprogs",
+        "fedora": "xfsprogs",
+        "rhel": "xfsprogs"
+      },
+      "install_notes": {
+        "tr": "Arch: pacman -S xfsprogs\nDebian/Ubuntu: apt install xfsprogs\nFedora/RHEL: dnf install xfsprogs\n",
+        "en": "Arch: pacman -S xfsprogs\nDebian/Ubuntu: apt install xfsprogs\nFedora/RHEL: dnf install xfsprogs\n"
+      },
+      "flags": [
+        {
+          "flag": "-L",
+          "meaning": {
+            "tr": "Dosya sistemi etiketi (en fazla 12 karakter).",
+            "en": "Filesystem label (max 12 characters)."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "label"
+        },
+        {
+          "flag": "-N",
+          "meaning": {
+            "tr": "Yazmadan geometri/bilgi bas (no-op).",
+            "en": "Print configuration info without writing (no-op)."
+          },
+          "verified": true
+        },
+        {
+          "flag": "-f",
+          "meaning": {
+            "tr": "Mevcut dosya sisteminin üzerine zorla yaz (çok tehlikeli).",
+            "en": "Force overwrite of an existing filesystem (very dangerous)."
+          },
+          "verified": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Bilgi / no-op",
+            "en": "Info / no-op"
+          },
+          "command": "sudo mkfs.xfs -N /dev/sdXN",
+          "explanation": {
+            "tr": "Yazmadan XFS parametre özetini basar; yine de doğru aygıtı doğrulayın.",
+            "en": "Prints XFS parameters without writing; still verify the device."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Etiketli XFS (UYARI)",
+            "en": "Labeled XFS (DANGER)"
+          },
+          "command": "sudo mkfs.xfs -L data /dev/sdXN",
+          "explanation": {
+            "tr": "Yer tutucu. Üzerinde FS varsa komut reddedebilir; `-f` eklemek riski artırır — yalnızca bilinçli ve yedekli ortamlarda.\n",
+            "en": "Placeholder. An existing FS may cause refusal; adding `-f` raises risk — only on intentional, backed-up targets.\n"
+          },
+          "risk": "destructive",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "mkfs",
+        "mkfs.ext4",
+        "mkfs.btrfs",
+        "lsblk",
+        "blkid",
+        "fdisk",
+        "wipefs"
+      ],
+      "see_also": [
+        "man 8 mkfs.xfs",
+        "https://wiki.archlinux.org/title/XFS"
+      ],
+      "intent": {
+        "tr": [
+          "xfs formatla",
+          "mkfs.xfs"
+        ],
+        "en": [
+          "format xfs",
+          "mkfs.xfs"
+        ]
+      },
+      "verification": {
+        "status": "reviewed",
+        "sources": [
+          "man 8 mkfs.xfs",
+          "https://wiki.archlinux.org/title/File_systems",
+          "mkfs.xfs usage text"
+        ],
+        "last_reviewed": "2026-11-02",
+        "reviewer": "nova-commands-phase15",
+        "notes": "Destructive XFS creator; -N preferred; no verified status."
+      },
+      "nova": {
+        "concepts": [
+          "storage"
+        ],
+        "favorite_eligible": false
+      },
+      "category": "disks"
+    },
+    {
       "id": "mount",
       "name": "mount",
       "summary": {
@@ -6967,11 +7835,13 @@
         "en": "Mount a filesystem."
       },
       "description": {
-        "tr": "Aygıt veya imajı dizin ağacına bağlar. Yanlış kullanım riskli.",
-        "en": "Attaches a device or image into the directory tree. Misuse is risky."
+        "tr": "Aygıt veya imajı dizin ağacına bağlar. Argümansız `mount` tabloyu okur (güvenli). Yazma bağları ve loop ISO bağlama dikkat ister; yanlış aygıt veya seçenekler sistemi bozabilir.\n",
+        "en": "Attaches a device or image into the directory tree. Bare `mount` reads the table (safe). Write mounts and loop ISO mounts need care; wrong device or options can break the system.\n"
       },
       "tags": [
-        "disk"
+        "disk",
+        "storage",
+        "mount"
       ],
       "risk": "dangerous",
       "requires_elevated": true,
@@ -6986,6 +7856,43 @@
         "ubuntu": "mount",
         "fedora": "util-linux"
       },
+      "install_notes": {
+        "tr": "Arch: pacman -S util-linux (taban)\nDebian/Ubuntu: apt install mount\nFedora: dnf install util-linux\n",
+        "en": "Arch: pacman -S util-linux (base)\nDebian/Ubuntu: apt install mount\nFedora: dnf install util-linux\n"
+      },
+      "flags": [
+        {
+          "flag": "-o",
+          "long": "--options",
+          "meaning": {
+            "tr": "Bağlama seçenekleri (virgülle; ör. loop, ro).",
+            "en": "Comma-separated mount options (e.g. loop, ro)."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "opts"
+        },
+        {
+          "flag": "-t",
+          "long": "--types",
+          "meaning": {
+            "tr": "Dosya sistemi türü.",
+            "en": "Filesystem type."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "type"
+        },
+        {
+          "flag": "-a",
+          "long": "--all",
+          "meaning": {
+            "tr": "fstab’daki uygun girdileri bağla (dikkat).",
+            "en": "Mount all suitable fstab entries (careful)."
+          },
+          "verified": true
+        }
+      ],
       "examples": [
         {
           "title": {
@@ -6994,21 +7901,21 @@
           },
           "command": "mount",
           "explanation": {
-            "tr": "Mevcut mount tablosu (okuma).",
-            "en": "Current mount table (read)."
+            "tr": "Mevcut mount tablosu (okuma). Tercihen `findmnt` daha okunaklıdır.",
+            "en": "Current mount table (read). Prefer `findmnt` for readability."
           },
           "risk": "safe",
           "requires_elevated": false
         },
         {
           "title": {
-            "tr": "ISO bağla",
-            "en": "Mount ISO"
+            "tr": "ISO bağla (loop)",
+            "en": "Mount ISO (loop)"
           },
-          "command": "sudo mount -o loop image.iso /mnt/iso",
+          "command": "sudo mount -o loop,ro image.iso /mnt/iso",
           "explanation": {
-            "tr": "ISO’yu loop ile bağlar.",
-            "en": "Loop-mounts an ISO."
+            "tr": "ISO’yu salt-okunur loop ile bağlar; hedef dizin önceden var olmalı.",
+            "en": "Loop-mounts an ISO read-only; target dir must already exist."
           },
           "risk": "caution",
           "requires_elevated": true
@@ -7016,25 +7923,32 @@
       ],
       "related": [
         "umount",
-        "lsblk"
+        "lsblk",
+        "findmnt",
+        "blkid",
+        "df"
       ],
       "intent": {
         "tr": [
           "disk bağla",
-          "mount nedir"
+          "mount nedir",
+          "iso bağla"
         ],
         "en": [
           "mount disk",
-          "what is mounted"
+          "what is mounted",
+          "mount iso"
         ]
       },
       "verification": {
         "status": "reviewed",
         "sources": [
-          "man 8 mount"
+          "man 8 mount",
+          "mount --help"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Deepened flags/examples; still reviewed (dangerous class, not verified)."
       },
       "category": "disks",
       "nova": {
@@ -7927,6 +8841,139 @@
         ]
       },
       "category": "packages"
+    },
+    {
+      "id": "parted",
+      "name": "parted",
+      "summary": {
+        "tr": "GNU Parted — bölüm tablosu düzenleyici (yıkıcı).",
+        "en": "GNU Parted — partition table manipulator (destructive)."
+      },
+      "description": {
+        "tr": "GPT/MBR bölüm oluşturma, silme ve yeniden boyutlandırmaya yarar. `parted -l` okuma amaçlıdır; `mklabel` / `mkpart` / `rm` veri kaybettirir. Script modu (`-s`) onay istemez — özellikle tehlikeli. reviewed, verified değil.\n",
+        "en": "Creates, deletes, and resizes GPT/MBR partitions. `parted -l` is read-oriented; `mklabel` / `mkpart` / `rm` destroy data. Script mode (`-s`) skips prompts — especially dangerous. Reviewed, not verified.\n"
+      },
+      "tags": [
+        "disk",
+        "storage",
+        "partition"
+      ],
+      "risk": "destructive",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "packages": {
+        "arch": "parted",
+        "debian": "parted",
+        "ubuntu": "parted",
+        "fedora": "parted",
+        "rhel": "parted"
+      },
+      "install_notes": {
+        "tr": "Arch: pacman -S parted\nDebian/Ubuntu: apt install parted\nFedora/RHEL: dnf install parted\n",
+        "en": "Arch: pacman -S parted\nDebian/Ubuntu: apt install parted\nFedora/RHEL: dnf install parted\n"
+      },
+      "flags": [
+        {
+          "flag": "-l",
+          "long": "--list",
+          "meaning": {
+            "tr": "Tüm blok aygıtlarda bölüm düzenini listele (okuma).",
+            "en": "List partition layout on all block devices (read)."
+          },
+          "verified": true
+        },
+        {
+          "flag": "-s",
+          "long": "--script",
+          "meaning": {
+            "tr": "Etkileşimsiz script modu (onay yok — tehlikeli).",
+            "en": "Never prompt; script mode (no confirms — dangerous)."
+          },
+          "verified": true
+        },
+        {
+          "flag": "-h",
+          "long": "--help",
+          "meaning": {
+            "tr": "Yardım.",
+            "en": "Display help."
+          },
+          "verified": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Bölümleri listele",
+            "en": "List partitions"
+          },
+          "command": "sudo parted -l",
+          "explanation": {
+            "tr": "Okuma odaklı özet; değişiklik yapmaz.",
+            "en": "Read-oriented summary; does not modify tables."
+          },
+          "risk": "safe",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Etkileşimli (UYARI)",
+            "en": "Interactive (DANGER)"
+          },
+          "command": "sudo parted /dev/sdX",
+          "explanation": {
+            "tr": "Yer tutucu disk. Yanlış cihaz seçimi bölüm tablosunu bozar. Önce `parted -l` / `lsblk`. Bu örnek script komutu vermez.\n",
+            "en": "Placeholder disk. Wrong device wrecks the partition table. Confirm with `parted -l` / `lsblk` first. This example does not pass scripted destroy commands.\n"
+          },
+          "risk": "destructive",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "fdisk",
+        "lsblk",
+        "blkid",
+        "mkfs",
+        "mkfs.ext4",
+        "wipefs"
+      ],
+      "see_also": [
+        "man 8 parted",
+        "https://wiki.archlinux.org/title/Parted",
+        "https://www.gnu.org/software/parted/manual/"
+      ],
+      "intent": {
+        "tr": [
+          "parted bölüm",
+          "gpt oluştur",
+          "disk partition parted"
+        ],
+        "en": [
+          "parted partition",
+          "create gpt",
+          "disk partition parted"
+        ]
+      },
+      "verification": {
+        "status": "reviewed",
+        "sources": [
+          "man 8 parted",
+          "https://wiki.archlinux.org/title/Parted",
+          "parted --help"
+        ],
+        "last_reviewed": "2026-11-02",
+        "reviewer": "nova-commands-phase15",
+        "notes": "List-first examples only; no mklabel/mkpart recipes that invite misuse. Not verified.\n"
+      },
+      "nova": {
+        "concepts": [
+          "storage"
+        ],
+        "favorite_eligible": false
+      },
+      "category": "disks"
     },
     {
       "id": "paru",
@@ -8974,12 +10021,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 pwd"
+          "man 1 pwd (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "No ambiguous flags; behavior matches coreutils pwd."
       },
       "nova": {
         "favorite_eligible": true,
@@ -11798,12 +12846,13 @@
       ],
       "requires_elevated": false,
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 tail"
+          "man 1 tail (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flags -n/--lines and -f/--follow confirmed."
       },
       "id": "tail",
       "name": "tail",
@@ -12942,12 +13991,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 uname"
+          "man 1 uname (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flag -a/--all confirmed; read-only system identity."
       },
       "category": "system",
       "nova": {
@@ -13743,12 +14793,13 @@
       ],
       "requires_elevated": false,
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 wc"
+          "man 1 wc (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Flags -l/-w/-c confirmed; safe text metrics."
       },
       "id": "wc",
       "name": "wc",
@@ -14129,12 +15180,13 @@
         ]
       },
       "verification": {
-        "status": "reviewed",
+        "status": "verified",
         "sources": [
-          "man 1 whoami"
+          "man 1 whoami (GNU coreutils)"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-phase15",
+        "notes": "Prints effective username; safe identity helper."
       },
       "category": "users",
       "nova": {
@@ -14143,6 +15195,138 @@
         ],
         "favorite_eligible": true
       }
+    },
+    {
+      "id": "wipefs",
+      "name": "wipefs",
+      "summary": {
+        "tr": "Dosya sistemi/RAID imzalarını listeler veya siler (yıkıcı).",
+        "en": "List or wipe filesystem/RAID signatures (destructive)."
+      },
+      "description": {
+        "tr": "util-linux `wipefs` aygıttaki sihirli imzaları gösterir; `-a` hepsini siler (BE CAREFUL). `-n` / `--no-act` yazmadan simüle eder. İmza silmek FS’yi “görünmez” yapabilir — veri kurtarma zorlaşır. reviewed.\n",
+        "en": "util-linux `wipefs` shows on-disk magic strings; `-a` erases them all (BE CAREFUL). `-n` / `--no-act` simulates without write. Wiping signatures can hide a filesystem and complicate recovery. Reviewed.\n"
+      },
+      "tags": [
+        "disk",
+        "storage",
+        "filesystem",
+        "signature"
+      ],
+      "risk": "destructive",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "packages": {
+        "arch": "util-linux",
+        "debian": "util-linux",
+        "ubuntu": "util-linux",
+        "fedora": "util-linux"
+      },
+      "install_notes": {
+        "tr": "Arch: pacman -S util-linux (taban)\nDebian/Ubuntu: apt install util-linux\nFedora: dnf install util-linux\n",
+        "en": "Arch: pacman -S util-linux (base)\nDebian/Ubuntu: apt install util-linux\nFedora: dnf install util-linux\n"
+      },
+      "flags": [
+        {
+          "flag": "-a",
+          "long": "--all",
+          "meaning": {
+            "tr": "Tüm sihirli dizgileri sil (çok dikkat!).",
+            "en": "Wipe all magic strings (BE CAREFUL!)."
+          },
+          "verified": true
+        },
+        {
+          "flag": "-n",
+          "long": "--no-act",
+          "meaning": {
+            "tr": "Yazmadan her şeyi yap (kuru koşu).",
+            "en": "Do everything except the actual write (dry-run)."
+          },
+          "verified": true
+        },
+        {
+          "flag": "-o",
+          "long": "--offset",
+          "meaning": {
+            "tr": "Belirli ofsetteki imzayı hedefle.",
+            "en": "Erase signature at a given byte offset."
+          },
+          "verified": true,
+          "takes_value": true,
+          "value_name": "num"
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "İmzaları listele",
+            "en": "List signatures"
+          },
+          "command": "sudo wipefs /dev/sdXN",
+          "explanation": {
+            "tr": "Yazmadan imzaları basar (bayrak yok). Yine de doğru aygıtı lsblk ile doğrulayın; yer tutucuyu olduğu gibi kullanmayın.\n",
+            "en": "Prints signatures without wiping (no wipe flags). Still confirm the device with lsblk; do not use the placeholder as-is.\n"
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Silme kuru koşusu",
+            "en": "Wipe dry-run"
+          },
+          "command": "sudo wipefs -a -n /dev/sdXN",
+          "explanation": {
+            "tr": "'-a' silme planını '-n' ile yazmadan gösterir.",
+            "en": "Shows what -a would erase without writing (-n)."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "blkid",
+        "lsblk",
+        "mkfs",
+        "mkfs.ext4",
+        "fdisk",
+        "parted"
+      ],
+      "see_also": [
+        "man 8 wipefs"
+      ],
+      "intent": {
+        "tr": [
+          "dosya sistemi imzası sil",
+          "wipefs",
+          "superblock temizle"
+        ],
+        "en": [
+          "wipe filesystem signature",
+          "wipefs",
+          "clear superblock"
+        ]
+      },
+      "verification": {
+        "status": "reviewed",
+        "sources": [
+          "man 8 wipefs",
+          "wipefs --help"
+        ],
+        "last_reviewed": "2026-11-02",
+        "reviewer": "nova-commands-phase15",
+        "notes": "No live -a wipe example without -n. Placeholder devices only. Not verified.\n"
+      },
+      "nova": {
+        "concepts": [
+          "storage"
+        ],
+        "favorite_eligible": false
+      },
+      "category": "disks"
     },
     {
       "id": "xargs",
@@ -14933,8 +16117,16 @@
         "findmnt",
         "blkid",
         "fdisk",
+        "parted",
         "dd",
-        "sync"
+        "sync",
+        "mkfs",
+        "mkfs.ext4",
+        "mkfs.xfs",
+        "mkfs.btrfs",
+        "mkfs.fat",
+        "wipefs",
+        "fsck"
       ],
       "related_concepts": [
         "files",
@@ -14942,20 +16134,21 @@
         "terminal-basics"
       ],
       "see_also": [
-        "man lsblk / man mount",
-        "Arch Wiki: File systems / fstab"
+        "man lsblk / man mount / man mkfs",
+        "Arch Wiki: File systems / fstab / Parted"
       ],
       "body": {
-        "tr": "Disk ve dosya sistemi işleri **yanlış aygıt adıyla yıkıcı** olabilir. Önce okuma\naraçlarıyla haritayı çıkarın.\n\n**Keşif (genelde güvenli):**\n- `lsblk -f` — ağaç, dosya sistemi, UUID/LABEL.\n- `df -h` — bağlı dosya sistemlerinde boş alan.\n- `du -sh yol` — dizin boyutu.\n- `findmnt` / `mount` — ne nereye bağlı.\n- `blkid` — UUID ve tür (çoğu zaman root ile daha dolu).\n\n**Bağlama:** `mount` / `umount` (veya fstab / systemd `.mount`). Yanlış `umount`\naçık dosyaları bozabilir; meşgulse `lsof` / `fuser` ile bakın.\n\n**Yüksek risk:**\n- `fdisk` / bölüm tablosu düzenleme — veri kaybı riski.\n- `dd` — ham kopya; yanlış `of=` diski siler (`destructive` örnekler).\n- `mkfs.*` — dosya sistemi oluşturur (bu fazda derinleştirme dikkatli olmalı).\n\n**`sync`:** Bellekteki yazıları diske iter; kapatma/çıkarma öncesi kullanılır.\nDoğrulama için asla rastgele disklere `dd`/`mkfs` çalıştırmayın; banka girdileri\nman ve belgelere dayanmalı, `verified` yalnız insan incelemesi sonrası.\n",
-        "en": "Disk and filesystem operations are **destructive on the wrong device**. Start with\nread-only discovery.\n\n**Discovery (usually safe):**\n- `lsblk -f` — tree, filesystem, UUID/LABEL.\n- `df -h` — free space on mounted filesystems.\n- `du -sh path` — directory size.\n- `findmnt` / `mount` — what is mounted where.\n- `blkid` — UUID/type (often richer as root).\n\n**Mounting:** `mount` / `umount` (or fstab / systemd `.mount`). A busy `umount` can\nfail; inspect with `lsof` / `fuser`.\n\n**High risk:**\n- `fdisk` / partition edits — data loss risk.\n- `dd` — raw copy; wrong `of=` wipes a disk (`destructive` examples).\n- `mkfs.*` — creates filesystems (deepen carefully in later work).\n\n**`sync`:** Flushes buffered writes; used before unmount/shutdown.\nNever run `dd`/`mkfs` against arbitrary disks to “validate” catalog entries;\nkeep `verified` for human review only.\n"
+        "tr": "Disk ve dosya sistemi işleri **yanlış aygıt adıyla yıkıcı** olabilir. Önce okuma\naraçlarıyla haritayı çıkarın.\n\n**Keşif (genelde güvenli):**\n- `lsblk -f` — ağaç, dosya sistemi, UUID/LABEL.\n- `df -h` — bağlı dosya sistemlerinde boş alan.\n- `du -sh yol` — dizin boyutu.\n- `findmnt` / `mount` — ne nereye bağlı.\n- `blkid` — UUID ve tür (çoğu zaman root ile daha dolu).\n\n**Bağlama:** `mount` / `umount` (veya fstab / systemd `.mount`). Yanlış `umount`\naçık dosyaları bozabilir; meşgulse `lsof` / `fuser` ile bakın.\n\n**Yüksek risk (yer tutucu aygıt; asla kopyala-yapıştır):**\n- `fdisk` / `parted` — bölüm tablosu; `parted -l` önce okuyun.\n- `dd` — ham kopya; yanlış `of=` diski siler.\n- `mkfs` / `mkfs.ext4` / `mkfs.xfs` / `mkfs.btrfs` / `mkfs.fat` — FS oluşturur;\n  mümkünse `-n` / `-N` / `--help` ile başlayın (Arch: ilgili `*-progs` /\n  `dosfstools` / `util-linux` paketleri).\n- `wipefs` — imza silme; önce listeleyin, silmede `-n` kuru koşu kullanın.\n- `fsck` — onarım; bağlı FS’te tehlikeli; `-N` plan, `-M` bağlıları atlar.\n\n**`sync`:** Bellekteki yazıları diske iter; kapatma/çıkarma öncesi kullanılır.\nDoğrulama için asla rastgele disklere `dd`/`mkfs` çalıştırmayın; `verified`\nyalnız insan incelemesi sonrası (keşif araçlarının bir kısmı Faz 15’te\nverified’a yükseltildi).\n",
+        "en": "Disk and filesystem operations are **destructive on the wrong device**. Start with\nread-only discovery.\n\n**Discovery (usually safe):**\n- `lsblk -f` — tree, filesystem, UUID/LABEL.\n- `df -h` — free space on mounted filesystems.\n- `du -sh path` — directory size.\n- `findmnt` / `mount` — what is mounted where.\n- `blkid` — UUID/type (often richer as root).\n\n**Mounting:** `mount` / `umount` (or fstab / systemd `.mount`). A busy `umount` can\nfail; inspect with `lsof` / `fuser`.\n\n**High risk (placeholder devices; never copy-paste blindly):**\n- `fdisk` / `parted` — partition tables; read with `parted -l` first.\n- `dd` — raw copy; wrong `of=` wipes a disk.\n- `mkfs` / `mkfs.ext4` / `mkfs.xfs` / `mkfs.btrfs` / `mkfs.fat` — create\n  filesystems; start with `-n` / `-N` / `--help` when available (Arch packages:\n  matching `*-progs` / `dosfstools` / `util-linux`).\n- `wipefs` — signature wipe; list first, use `-n` for dry-run before erase.\n- `fsck` — repair; dangerous on mounted FS; `-N` plan, `-M` skips mounted.\n\n**`sync`:** Flushes buffered writes; used before unmount/shutdown.\nNever run `dd`/`mkfs` against arbitrary disks to “validate” catalog entries;\n`verified` is for human review only (some discovery tools graduated in phase 15).\n"
       },
       "verification": {
         "status": "reviewed",
         "sources": [
-          "man lsblk / man mount / man dd",
+          "man lsblk / man mount / man mkfs / man wipefs",
           "https://wiki.archlinux.org/title/File_systems"
         ],
-        "notes": "Agent-authored teaching article; no destructive verification runs."
+        "last_reviewed": "2026-11-02",
+        "notes": "Updated for mkfs/parted/wipefs/fsck coverage; no destructive runs."
       }
     },
     {
