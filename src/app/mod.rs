@@ -3,6 +3,7 @@
 //! terminal arayüzünün ana döngüsünü sürdürür.
 
 use crate::catalog::{Catalog, CATEGORIES};
+use crate::commands::{self, bank_categories, CommandBank, CommandsSource, LocalCommandsSnapshot};
 use crate::error::NovaError;
 use crate::event::{Event, EventReader};
 use crate::file_picker::FilePickerState;
@@ -58,6 +59,12 @@ pub enum PanelFocus {
     StoreApp,
     /// Mağaza sağ detay paneli odaklı (kaynak/depo bağlantısı; Enter → tarayıcı).
     StoreDetail,
+    /// Komut Rehberi: Bilgi Bankası ↔ Sistemimde Bulunan kaynak seçici.
+    CommandsSource,
+    /// Komut Rehberi: banka kategorileri (yalnızca bank kaynağında).
+    CommandsCategory,
+    /// Komut Rehberi: komut / yerel PATH listesi.
+    CommandsList,
     /// Ayarlar → Tema seçici paneli odaklı.
     ThemePicker,
     /// Ayarlar → Dil seçici paneli odaklı.
@@ -135,10 +142,16 @@ pub struct App {
     pub focus: PanelFocus,
     /// Seçili kategorinin indeksi.
     pub category_index: usize,
+    /// Komut Rehberi sekmesi etkin mi?
+    ///
+    /// Sol panelde araç kategorilerinden sonra, Mağaza'dan önce gelir.
+    /// Nova-Commands bankası + yerel PATH stub'ı; Mağaza ile karışmaz.
+    pub commands_tab: bool,
     /// Mağaza sekmesi etkin mi?
     ///
-    /// Sol panelde Mağaza, Ayarlar'dan hemen önce gelir. `settings_tab` ile
-    /// aynı anda açılmaz; mağaza ayrı bir modal değil, ana ekran sekmesidir.
+    /// Sol panelde Komut Rehberi'nden sonra, Ayarlar'dan hemen önce gelir.
+    /// `settings_tab` / `commands_tab` ile aynı anda açılmaz; mağaza ayrı bir
+    /// modal değil, ana ekran sekmesidir.
     pub store_tab: bool,
     /// Ayarlar sekmesi etkin mi? (Mağaza'nın altındaki satır)
     pub settings_tab: bool,
@@ -159,6 +172,16 @@ pub struct App {
     pub store_app_index: usize,
     /// Mağaza detayındaki seçili bağlantı indeksi ([`crate::ui::store_detail_links`]).
     pub store_detail_link_index: usize,
+    /// Komut Rehberi kaynağı: banka vs yerel PATH (dual-concept).
+    pub commands_source: CommandsSource,
+    /// Seçili banka kategorisi indeksi ([`bank_categories`]).
+    pub commands_category_index: usize,
+    /// Seçili komut / yerel giriş indeksi (filtrelenmiş liste).
+    pub commands_entry_index: usize,
+    /// Gömülü Nova-Commands bankası (`nova-commands-bank`).
+    pub commands_bank: CommandBank,
+    /// Yerel PATH keşfi anlık görüntüsü (`nova-local-commands` stub).
+    pub commands_local: LocalCommandsSnapshot,
     /// Seçili aracın indeksi (filtrelenmiş liste üzerinden).
     pub tool_index: usize,
     /// Seçili AI araç eyleminin indeksi (detay yanı aksiyon listesi).
@@ -284,6 +307,7 @@ impl App {
             catalog,
             focus: PanelFocus::Category,
             category_index: 0,
+            commands_tab: false,
             store_tab: false,
             settings_tab: false,
             settings_action_index: 0,
@@ -294,6 +318,23 @@ impl App {
             store_category_index: 0,
             store_app_index: 0,
             store_detail_link_index: 0,
+            commands_source: CommandsSource::Bank,
+            commands_category_index: 0,
+            commands_entry_index: 0,
+            commands_bank: commands::load_bank().unwrap_or_else(|e| {
+                eprintln!("Nova-Commands bankası yüklenemedi: {e}");
+                CommandBank {
+                    schema_version: 1,
+                    kind: commands::BANK_KIND.to_string(),
+                    generated_at: None,
+                    content_sha256: None,
+                    command_count: Some(0),
+                    concept_count: Some(0),
+                    commands: Vec::new(),
+                    concepts: Vec::new(),
+                }
+            }),
+            commands_local: LocalCommandsSnapshot::empty_stub(),
             tool_index: 0,
             tool_action_index: 0,
             search_query: String::new(),
@@ -468,7 +509,7 @@ impl App {
         let panel_h = areas.content_height;
 
         if areas.wide && x < areas.category_end_x {
-            let tab_len = self.visible_category_indices().len() + 2; // +Mağaza +Ayarlar
+            let tab_len = self.visible_category_indices().len() + 3; // +Komut Rehberi +Mağaza +Ayarlar
             if let Some(row) =
                 list_index_at_y(y, panel_top, panel_h, self.selected_tab_index(), tab_len)
             {
@@ -477,6 +518,11 @@ impl App {
                 self.tool_index = 0;
                 self.reset_tool_action_index();
             }
+            return;
+        }
+
+        if self.commands_tab {
+            self.handle_commands_mouse_click(x, y, areas);
             return;
         }
 
@@ -505,6 +551,72 @@ impl App {
                 self.tool_index = idx;
             }
             self.focus = PanelFocus::Tool;
+        }
+    }
+
+    /// Komut Rehberi fare tıklaması (kaynak / kategori / liste).
+    fn handle_commands_mouse_click(&mut self, x: u16, y: u16, areas: crate::ui::ClickAreas) {
+        use crate::ui::list_index_at_y;
+
+        let panel_top = areas.content_top;
+        let panel_h = areas.content_height;
+        // Geniş düzende: sekmeler | kaynak | (kategori) | liste — store sütun
+        // eşiklerini yeniden kullanıyoruz (store_category_end_x / store_apps_end_x).
+        if areas.wide {
+            if x < areas.store_category_end_x {
+                // Kaynak paneli: 0 = Bank, 1 = Local
+                if let Some(row) =
+                    list_index_at_y(y, panel_top, panel_h, self.commands_source.index(), 2)
+                {
+                    self.commands_source = if row == 0 {
+                        CommandsSource::Bank
+                    } else {
+                        CommandsSource::Local
+                    };
+                    self.commands_entry_index = 0;
+                    self.commands_category_index = 0;
+                    self.focus = PanelFocus::CommandsSource;
+                }
+            } else if self.commands_source == CommandsSource::Bank
+                && x < areas
+                    .store_apps_end_x
+                    .saturating_sub(areas.store_apps_end_x / 2)
+            {
+                let cats = self.commands_bank_categories();
+                if let Some(row) = list_index_at_y(
+                    y,
+                    panel_top,
+                    panel_h,
+                    self.commands_category_index,
+                    cats.len(),
+                ) {
+                    self.commands_category_index = row;
+                    self.commands_entry_index = 0;
+                    self.focus = PanelFocus::CommandsCategory;
+                }
+            } else {
+                let n = match self.commands_source {
+                    CommandsSource::Bank => self.filtered_bank_commands().len(),
+                    CommandsSource::Local => self.filtered_local_commands().len(),
+                };
+                if let Some(row) =
+                    list_index_at_y(y, panel_top, panel_h, self.commands_entry_index, n)
+                {
+                    self.commands_entry_index = row;
+                    self.focus = PanelFocus::CommandsList;
+                    self.show_selected_command_info();
+                }
+            }
+        } else {
+            let n = match self.commands_source {
+                CommandsSource::Bank => self.filtered_bank_commands().len(),
+                CommandsSource::Local => self.filtered_local_commands().len(),
+            };
+            if let Some(row) = list_index_at_y(y, panel_top, panel_h, self.commands_entry_index, n)
+            {
+                self.commands_entry_index = row;
+                self.focus = PanelFocus::CommandsList;
+            }
         }
     }
 
@@ -757,8 +869,8 @@ impl App {
                 self.focus = self.search_target_focus();
             }
             KeyCode::Char('f') | KeyCode::Char('F') => {
-                // Favoriler araç kataloğuna aittir; mağazada karşılığı yok.
-                if self.store_tab {
+                // Favoriler araç kataloğuna aittir; mağaza / komut rehberinde yok.
+                if self.store_tab || self.commands_tab {
                     self.status_message = "Favoriler araç listesinde çalışır.".into();
                 } else {
                     self.toggle_selected_favorite();
@@ -814,6 +926,19 @@ impl App {
                 PanelFocus::StoreDetail => {
                     self.open_selected_store_detail_link();
                 }
+                PanelFocus::CommandsSource => {
+                    self.focus = if self.commands_source == CommandsSource::Bank {
+                        PanelFocus::CommandsCategory
+                    } else {
+                        PanelFocus::CommandsList
+                    };
+                }
+                PanelFocus::CommandsCategory => {
+                    self.focus = PanelFocus::CommandsList;
+                }
+                PanelFocus::CommandsList => {
+                    self.show_selected_command_info();
+                }
                 PanelFocus::ThemePicker => {
                     let _ = self.apply_theme_at_picker_index();
                 }
@@ -834,6 +959,10 @@ impl App {
                 // Gelişmiş tercihler (terminal, medya…) Ayarlar içinde
                 // "Gelişmiş" ile veya Esc sonrası eski modal ile açılabilir.
                 self.select_settings_tab();
+            }
+            KeyCode::Char('g') | KeyCode::Char('G') => {
+                // Komut Rehberi: Nova-Commands bankası + yerel PATH stub.
+                self.select_commands_tab();
             }
             KeyCode::Char('m') | KeyCode::Char('M') => {
                 // Mağaza artık ayrı bir modal değil, sol paneldeki "Mağaza"
@@ -1038,6 +1167,34 @@ impl App {
                 }
                 self.store_detail_link_index = (self.store_detail_link_index + 1).min(n - 1);
             }
+            PanelFocus::CommandsSource => {
+                self.commands_source = CommandsSource::Local;
+                self.commands_entry_index = 0;
+                self.commands_category_index = 0;
+            }
+            PanelFocus::CommandsCategory => {
+                let max = self.commands_bank_categories().len().saturating_sub(1);
+                self.commands_category_index = (self.commands_category_index + 1).min(max);
+                self.commands_entry_index = 0;
+            }
+            PanelFocus::CommandsList => match self.commands_source {
+                CommandsSource::Bank => {
+                    let n = self.filtered_bank_commands().len();
+                    if n == 0 {
+                        return;
+                    }
+                    self.commands_entry_index =
+                        (self.commands_entry_index + 1).min(n.saturating_sub(1));
+                }
+                CommandsSource::Local => {
+                    let n = self.filtered_local_commands().len();
+                    if n == 0 {
+                        return;
+                    }
+                    self.commands_entry_index =
+                        (self.commands_entry_index + 1).min(n.saturating_sub(1));
+                }
+            },
             PanelFocus::ThemePicker => {
                 let max = crate::ui::UiTheme::all().len().saturating_sub(1);
                 self.theme_picker_index = (self.theme_picker_index + 1).min(max);
@@ -1083,6 +1240,18 @@ impl App {
             PanelFocus::StoreDetail => {
                 self.store_detail_link_index = self.store_detail_link_index.saturating_sub(1);
             }
+            PanelFocus::CommandsSource => {
+                self.commands_source = CommandsSource::Bank;
+                self.commands_entry_index = 0;
+                self.commands_category_index = 0;
+            }
+            PanelFocus::CommandsCategory => {
+                self.commands_category_index = self.commands_category_index.saturating_sub(1);
+                self.commands_entry_index = 0;
+            }
+            PanelFocus::CommandsList => {
+                self.commands_entry_index = self.commands_entry_index.saturating_sub(1);
+            }
             PanelFocus::ThemePicker => {
                 self.theme_picker_index = self.theme_picker_index.saturating_sub(1);
             }
@@ -1094,7 +1263,7 @@ impl App {
 
     /// Sekme listesinde aşağı hareket eder.
     ///
-    /// Görünür (kurulu araçlı) kategoriler → Mağaza → Ayarlar.
+    /// Görünür (kurulu araçlı) kategoriler → Komut Rehberi → Mağaza → Ayarlar.
     /// Odak Category panelinde kalır (`m` / `select_store_tab` odak değiştirir).
     fn move_tab_down(&mut self) {
         if self.settings_tab {
@@ -1102,16 +1271,23 @@ impl App {
         }
         if self.store_tab {
             self.store_tab = false;
+            self.commands_tab = false;
             self.settings_tab = true;
             self.settings_action_index = 0;
             return;
         }
-        let visible = self.visible_category_indices();
-        if visible.is_empty() {
+        if self.commands_tab {
+            self.commands_tab = false;
             self.store_tab = true;
             self.settings_tab = false;
             self.store_category_index = 0;
             self.store_app_index = 0;
+            return;
+        }
+        let visible = self.visible_category_indices();
+        if visible.is_empty() {
+            self.select_commands_tab();
+            self.focus = PanelFocus::Category;
             return;
         }
         if let Some(pos) = visible.iter().position(|&i| i == self.category_index) {
@@ -1120,10 +1296,8 @@ impl App {
                 self.tool_index = 0;
                 self.reset_tool_action_index();
             } else {
-                self.store_tab = true;
-                self.settings_tab = false;
-                self.store_category_index = 0;
-                self.store_app_index = 0;
+                self.select_commands_tab();
+                self.focus = PanelFocus::Category;
                 if self.focus == PanelFocus::ToolActions {
                     self.focus = PanelFocus::Category;
                 }
@@ -1138,15 +1312,22 @@ impl App {
     /// Sekme listesinde yukarı hareket eder.
     fn move_tab_up(&mut self) {
         if self.settings_tab {
-            self.store_tab = true;
             self.settings_tab = false;
             self.theme_picker_open = false;
             self.language_picker_open = false;
-            self.store_category_index = 0;
-            self.store_app_index = 0;
+            self.select_store_tab();
+            self.focus = PanelFocus::Category;
             return;
         }
         if self.store_tab {
+            self.store_tab = false;
+            self.settings_tab = false;
+            self.select_commands_tab();
+            self.focus = PanelFocus::Category;
+            return;
+        }
+        if self.commands_tab {
+            self.commands_tab = false;
             self.store_tab = false;
             self.settings_tab = false;
             let visible = self.visible_category_indices();
@@ -1169,12 +1350,33 @@ impl App {
         }
     }
 
+    /// Komut Rehberi sekmesine geçer (`g` kısayolu).
+    ///
+    /// Banka (kürate) ve yerel PATH stub'ı ayrı kaynaklar olarak açılır;
+    /// Mağaza kataloğu buraya karışmaz.
+    pub fn select_commands_tab(&mut self) {
+        self.commands_tab = true;
+        self.store_tab = false;
+        self.settings_tab = false;
+        self.theme_picker_open = false;
+        self.language_picker_open = false;
+        self.commands_source = CommandsSource::Bank;
+        self.commands_category_index = 0;
+        self.commands_entry_index = 0;
+        self.refresh_local_commands_stub();
+        self.focus = PanelFocus::CommandsList;
+        self.status_message =
+            "Komut Rehberi: Bilgi Bankası (kürate) ≠ Sistemimde Bulunan (PATH). Mağaza ayrı sekme."
+                .into();
+    }
+
     /// Mağaza sekmesine geçer.
     ///
     /// `m` kısayolu da budur. Odağı doğrudan uygulama listesine götürür:
     /// kullanıcı kurulum eylemini hemen görebilsin diye.
     pub fn select_store_tab(&mut self) {
         self.store_tab = true;
+        self.commands_tab = false;
         self.settings_tab = false;
         self.theme_picker_open = false;
         self.language_picker_open = false;
@@ -1189,6 +1391,7 @@ impl App {
     pub fn select_settings_tab(&mut self) {
         self.settings_tab = true;
         self.store_tab = false;
+        self.commands_tab = false;
         self.theme_picker_open = false;
         self.language_picker_open = false;
         self.settings_action_index = 0;
@@ -1200,12 +1403,14 @@ impl App {
 
     /// Sol panelde seçili sekmenin satır indeksi (çizilen liste üzerinden).
     ///
-    /// Satırlar: görünür kategoriler + Mağaza + Ayarlar.
+    /// Satırlar: görünür kategoriler + Komut Rehberi + Mağaza + Ayarlar.
     pub fn selected_tab_index(&self) -> usize {
         let n = self.visible_category_indices().len();
         if self.settings_tab {
-            n + 1
+            n + 2
         } else if self.store_tab {
+            n + 1
+        } else if self.commands_tab {
             n
         } else {
             self.visible_category_indices()
@@ -1217,10 +1422,11 @@ impl App {
 
     /// Sol paneldeki satıra göre sekmeyi seçer.
     ///
-    /// Görünür kategori satırlarından sonra Mağaza, en sonda Ayarlar gelir.
+    /// Görünür kategori satırlarından sonra Komut Rehberi, Mağaza, en sonda Ayarlar.
     pub fn set_tab_index(&mut self, row: usize) {
         let visible = self.visible_category_indices();
         if row < visible.len() {
+            self.commands_tab = false;
             self.store_tab = false;
             self.settings_tab = false;
             self.theme_picker_open = false;
@@ -1230,10 +1436,73 @@ impl App {
             self.store_app_index = 0;
             self.reset_tool_action_index();
         } else if row == visible.len() {
+            self.select_commands_tab();
+        } else if row == visible.len() + 1 {
             self.select_store_tab();
         } else {
             self.select_settings_tab();
         }
+    }
+
+    /// Yerel PATH keşfi stub'ını yeniler (bank eşleşmesi yalnız `bank_id`).
+    pub fn refresh_local_commands_stub(&mut self) {
+        self.commands_local = commands::local::discover_path_stub(Some(&self.commands_bank), 64);
+    }
+
+    /// Banka kategorileri (sıralı, tekil).
+    pub fn commands_bank_categories(&self) -> Vec<&str> {
+        bank_categories(&self.commands_bank)
+    }
+
+    /// Seçili banka kategorisindeki (ve aramaya uyan) komutlar.
+    pub fn filtered_bank_commands(&self) -> Vec<&commands::CommandEntry> {
+        let cats = self.commands_bank_categories();
+        let cat = cats
+            .get(self.commands_category_index)
+            .copied()
+            .unwrap_or("");
+        self.commands_bank
+            .by_category(cat)
+            .into_iter()
+            .filter(|c| self.matches_command_search(c))
+            .collect()
+    }
+
+    /// Yerel PATH girişleri (arama süzgeçli).
+    pub fn filtered_local_commands(&self) -> Vec<&commands::LocalEntry> {
+        self.commands_local
+            .entries
+            .iter()
+            .filter(|e| {
+                if self.search_query.is_empty() {
+                    return true;
+                }
+                let q = self.search_query.to_ascii_lowercase();
+                e.name.to_ascii_lowercase().contains(&q)
+                    || e.path.to_ascii_lowercase().contains(&q)
+                    || e.bank_id
+                        .as_ref()
+                        .map(|id| id.to_ascii_lowercase().contains(&q))
+                        .unwrap_or(false)
+            })
+            .collect()
+    }
+
+    fn matches_command_search(&self, cmd: &commands::CommandEntry) -> bool {
+        if self.search_query.is_empty() {
+            return true;
+        }
+        let q = self.search_query.to_ascii_lowercase();
+        let lang = self.ui_lang().id();
+        cmd.id.to_ascii_lowercase().contains(&q)
+            || cmd.name.to_ascii_lowercase().contains(&q)
+            || cmd.summary.pick(lang).to_ascii_lowercase().contains(&q)
+            || cmd.tags.iter().any(|t| t.to_ascii_lowercase().contains(&q))
+            || cmd
+                .intent
+                .all_for_lang(lang)
+                .iter()
+                .any(|p| p.to_ascii_lowercase().contains(&q))
     }
 
     /// Etkin odak zinciri (soldan sağa).
@@ -1244,6 +1513,32 @@ impl App {
     /// zincirine eklenir (Tab/a ile açılmaz). Dar terminalde gizlenen
     /// paneller zincirden çıkarılır.
     fn focus_chain(&self) -> &'static [PanelFocus] {
+        if self.commands_tab {
+            return if self.narrow_mode {
+                if self.commands_source == CommandsSource::Bank {
+                    &[
+                        PanelFocus::CommandsSource,
+                        PanelFocus::CommandsCategory,
+                        PanelFocus::CommandsList,
+                    ]
+                } else {
+                    &[PanelFocus::CommandsSource, PanelFocus::CommandsList]
+                }
+            } else if self.commands_source == CommandsSource::Bank {
+                &[
+                    PanelFocus::Category,
+                    PanelFocus::CommandsSource,
+                    PanelFocus::CommandsCategory,
+                    PanelFocus::CommandsList,
+                ]
+            } else {
+                &[
+                    PanelFocus::Category,
+                    PanelFocus::CommandsSource,
+                    PanelFocus::CommandsList,
+                ]
+            };
+        }
         let side = if self.language_picker_open {
             2u8
         } else if self.theme_picker_open {
@@ -1356,7 +1651,9 @@ impl App {
 
     /// Aramadan sonra odaklanılacak panel.
     fn search_target_focus(&self) -> PanelFocus {
-        if self.store_tab {
+        if self.commands_tab {
+            PanelFocus::CommandsList
+        } else if self.store_tab {
             PanelFocus::StoreApp
         } else {
             PanelFocus::Tool
@@ -1365,10 +1662,60 @@ impl App {
 
     /// Arama sonuç sayısı (etkin panele göre).
     fn search_result_count(&self) -> usize {
-        if self.store_tab {
+        if self.commands_tab {
+            match self.commands_source {
+                CommandsSource::Bank => self.filtered_bank_commands().len(),
+                CommandsSource::Local => self.filtered_local_commands().len(),
+            }
+        } else if self.store_tab {
             self.filtered_store_apps().len()
         } else {
             self.filtered_tools().len()
+        }
+    }
+
+    /// Seçili banka / yerel komut hakkında durum satırı bilgisi (çalıştırmaz).
+    pub fn show_selected_command_info(&mut self) {
+        match self.commands_source {
+            CommandsSource::Bank => {
+                let cmds = self.filtered_bank_commands();
+                let Some(cmd) =
+                    cmds.get(self.commands_entry_index.min(cmds.len().saturating_sub(1)))
+                else {
+                    self.status_message = "Bilgi bankasında seçili komut yok.".into();
+                    return;
+                };
+                let lang = self.ui_lang().id();
+                self.status_message = format!(
+                    "Bank [{}] {} · risk={} · doğrulama={} · {}",
+                    cmd.category,
+                    cmd.name,
+                    cmd.risk.as_str(),
+                    cmd.verification.status.as_str(),
+                    cmd.summary.pick(lang)
+                );
+            }
+            CommandsSource::Local => {
+                let ents = self.filtered_local_commands();
+                let Some(ent) =
+                    ents.get(self.commands_entry_index.min(ents.len().saturating_sub(1)))
+                else {
+                    self.status_message =
+                        "Bu cihazda (PATH) eşleşen giriş yok — bank doğrulaması değil.".into();
+                    return;
+                };
+                let bank_note = match &ent.bank_id {
+                    Some(id) => format!("bank_id={id} (eşleşme; verified miras yok)"),
+                    None => "bank eşleşmesi yok".into(),
+                };
+                self.status_message = format!(
+                    "Cihazda bulundu: {} → {} · {} · kind={}",
+                    ent.name,
+                    ent.path,
+                    bank_note,
+                    commands::LOCAL_KIND
+                );
+            }
         }
     }
 
@@ -4388,14 +4735,50 @@ mod tests {
         let visible = app.visible_category_indices();
         app.category_index = *visible.last().expect("görünür kategori");
         app.handle_key(typed('j')).unwrap();
-        assert!(app.store_tab);
+        assert!(app.commands_tab, "önce Komut Rehberi");
         assert_eq!(app.selected_tab_index(), visible.len());
         app.handle_key(typed('j')).unwrap();
-        assert!(app.settings_tab);
+        assert!(app.store_tab);
+        assert!(!app.commands_tab);
         assert_eq!(app.selected_tab_index(), visible.len() + 1);
+        app.handle_key(typed('j')).unwrap();
+        assert!(app.settings_tab);
+        assert_eq!(app.selected_tab_index(), visible.len() + 2);
         app.handle_key(typed('k')).unwrap();
         assert!(app.store_tab);
         assert!(!app.settings_tab);
+    }
+
+    #[test]
+    fn commands_tab_keeps_bank_and_local_kinds_distinct() {
+        let mut app = sample_app();
+        app.select_commands_tab();
+        assert!(app.commands_tab);
+        assert!(!app.store_tab);
+        assert_eq!(app.commands_bank.kind, crate::commands::BANK_KIND);
+        assert_eq!(app.commands_local.kind, crate::commands::LOCAL_KIND);
+        assert_ne!(app.commands_bank.kind, app.commands_local.kind);
+        assert!(!app.commands_bank.commands.is_empty());
+        // PATH varlığı bank verification yükseltmez.
+        for ent in &app.commands_local.entries {
+            if let Some(id) = &ent.bank_id {
+                let bank = app.commands_bank.find_by_id_or_name(id).unwrap();
+                assert_ne!(
+                    format!("{:?}", bank.verification.status),
+                    "inherited-from-path"
+                );
+            }
+        }
+        app.commands_source = crate::commands::CommandsSource::Local;
+        app.show_selected_command_info();
+        assert!(
+            app.status_message.contains("nova-local-commands")
+                || app.status_message.contains("PATH")
+                || app.status_message.contains("Cihazda")
+                || app.status_message.contains("eşleşen"),
+            "local status: {}",
+            app.status_message
+        );
     }
 
     #[test]
@@ -4450,7 +4833,11 @@ mod tests {
         app.handle_key(typed('h')).unwrap();
         assert_eq!(app.focus, PanelFocus::Category);
         app.handle_key(typed('k')).unwrap();
+        // Mağaza → Komut Rehberi (araç kategorilerinden hemen önce).
+        assert!(app.commands_tab);
         assert!(!app.store_tab);
+        app.handle_key(typed('k')).unwrap();
+        assert!(!app.commands_tab);
         // Araç listesi yeniden çizilir; odak zinciri iki panele döner.
         app.handle_key(typed('l')).unwrap();
         assert_eq!(app.focus, PanelFocus::Tool);

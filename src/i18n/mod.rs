@@ -213,6 +213,15 @@ impl Language {
             Msg::ErrorPrefix => t.error_prefix,
             Msg::NoStoreApp => t.no_store_app,
             Msg::EmptyStoreCategory => t.empty_store_category,
+            Msg::CommandsGuide => t.commands_guide,
+            Msg::CommandsBank => t.commands_bank,
+            Msg::CommandsLocal => t.commands_local,
+            Msg::CommandsCategories => t.commands_categories,
+            Msg::CommandsList => t.commands_list,
+            Msg::CommandsDetail => t.commands_detail,
+            Msg::HelpCommandsTab => t.help_commands_tab,
+            Msg::EmptyCommandsCategory => t.empty_commands_category,
+            Msg::NoCommandSelected => t.no_command_selected,
         }
     }
 
@@ -314,6 +323,15 @@ pub enum Msg {
     ErrorPrefix,
     NoStoreApp,
     EmptyStoreCategory,
+    CommandsGuide,
+    CommandsBank,
+    CommandsLocal,
+    CommandsCategories,
+    CommandsList,
+    CommandsDetail,
+    HelpCommandsTab,
+    EmptyCommandsCategory,
+    NoCommandSelected,
 }
 
 struct Table {
@@ -404,6 +422,15 @@ struct Table {
     error_prefix: &'static str,
     no_store_app: &'static str,
     empty_store_category: &'static str,
+    commands_guide: &'static str,
+    commands_bank: &'static str,
+    commands_local: &'static str,
+    commands_categories: &'static str,
+    commands_list: &'static str,
+    commands_detail: &'static str,
+    help_commands_tab: &'static str,
+    empty_commands_category: &'static str,
+    no_command_selected: &'static str,
 }
 
 const TR: Table = Table {
@@ -495,6 +522,15 @@ const TR: Table = Table {
     error_prefix: "Hata:",
     no_store_app: "Mağazada seçili uygulama yok.",
     empty_store_category: "Mağaza kategorisinde uygulama yok.",
+    commands_guide: "Komut Rehberi",
+    commands_bank: "Bilgi Bankası",
+    commands_local: "Sistemimde Bulunan",
+    commands_categories: "Bank Kategorileri",
+    commands_list: "Komutlar",
+    commands_detail: "Komut Detay",
+    help_commands_tab: "Komut Rehberi",
+    empty_commands_category: "Bu banka kategorisinde komut yok.",
+    no_command_selected: "Seçili komut yok.",
 };
 
 const EN: Table = Table {
@@ -586,6 +622,15 @@ const EN: Table = Table {
     error_prefix: "Error:",
     no_store_app: "No store app selected.",
     empty_store_category: "No apps in this store category.",
+    commands_guide: "Command Guide",
+    commands_bank: "Command Bank",
+    commands_local: "Found on Device",
+    commands_categories: "Bank Categories",
+    commands_list: "Commands",
+    commands_detail: "Command Detail",
+    help_commands_tab: "Command Guide",
+    empty_commands_category: "No commands in this bank category.",
+    no_command_selected: "No command selected.",
 };
 
 const RU: Table = Table {
@@ -676,6 +721,15 @@ const RU: Table = Table {
     error_prefix: "Ошибка:",
     no_store_app: "Приложение магазина не выбрано.",
     empty_store_category: "В этой категории магазина нет приложений.",
+    commands_guide: "Справочник команд",
+    commands_bank: "Банк команд",
+    commands_local: "На этом устройстве",
+    commands_categories: "Категории банка",
+    commands_list: "Команды",
+    commands_detail: "Детали команды",
+    help_commands_tab: "Справочник команд",
+    empty_commands_category: "В этой категории банка нет команд.",
+    no_command_selected: "Команда не выбрана.",
 };
 
 const AZ: Table = Table {
@@ -766,6 +820,15 @@ const AZ: Table = Table {
     error_prefix: "Xəta:",
     no_store_app: "Mağazada seçilmiş tətbiq yoxdur.",
     empty_store_category: "Bu mağaza kateqoriyasında tətbiq yoxdur.",
+    commands_guide: "Komanda Bələdçisi",
+    commands_bank: "Bilgi Bankası",
+    commands_local: "Cihazda tapılan",
+    commands_categories: "Bank kateqoriyaları",
+    commands_list: "Komandalar",
+    commands_detail: "Komanda təfərrüatı",
+    help_commands_tab: "Komanda Bələdçisi",
+    empty_commands_category: "Bu bank kateqoriyasında komanda yoxdur.",
+    no_command_selected: "Seçilmiş komanda yoxdur.",
 };
 
 const UZ: Table = Table {
@@ -857,6 +920,15 @@ const UZ: Table = Table {
     error_prefix: "Xato:",
     no_store_app: "Doʻkonda tanlangan ilova yoʻq.",
     empty_store_category: "Bu doʻkon toifasida ilova yoʻq.",
+    commands_guide: "Buyruq qoʻllanmasi",
+    commands_bank: "Buyruq banki",
+    commands_local: "Qurilmada topilgan",
+    commands_categories: "Bank toifalari",
+    commands_list: "Buyruqlar",
+    commands_detail: "Buyruq tafsiloti",
+    help_commands_tab: "Buyruq qoʻllanmasi",
+    empty_commands_category: "Bu bank toifasida buyruq yoʻq.",
+    no_command_selected: "Tanlangan buyruq yoʻq.",
 };
 
 const KK: Table = Table {
@@ -947,6 +1019,15 @@ const KK: Table = Table {
     error_prefix: "Қате:",
     no_store_app: "Дүкенде таңдалған қолданба жоқ.",
     empty_store_category: "Бұл дүкен санатында қолданба жоқ.",
+    commands_guide: "Команда анықтамалығы",
+    commands_bank: "Команда банкі",
+    commands_local: "Құрылғыда табылған",
+    commands_categories: "Банк санаттары",
+    commands_list: "Командалар",
+    commands_detail: "Команда мәліметі",
+    help_commands_tab: "Команда анықтамалығы",
+    empty_commands_category: "Бұл банк санатында команда жоқ.",
+    no_command_selected: "Таңдалған команда жоқ.",
 };
 
 const TK: Table = Table {
@@ -1038,6 +1119,15 @@ const TK: Table = Table {
     error_prefix: "Ýalňyşlyk:",
     no_store_app: "Dükanda saýlanan programma ýok.",
     empty_store_category: "Bu dükan kategoriýasynda programma ýok.",
+    commands_guide: "Komanda gollanmasy",
+    commands_bank: "Komanda banky",
+    commands_local: "Enjamda tapyldy",
+    commands_categories: "Bank kategoriýalary",
+    commands_list: "Komandalar",
+    commands_detail: "Komanda jikme-jigi",
+    help_commands_tab: "Komanda gollanmasy",
+    empty_commands_category: "Bu bank kategoriýasynda komanda ýok.",
+    no_command_selected: "Saýlanan komanda ýok.",
 };
 
 #[cfg(test)]

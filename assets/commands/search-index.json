@@ -1,0 +1,4380 @@
+{
+  "schema_version": 1,
+  "kind": "nova-commands-search-index",
+  "entry_count": 147,
+  "entries": [
+    {
+      "type": "command",
+      "id": "apt",
+      "name": "apt",
+      "category": "packages",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "packages",
+        "debian"
+      ],
+      "summary": {
+        "tr": "Debian/Ubuntu yüksek seviye paket aracı.",
+        "en": "Debian/Ubuntu high-level package tool."
+      },
+      "intent": {
+        "tr": [
+          "ubuntu paket kur",
+          "apt güncelle"
+        ],
+        "en": [
+          "apt install",
+          "ubuntu upgrade"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "awk",
+      "name": "awk",
+      "category": "text",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "text"
+      ],
+      "summary": {
+        "tr": "Desen tarama ve metin işleme dili.",
+        "en": "Pattern scanning and text processing language."
+      },
+      "intent": {
+        "tr": [
+          "awk sütun",
+          "alan işle"
+        ],
+        "en": [
+          "awk column",
+          "field processing"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "blkid",
+      "name": "blkid",
+      "category": "disks",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage"
+      ],
+      "summary": {
+        "tr": "Blok aygıt özniteliklerini basar.",
+        "en": "Print block device attributes."
+      },
+      "intent": {
+        "tr": [
+          "disk uuid",
+          "blkid"
+        ],
+        "en": [
+          "disk uuid",
+          "blkid"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "bootctl",
+      "name": "bootctl",
+      "category": "system",
+      "risk": "dangerous",
+      "verification": "draft",
+      "tags": [
+        "system",
+        "systemd",
+        "boot",
+        "efi"
+      ],
+      "summary": {
+        "tr": "systemd-boot ve EFI önyükleme denetimi.",
+        "en": "Control firmware and systemd-boot entries."
+      },
+      "intent": {
+        "tr": [
+          "efi boot durum",
+          "systemd-boot"
+        ],
+        "en": [
+          "efi boot status",
+          "systemd-boot"
+        ]
+      },
+      "concepts": [
+        "systemd",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "cargo",
+      "name": "cargo",
+      "category": "development",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "rust",
+        "build",
+        "packages"
+      ],
+      "summary": {
+        "tr": "Rust paket ve derleme aracı.",
+        "en": "Rust package manager and build tool."
+      },
+      "intent": {
+        "tr": [
+          "rust derle",
+          "cargo test"
+        ],
+        "en": [
+          "build rust",
+          "cargo test"
+        ]
+      },
+      "concepts": [
+        "package-managers",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "cat",
+      "name": "cat",
+      "category": "text",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "text",
+        "view"
+      ],
+      "summary": {
+        "tr": "Dosyaları birleştirip yazar.",
+        "en": "Concatenate and print files."
+      },
+      "intent": {
+        "tr": [
+          "dosya içeriği göster",
+          "cat ile oku"
+        ],
+        "en": [
+          "show file contents",
+          "print file"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "cd",
+      "name": "cd",
+      "category": "shell",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "shell"
+      ],
+      "summary": {
+        "tr": "Çalışma dizinini değiştirir (kabuk yerleşiği).",
+        "en": "Change the shell working directory (builtin)."
+      },
+      "intent": {
+        "tr": [
+          "dizine gir",
+          "klasör değiştir"
+        ],
+        "en": [
+          "change directory",
+          "go to folder"
+        ]
+      },
+      "concepts": [
+        "shell-builtin",
+        "terminal-basics",
+        "path"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "chgrp",
+      "name": "chgrp",
+      "category": "users",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "users",
+        "permissions"
+      ],
+      "summary": {
+        "tr": "Dosya grup sahipliğini değiştirir.",
+        "en": "Change group ownership of files."
+      },
+      "intent": {
+        "tr": [
+          "dosya grubu değiştir",
+          "chgrp"
+        ],
+        "en": [
+          "change file group",
+          "chgrp"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "chmod",
+      "name": "chmod",
+      "category": "users",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "users",
+        "permissions"
+      ],
+      "summary": {
+        "tr": "Dosya kipini (izinlerini) değiştirir.",
+        "en": "Change file mode bits."
+      },
+      "intent": {
+        "tr": [
+          "izin değiştir",
+          "chmod 755"
+        ],
+        "en": [
+          "change permissions",
+          "chmod file"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "chown",
+      "name": "chown",
+      "category": "users",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "users",
+        "permissions"
+      ],
+      "summary": {
+        "tr": "Dosya sahibini değiştirir.",
+        "en": "Change file owner and group."
+      },
+      "intent": {
+        "tr": [
+          "dosya sahibi değiştir",
+          "chown"
+        ],
+        "en": [
+          "change owner",
+          "chown file"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "cmake",
+      "name": "cmake",
+      "category": "development",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "build",
+        "cmake",
+        "c"
+      ],
+      "summary": {
+        "tr": "Çapraz platform derleme yapılandırıcı.",
+        "en": "Cross-platform build configurator."
+      },
+      "intent": {
+        "tr": [
+          "cmake yapılandır",
+          "projeyi derle"
+        ],
+        "en": [
+          "cmake configure",
+          "build project"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "cp",
+      "name": "cp",
+      "category": "filesystem",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "files",
+        "copy"
+      ],
+      "summary": {
+        "tr": "Dosya ve dizinleri kopyalar.",
+        "en": "Copy files and directories."
+      },
+      "intent": {
+        "tr": [
+          "dosya kopyala",
+          "klasör kopyala"
+        ],
+        "en": [
+          "copy file",
+          "copy directory"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "curl",
+      "name": "curl",
+      "category": "network",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "network",
+        "http"
+      ],
+      "summary": {
+        "tr": "URL ile veri transferi yapar.",
+        "en": "Transfer data from or to a server."
+      },
+      "intent": {
+        "tr": [
+          "http isteği",
+          "dosya indir curl"
+        ],
+        "en": [
+          "http request",
+          "download with curl"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "cut",
+      "name": "cut",
+      "category": "text",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "text",
+        "fields"
+      ],
+      "summary": {
+        "tr": "Satırlardan alan veya bayt keser.",
+        "en": "Remove sections from each line."
+      },
+      "intent": {
+        "tr": [
+          "sütun kes",
+          "alan seç"
+        ],
+        "en": [
+          "cut column",
+          "select field"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "date",
+      "name": "date",
+      "category": "system",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "system",
+        "time"
+      ],
+      "summary": {
+        "tr": "Tarih ve saati yazdırır veya ayarlar.",
+        "en": "Print or set the system date."
+      },
+      "intent": {
+        "tr": [
+          "tarih saat",
+          "bugünün tarihi"
+        ],
+        "en": [
+          "show date",
+          "current time"
+        ]
+      },
+      "concepts": [
+        "systemd",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "dd",
+      "name": "dd",
+      "category": "disks",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage",
+        "image"
+      ],
+      "summary": {
+        "tr": "Blok düzeyinde kopyalama/dönüştürme.",
+        "en": "Convert and copy files at block level."
+      },
+      "intent": {
+        "tr": [
+          "iso yaz",
+          "dd imaj"
+        ],
+        "en": [
+          "write iso",
+          "dd image"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "df",
+      "name": "df",
+      "category": "disks",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "disk"
+      ],
+      "summary": {
+        "tr": "Dosya sistemi disk kullanımı.",
+        "en": "Report file system disk space usage."
+      },
+      "intent": {
+        "tr": [
+          "disk dolu mu",
+          "boş alan"
+        ],
+        "en": [
+          "disk space",
+          "free space"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "diff",
+      "name": "diff",
+      "category": "development",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "development",
+        "text"
+      ],
+      "summary": {
+        "tr": "Dosyaları satır satır karşılaştırır.",
+        "en": "Compare files line by line."
+      },
+      "intent": {
+        "tr": [
+          "dosya farkı",
+          "karşılaştır"
+        ],
+        "en": [
+          "diff files",
+          "compare files"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "dig",
+      "name": "dig",
+      "category": "network",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "network",
+        "dns"
+      ],
+      "summary": {
+        "tr": "DNS sorgu aracı (BIND).",
+        "en": "DNS lookup utility (BIND)."
+      },
+      "intent": {
+        "tr": [
+          "dns sorgula",
+          "dig a kaydı",
+          "alan adı çözümle"
+        ],
+        "en": [
+          "dns lookup",
+          "dig record",
+          "resolve domain"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "dns",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "dmesg",
+      "name": "dmesg",
+      "category": "monitoring",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "monitoring",
+        "kernel"
+      ],
+      "summary": {
+        "tr": "Çekirdek mesaj halkasını yazdırır.",
+        "en": "Print or control the kernel ring buffer."
+      },
+      "intent": {
+        "tr": [
+          "çekirdek log",
+          "dmesg"
+        ],
+        "en": [
+          "kernel log",
+          "dmesg"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "dnf",
+      "name": "dnf",
+      "category": "packages",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "packages",
+        "fedora"
+      ],
+      "summary": {
+        "tr": "Fedora/RHEL paket yöneticisi.",
+        "en": "Fedora/RHEL package manager."
+      },
+      "intent": {
+        "tr": [
+          "fedora paket kur",
+          "dnf güncelle"
+        ],
+        "en": [
+          "dnf install",
+          "fedora upgrade"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "docker",
+      "name": "docker",
+      "category": "containers",
+      "risk": "dangerous",
+      "verification": "draft",
+      "tags": [
+        "containers"
+      ],
+      "summary": {
+        "tr": "Docker konteyner CLI.",
+        "en": "Docker container CLI."
+      },
+      "intent": {
+        "tr": [
+          "docker konteyner",
+          "docker ps",
+          "docker imaj"
+        ],
+        "en": [
+          "docker containers",
+          "docker ps",
+          "docker images"
+        ]
+      },
+      "concepts": [
+        "containers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "docker-compose",
+      "name": "docker-compose",
+      "category": "containers",
+      "risk": "dangerous",
+      "verification": "draft",
+      "tags": [
+        "containers",
+        "docker"
+      ],
+      "summary": {
+        "tr": "Çok konteynerli Compose aracı.",
+        "en": "Multi-container Compose tool."
+      },
+      "intent": {
+        "tr": [
+          "docker compose",
+          "çoklu konteyner"
+        ],
+        "en": [
+          "docker compose",
+          "multi container"
+        ]
+      },
+      "concepts": [
+        "containers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "dpkg",
+      "name": "dpkg",
+      "category": "packages",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "packages",
+        "debian"
+      ],
+      "summary": {
+        "tr": "Debian paket yöneticisinin düşük seviye aracı.",
+        "en": "Debian package manager low-level tool."
+      },
+      "intent": {
+        "tr": [
+          "deb kur",
+          "dpkg sorgu"
+        ],
+        "en": [
+          "install deb",
+          "dpkg query"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "du",
+      "name": "du",
+      "category": "disks",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "disk"
+      ],
+      "summary": {
+        "tr": "Dizin disk kullanımını tahmin eder.",
+        "en": "Estimate file space usage."
+      },
+      "intent": {
+        "tr": [
+          "klasör boyutu",
+          "ne kadar yer"
+        ],
+        "en": [
+          "folder size",
+          "disk usage directory"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "echo",
+      "name": "echo",
+      "category": "shell",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "shell"
+      ],
+      "summary": {
+        "tr": "Argümanları yazar.",
+        "en": "Display a line of text."
+      },
+      "intent": {
+        "tr": [
+          "ekrana yaz",
+          "echo"
+        ],
+        "en": [
+          "print text",
+          "echo string"
+        ]
+      },
+      "concepts": [
+        "shell-builtin",
+        "terminal-basics",
+        "path"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "env",
+      "name": "env",
+      "category": "shell",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "shell",
+        "environment"
+      ],
+      "summary": {
+        "tr": "Ortamı gösterir veya değiştirerek komut çalıştırır.",
+        "en": "Show environment or run a command in a modified environment."
+      },
+      "intent": {
+        "tr": [
+          "ortam değişkenleri",
+          "env listele"
+        ],
+        "en": [
+          "list environment",
+          "env vars"
+        ]
+      },
+      "concepts": [
+        "shell-builtin",
+        "terminal-basics",
+        "path"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "export",
+      "name": "export",
+      "category": "shell",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "shell",
+        "environment"
+      ],
+      "summary": {
+        "tr": "Değişkeni ortamda dışa aktarır (yerleşik).",
+        "en": "Set export attribute for shell variables (builtin)."
+      },
+      "intent": {
+        "tr": [
+          "ortam değişkeni ayarla",
+          "export path"
+        ],
+        "en": [
+          "export variable",
+          "set path"
+        ]
+      },
+      "concepts": [
+        "shell-builtin",
+        "terminal-basics",
+        "path"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "fdisk",
+      "name": "fdisk",
+      "category": "disks",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "partition",
+        "storage"
+      ],
+      "summary": {
+        "tr": "Disk bölüm tablosu düzenleyici.",
+        "en": "Manipulate disk partition tables."
+      },
+      "intent": {
+        "tr": [
+          "disk bölümle",
+          "fdisk listele"
+        ],
+        "en": [
+          "partition disk",
+          "fdisk list"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "find",
+      "name": "find",
+      "category": "search",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "search",
+        "files"
+      ],
+      "summary": {
+        "tr": "Dizin ağacında dosya arar.",
+        "en": "Search for files in a directory hierarchy."
+      },
+      "intent": {
+        "tr": [
+          "dosya bul",
+          "isme göre ara"
+        ],
+        "en": [
+          "find files",
+          "search by name"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "findmnt",
+      "name": "findmnt",
+      "category": "disks",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage",
+        "mount"
+      ],
+      "summary": {
+        "tr": "Bağlı dosya sistemlerini listeler.",
+        "en": "List mounted filesystems (libmount)."
+      },
+      "intent": {
+        "tr": [
+          "ne bağlı",
+          "findmnt"
+        ],
+        "en": [
+          "what is mounted",
+          "findmnt"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "firewall-cmd",
+      "name": "firewall-cmd",
+      "category": "security",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "security",
+        "firewall",
+        "network"
+      ],
+      "summary": {
+        "tr": "firewalld komut satırı.",
+        "en": "firewalld command-line client."
+      },
+      "intent": {
+        "tr": [
+          "firewall port aç",
+          "firewalld"
+        ],
+        "en": [
+          "open firewall port",
+          "firewalld"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "ssh",
+        "permissions",
+        "firewalls"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "flatpak",
+      "name": "flatpak",
+      "category": "packages",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "packages",
+        "desktop"
+      ],
+      "summary": {
+        "tr": "Uygulama dağıtımı için Flatpak CLI.",
+        "en": "Flatpak application deployment CLI."
+      },
+      "intent": {
+        "tr": [
+          "flatpak kur",
+          "flathub"
+        ],
+        "en": [
+          "flatpak install",
+          "flathub"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "free",
+      "name": "free",
+      "category": "monitoring",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "monitoring",
+        "memory"
+      ],
+      "summary": {
+        "tr": "Bellek kullanımını gösterir.",
+        "en": "Display amount of free and used memory."
+      },
+      "intent": {
+        "tr": [
+          "ram kullanımı",
+          "bellek boş mu"
+        ],
+        "en": [
+          "memory usage",
+          "free ram"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "gcc",
+      "name": "gcc",
+      "category": "development",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "compiler",
+        "c",
+        "build"
+      ],
+      "summary": {
+        "tr": "GNU C/C++ derleyici sürücüsü.",
+        "en": "GNU C/C++ compiler driver."
+      },
+      "intent": {
+        "tr": [
+          "c derle",
+          "gcc ile derle"
+        ],
+        "en": [
+          "compile c",
+          "gcc compile"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "getent",
+      "name": "getent",
+      "category": "users",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "users",
+        "nss"
+      ],
+      "summary": {
+        "tr": "Name Service Switch veritabanlarını sorgular.",
+        "en": "Query Name Service Switch databases."
+      },
+      "intent": {
+        "tr": [
+          "getent passwd",
+          "grup üyeleri"
+        ],
+        "en": [
+          "getent passwd",
+          "group members"
+        ]
+      },
+      "concepts": [
+        "permissions",
+        "dns"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "git",
+      "name": "git",
+      "category": "development",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "git",
+        "vcs"
+      ],
+      "summary": {
+        "tr": "Dağıtık sürüm kontrol sistemi.",
+        "en": "Distributed version control system."
+      },
+      "intent": {
+        "tr": [
+          "git durum",
+          "commit geçmişi"
+        ],
+        "en": [
+          "git status",
+          "commit history"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "gpg",
+      "name": "gpg",
+      "category": "security",
+      "risk": "caution",
+      "verification": "draft",
+      "tags": [
+        "security",
+        "crypto"
+      ],
+      "summary": {
+        "tr": "OpenPGP şifreleme ve imza aracı.",
+        "en": "OpenPGP encryption and signing tool."
+      },
+      "intent": {
+        "tr": [
+          "gpg anahtar",
+          "şifrele"
+        ],
+        "en": [
+          "gpg keys",
+          "encrypt file"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "grep",
+      "name": "grep",
+      "category": "search",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "search",
+        "text"
+      ],
+      "summary": {
+        "tr": "Metinde desen arar.",
+        "en": "Print lines matching a pattern."
+      },
+      "intent": {
+        "tr": [
+          "metin ara",
+          "dosyada kelime bul"
+        ],
+        "en": [
+          "search text",
+          "find string in files"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "groups",
+      "name": "groups",
+      "category": "users",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "users",
+        "permissions"
+      ],
+      "summary": {
+        "tr": "Kullanıcının gruplarını basar.",
+        "en": "Print groups a user is in."
+      },
+      "intent": {
+        "tr": [
+          "gruplarım neler",
+          "groups"
+        ],
+        "en": [
+          "what groups am i in",
+          "groups"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "gzip",
+      "name": "gzip",
+      "category": "archives",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "archive",
+        "compress"
+      ],
+      "summary": {
+        "tr": "Dosyaları gzip ile sıkıştırır veya açar.",
+        "en": "Compress or expand files with gzip."
+      },
+      "intent": {
+        "tr": [
+          "gzip sıkıştır",
+          "gz aç"
+        ],
+        "en": [
+          "gzip compress",
+          "decompress gz"
+        ]
+      },
+      "concepts": [
+        "files"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "head",
+      "name": "head",
+      "category": "text",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "text"
+      ],
+      "summary": {
+        "tr": "Dosyanın başını gösterir.",
+        "en": "Show the start of files."
+      },
+      "intent": {
+        "tr": [
+          "dosyanın başı",
+          "ilk satırlar"
+        ],
+        "en": [
+          "first lines",
+          "head of file"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "history",
+      "name": "history",
+      "category": "shell",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "shell"
+      ],
+      "summary": {
+        "tr": "Komut geçmişini listeler (yerleşik).",
+        "en": "Display command history (builtin)."
+      },
+      "intent": {
+        "tr": [
+          "komut geçmişi",
+          "önceki komutlar"
+        ],
+        "en": [
+          "command history",
+          "previous commands"
+        ]
+      },
+      "concepts": [
+        "shell-builtin",
+        "terminal-basics",
+        "path"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "host",
+      "name": "host",
+      "category": "network",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "network",
+        "dns"
+      ],
+      "summary": {
+        "tr": "Basit DNS arama aracı.",
+        "en": "Simple DNS lookup utility."
+      },
+      "intent": {
+        "tr": [
+          "host ile dns",
+          "ip adresi bul"
+        ],
+        "en": [
+          "host dns lookup",
+          "find ip address"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "dns",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "hostname",
+      "name": "hostname",
+      "category": "system",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "system"
+      ],
+      "summary": {
+        "tr": "Sistem ana bilgisayar adını gösterir veya ayarlar.",
+        "en": "Show or set the system hostname."
+      },
+      "intent": {
+        "tr": [
+          "bilgisayar adı",
+          "hostname gör"
+        ],
+        "en": [
+          "show hostname",
+          "computer name"
+        ]
+      },
+      "concepts": [
+        "systemd",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "hostnamectl",
+      "name": "hostnamectl",
+      "category": "system",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "system",
+        "systemd"
+      ],
+      "summary": {
+        "tr": "Hostname ve ilgili ayarları yönetir.",
+        "en": "Query or change system hostname settings."
+      },
+      "intent": {
+        "tr": [
+          "hostname değiştir",
+          "makine adı ayarla"
+        ],
+        "en": [
+          "set hostname",
+          "change computer name"
+        ]
+      },
+      "concepts": [
+        "systemd",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "htop",
+      "name": "htop",
+      "category": "processes",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "processes",
+        "monitoring"
+      ],
+      "summary": {
+        "tr": "Etkileşimli süreç görüntüleyici.",
+        "en": "Interactive process viewer."
+      },
+      "intent": {
+        "tr": [
+          "htop süreç",
+          "cpu izle"
+        ],
+        "en": [
+          "htop processes",
+          "monitor cpu"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "id",
+      "name": "id",
+      "category": "users",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "users"
+      ],
+      "summary": {
+        "tr": "Kullanıcı ve grup kimliklerini basar.",
+        "en": "Print user and group IDs."
+      },
+      "intent": {
+        "tr": [
+          "uid gör",
+          "gruplarım"
+        ],
+        "en": [
+          "show uid",
+          "my groups"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "iostat",
+      "name": "iostat",
+      "category": "monitoring",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "io",
+        "disk",
+        "sysstat"
+      ],
+      "summary": {
+        "tr": "CPU ve disk I/O istatistikleri.",
+        "en": "CPU and disk I/O statistics."
+      },
+      "intent": {
+        "tr": [
+          "disk io izle",
+          "iostat"
+        ],
+        "en": [
+          "monitor disk io",
+          "iostat"
+        ]
+      },
+      "concepts": [
+        "storage",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "iotop",
+      "name": "iotop",
+      "category": "monitoring",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "io",
+        "processes",
+        "top"
+      ],
+      "summary": {
+        "tr": "Süreç başına I/O top görünümü.",
+        "en": "Per-process I/O top view."
+      },
+      "intent": {
+        "tr": [
+          "disk kim kullanıyor",
+          "iotop"
+        ],
+        "en": [
+          "who uses disk",
+          "iotop"
+        ]
+      },
+      "concepts": [
+        "storage",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ip",
+      "name": "ip",
+      "category": "network",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "network"
+      ],
+      "summary": {
+        "tr": "Ağ aygıtları, adresler ve rotaları yönetir.",
+        "en": "Show and manipulate routing, devices, and tunnels."
+      },
+      "intent": {
+        "tr": [
+          "ip adresi gör",
+          "ağ arayüzü"
+        ],
+        "en": [
+          "show ip address",
+          "list interfaces"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "iptables",
+      "name": "iptables",
+      "category": "security",
+      "risk": "destructive",
+      "verification": "draft",
+      "tags": [
+        "firewall",
+        "netfilter",
+        "legacy"
+      ],
+      "summary": {
+        "tr": "Eski nesil IPv4 netfilter aracı.",
+        "en": "Legacy IPv4 netfilter administration."
+      },
+      "intent": {
+        "tr": [
+          "iptables listele",
+          "eski firewall"
+        ],
+        "en": [
+          "list iptables",
+          "legacy firewall"
+        ]
+      },
+      "concepts": [
+        "firewalls",
+        "networking"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "journalctl",
+      "name": "journalctl",
+      "category": "monitoring",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "monitoring",
+        "logs",
+        "systemd"
+      ],
+      "summary": {
+        "tr": "systemd günlüğünü sorgular.",
+        "en": "Query the systemd journal."
+      },
+      "intent": {
+        "tr": [
+          "servis logları",
+          "journal oku"
+        ],
+        "en": [
+          "service logs",
+          "read journal"
+        ]
+      },
+      "concepts": [
+        "terminal-basics",
+        "systemd"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "jq",
+      "name": "jq",
+      "category": "text",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "json",
+        "text",
+        "data"
+      ],
+      "summary": {
+        "tr": "JSON süzgeç ve dönüştürücü.",
+        "en": "JSON filter and transformer."
+      },
+      "intent": {
+        "tr": [
+          "json süz",
+          "jq ile alan"
+        ],
+        "en": [
+          "filter json",
+          "jq select field"
+        ]
+      },
+      "concepts": [
+        "shell-pipes-redirection",
+        "json-data"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "kill",
+      "name": "kill",
+      "category": "processes",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "process"
+      ],
+      "summary": {
+        "tr": "Sürece sinyal gönderir.",
+        "en": "Send a signal to a process."
+      },
+      "intent": {
+        "tr": [
+          "süreci öldür",
+          "process sonlandır"
+        ],
+        "en": [
+          "kill process",
+          "stop pid"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "less",
+      "name": "less",
+      "category": "text",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "text",
+        "pager"
+      ],
+      "summary": {
+        "tr": "Metni sayfa sayfa görüntüler.",
+        "en": "Page through text interactively."
+      },
+      "intent": {
+        "tr": [
+          "sayfa sayfa oku",
+          "log incele"
+        ],
+        "en": [
+          "page through file",
+          "view log"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ln",
+      "name": "ln",
+      "category": "filesystem",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "files",
+        "symlink"
+      ],
+      "summary": {
+        "tr": "Sabit veya sembolik bağ oluşturur.",
+        "en": "Make hard or symbolic links."
+      },
+      "intent": {
+        "tr": [
+          "sembolik bağ",
+          "symlink oluştur"
+        ],
+        "en": [
+          "create symlink",
+          "make symbolic link"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "locate",
+      "name": "locate",
+      "category": "search",
+      "risk": "safe",
+      "verification": "draft",
+      "tags": [
+        "search"
+      ],
+      "summary": {
+        "tr": "Önceden indekslenmiş dosya adı araması.",
+        "en": "Find files by name via a prebuilt database."
+      },
+      "intent": {
+        "tr": [
+          "dosya adı bul",
+          "locate"
+        ],
+        "en": [
+          "find filename",
+          "locate"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "loginctl",
+      "name": "loginctl",
+      "category": "system",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "system",
+        "systemd",
+        "session"
+      ],
+      "summary": {
+        "tr": "systemd oturum ve kullanıcı denetimi.",
+        "en": "Control systemd-logind sessions and users."
+      },
+      "intent": {
+        "tr": [
+          "oturum listele",
+          "loginctl"
+        ],
+        "en": [
+          "list sessions",
+          "loginctl"
+        ]
+      },
+      "concepts": [
+        "systemd",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ls",
+      "name": "ls",
+      "category": "filesystem",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "files",
+        "directory",
+        "list"
+      ],
+      "summary": {
+        "tr": "Dizin içeriğini listeler.",
+        "en": "List directory contents."
+      },
+      "intent": {
+        "tr": [
+          "dosya listele",
+          "klasör içeriği",
+          "dizin listele"
+        ],
+        "en": [
+          "list files",
+          "list directory",
+          "show folder contents"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "lsblk",
+      "name": "lsblk",
+      "category": "disks",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "disk"
+      ],
+      "summary": {
+        "tr": "Blok aygıtları ağaç olarak listeler.",
+        "en": "List block devices."
+      },
+      "intent": {
+        "tr": [
+          "diskleri listele",
+          "bölümler"
+        ],
+        "en": [
+          "list disks",
+          "show partitions"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "lscpu",
+      "name": "lscpu",
+      "category": "hardware",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "hardware",
+        "cpu"
+      ],
+      "summary": {
+        "tr": "CPU mimarisi bilgisini gösterir.",
+        "en": "Display CPU architecture information."
+      },
+      "intent": {
+        "tr": [
+          "işlemci bilgisi",
+          "kaç çekirdek"
+        ],
+        "en": [
+          "cpu info",
+          "how many cores"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "lsof",
+      "name": "lsof",
+      "category": "processes",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "processes",
+        "debug",
+        "network"
+      ],
+      "summary": {
+        "tr": "Açık dosyaları ve soketleri listeler.",
+        "en": "List open files and sockets."
+      },
+      "intent": {
+        "tr": [
+          "kim kullanıyor",
+          "portu kim dinliyor"
+        ],
+        "en": [
+          "who is using file",
+          "who listens on port"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "lspci",
+      "name": "lspci",
+      "category": "hardware",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "hardware"
+      ],
+      "summary": {
+        "tr": "PCI aygıtlarını listeler.",
+        "en": "List PCI devices."
+      },
+      "intent": {
+        "tr": [
+          "pci aygıtlar",
+          "ekran kartı mi"
+        ],
+        "en": [
+          "list pci devices",
+          "gpu pci"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "lsusb",
+      "name": "lsusb",
+      "category": "hardware",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "hardware"
+      ],
+      "summary": {
+        "tr": "USB aygıtlarını listeler.",
+        "en": "List USB devices."
+      },
+      "intent": {
+        "tr": [
+          "usb aygıtlar",
+          "takılı usb"
+        ],
+        "en": [
+          "list usb devices",
+          "usb what is connected"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "make",
+      "name": "make",
+      "category": "development",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "development",
+        "build"
+      ],
+      "summary": {
+        "tr": "Makefile’dan derleme hedefleri çalıştırır.",
+        "en": "GNU make utility to maintain groups of programs."
+      },
+      "intent": {
+        "tr": [
+          "make derle",
+          "makefile çalıştır"
+        ],
+        "en": [
+          "run make",
+          "build with makefile"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "mkdir",
+      "name": "mkdir",
+      "category": "filesystem",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "files",
+        "directory"
+      ],
+      "summary": {
+        "tr": "Dizin oluşturur.",
+        "en": "Create directories."
+      },
+      "intent": {
+        "tr": [
+          "klasör oluştur",
+          "dizin yap"
+        ],
+        "en": [
+          "make directory",
+          "create folder"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "mount",
+      "name": "mount",
+      "category": "disks",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "disk"
+      ],
+      "summary": {
+        "tr": "Dosya sistemi bağlar.",
+        "en": "Mount a filesystem."
+      },
+      "intent": {
+        "tr": [
+          "disk bağla",
+          "mount nedir"
+        ],
+        "en": [
+          "mount disk",
+          "what is mounted"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "mv",
+      "name": "mv",
+      "category": "filesystem",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "files",
+        "move",
+        "rename"
+      ],
+      "summary": {
+        "tr": "Dosya/dizin taşır veya yeniden adlandırır.",
+        "en": "Move or rename files and directories."
+      },
+      "intent": {
+        "tr": [
+          "dosya taşı",
+          "yeniden adlandır"
+        ],
+        "en": [
+          "move file",
+          "rename file"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nc",
+      "name": "nc",
+      "category": "network",
+      "risk": "caution",
+      "verification": "draft",
+      "tags": [
+        "network",
+        "debug"
+      ],
+      "summary": {
+        "tr": "Netcat — ham TCP/UDP istemci/sunucu.",
+        "en": "Netcat — arbitrary TCP/UDP client/server."
+      },
+      "intent": {
+        "tr": [
+          "port test et",
+          "netcat dinle"
+        ],
+        "en": [
+          "test port",
+          "netcat listen"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nft",
+      "name": "nft",
+      "category": "security",
+      "risk": "destructive",
+      "verification": "draft",
+      "tags": [
+        "firewall",
+        "nftables",
+        "network"
+      ],
+      "summary": {
+        "tr": "nftables kural yönetimi.",
+        "en": "nftables ruleset management."
+      },
+      "intent": {
+        "tr": [
+          "nftables listele",
+          "firewall kuralları"
+        ],
+        "en": [
+          "list nftables",
+          "firewall rules"
+        ]
+      },
+      "concepts": [
+        "firewalls",
+        "networking",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nice",
+      "name": "nice",
+      "category": "processes",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "processes"
+      ],
+      "summary": {
+        "tr": "Değiştirilmiş öncelikle komut çalıştırır.",
+        "en": "Run a command with a modified niceness."
+      },
+      "intent": {
+        "tr": [
+          "öncelik düşür",
+          "nice"
+        ],
+        "en": [
+          "lower priority",
+          "nice"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nmcli",
+      "name": "nmcli",
+      "category": "network",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "network",
+        "wifi"
+      ],
+      "summary": {
+        "tr": "NetworkManager komut satırı.",
+        "en": "NetworkManager command-line client."
+      },
+      "intent": {
+        "tr": [
+          "wifi bağlan",
+          "networkmanager",
+          "nmcli durum"
+        ],
+        "en": [
+          "connect wifi",
+          "networkmanager",
+          "nmcli status"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "openssl",
+      "name": "openssl",
+      "category": "security",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "tls",
+        "crypto",
+        "certificates"
+      ],
+      "summary": {
+        "tr": "TLS/SSL ve kriptografi araç kutusu.",
+        "en": "TLS/SSL and cryptography toolkit."
+      },
+      "intent": {
+        "tr": [
+          "sertifika incele",
+          "openssl hash"
+        ],
+        "en": [
+          "inspect certificate",
+          "openssl hash"
+        ]
+      },
+      "concepts": [
+        "ssh",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pacman",
+      "name": "pacman",
+      "category": "packages",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "packages",
+        "arch"
+      ],
+      "summary": {
+        "tr": "Arch Linux paket yöneticisi.",
+        "en": "Arch Linux package manager."
+      },
+      "intent": {
+        "tr": [
+          "arch paket kur",
+          "pacman güncelle"
+        ],
+        "en": [
+          "arch install package",
+          "pacman upgrade"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "arch",
+        "package-managers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "paru",
+      "name": "paru",
+      "category": "packages",
+      "risk": "dangerous",
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "arch",
+        "aur"
+      ],
+      "summary": {
+        "tr": "AUR yardımcı pacman sarmalayıcı.",
+        "en": "AUR helper wrapping pacman."
+      },
+      "intent": {
+        "tr": [
+          "aur kur",
+          "paru"
+        ],
+        "en": [
+          "install aur",
+          "paru"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "arch",
+        "package-managers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "passwd",
+      "name": "passwd",
+      "category": "users",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "users",
+        "password"
+      ],
+      "summary": {
+        "tr": "Kullanıcı parola değiştirir.",
+        "en": "Change user password."
+      },
+      "intent": {
+        "tr": [
+          "şifre değiştir",
+          "passwd"
+        ],
+        "en": [
+          "change password",
+          "passwd"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "patch",
+      "name": "patch",
+      "category": "development",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "diff",
+        "patch",
+        "vcs"
+      ],
+      "summary": {
+        "tr": "diff çıktısını dosyalara uygular.",
+        "en": "Applies diff output to files."
+      },
+      "intent": {
+        "tr": [
+          "yama uygula",
+          "patch dry-run"
+        ],
+        "en": [
+          "apply patch",
+          "patch dry-run"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pgrep",
+      "name": "pgrep",
+      "category": "processes",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "process",
+        "search"
+      ],
+      "summary": {
+        "tr": "Ada göre süreç PID’lerini bulur.",
+        "en": "Find process IDs by name."
+      },
+      "intent": {
+        "tr": [
+          "pid bul",
+          "isme göre süreç"
+        ],
+        "en": [
+          "find pid by name",
+          "pgrep"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ping",
+      "name": "ping",
+      "category": "network",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "network"
+      ],
+      "summary": {
+        "tr": "ICMP ile host erişimini dener.",
+        "en": "Send ICMP ECHO_REQUEST to network hosts."
+      },
+      "intent": {
+        "tr": [
+          "ağ testi",
+          "ping at"
+        ],
+        "en": [
+          "ping host",
+          "check connectivity"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pkill",
+      "name": "pkill",
+      "category": "processes",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "signal",
+        "process"
+      ],
+      "summary": {
+        "tr": "Ada göre süreçlere sinyal gönderir.",
+        "en": "Signals processes by name pattern."
+      },
+      "intent": {
+        "tr": [
+          "süreci ada göre öldür",
+          "pkill"
+        ],
+        "en": [
+          "kill by name",
+          "pkill"
+        ]
+      },
+      "concepts": [
+        "permissions",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "podman",
+      "name": "podman",
+      "category": "containers",
+      "risk": "dangerous",
+      "verification": "draft",
+      "tags": [
+        "containers"
+      ],
+      "summary": {
+        "tr": "Demonssuz konteyner motoru.",
+        "en": "Daemonless container engine."
+      },
+      "intent": {
+        "tr": [
+          "konteyner listele",
+          "podman ps"
+        ],
+        "en": [
+          "list containers",
+          "podman ps"
+        ]
+      },
+      "concepts": [
+        "containers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ps",
+      "name": "ps",
+      "category": "processes",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "process"
+      ],
+      "summary": {
+        "tr": "Anlık süreç listesi.",
+        "en": "Report a snapshot of processes."
+      },
+      "intent": {
+        "tr": [
+          "süreç listele",
+          "çalışan programlar"
+        ],
+        "en": [
+          "list processes",
+          "show running programs"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "psql",
+      "name": "psql",
+      "category": "development",
+      "risk": "caution",
+      "verification": "draft",
+      "tags": [
+        "sql",
+        "database",
+        "postgresql"
+      ],
+      "summary": {
+        "tr": "PostgreSQL etkileşimli terminal.",
+        "en": "PostgreSQL interactive terminal."
+      },
+      "intent": {
+        "tr": [
+          "postgres bağlan",
+          "psql sorgu"
+        ],
+        "en": [
+          "connect postgres",
+          "psql query"
+        ]
+      },
+      "concepts": [
+        "json-data",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pwd",
+      "name": "pwd",
+      "category": "filesystem",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "files",
+        "directory",
+        "shell"
+      ],
+      "summary": {
+        "tr": "Çalışma dizinini yazdırır.",
+        "en": "Print working directory."
+      },
+      "intent": {
+        "tr": [
+          "hangi dizindeyim",
+          "çalışma dizini"
+        ],
+        "en": [
+          "where am I",
+          "print working directory"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "python3",
+      "name": "python3",
+      "category": "development",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "python",
+        "scripting",
+        "language"
+      ],
+      "summary": {
+        "tr": "Python 3 yorumlayıcısı.",
+        "en": "Python 3 interpreter."
+      },
+      "intent": {
+        "tr": [
+          "python çalıştır",
+          "python sürüm"
+        ],
+        "en": [
+          "run python",
+          "python version"
+        ]
+      },
+      "concepts": [
+        "path",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "renice",
+      "name": "renice",
+      "category": "processes",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "priority",
+        "nice",
+        "process"
+      ],
+      "summary": {
+        "tr": "Çalışan sürecin nice değerini değiştirir.",
+        "en": "Alters the nice value of running processes."
+      },
+      "intent": {
+        "tr": [
+          "öncelik değiştir",
+          "renice"
+        ],
+        "en": [
+          "change priority",
+          "renice"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "resolvectl",
+      "name": "resolvectl",
+      "category": "network",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "network",
+        "dns",
+        "systemd"
+      ],
+      "summary": {
+        "tr": "systemd-resolved DNS denetimi.",
+        "en": "Resolve domain names and control systemd-resolved."
+      },
+      "intent": {
+        "tr": [
+          "dns önbellek temizle",
+          "systemd resolved"
+        ],
+        "en": [
+          "flush dns cache",
+          "systemd resolved"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "dns",
+        "systemd",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "rg",
+      "name": "rg",
+      "category": "search",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "search",
+        "regex",
+        "ripgrep"
+      ],
+      "summary": {
+        "tr": "Hızlı özyinelemeli regex arama (ripgrep).",
+        "en": "Fast recursive regex search (ripgrep)."
+      },
+      "intent": {
+        "tr": [
+          "ripgrep ara",
+          "kodda ara"
+        ],
+        "en": [
+          "ripgrep search",
+          "search in code"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "rm",
+      "name": "rm",
+      "category": "filesystem",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "files",
+        "delete"
+      ],
+      "summary": {
+        "tr": "Dosya veya dizinleri siler.",
+        "en": "Remove files or directories."
+      },
+      "intent": {
+        "tr": [
+          "dosya sil",
+          "klasör sil"
+        ],
+        "en": [
+          "delete file",
+          "remove directory"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "rpm",
+      "name": "rpm",
+      "category": "packages",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "packages",
+        "fedora",
+        "rhel"
+      ],
+      "summary": {
+        "tr": "RPM paket yöneticisi (düşük seviye).",
+        "en": "RPM package manager (low-level)."
+      },
+      "intent": {
+        "tr": [
+          "rpm sorgu",
+          "rpm paket"
+        ],
+        "en": [
+          "rpm query",
+          "rpm package"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "rsync",
+      "name": "rsync",
+      "category": "network",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "network",
+        "backup",
+        "copy"
+      ],
+      "summary": {
+        "tr": "Dosyaları verimli eşitleyerek kopyalar.",
+        "en": "Fast incremental file transfer."
+      },
+      "intent": {
+        "tr": [
+          "rsync yedek",
+          "dizin senkron"
+        ],
+        "en": [
+          "rsync backup",
+          "sync directories"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "storage",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "scp",
+      "name": "scp",
+      "category": "security",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "security",
+        "ssh",
+        "network"
+      ],
+      "summary": {
+        "tr": "SSH üzerinden güvenli dosya kopyalama.",
+        "en": "Secure remote file copy over SSH."
+      },
+      "intent": {
+        "tr": [
+          "scp ile kopyala",
+          "ssh dosya gönder"
+        ],
+        "en": [
+          "scp copy file",
+          "ssh send file"
+        ]
+      },
+      "concepts": [
+        "ssh",
+        "networking",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "sed",
+      "name": "sed",
+      "category": "text",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "text"
+      ],
+      "summary": {
+        "tr": "Akış düzenleyici.",
+        "en": "Stream editor."
+      },
+      "intent": {
+        "tr": [
+          "sed değiştir",
+          "metin değiştir"
+        ],
+        "en": [
+          "sed replace",
+          "stream edit"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "sftp",
+      "name": "sftp",
+      "category": "security",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "security",
+        "ssh",
+        "network"
+      ],
+      "summary": {
+        "tr": "SSH dosya transfer protokolü istemcisi.",
+        "en": "OpenSSH SFTP client."
+      },
+      "intent": {
+        "tr": [
+          "sftp bağlan",
+          "ssh dosya transfer"
+        ],
+        "en": [
+          "sftp connect",
+          "ssh file transfer"
+        ]
+      },
+      "concepts": [
+        "ssh",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "sort",
+      "name": "sort",
+      "category": "text",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "text"
+      ],
+      "summary": {
+        "tr": "Satırları sıralar.",
+        "en": "Sort lines of text."
+      },
+      "intent": {
+        "tr": [
+          "satır sırala",
+          "listeyi sırala"
+        ],
+        "en": [
+          "sort lines",
+          "sort file"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "sqlite3",
+      "name": "sqlite3",
+      "category": "development",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "sql",
+        "database",
+        "data"
+      ],
+      "summary": {
+        "tr": "SQLite komut satırı kabuğu.",
+        "en": "SQLite command-line shell."
+      },
+      "intent": {
+        "tr": [
+          "sqlite sorgula",
+          "sql çalıştır"
+        ],
+        "en": [
+          "query sqlite",
+          "run sql"
+        ]
+      },
+      "concepts": [
+        "json-data",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ss",
+      "name": "ss",
+      "category": "network",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "network",
+        "ports"
+      ],
+      "summary": {
+        "tr": "Soket istatistiklerini gösterir.",
+        "en": "Investigate sockets."
+      },
+      "intent": {
+        "tr": [
+          "açık portlar",
+          "kim dinliyor"
+        ],
+        "en": [
+          "listening ports",
+          "what is listening"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ssh",
+      "name": "ssh",
+      "category": "security",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "security",
+        "network"
+      ],
+      "summary": {
+        "tr": "Uzaktan güvenli kabuk oturumu.",
+        "en": "OpenSSH remote login client."
+      },
+      "intent": {
+        "tr": [
+          "ssh ile bağlan",
+          "uzak sunucu"
+        ],
+        "en": [
+          "ssh connect",
+          "remote shell"
+        ]
+      },
+      "concepts": [
+        "ssh",
+        "networking",
+        "permissions",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ssh-add",
+      "name": "ssh-add",
+      "category": "security",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "security",
+        "ssh"
+      ],
+      "summary": {
+        "tr": "Özel anahtarları ssh-agent’a ekler.",
+        "en": "Add private keys to the OpenSSH authentication agent."
+      },
+      "intent": {
+        "tr": [
+          "ssh agent anahtar",
+          "ssh-add"
+        ],
+        "en": [
+          "ssh agent add key",
+          "ssh-add"
+        ]
+      },
+      "concepts": [
+        "ssh",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ssh-copy-id",
+      "name": "ssh-copy-id",
+      "category": "security",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "security",
+        "ssh"
+      ],
+      "summary": {
+        "tr": "Genel anahtarı uzak authorized_keys’e ekler.",
+        "en": "Install public key on a remote authorized_keys."
+      },
+      "intent": {
+        "tr": [
+          "ssh anahtar kopyala",
+          "şifresiz giriş"
+        ],
+        "en": [
+          "copy ssh key",
+          "passwordless login"
+        ]
+      },
+      "concepts": [
+        "ssh",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ssh-keygen",
+      "name": "ssh-keygen",
+      "category": "security",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "security",
+        "ssh"
+      ],
+      "summary": {
+        "tr": "SSH kimlik doğrulama anahtarları üretir.",
+        "en": "Generate authentication keys for SSH."
+      },
+      "intent": {
+        "tr": [
+          "ssh anahtar oluştur",
+          "ed25519"
+        ],
+        "en": [
+          "generate ssh key",
+          "ssh-keygen ed25519"
+        ]
+      },
+      "concepts": [
+        "permissions",
+        "ssh"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "stat",
+      "name": "stat",
+      "category": "filesystem",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "files",
+        "metadata"
+      ],
+      "summary": {
+        "tr": "Dosya durumu ve inode bilgisi gösterir.",
+        "en": "Display file status and inode data."
+      },
+      "intent": {
+        "tr": [
+          "dosya bilgisi",
+          "inode gör"
+        ],
+        "en": [
+          "file metadata",
+          "show inode"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "strace",
+      "name": "strace",
+      "category": "development",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "debug",
+        "syscall",
+        "trace"
+      ],
+      "summary": {
+        "tr": "Sistem çağrılarını izler.",
+        "en": "Traces system calls."
+      },
+      "intent": {
+        "tr": [
+          "sistem çağrısı izle",
+          "strace debug"
+        ],
+        "en": [
+          "trace syscalls",
+          "strace debug"
+        ]
+      },
+      "concepts": [
+        "debugging",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "sudo",
+      "name": "sudo",
+      "category": "users",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "users",
+        "privilege"
+      ],
+      "summary": {
+        "tr": "Komutu başka kullanıcı olarak çalıştırır (genelde root).",
+        "en": "Execute a command as another user (usually root)."
+      },
+      "intent": {
+        "tr": [
+          "yönetici olarak çalıştır",
+          "root yetkisi"
+        ],
+        "en": [
+          "run as root",
+          "admin command"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "sync",
+      "name": "sync",
+      "category": "disks",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage"
+      ],
+      "summary": {
+        "tr": "Önbellekteki yazıları diske boşaltır.",
+        "en": "Flush filesystem write caches to disk."
+      },
+      "intent": {
+        "tr": [
+          "diske yaz",
+          "sync"
+        ],
+        "en": [
+          "flush to disk",
+          "sync"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "systemctl",
+      "name": "systemctl",
+      "category": "system",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "system",
+        "systemd",
+        "service"
+      ],
+      "summary": {
+        "tr": "systemd birimlerini denetler.",
+        "en": "Control the systemd system and service manager."
+      },
+      "intent": {
+        "tr": [
+          "servis başlat",
+          "systemd durum"
+        ],
+        "en": [
+          "start service",
+          "systemd status"
+        ]
+      },
+      "concepts": [
+        "systemd",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "systemd-analyze",
+      "name": "systemd-analyze",
+      "category": "system",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "system",
+        "systemd",
+        "boot"
+      ],
+      "summary": {
+        "tr": "systemd önyükleme ve birim çözümlemesi.",
+        "en": "Analyze systemd boot and unit structure."
+      },
+      "intent": {
+        "tr": [
+          "açılış süresi",
+          "systemd blame"
+        ],
+        "en": [
+          "boot time",
+          "systemd blame"
+        ]
+      },
+      "concepts": [
+        "systemd",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "tail",
+      "name": "tail",
+      "category": "text",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "text",
+        "log"
+      ],
+      "summary": {
+        "tr": "Dosyanın sonunu gösterir.",
+        "en": "Show the end of files."
+      },
+      "intent": {
+        "tr": [
+          "log takip",
+          "dosyanın sonu"
+        ],
+        "en": [
+          "follow log",
+          "tail file"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "tar",
+      "name": "tar",
+      "category": "archives",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "archive"
+      ],
+      "summary": {
+        "tr": "Tar arşivlerini oluşturur veya çıkarır.",
+        "en": "Create or extract tape archives."
+      },
+      "intent": {
+        "tr": [
+          "tar aç",
+          "arşiv oluştur"
+        ],
+        "en": [
+          "extract tar",
+          "create archive"
+        ]
+      },
+      "concepts": [
+        "files"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "tee",
+      "name": "tee",
+      "category": "text",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "text",
+        "pipe"
+      ],
+      "summary": {
+        "tr": "Çıktıyı hem dosyaya hem stdout’a yazar.",
+        "en": "Write output to files and stdout."
+      },
+      "intent": {
+        "tr": [
+          "çıktıyı dosyaya yaz",
+          "tee ile kaydet"
+        ],
+        "en": [
+          "tee to file",
+          "save pipeline output"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "timedatectl",
+      "name": "timedatectl",
+      "category": "system",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "system",
+        "systemd",
+        "time"
+      ],
+      "summary": {
+        "tr": "Sistem saati ve zaman dilimini denetler.",
+        "en": "Control system time and timezone."
+      },
+      "intent": {
+        "tr": [
+          "saat dilimi ayarla",
+          "ntp aç"
+        ],
+        "en": [
+          "set timezone",
+          "enable ntp"
+        ]
+      },
+      "concepts": [
+        "systemd",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "top",
+      "name": "top",
+      "category": "processes",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "process",
+        "monitor"
+      ],
+      "summary": {
+        "tr": "Canlı süreç izleyici.",
+        "en": "Dynamic real-time process viewer."
+      },
+      "intent": {
+        "tr": [
+          "cpu kullanımı",
+          "canlı süreç"
+        ],
+        "en": [
+          "cpu usage",
+          "live processes"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "touch",
+      "name": "touch",
+      "category": "filesystem",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "files"
+      ],
+      "summary": {
+        "tr": "Dosya zaman damgasını günceller veya boş dosya oluşturur.",
+        "en": "Update timestamps or create empty files."
+      },
+      "intent": {
+        "tr": [
+          "boş dosya oluştur",
+          "zaman damgası güncelle"
+        ],
+        "en": [
+          "create empty file",
+          "update timestamp"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "traceroute",
+      "name": "traceroute",
+      "category": "network",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "network",
+        "diagnostics"
+      ],
+      "summary": {
+        "tr": "Paketlerin rota hop’larını izler.",
+        "en": "Print the route packets take to a host."
+      },
+      "intent": {
+        "tr": [
+          "rota izle",
+          "traceroute hop"
+        ],
+        "en": [
+          "trace route",
+          "network hops"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "tree",
+      "name": "tree",
+      "category": "filesystem",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "files",
+        "directory"
+      ],
+      "summary": {
+        "tr": "Dizin ağacını görsel listeler.",
+        "en": "List contents of directories in a tree-like format."
+      },
+      "intent": {
+        "tr": [
+          "dizin ağacı",
+          "klasör yapısı gör"
+        ],
+        "en": [
+          "directory tree",
+          "show folder tree"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ufw",
+      "name": "ufw",
+      "category": "security",
+      "risk": "dangerous",
+      "verification": "draft",
+      "tags": [
+        "firewall",
+        "ubuntu",
+        "security"
+      ],
+      "summary": {
+        "tr": "Uncomplicated Firewall (iptables/nft ön yüz).",
+        "en": "Uncomplicated Firewall (iptables/nft frontend)."
+      },
+      "intent": {
+        "tr": [
+          "ufw durum",
+          "ubuntu firewall"
+        ],
+        "en": [
+          "ufw status",
+          "ubuntu firewall"
+        ]
+      },
+      "concepts": [
+        "firewalls",
+        "networking",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "umount",
+      "name": "umount",
+      "category": "disks",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "disk",
+        "storage"
+      ],
+      "summary": {
+        "tr": "Dosya sistemi bağlantısını kaldırır.",
+        "en": "Unmount filesystems."
+      },
+      "intent": {
+        "tr": [
+          "disk çıkar",
+          "umount"
+        ],
+        "en": [
+          "unmount disk",
+          "umount"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "uname",
+      "name": "uname",
+      "category": "system",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "system",
+        "info"
+      ],
+      "summary": {
+        "tr": "Sistem bilgisini yazdırır.",
+        "en": "Print system information."
+      },
+      "intent": {
+        "tr": [
+          "çekirdek sürümü",
+          "mimari nedir"
+        ],
+        "en": [
+          "kernel version",
+          "machine arch"
+        ]
+      },
+      "concepts": [
+        "systemd",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "uniq",
+      "name": "uniq",
+      "category": "text",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "text"
+      ],
+      "summary": {
+        "tr": "Ardışık yinelenen satırları bildirir veya süzgeçler.",
+        "en": "Report or omit repeated adjacent lines."
+      },
+      "intent": {
+        "tr": [
+          "tekrarlayan satır",
+          "benzersiz liste"
+        ],
+        "en": [
+          "unique lines",
+          "remove duplicates"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "unzip",
+      "name": "unzip",
+      "category": "archives",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "archive"
+      ],
+      "summary": {
+        "tr": "ZIP arşivlerini çıkarır.",
+        "en": "Extract ZIP archives."
+      },
+      "intent": {
+        "tr": [
+          "zip aç",
+          "unzip"
+        ],
+        "en": [
+          "unzip file",
+          "extract zip"
+        ]
+      },
+      "concepts": [
+        "files"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "uptime",
+      "name": "uptime",
+      "category": "system",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "system"
+      ],
+      "summary": {
+        "tr": "Çalışma süresi ve yük ortalaması.",
+        "en": "Tell how long the system has been running."
+      },
+      "intent": {
+        "tr": [
+          "ne zamandır açık",
+          "load average"
+        ],
+        "en": [
+          "system uptime",
+          "load average"
+        ]
+      },
+      "concepts": [
+        "systemd",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "useradd",
+      "name": "useradd",
+      "category": "users",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "users",
+        "accounts"
+      ],
+      "summary": {
+        "tr": "Yeni kullanıcı hesabı oluşturur.",
+        "en": "Create a new user account."
+      },
+      "intent": {
+        "tr": [
+          "kullanıcı ekle",
+          "useradd"
+        ],
+        "en": [
+          "add user",
+          "useradd"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "userdel",
+      "name": "userdel",
+      "category": "users",
+      "risk": "destructive",
+      "verification": "reviewed",
+      "tags": [
+        "users",
+        "accounts"
+      ],
+      "summary": {
+        "tr": "Kullanıcı hesabını siler.",
+        "en": "Delete a user account."
+      },
+      "intent": {
+        "tr": [
+          "kullanıcı sil",
+          "userdel"
+        ],
+        "en": [
+          "delete user",
+          "userdel"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "usermod",
+      "name": "usermod",
+      "category": "users",
+      "risk": "dangerous",
+      "verification": "reviewed",
+      "tags": [
+        "users",
+        "accounts"
+      ],
+      "summary": {
+        "tr": "Kullanıcı hesabını değiştirir.",
+        "en": "Modify a user account."
+      },
+      "intent": {
+        "tr": [
+          "kullanıcıyı gruba ekle",
+          "usermod"
+        ],
+        "en": [
+          "add user to group",
+          "usermod"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "vmstat",
+      "name": "vmstat",
+      "category": "monitoring",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "monitoring",
+        "memory"
+      ],
+      "summary": {
+        "tr": "Sanal bellek ve CPU istatistikleri.",
+        "en": "Report virtual memory and CPU statistics."
+      },
+      "intent": {
+        "tr": [
+          "bellek istatistik",
+          "vmstat"
+        ],
+        "en": [
+          "memory stats",
+          "vmstat"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "watch",
+      "name": "watch",
+      "category": "monitoring",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "monitoring"
+      ],
+      "summary": {
+        "tr": "Komutu periyodik çalıştırıp çıktıyı yeniler.",
+        "en": "Run a command repeatedly and show output."
+      },
+      "intent": {
+        "tr": [
+          "komutu izle",
+          "watch"
+        ],
+        "en": [
+          "watch command",
+          "refresh output"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "wc",
+      "name": "wc",
+      "category": "text",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "text",
+        "count"
+      ],
+      "summary": {
+        "tr": "Satır, kelime ve bayt sayar.",
+        "en": "Count lines, words, and bytes."
+      },
+      "intent": {
+        "tr": [
+          "satır sayısı",
+          "kelime say"
+        ],
+        "en": [
+          "count lines",
+          "word count"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "wget",
+      "name": "wget",
+      "category": "network",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "network",
+        "download"
+      ],
+      "summary": {
+        "tr": "Ağ üzerinden dosya indirir (tekrar denemeli).",
+        "en": "Non-interactive network downloader."
+      },
+      "intent": {
+        "tr": [
+          "wget ile indir",
+          "dosya indir"
+        ],
+        "en": [
+          "download file wget",
+          "wget url"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "whereis",
+      "name": "whereis",
+      "category": "search",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "search"
+      ],
+      "summary": {
+        "tr": "Komutun ikili, kaynak ve man konumlarını arar.",
+        "en": "Locate binary, source, and man pages."
+      },
+      "intent": {
+        "tr": [
+          "man sayfası yolu",
+          "ikili nerede"
+        ],
+        "en": [
+          "whereis command",
+          "find man page path"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection",
+        "path"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "which",
+      "name": "which",
+      "category": "search",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "search",
+        "path"
+      ],
+      "summary": {
+        "tr": "Komutun PATH üzerindeki konumunu gösterir.",
+        "en": "Locate a command on PATH."
+      },
+      "intent": {
+        "tr": [
+          "komut yolu",
+          "where which"
+        ],
+        "en": [
+          "which binary",
+          "find command path"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection",
+        "path"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "whoami",
+      "name": "whoami",
+      "category": "users",
+      "risk": "safe",
+      "verification": "reviewed",
+      "tags": [
+        "users"
+      ],
+      "summary": {
+        "tr": "Geçerli etkili kullanıcı adını basar.",
+        "en": "Print effective user name."
+      },
+      "intent": {
+        "tr": [
+          "kullanıcı adım",
+          "whoami"
+        ],
+        "en": [
+          "who am i",
+          "current user"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "xargs",
+      "name": "xargs",
+      "category": "text",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "text",
+        "find"
+      ],
+      "summary": {
+        "tr": "Standart girdiden komut argümanları üretir.",
+        "en": "Build command lines from standard input."
+      },
+      "intent": {
+        "tr": [
+          "xargs ile çalıştır",
+          "find xargs"
+        ],
+        "en": [
+          "xargs run",
+          "find xargs"
+        ]
+      },
+      "concepts": [
+        "files",
+        "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "xz",
+      "name": "xz",
+      "category": "archives",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "archives",
+        "compression"
+      ],
+      "summary": {
+        "tr": "XZ sıkıştırma aracı.",
+        "en": "Compress or decompress .xz files."
+      },
+      "intent": {
+        "tr": [
+          "xz sıkıştır",
+          "tar xz"
+        ],
+        "en": [
+          "xz compress",
+          "tar xz"
+        ]
+      },
+      "concepts": [
+        "files"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "zip",
+      "name": "zip",
+      "category": "archives",
+      "risk": "caution",
+      "verification": "reviewed",
+      "tags": [
+        "archive"
+      ],
+      "summary": {
+        "tr": "ZIP arşivi oluşturur.",
+        "en": "Package and compress files into a ZIP archive."
+      },
+      "intent": {
+        "tr": [
+          "zip oluştur",
+          "klasörü sıkıştır"
+        ],
+        "en": [
+          "create zip",
+          "zip folder"
+        ]
+      },
+      "concepts": [
+        "files"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "debugging",
+      "difficulty": "intermediate",
+      "tags": [
+        "debug",
+        "strace",
+        "processes",
+        "logs"
+      ],
+      "title": {
+        "tr": "Çalışma anı hata ayıklama",
+        "en": "Runtime debugging"
+      },
+      "summary": {
+        "tr": "strace, lsof, loglar ve süreç araçlarıyla “neden başarısız?” sorusuna yaklaşım.",
+        "en": "Approaching “why did it fail?” with strace, lsof, logs, and process tools."
+      },
+      "related_commands": [
+        "strace",
+        "lsof",
+        "ps",
+        "pgrep",
+        "journalctl",
+        "dmesg",
+        "top"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "firewalls",
+      "difficulty": "intermediate",
+      "tags": [
+        "firewall",
+        "nftables",
+        "security",
+        "network"
+      ],
+      "title": {
+        "tr": "Güvenlik duvarı araçları",
+        "en": "Firewall tools"
+      },
+      "summary": {
+        "tr": "nftables, iptables, firewalld ve ufw — ne zaman hangisi, güvenli okuma alışkanlığı.",
+        "en": "nftables, iptables, firewalld, and ufw — when to use which, safe read habits."
+      },
+      "related_commands": [
+        "nft",
+        "iptables",
+        "firewall-cmd",
+        "ufw",
+        "ss",
+        "ip"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "json-data",
+      "difficulty": "beginner",
+      "tags": [
+        "json",
+        "sql",
+        "data",
+        "jq"
+      ],
+      "title": {
+        "tr": "JSON ve yapılandırılmış veri",
+        "en": "JSON and structured data"
+      },
+      "summary": {
+        "tr": "jq, sqlite3 ve boru hatlarında yapılandırılmış çıktı ile çalışma.",
+        "en": "Working with structured output via jq, sqlite3, and pipelines."
+      },
+      "related_commands": [
+        "jq",
+        "sqlite3",
+        "curl",
+        "python3",
+        "psql"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "networking-basics",
+      "difficulty": "beginner",
+      "tags": [
+        "network",
+        "dns",
+        "ip"
+      ],
+      "title": {
+        "tr": "Ağ temelleri",
+        "en": "Networking basics"
+      },
+      "summary": {
+        "tr": "Arayüzler, IP, DNS, bağlantı testi ve sık Linux ağ araçları.",
+        "en": "Interfaces, IP, DNS, connectivity checks, and common Linux network tools."
+      },
+      "related_commands": [
+        "ip",
+        "ss",
+        "ping",
+        "curl",
+        "wget",
+        "dig",
+        "host",
+        "resolvectl",
+        "nmcli",
+        "traceroute",
+        "nc"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "package-managers",
+      "difficulty": "beginner",
+      "tags": [
+        "packages",
+        "pacman",
+        "apt",
+        "dnf"
+      ],
+      "title": {
+        "tr": "Paket yöneticileri",
+        "en": "Package managers"
+      },
+      "summary": {
+        "tr": "pacman, apt, dnf ve paket ↔ komut ilişkisi (Arch öncelikli notlar).",
+        "en": "pacman, apt, dnf, and package ↔ command mapping (Arch-first notes)."
+      },
+      "related_commands": [
+        "pacman",
+        "apt",
+        "dnf",
+        "dpkg",
+        "rpm",
+        "flatpak",
+        "paru"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "package-managers-comparison",
+      "difficulty": "beginner",
+      "tags": [
+        "packages",
+        "pacman",
+        "apt",
+        "dnf",
+        "comparison"
+      ],
+      "title": {
+        "tr": "Paket yöneticisi karşılaştırma tabloları",
+        "en": "Package manager comparison tables"
+      },
+      "summary": {
+        "tr": "pacman / apt / dnf / rpm-dpkg / flatpak için yan yana sık işlemler.",
+        "en": "Side-by-side common operations for pacman / apt / dnf / rpm-dpkg / flatpak."
+      },
+      "related_commands": [
+        "pacman",
+        "apt",
+        "dnf",
+        "dpkg",
+        "rpm",
+        "flatpak",
+        "paru"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "path",
+      "difficulty": "beginner",
+      "tags": [
+        "shell",
+        "path",
+        "environment"
+      ],
+      "title": {
+        "tr": "PATH ve komut bulma",
+        "en": "PATH and command lookup"
+      },
+      "summary": {
+        "tr": "Kabuğun komutları nerede aradığı; `which`, `type`, `command -v`.",
+        "en": "Where shells look for commands; `which`, `type`, `command -v`."
+      },
+      "related_commands": [
+        "which",
+        "whereis",
+        "env",
+        "export",
+        "echo"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "permissions",
+      "difficulty": "beginner",
+      "tags": [
+        "permissions",
+        "users",
+        "sudo",
+        "chmod"
+      ],
+      "title": {
+        "tr": "Kullanıcılar, gruplar ve izinler",
+        "en": "Users, groups, and permissions"
+      },
+      "summary": {
+        "tr": "id/chmod/chown/sudo ile kim neyi yapabilir — temel model.",
+        "en": "Who can do what with id/chmod/chown/sudo — the basic model."
+      },
+      "related_commands": [
+        "id",
+        "whoami",
+        "chmod",
+        "chown",
+        "chgrp",
+        "sudo",
+        "passwd",
+        "useradd",
+        "usermod",
+        "getent"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "shell-pipes-redirection",
+      "difficulty": "beginner",
+      "tags": [
+        "shell",
+        "pipes",
+        "io"
+      ],
+      "title": {
+        "tr": "Borular ve yönlendirme",
+        "en": "Pipes and redirection"
+      },
+      "summary": {
+        "tr": "stdin/stdout/stderr, `>`, `>>`, `<` ve `|` ile komut zincirleri.",
+        "en": "stdin/stdout/stderr, `>`, `>>`, `<`, and `|` pipelines."
+      },
+      "related_commands": [
+        "cat",
+        "tee",
+        "grep",
+        "sort",
+        "head",
+        "tail",
+        "cut",
+        "xargs"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "storage",
+      "difficulty": "intermediate",
+      "tags": [
+        "disks",
+        "storage",
+        "filesystem"
+      ],
+      "title": {
+        "tr": "Depolama ve disk",
+        "en": "Storage and disks"
+      },
+      "summary": {
+        "tr": "Blok aygıtlar, bağlama, kullanım ve dikkat edilmesi gereken disk araçları.",
+        "en": "Block devices, mounts, usage, and high-care disk tools."
+      },
+      "related_commands": [
+        "lsblk",
+        "df",
+        "du",
+        "mount",
+        "umount",
+        "findmnt",
+        "blkid",
+        "fdisk",
+        "dd",
+        "sync"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "systemd",
+      "difficulty": "intermediate",
+      "tags": [
+        "systemd",
+        "services",
+        "boot"
+      ],
+      "title": {
+        "tr": "systemd temelleri",
+        "en": "systemd basics"
+      },
+      "summary": {
+        "tr": "Birimler, hedefler, systemctl ve journalctl ile servis yönetimi.",
+        "en": "Units, targets, and service control with systemctl and journalctl."
+      },
+      "related_commands": [
+        "systemctl",
+        "journalctl",
+        "hostnamectl",
+        "timedatectl",
+        "loginctl",
+        "systemd-analyze",
+        "bootctl"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "terminal-basics",
+      "difficulty": "beginner",
+      "tags": [
+        "shell",
+        "beginner",
+        "cli"
+      ],
+      "title": {
+        "tr": "Terminal temelleri",
+        "en": "Terminal basics"
+      },
+      "summary": {
+        "tr": "Kabuk, istem (prompt), komut satırı ve çıkış kodları.",
+        "en": "Shell, prompt, command line, and exit statuses."
+      },
+      "related_commands": [
+        "pwd",
+        "ls",
+        "cd",
+        "echo",
+        "history"
+      ]
+    }
+  ],
+  "content_sha256": "c0f3ab0a0f06248f5091c8c3d482ccaa37d325584852b5e90b23f9cc1a2693e8",
+  "generated_at": "2026-11-02T18:55:46Z"
+}
