@@ -89,15 +89,21 @@ pub fn resolve(cmd: &str) -> (InstalledStatus, Option<PathBuf>) {
     }
 
     match which::which(trimmed) {
-        Ok(path) => (InstalledStatus::Installed, Some(path)),
+        Ok(path) => {
+            // npm yer tutucusu / yanlış mimari: “kurulu” sayma; gerçek ikili ara.
+            if crate::store::path::is_broken_cli_placeholder(&path) {
+                if let Some(good) = resolve_runnable_fallback(trimmed) {
+                    return (InstalledStatus::Installed, Some(good));
+                }
+                return (InstalledStatus::Missing, None);
+            }
+            (InstalledStatus::Installed, Some(path))
+        }
         Err(which::Error::CannotFindBinaryPath) => {
             // PATH'te yoksa: (1) Nova mağaza bin, (2) yaygın kullanıcı bin
             // dizinleri (pipx/cargo/npm -g sıkça buraya yazar ama PATH'e
             // eklenmemiş olabilir).
-            if let Some(path) = resolve_in_store(trimmed) {
-                return (InstalledStatus::Installed, Some(path));
-            }
-            if let Some(path) = resolve_in_user_bins(trimmed) {
+            if let Some(path) = resolve_runnable_fallback(trimmed) {
                 return (InstalledStatus::Installed, Some(path));
             }
             (InstalledStatus::Missing, None)
@@ -105,6 +111,16 @@ pub fn resolve(cmd: &str) -> (InstalledStatus, Option<PathBuf>) {
         // Yetki hatası gibi diğer tüm durumlar "kontrol edilemedi" sayılır.
         Err(_) => (InstalledStatus::Unknown, None),
     }
+}
+
+/// Mağaza / kullanıcı bin’lerinde kırık yer tutucu olmayan ilk eşleşme.
+fn resolve_runnable_fallback(cmd: &str) -> Option<PathBuf> {
+    if let Some(path) = resolve_in_store(cmd) {
+        if !crate::store::path::is_broken_cli_placeholder(&path) {
+            return Some(path);
+        }
+    }
+    resolve_in_user_bins(cmd)
 }
 
 /// Mağazadan kurulan bir uygulamanın çalıştırılabilir dosyasını bulur.
@@ -133,6 +149,7 @@ fn resolve_in_store(cmd: &str) -> Option<PathBuf> {
 fn resolve_in_user_bins(cmd: &str) -> Option<PathBuf> {
     let home = std::env::var_os("HOME").filter(|h| !h.is_empty())?;
     let home = PathBuf::from(home);
+    // ~/.local/bin gerçek native shim’i npm-global yer tutucusundan önce gelir.
     let candidates = [
         home.join(".local").join("bin").join(cmd),
         home.join(".cargo").join("bin").join(cmd),
@@ -141,7 +158,7 @@ fn resolve_in_user_bins(cmd: &str) -> Option<PathBuf> {
     ];
     for candidate in candidates {
         if let Ok(meta) = std::fs::metadata(&candidate) {
-            if is_executable(&meta) {
+            if is_executable(&meta) && !crate::store::path::is_broken_cli_placeholder(&candidate) {
                 return Some(candidate);
             }
         }
@@ -299,5 +316,50 @@ mod tests {
         assert_eq!(status, InstalledStatus::Installed);
         assert_eq!(path.as_deref(), Some(test_file.as_path()));
         let _ = std::fs::remove_file(&test_file);
+    }
+
+    #[test]
+    fn npm_placeholder_is_not_reported_installed_when_real_binary_exists() {
+        let home = std::env::var_os("HOME")
+            .filter(|h| !h.is_empty())
+            .expect("HOME gerekli");
+        let home = PathBuf::from(home);
+        let npm = home.join(".npm-global").join("bin");
+        let local = home.join(".local").join("bin");
+        std::fs::create_dir_all(&npm).unwrap();
+        std::fs::create_dir_all(&local).unwrap();
+        let probe = "nova-claude-placeholder-probe";
+        let bad = npm.join(probe);
+        let good = local.join(probe);
+        std::fs::write(
+            &bad,
+            b"#!/usr/bin/env node\nError: claude native binary not installed.\n",
+        )
+        .unwrap();
+        let mut elf = vec![0x7f, b'E', b'L', b'F'];
+        elf.extend_from_slice(&[0; 60]);
+        std::fs::write(&good, &elf).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&bad, std::fs::Permissions::from_mode(0o755)).unwrap();
+            std::fs::set_permissions(&good, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        // PATH’te npm-global önce olsa bile yer tutucu atlanır; local ELF alınır.
+        let old_path = std::env::var_os("PATH");
+        let mut paths = vec![npm.clone(), local.clone()];
+        if let Some(ref p) = old_path {
+            paths.extend(std::env::split_paths(p));
+        }
+        std::env::set_var("PATH", std::env::join_paths(&paths).unwrap());
+        let (status, path) = resolve(probe);
+        assert_eq!(status, InstalledStatus::Installed);
+        assert_eq!(path.as_deref(), Some(good.as_path()));
+        match old_path {
+            Some(p) => std::env::set_var("PATH", p),
+            None => std::env::remove_var("PATH"),
+        }
+        let _ = std::fs::remove_file(&bad);
+        let _ = std::fs::remove_file(&good);
     }
 }

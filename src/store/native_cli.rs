@@ -4,7 +4,7 @@
 //! platform ikilisini SHA-256 ile indirip `~/.local/bin` altına yerleştirmektir.
 //! npm paketindeki `claude` yer tutucu betik, postinstall / optional-deps
 //! atlanırsa `Error: claude native binary not installed` veya yanlış mimari
-//! dosyasında `Exec format error` üretir; Nova bu yolu tercih etmez.
+//! dosyasında `Exec format error` üretir; Nova **asla** npm’e düşmez.
 //!
 //! Risk notu: CDN sürümü dinamiktir (`/latest` + `manifest.json`). İndirme
 //! büyük (~300 MB+); ağ/kesinti kırılganlığı vardır. Checksum doğrulanır;
@@ -13,16 +13,23 @@
 use crate::store::http::HttpDownloader;
 use crate::store::install::{Downloader, InstallError, InstallOutcome};
 use crate::store::net::{self, MAX_TEXT_BYTES};
-use crate::store::path::{self, looks_like_runnable_cli};
+use crate::store::path::{self, is_broken_cli_placeholder, looks_like_runnable_cli};
 use crate::store::platform::CpuArch;
 use crate::store::StoreEntry;
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::io::Read;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const CLAUDE_CDN_BASE: &str = "https://downloads.claude.ai/claude-code-releases";
 const ANTHROPIC_NPM_PKG: &str = "@anthropic-ai/claude-code";
+
+/// Paket yöneticisi yerine zorunlu native CDN kurulumu.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NativeInstallKind {
+    /// Anthropic `downloads.claude.ai` + manifest SHA-256.
+    ClaudeCdn,
+}
 
 /// Bu kayıt Anthropic Claude Code mı (katalog id / npm paketi / executable)?
 pub fn is_claude_code(entry: &StoreEntry) -> bool {
@@ -33,6 +40,15 @@ pub fn is_claude_code(entry: &StoreEntry) -> bool {
         .install_command
         .as_ref()
         .is_some_and(|argv| argv.iter().any(|a| a == ANTHROPIC_NPM_PKG))
+}
+
+/// Claude (ve benzeri) için npm/PM yedek yolu **yok**; yalnızca native CDN.
+pub fn native_install_kind(entry: &StoreEntry) -> Option<NativeInstallKind> {
+    if is_claude_code(entry) {
+        Some(NativeInstallKind::ClaudeCdn)
+    } else {
+        None
+    }
 }
 
 /// Host için Claude CDN platform etiketi (`linux-x64`, `linux-arm64`, …-musl).
@@ -154,13 +170,17 @@ pub fn install_claude_native_with(
     let _ = fs::remove_file(&downloaded);
     let _ = fs::remove_dir_all(&work);
 
-    // Eski kırık npm shim’ini temizle; sonra gerçek ikiliye bağla.
+    // npm-global / eski yer tutucu kalıntılarını yok say / sil; sonra gerçek ikiliye bağla.
+    let purged = purge_broken_cli_residuals("claude");
     let _ = path::remove_path_shim("claude");
     let mut executable_path = final_path.clone();
     let mut summary = format!(
         "'{}' kuruldu (Anthropic native CDN {platform} v{version})",
         entry.name
     );
+    if purged > 0 {
+        summary.push_str(&format!(" · {purged} kırık npm/yer tutucu temizlendi"));
+    }
     match path::shim_installed_executable("claude", &final_path) {
         Ok(shim) => {
             executable_path = shim;
@@ -177,6 +197,47 @@ pub fn install_claude_native_with(
         install_dir: dest_dir.to_path_buf(),
         summary,
     })
+}
+
+/// Kullanıcı bin’lerindeki kırık yer tutucu / yanlış mimari `exe` dosyalarını siler.
+///
+/// Dönüş: silinen dosya sayısı. Gerçek ELF/Mach-O veya sağlam shebang’e dokunulmaz.
+pub fn purge_broken_cli_residuals(exe_name: &str) -> usize {
+    let mut removed = 0usize;
+    for path in residual_cli_candidates(exe_name) {
+        if !path.exists() {
+            continue;
+        }
+        // Symlink hedefi yer tutucuysa bağı (ve gerekirse hedefi) kaldır.
+        let check = fs::canonicalize(&path).unwrap_or_else(|_| path.clone());
+        if is_broken_cli_placeholder(&check) || is_broken_cli_placeholder(&path) {
+            if fs::remove_file(&path).is_ok() {
+                removed += 1;
+            }
+            if check != path && is_broken_cli_placeholder(&check) {
+                let _ = fs::remove_file(&check);
+            }
+        }
+    }
+    removed
+}
+
+fn residual_cli_candidates(exe_name: &str) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    let Some(home) = std::env::var_os("HOME").filter(|h| !h.is_empty()) else {
+        return out;
+    };
+    let home = PathBuf::from(home);
+    out.push(home.join(".local").join("bin").join(exe_name));
+    out.push(home.join(".npm-global").join("bin").join(exe_name));
+    out.push(home.join("bin").join(exe_name));
+    // npm önekleri bazen farklı (prefix -g).
+    if let Ok(prefix) = std::env::var("npm_config_prefix") {
+        if !prefix.is_empty() {
+            out.push(PathBuf::from(prefix).join("bin").join(exe_name));
+        }
+    }
+    out
 }
 
 fn fetch_cdn_text(url: &str) -> Result<String, InstallError> {
@@ -268,10 +329,12 @@ pub fn reject_broken_npm_cli(exe_name: &str, path: &Path) -> Result<(), InstallE
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Mutex;
 
-    #[test]
-    fn detects_claude_catalog_shapes() {
-        let mut e = StoreEntry {
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    fn sample_claude_entry() -> StoreEntry {
+        StoreEntry {
             id: "claude".into(),
             name: "Claude".into(),
             description: "d".into(),
@@ -295,11 +358,40 @@ mod tests {
             install_notes: None,
             release: None,
             signature: None,
-        };
+        }
+    }
+
+    fn with_temp_home<F: FnOnce(&Path)>(f: F) {
+        let _guard = ENV_LOCK.lock().unwrap();
+        let dir = std::env::temp_dir().join(format!(
+            "nova-native-cli-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let old_home = std::env::var_os("HOME");
+        std::env::set_var("HOME", &dir);
+        f(&dir);
+        match old_home {
+            Some(h) => std::env::set_var("HOME", h),
+            None => std::env::remove_var("HOME"),
+        }
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn detects_claude_catalog_shapes() {
+        let mut e = sample_claude_entry();
         assert!(is_claude_code(&e));
+        assert_eq!(native_install_kind(&e), Some(NativeInstallKind::ClaudeCdn));
         e.id = "other".into();
         e.executable = "other".into();
         assert!(is_claude_code(&e), "npm paket adından tanımalı");
+        assert_eq!(native_install_kind(&e), Some(NativeInstallKind::ClaudeCdn));
         e.install_command = Some(vec![
             "npm".into(),
             "install".into(),
@@ -307,6 +399,19 @@ mod tests {
             "fx".into(),
         ]);
         assert!(!is_claude_code(&e));
+        assert_eq!(native_install_kind(&e), None);
+    }
+
+    #[test]
+    fn claude_never_uses_npm_fallback_strategy() {
+        // Kurulum yönlendirmesi: Claude → yalnızca CDN; npm argv’ye düşülmez.
+        let e = sample_claude_entry();
+        assert!(
+            native_install_kind(&e).is_some(),
+            "Claude native CDN zorunlu olmalı"
+        );
+        // Katalog hâlâ npm method gösterebilir; strateji yine CDN.
+        assert_eq!(e.install_method, crate::store::InstallMethod::Npm);
     }
 
     #[test]
@@ -344,5 +449,86 @@ mod tests {
             tag.starts_with("linux-"),
             "beklenen linux-* etiketi, got {tag}"
         );
+    }
+
+    #[test]
+    fn detects_placeholder_vs_real_binary_and_purges_npm_residual() {
+        with_temp_home(|home| {
+            let npm_bin = home.join(".npm-global").join("bin");
+            fs::create_dir_all(&npm_bin).unwrap();
+            let placeholder = npm_bin.join("claude");
+            fs::write(
+                &placeholder,
+                b"#!/usr/bin/env node\nthrow new Error('claude native binary not installed');\n",
+            )
+            .unwrap();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                fs::set_permissions(&placeholder, fs::Permissions::from_mode(0o755)).unwrap();
+            }
+            assert!(is_broken_cli_placeholder(&placeholder));
+            assert!(!looks_like_runnable_cli(&placeholder));
+
+            let real_dir = home
+                .join(".local")
+                .join("share")
+                .join("nova")
+                .join("store")
+                .join("claude")
+                .join("bin");
+            fs::create_dir_all(&real_dir).unwrap();
+            let real = real_dir.join("claude");
+            let mut elf = vec![0x7f, b'E', b'L', b'F'];
+            elf.extend_from_slice(&[2, 1, 1, 0]);
+            elf.extend_from_slice(&[0; 56]);
+            fs::write(&real, &elf).unwrap();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                fs::set_permissions(&real, fs::Permissions::from_mode(0o755)).unwrap();
+            }
+            assert!(!is_broken_cli_placeholder(&real));
+            assert!(looks_like_runnable_cli(&real));
+
+            let n = purge_broken_cli_residuals("claude");
+            assert!(n >= 1, "yer tutucu silinmeliydi");
+            assert!(!placeholder.exists(), "npm-global yer tutucu kalmamalı");
+            assert!(real.exists(), "gerçek ELF silinmemeli");
+
+            let err = reject_broken_npm_cli("claude", &real);
+            assert!(err.is_ok(), "ELF reddedilmemeli");
+        });
+    }
+
+    #[test]
+    fn reject_broken_npm_cli_clears_local_shim_on_placeholder() {
+        with_temp_home(|home| {
+            let npm = home.join(".npm-global").join("bin");
+            fs::create_dir_all(&npm).unwrap();
+            let bad = npm.join("claude");
+            fs::write(
+                &bad,
+                b"#!/usr/bin/env node\nError: claude native binary not installed.\n",
+            )
+            .unwrap();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                fs::set_permissions(&bad, fs::Permissions::from_mode(0o755)).unwrap();
+            }
+            let local = home.join(".local").join("bin");
+            fs::create_dir_all(&local).unwrap();
+            let shim = local.join("claude");
+            #[cfg(unix)]
+            std::os::unix::fs::symlink(&bad, &shim).unwrap();
+            #[cfg(not(unix))]
+            fs::copy(&bad, &shim).unwrap();
+
+            let err = reject_broken_npm_cli("claude", &bad).unwrap_err();
+            let msg = err.to_string();
+            assert!(msg.contains("yer tutucu") || msg.contains("kırık"), "{msg}");
+            assert!(msg.contains("Anthropic native CDN"), "{msg}");
+        });
     }
 }

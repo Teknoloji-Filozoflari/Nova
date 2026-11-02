@@ -804,12 +804,14 @@ pub fn install_via_package_manager(entry: &StoreEntry) -> Result<InstallOutcome,
         )));
     }
     // Claude Code: npm optional-deps/postinstall kırılgan; Anthropic CDN native
-    // ikili tercih edilir (gerçek ELF, doğru mimari, kırık shim yok).
-    if crate::store::native_cli::is_claude_code(entry) {
-        // Ağ/CDN hatasında npm’e düşülür; npm sonrası ikili yine doğrulanır.
-        if let Ok(outcome) = crate::store::native_cli::install_claude_native(entry) {
-            return Ok(outcome);
-        }
+    // ikili ZORUNLU (gerçek ELF, SHA-256, doğru mimari). npm’e asla düşülmez —
+    // CDN hatası kullanıcıya CDN hatası olarak görünür; kırık yer tutucu bırakılmaz.
+    if let Some(kind) = crate::store::native_cli::native_install_kind(entry) {
+        return match kind {
+            crate::store::native_cli::NativeInstallKind::ClaudeCdn => {
+                crate::store::native_cli::install_claude_native(entry)
+            }
+        };
     }
     let plan = resolve_entry_install_plan(entry).ok_or_else(|| {
         InstallError::Internal(format!(
@@ -1020,6 +1022,14 @@ pub fn upgrade_via_package_manager(
     entry: &StoreEntry,
     plan: &host::PmUpdatePlan,
 ) -> Result<InstallOutcome, InstallError> {
+    // Claude: npm upgrade yerine CDN’den taze native ikili (npm yer tutucusuna düşme).
+    if let Some(kind) = crate::store::native_cli::native_install_kind(entry) {
+        return match kind {
+            crate::store::native_cli::NativeInstallKind::ClaudeCdn => {
+                crate::store::native_cli::install_claude_native(entry)
+            }
+        };
+    }
     let install = plan.as_install_plan();
     let io = if install.needs_tty_suspend() {
         PmIoMode::Inherited
@@ -2019,6 +2029,26 @@ mod tests {
         let src = entry.release_source_for(CpuArch::Aarch64);
         // no release on installable_entry
         assert!(src.is_none());
+    }
+
+    #[test]
+    fn claude_package_manager_entry_routes_to_native_cdn_only() {
+        let mut entry = package_entry(
+            InstallMethod::Npm,
+            vec!["npm", "install", "-g", "@anthropic-ai/claude-code"],
+        );
+        entry.id = "claude".into();
+        entry.name = "Claude Code".into();
+        entry.executable = "claude".into();
+        // Canlı CDN (~300 MB) CI’de indirilmez; yönlendirme sözleşmesi yeterli.
+        // install_via_package_manager Claude için native_install_kind → CDN döner,
+        // npm argv’ye düşmez (eski `if let Ok` yedek yolu kaldırıldı).
+        assert_eq!(
+            crate::store::native_cli::native_install_kind(&entry),
+            Some(crate::store::native_cli::NativeInstallKind::ClaudeCdn)
+        );
+        let other = package_entry(InstallMethod::Npm, vec!["npm", "install", "-g", "fx"]);
+        assert!(crate::store::native_cli::native_install_kind(&other).is_none());
     }
 
     #[test]

@@ -177,12 +177,43 @@ pub fn shim_installed_executable(exe_name: &str, source: &Path) -> Result<PathBu
     ensure_path_shim(exe_name, &resolved)
 }
 
+/// Anthropic npm yer tutucusu / yanlış mimari (PE) gibi kırık CLI mı?
+///
+/// Tespitte “kurulu” sayılmamalı; native kurulumda silinmelidir.
+/// Rastgele küçük dosyalar (test probe’ları) burada kırık sayılmaz.
+pub fn is_broken_cli_placeholder(path: &Path) -> bool {
+    let Ok(mut f) = fs::File::open(path) else {
+        return false;
+    };
+    let mut head = [0u8; 512];
+    let Ok(n) = f.read(&mut head) else {
+        return false;
+    };
+    if n < 4 {
+        return false;
+    }
+    // PE (Windows) — Linux’ta Exec format error.
+    if cfg!(unix) && head.starts_with(b"MZ") {
+        return true;
+    }
+    if !head.starts_with(b"#!") {
+        return false;
+    }
+    let text = String::from_utf8_lossy(&head[..n]).to_ascii_lowercase();
+    text.contains("native binary not installed")
+        || text.contains("claude native binary")
+        || text.contains("could not find native binary")
+}
+
 /// Dosyanın gerçekten çalıştırılabilir bir CLI olup olmadığına bakar.
 ///
 /// - ELF (`0x7F ELF`) veya Mach-O sihirli baytları → kabul
 /// - `#!` shebang → içerikte Anthropic npm yer tutucu hatası yoksa kabul
 /// - Aksi → reddet (kırık shim / Exec format error önlemi)
 pub fn looks_like_runnable_cli(path: &Path) -> bool {
+    if is_broken_cli_placeholder(path) {
+        return false;
+    }
     let Ok(mut f) = fs::File::open(path) else {
         return false;
     };
@@ -205,18 +236,12 @@ pub fn looks_like_runnable_cli(path: &Path) -> bool {
     ) {
         return true;
     }
-    // PE (Windows) — Linux’ta Exec format error verir; reddet.
+    // PE zaten is_broken_cli_placeholder ile elendi.
     if head.starts_with(b"MZ") {
         return false;
     }
     if head.starts_with(b"#!") {
         let text = String::from_utf8_lossy(&head[..n]).to_ascii_lowercase();
-        if text.contains("native binary not installed")
-            || text.contains("claude native binary")
-            || text.contains("could not find native binary")
-        {
-            return false;
-        }
         // Makul shebang sarmalayıcı (node/python/bash).
         return text.contains("node")
             || text.contains("python")
@@ -348,6 +373,7 @@ mod tests {
             bytes.extend_from_slice(&[0; 60]);
             fs::write(&elf, &bytes).unwrap();
             assert!(looks_like_runnable_cli(&elf));
+            assert!(!is_broken_cli_placeholder(&elf));
 
             let placeholder = home.join("bad");
             fs::write(
@@ -355,11 +381,19 @@ mod tests {
                 b"#!/usr/bin/env node\nError: claude native binary not installed.\n",
             )
             .unwrap();
+            assert!(is_broken_cli_placeholder(&placeholder));
             assert!(!looks_like_runnable_cli(&placeholder));
 
             let pe = home.join("win");
             fs::write(&pe, b"MZ\0\0not-a-linux-binary").unwrap();
+            assert!(is_broken_cli_placeholder(&pe));
             assert!(!looks_like_runnable_cli(&pe));
+
+            // Geçerli shebang sarmalayıcı yer tutucu değildir.
+            let ok_sh = home.join("wrap");
+            fs::write(&ok_sh, b"#!/usr/bin/env node\nrequire('./cli.js');\n").unwrap();
+            assert!(!is_broken_cli_placeholder(&ok_sh));
+            assert!(looks_like_runnable_cli(&ok_sh));
         });
     }
 
