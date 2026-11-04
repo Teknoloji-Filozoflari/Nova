@@ -466,9 +466,9 @@ fn help_screen_renders_without_panic_on_small_terminals() {
 }
 
 #[test]
-fn ai_tool_actions_sit_in_horizontal_strip_between_list_and_detail() {
-    // Kategori|liste üstte; Aksiyonlar yatay şerit; Detay altta. Adın altında
-    // iç içe satır ve uzak sağ sütun yok; etiketler şeritte görünür.
+fn ai_tool_actions_sit_in_horizontal_strip_with_side_detail() {
+    // Geniş Kurulu: sekme|liste|Detay yan yana (Mağaza gibi); Aksiyonlar
+    // içerik satırının altında yatay şerit. Adın altına gömülmez.
     use ratatui::{backend::TestBackend, Terminal};
 
     let mut app = app_with_sample();
@@ -508,8 +508,8 @@ fn ai_tool_actions_sit_in_horizontal_strip_between_list_and_detail() {
         .position(|l| l.contains("Detay"))
         .expect("Detay satırı");
     assert!(
-        actions_y < detail_y,
-        "aksiyon şeridi Detay'dan önce olmalı (actions={actions_y} detail={detail_y}):\n{text}"
+        detail_y < actions_y,
+        "yan Detay içerik satırında, Aksiyonlar altında olmalı (detail={detail_y} actions={actions_y}):\n{text}"
     );
     // Başlık satırının altındaki içerik satırında etiketler (Borders::ALL).
     let strip_body: String = lines
@@ -528,14 +528,14 @@ fn ai_tool_actions_sit_in_horizontal_strip_between_list_and_detail() {
         show_help: false,
         store_tab: false,
         commands_tab: false,
-        tool_detail_side: false,
+        tool_detail_side: true,
         has_ai_actions: true,
         panes: nova::ui::PaneWidths::default(),
         secondary_cols: 1,
     });
-    assert!(!areas.tool_detail_side);
+    assert!(areas.tool_detail_side);
     assert_eq!(areas.actions_height, nova::ui::ACTIONS_STRIP_ROWS);
-    assert_eq!(areas.tools_end_x, 120);
+    assert!(areas.tools_end_x < 120);
     assert_eq!(nova::ui::TOOL_DETAIL_PANEL_WIDTH, 72);
     assert_eq!(
         nova::ui::STORE_DETAIL_PANEL_WIDTH,

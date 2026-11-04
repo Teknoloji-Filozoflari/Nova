@@ -88,7 +88,168 @@ pub fn draw(f: &mut Frame, app: &App) {
         Modal::StoreInstalledMenu { name, index, .. } => {
             draw_store_installed_menu(f, area, name, *index)
         }
+        Modal::JobProgress {
+            kind,
+            title,
+            command,
+            phase,
+            status_line,
+            log,
+            log_scroll,
+            spinner,
+            done,
+        } => draw_job_progress(
+            f,
+            area,
+            JobProgressView {
+                kind: *kind,
+                title,
+                command,
+                phase,
+                status_line,
+                log,
+                log_scroll: *log_scroll,
+                spinner: *spinner,
+                done: done.as_ref(),
+            },
+        ),
     }
+}
+
+/// [`draw_job_progress`] parametre demeti (clippy `too_many_arguments`).
+struct JobProgressView<'a> {
+    kind: crate::progress::JobKind,
+    title: &'a str,
+    command: &'a str,
+    phase: &'a str,
+    status_line: &'a str,
+    log: &'a [String],
+    log_scroll: u16,
+    spinner: u8,
+    done: Option<&'a Result<String, String>>,
+}
+
+fn draw_job_progress(f: &mut Frame, screen: Rect, view: JobProgressView<'_>) {
+    let JobProgressView {
+        kind,
+        title,
+        command,
+        phase,
+        status_line,
+        log,
+        log_scroll,
+        spinner,
+        done,
+    } = view;
+    let width = 72
+        .min(screen.width.saturating_sub(MODAL_MARGIN * 2))
+        .max(40);
+    let height = 18.min(screen.height.saturating_sub(2)).max(10);
+    let area = modal_area(screen, width, height.saturating_sub(2));
+    f.render_widget(Clear, area);
+
+    let frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+    let spin = frames[(spinner as usize) % frames.len()];
+    let (header_fg, mark) = match done {
+        None => (Color::Cyan, spin.to_string()),
+        Some(Ok(_)) => (Color::Green, "✓".into()),
+        Some(Err(_)) => (Color::Red, "✗".into()),
+    };
+
+    let inner_w = area.width.saturating_sub(2) as usize;
+    let mut lines: Vec<Line> = Vec::new();
+    lines.push(Line::from(Span::styled(
+        format!("{mark} {title}"),
+        Style::default().fg(header_fg).add_modifier(Modifier::BOLD),
+    )));
+    lines.push(Line::from(Span::styled(
+        truncate(command, inner_w),
+        Style::default().fg(Color::DarkGray),
+    )));
+    lines.push(Line::from(""));
+    lines.push(Line::from(vec![
+        Span::styled("Faz  ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            phase.to_string(),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
+    ]));
+    // Basit ilerleme çubuğu (faz adına göre doluluk — yaklaşık).
+    let fill = match phase {
+        "Başlıyor" => 1,
+        "Kaynak alınıyor" | "İndiriliyor" => 3,
+        "Denetleniyor" => 4,
+        "Derleniyor" => 6,
+        "Kuruluyor" => 8,
+        "Tamamlanıyor" => 9,
+        "Tamamlandı" => 10,
+        "Hata" => 10,
+        _ => 5,
+    };
+    let bar_w = inner_w.saturating_sub(8).clamp(10, 40);
+    let filled = (bar_w * fill) / 10;
+    let bar = format!(
+        "[{}{}]",
+        "█".repeat(filled),
+        "░".repeat(bar_w.saturating_sub(filled))
+    );
+    lines.push(Line::from(Span::styled(
+        bar,
+        Style::default().fg(if matches!(done, Some(Err(_))) {
+            Color::Red
+        } else {
+            Color::Cyan
+        }),
+    )));
+    lines.push(Line::from(Span::styled(
+        truncate(status_line, inner_w),
+        Style::default().fg(Color::White),
+    )));
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        format!("── {} günlüğü ──", kind.title_prefix()),
+        Style::default().fg(Color::DarkGray),
+    )));
+
+    // Kaydırılabilir günlük: alttan `log_scroll` satır yukarı.
+    let log_rows = area.height.saturating_sub(12).max(3) as usize;
+    let end = log.len().saturating_sub(log_scroll as usize);
+    let start = end.saturating_sub(log_rows);
+    if log.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  (çıktı bekleniyor…)",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for line in &log[start..end] {
+            lines.push(Line::from(Span::styled(
+                truncate(line, inner_w),
+                Style::default().fg(Color::Gray),
+            )));
+        }
+    }
+
+    lines.push(Line::from(""));
+    let footer = match done {
+        None => "↑↓ günlük  ·  Esc arka plana al  ·  Nova içinde kalır",
+        Some(Ok(_)) => "Enter / Esc — kapat",
+        Some(Err(_)) => "Enter / Esc — kapat (ayrıntı günlükte)",
+    };
+    lines.push(Line::from(Span::styled(
+        footer,
+        Style::default().fg(Color::Cyan),
+    )));
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(header_fg))
+        .title(" İlerleme ");
+    let para = Paragraph::new(lines)
+        .wrap(Wrap { trim: false })
+        .block(block);
+    f.render_widget(para, area);
 }
 
 fn draw_store_installed_menu(f: &mut Frame, screen: Rect, name: &str, index: usize) {

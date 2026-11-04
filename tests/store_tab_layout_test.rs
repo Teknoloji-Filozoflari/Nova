@@ -172,3 +172,48 @@ fn store_detail_shows_trust_badge() {
         "arşiv güven sınıfı/bütünlük detayda görünmeli"
     );
 }
+
+#[test]
+fn installed_tools_wide_layout_puts_detail_on_the_side_like_store() {
+    let app = app();
+    let lines = render(&app, 120, 36);
+    let text = all_text(&lines);
+    assert!(text.contains("Detay"), "kurulu detay yok:\n{text}");
+    // Yan panel Borders::ALL: başlık satırında yatay çizgi.
+    assert!(
+        text.lines().any(|l| l.contains("Detay") && l.contains('─')),
+        "kurulu yan detay kenarlıklı olmalı (Mağaza gibi):\n{text}"
+    );
+    assert!(
+        nova::ui::tool_detail_side_layout(true, 120, false),
+        "120 sütunda yan detay açılmalı"
+    );
+}
+
+#[test]
+fn job_progress_modal_renders_phase_bar_and_log_inside_nova() {
+    let mut app = app();
+    app.modal = nova::app::modal::Modal::JobProgress {
+        kind: nova::progress::JobKind::NovaRepo,
+        title: "Nova kaynak güncellemesi".into(),
+        command: "cargo install --git … --force --locked".into(),
+        phase: "Derleniyor".into(),
+        status_line: "Derleniyor: nova".into(),
+        log: vec![
+            "$ cargo install --git …".into(),
+            "   Compiling nova v0.1.0".into(),
+        ],
+        log_scroll: 0,
+        spinner: 3,
+        done: None,
+    };
+    let lines = render(&app, 100, 30);
+    let text = all_text(&lines);
+    assert!(text.contains("İlerleme"), "ilerleme modalı yok:\n{text}");
+    assert!(text.contains("Derleniyor"), "faz yok:\n{text}");
+    assert!(text.contains("Compiling nova"), "günlük yok:\n{text}");
+    assert!(
+        text.contains('█') || text.contains('░'),
+        "ilerleme çubuğu yok:\n{text}"
+    );
+}
