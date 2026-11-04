@@ -1649,11 +1649,7 @@ impl App {
         self.commands_search_index.entries.iter().any(|e| {
             e.entry_type == "command"
                 && e.id == cmd.id
-                && (e
-                    .name
-                    .as_ref()
-                    .map(|n| n.to_ascii_lowercase().contains(&q))
-                    .unwrap_or(false)
+                && (e.name.as_ref().is_some_and(|n| n.matches_query(&q, lang))
                     || e.tags.iter().any(|t| t.to_ascii_lowercase().contains(&q))
                     || e.category
                         .as_ref()

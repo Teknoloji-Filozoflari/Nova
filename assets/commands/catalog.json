@@ -1,10 +1,12 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-04T20:33:14Z",
-  "content_sha256": "cca5bd35662ba1c69d521669367942de222e2b9a9630bb0f3dc85f6ac5156ce5",
+  "generated_at": "2026-11-04T20:52:51Z",
+  "content_sha256": "f08edacc291b3d81d5d1ac24f8eead941873498c0e252e72f1ff96def4e2f6ee",
   "command_count": 256,
   "concept_count": 20,
+  "task_count": 21,
+  "profile_count": 13,
   "commands": [
     {
       "schema_version": 2,
@@ -33145,6 +33147,3289 @@
         ],
         "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
       }
+    }
+  ],
+  "tasks": [
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "backup-directory",
+      "name": {
+        "tr": "Dizin yedekle",
+        "en": "Back up a directory"
+      },
+      "summary": {
+        "tr": "rsync / restic / borg ile dizin yedeği (gizli anahtar örnek yok).",
+        "en": "Directory backup with rsync / restic / borg (no secret-key examples)."
+      },
+      "category": "backup",
+      "intent": {
+        "tr": [
+          "klasör yedekle",
+          "restic backup",
+          "rsync yedek"
+        ],
+        "en": [
+          "backup folder",
+          "restic backup",
+          "rsync backup"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "rsync-local",
+          "commands": [
+            "rsync"
+          ],
+          "examples": [
+            {
+              "command": "rsync -aHAX --info=progress2 /path/to/src/ /path/to/backup/",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "user"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "restic-snapshot",
+          "commands": [
+            "restic"
+          ],
+          "examples": [
+            {
+              "command": "restic -r /path/to/repo backup /path/to/data",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "user",
+              "explanation": {
+                "tr": "Depo parolası/ortam değişkeni örneğe yazılmaz.",
+                "en": "Repo password/env vars are omitted from examples."
+              }
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd",
+            "windows"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "borg-create",
+          "commands": [
+            "borg"
+          ],
+          "examples": [
+            {
+              "command": "borg create /path/to/repo::'{hostname}-{now}' /path/to/data",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "user"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 rsync",
+          "https://restic.readthedocs.io/",
+          "https://borgbackup.readthedocs.io/"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "backup",
+        "storage"
+      ],
+      "related_commands": [
+        "rsync",
+        "restic",
+        "borg",
+        "rclone",
+        "tar"
+      ],
+      "related_tasks": [
+        "transfer-files-ssh",
+        "check-disk-space"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "check-container-logs",
+      "name": {
+        "tr": "Konteyner günlüklerini kontrol et",
+        "en": "Check container logs"
+      },
+      "summary": {
+        "tr": "Runtime log akışını oku (kubectl logs ayrı orchestrator yolu).",
+        "en": "Read runtime log streams (kubectl logs is a separate orchestrator path)."
+      },
+      "category": "containers",
+      "intent": {
+        "tr": [
+          "docker logs",
+          "konteyner log",
+          "podman logs"
+        ],
+        "en": [
+          "docker logs",
+          "container logs",
+          "podman logs"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "docker-logs",
+          "commands": [
+            "docker"
+          ],
+          "examples": [
+            {
+              "command": "docker logs --tail 100 mycontainer",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "windows"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "kubectl-logs",
+          "commands": [
+            "kubectl"
+          ],
+          "examples": [
+            {
+              "command": "kubectl logs deploy/myapp --tail=100",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "windows"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "notes": {
+            "tr": "Yanlış kubeconfig bağlamı risklidir; önce context doğrula.",
+            "en": "Wrong kubeconfig context is risky; verify context first."
+          }
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.docker.com/engine/reference/commandline/logs/"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "containers",
+        "logs"
+      ],
+      "related_commands": [
+        "docker",
+        "podman",
+        "nerdctl",
+        "kubectl",
+        "crictl"
+      ],
+      "related_tasks": [
+        "inspect-container"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "check-disk-space",
+      "name": {
+        "tr": "Disk alanını kontrol et",
+        "en": "Check disk space"
+      },
+      "summary": {
+        "tr": "Dosya sistemlerinin doluluk oranını df / Get-Volume ile göster.",
+        "en": "Show filesystem free space with df / Get-Volume."
+      },
+      "category": "disks",
+      "intent": {
+        "tr": [
+          "disk dolu mu",
+          "boş alan",
+          "df çıktısı"
+        ],
+        "en": [
+          "disk space",
+          "free space",
+          "df output"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "unix-df",
+          "commands": [
+            "df"
+          ],
+          "examples": [
+            {
+              "command": "df -h",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "windows-get-volume",
+          "commands": [
+            "get-volume"
+          ],
+          "examples": [
+            {
+              "command": "Get-Volume",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 df",
+          "https://learn.microsoft.com/powershell/module/storage/get-volume"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "disks",
+        "storage",
+        "capacity"
+      ],
+      "related_commands": [
+        "df",
+        "du",
+        "lsblk",
+        "get-volume",
+        "diskutil"
+      ],
+      "related_tasks": [
+        "inspect-disk-usage"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "check-dns",
+      "name": {
+        "tr": "DNS çözümlemesini kontrol et",
+        "en": "Check DNS resolution"
+      },
+      "summary": {
+        "tr": "Bir adın DNS kaydını dig / Resolve-DnsName benzeri araçlarla sorgula.",
+        "en": "Query a name's DNS records with dig / Resolve-DnsName-style tools."
+      },
+      "category": "network",
+      "intent": {
+        "tr": [
+          "dns kontrol",
+          "alan adı çözümle",
+          "dig sorgusu"
+        ],
+        "en": [
+          "check dns",
+          "resolve hostname",
+          "dig lookup"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "unix-dig",
+          "commands": [
+            "dig"
+          ],
+          "examples": [
+            {
+              "command": "dig +short example.com A",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "A kaydı",
+                "en": "A record"
+              },
+              "explanation": {
+                "tr": "Kısa A yanıtı; yetkili sunucu için @ kullanın.",
+                "en": "Short A answer; use @ for a specific nameserver."
+              }
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "windows-dig",
+          "commands": [
+            "dig"
+          ],
+          "examples": [
+            {
+              "command": "dig +short example.com A",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none",
+              "title": {
+                "tr": "dig (Windows)",
+                "en": "dig (Windows)"
+              },
+              "explanation": {
+                "tr": "dig Windows'ta ayrı kurulum olabilir. Resolve-DnsName henüz bankada yok.",
+                "en": "dig may need a separate Windows install. Resolve-DnsName not in bank yet."
+              }
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ],
+          "notes": {
+            "tr": "Native Resolve-DnsName kaydı sonraki derinleştirmeye bırakıldı.",
+            "en": "Native Resolve-DnsName record deferred to a later deepen."
+          }
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 dig"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "network",
+        "dns"
+      ],
+      "related_commands": [
+        "dig",
+        "host",
+        "resolvectl"
+      ],
+      "related_tasks": [
+        "check-internet-connectivity"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "check-firewall-status",
+      "name": {
+        "tr": "Güvenlik duvarı durumunu kontrol et",
+        "en": "Check firewall status"
+      },
+      "summary": {
+        "tr": "ufw / firewall-cmd / pfctl / netsh ile durum okuma (kural silme yok).",
+        "en": "Read status via ufw / firewall-cmd / pfctl / netsh (no rule deletes)."
+      },
+      "category": "security",
+      "intent": {
+        "tr": [
+          "firewall durumu",
+          "ufw status",
+          "pfctl kurallar"
+        ],
+        "en": [
+          "firewall status",
+          "ufw status",
+          "pfctl rules"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "linux-ufw",
+          "commands": [
+            "ufw"
+          ],
+          "examples": [
+            {
+              "command": "sudo ufw status verbose",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "elevated"
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "linux-firewalld",
+          "commands": [
+            "firewall-cmd"
+          ],
+          "examples": [
+            {
+              "command": "firewall-cmd --state",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "bsd-pfctl",
+          "commands": [
+            "pfctl"
+          ],
+          "examples": [
+            {
+              "command": "sudo pfctl -s info",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "elevated"
+            }
+          ],
+          "platforms": [
+            "bsd",
+            "macos"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "windows-netsh",
+          "commands": [
+            "netsh"
+          ],
+          "examples": [
+            {
+              "command": "netsh advfirewall show allprofiles",
+              "risk": "safe",
+              "shell": "cmd",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "cmd"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 ufw",
+          "man 1 firewall-cmd",
+          "man 8 pfctl"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "firewall",
+        "security"
+      ],
+      "related_commands": [
+        "ufw",
+        "firewall-cmd",
+        "nft",
+        "iptables",
+        "pfctl",
+        "netsh"
+      ],
+      "related_tasks": [
+        "check-open-ports"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "check-internet-connectivity",
+      "name": {
+        "tr": "İnternet bağlantısını kontrol et",
+        "en": "Check internet connectivity"
+      },
+      "summary": {
+        "tr": "ICMP ping veya HTTPS ile temel erişilebilirlik testi.",
+        "en": "Basic reachability via ICMP ping or HTTPS."
+      },
+      "category": "network",
+      "intent": {
+        "tr": [
+          "internet var mı",
+          "bağlantı testi",
+          "ping at"
+        ],
+        "en": [
+          "am i online",
+          "connectivity test",
+          "ping host"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "ping-icmp",
+          "commands": [
+            "ping"
+          ],
+          "examples": [
+            {
+              "command": "ping -c 3 1.1.1.1",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "Üç ICMP",
+                "en": "Three ICMP"
+              },
+              "explanation": {
+                "tr": "Windows'ta -n kullanın; politikalar ICMP'yi engelleyebilir.",
+                "en": "Use -n on Windows; policies may block ICMP."
+              }
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd",
+            "windows"
+          ],
+          "shells": [
+            "bash",
+            "cmd"
+          ]
+        },
+        {
+          "id": "curl-https",
+          "commands": [
+            "curl"
+          ],
+          "examples": [
+            {
+              "command": "curl -I -m 5 https://example.com",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd",
+            "windows"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 ping",
+          "https://curl.se/docs/manpage.html"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "network",
+        "connectivity"
+      ],
+      "related_commands": [
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute"
+      ],
+      "related_tasks": [
+        "check-dns",
+        "show-public-ip"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "check-memory",
+      "name": {
+        "tr": "Bellek kullanımını kontrol et",
+        "en": "Check memory usage"
+      },
+      "summary": {
+        "tr": "free / vm_stat tarzı araçlarla bellek özeti (okuma).",
+        "en": "Memory summary with free / vm_stat-style tools (read)."
+      },
+      "category": "monitoring",
+      "intent": {
+        "tr": [
+          "ram kullanımı",
+          "bellek dolu mu",
+          "free çıktısı"
+        ],
+        "en": [
+          "ram usage",
+          "memory pressure",
+          "free output"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "linux-free",
+          "commands": [
+            "free"
+          ],
+          "examples": [
+            {
+              "command": "free -h",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "unix-vmstat",
+          "commands": [
+            "vmstat"
+          ],
+          "examples": [
+            {
+              "command": "vmstat 1 3",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "windows-get-process-mem",
+          "commands": [
+            "get-process",
+            "get-computerinfo"
+          ],
+          "examples": [
+            {
+              "command": "Get-ComputerInfo | Select-Object OsTotalVisibleMemorySize, OsFreePhysicalMemory",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 free",
+          "man 8 vmstat"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "memory",
+        "monitoring"
+      ],
+      "related_commands": [
+        "free",
+        "vmstat",
+        "top",
+        "get-process",
+        "get-computerinfo"
+      ],
+      "related_tasks": [
+        "list-running-processes"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "check-open-ports",
+      "name": {
+        "tr": "Açık / dinleyen portları kontrol et",
+        "en": "Check listening / open ports"
+      },
+      "summary": {
+        "tr": "Yerel dinleyen soketleri ss/netstat veya Get-NetTCPConnection ile listele.",
+        "en": "List local listening sockets with ss/netstat or Get-NetTCPConnection."
+      },
+      "category": "network",
+      "intent": {
+        "tr": [
+          "açık portlar",
+          "dinleyen servisler",
+          "hangi port dinliyor"
+        ],
+        "en": [
+          "open ports",
+          "listening sockets",
+          "which ports are listening"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "linux-ss",
+          "commands": [
+            "ss"
+          ],
+          "examples": [
+            {
+              "command": "ss -tulpn",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "Dinleyen TCP/UDP",
+                "en": "Listening TCP/UDP"
+              },
+              "explanation": {
+                "tr": "TCP/UDP dinleyenleri süreç bilgisiyle listeler.",
+                "en": "Lists listening TCP/UDP with process info."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "windows-nettcp",
+          "commands": [
+            "get-nettcpconnection"
+          ],
+          "examples": [
+            {
+              "command": "Get-NetTCPConnection -State Listen",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none",
+              "title": {
+                "tr": "Dinleyen TCP",
+                "en": "Listening TCP"
+              },
+              "explanation": {
+                "tr": "Windows NetTCPIP dinleyen bağlantılar.",
+                "en": "Windows NetTCPIP listening connections."
+              }
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ]
+        },
+        {
+          "id": "bsd-netstat",
+          "commands": [
+            "netstat-bsd"
+          ],
+          "examples": [
+            {
+              "command": "netstat -an -p tcp",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "BSD netstat",
+                "en": "BSD netstat"
+              },
+              "explanation": {
+                "tr": "Windows netstat ile aynı kayıt değildir (id: netstat-bsd).",
+                "en": "Not the same bank record as Windows netstat (id: netstat-bsd)."
+              }
+            }
+          ],
+          "platforms": [
+            "bsd",
+            "macos"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 ss",
+          "https://learn.microsoft.com/powershell/module/nettcpip/get-nettcpconnection",
+          "man 1 netstat"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "description": {
+        "tr": "Uzak tarama (nmap) ayrı bir risk sınıfıdır; önce yerel dinleyenleri tercih et. Yetkisiz tarama yapma.",
+        "en": "Remote scanning (nmap) is a different risk class; prefer local listeners first. Do not scan without authorization."
+      },
+      "tags": [
+        "network",
+        "ports",
+        "security"
+      ],
+      "related_commands": [
+        "ss",
+        "netstat",
+        "netstat-bsd",
+        "get-nettcpconnection",
+        "nmap",
+        "lsof"
+      ],
+      "related_tasks": [
+        "list-running-services",
+        "check-firewall-status"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "connect-ssh",
+      "name": {
+        "tr": "SSH ile bağlan",
+        "en": "Connect over SSH"
+      },
+      "summary": {
+        "tr": "Uzak kabuğa OpenSSH istemcisi ile bağlanma (öğretici).",
+        "en": "Connect to a remote shell with the OpenSSH client (teaching)."
+      },
+      "category": "security",
+      "intent": {
+        "tr": [
+          "ssh bağlan",
+          "uzak sunucuya gir",
+          "ssh user@host"
+        ],
+        "en": [
+          "ssh connect",
+          "remote shell",
+          "ssh user@host"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "openssh-client",
+          "commands": [
+            "ssh"
+          ],
+          "examples": [
+            {
+              "command": "ssh user@server.example",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "user",
+              "explanation": {
+                "tr": "Host anahtarını doğrula; parola/anahtar sızdırma.",
+                "en": "Verify host keys; avoid leaking passwords/keys."
+              }
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd",
+            "windows"
+          ],
+          "shells": [
+            "bash",
+            "powershell"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 ssh"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "ssh",
+        "remote"
+      ],
+      "related_commands": [
+        "ssh",
+        "scp",
+        "sftp",
+        "rsync"
+      ],
+      "related_tasks": [
+        "transfer-files-ssh"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "inspect-container",
+      "name": {
+        "tr": "Konteyneri incele",
+        "en": "Inspect a container"
+      },
+      "summary": {
+        "tr": "docker/podman/nerdctl ile çalışan konteyner envanteri (orkestrasyon değil).",
+        "en": "Running container inventory via docker/podman/nerdctl (not orchestration)."
+      },
+      "category": "containers",
+      "intent": {
+        "tr": [
+          "konteyner listesi",
+          "docker ps",
+          "podman konteyner"
+        ],
+        "en": [
+          "list containers",
+          "docker ps",
+          "podman containers"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "docker-ps",
+          "commands": [
+            "docker"
+          ],
+          "examples": [
+            {
+              "command": "docker ps",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "windows"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "podman-ps",
+          "commands": [
+            "podman"
+          ],
+          "examples": [
+            {
+              "command": "podman ps",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "nerdctl-ps",
+          "commands": [
+            "nerdctl"
+          ],
+          "examples": [
+            {
+              "command": "nerdctl ps",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.docker.com/engine/reference/commandline/ps/",
+          "https://docs.podman.io/"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "containers",
+        "docker"
+      ],
+      "related_commands": [
+        "docker",
+        "podman",
+        "nerdctl",
+        "crictl",
+        "kubectl"
+      ],
+      "related_tasks": [
+        "check-container-logs"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "inspect-disk-usage",
+      "name": {
+        "tr": "Dizin disk kullanımını incele",
+        "en": "Inspect directory disk usage"
+      },
+      "summary": {
+        "tr": "Bir yolun kapladığı alanı du ile özetle (silme yok).",
+        "en": "Summarize space used by a path with du (no deletes)."
+      },
+      "category": "disks",
+      "intent": {
+        "tr": [
+          "hangi klasör yer kaplıyor",
+          "du kullanımı"
+        ],
+        "en": [
+          "which folder uses space",
+          "du usage"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "unix-du",
+          "commands": [
+            "du"
+          ],
+          "examples": [
+            {
+              "command": "du -sh /* 2>/dev/null | sort -h",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "windows-measure",
+          "commands": [
+            "get-childitem"
+          ],
+          "examples": [
+            {
+              "command": "Get-ChildItem -Force | Measure-Object -Property Length -Sum",
+              "risk": "caution",
+              "shell": "powershell",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ],
+          "notes": {
+            "tr": "Measure-Object ayrı bir banka kaydı değildir; Get-ChildItem ile birlikte örnek.",
+            "en": "Measure-Object is not a separate bank record; example pairs with Get-ChildItem."
+          }
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 du"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "disks",
+        "du"
+      ],
+      "related_commands": [
+        "du",
+        "df",
+        "get-childitem"
+      ],
+      "related_tasks": [
+        "check-disk-space"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "inspect-network-interfaces",
+      "name": {
+        "tr": "Ağ arayüzlerini incele",
+        "en": "Inspect network interfaces"
+      },
+      "summary": {
+        "tr": "Arayüz adı, durum ve adresleri platform araçlarıyla göster.",
+        "en": "Show interface names, state, and addresses with platform tools."
+      },
+      "category": "network",
+      "intent": {
+        "tr": [
+          "ağ kartları",
+          "arayüz listesi",
+          "ethernet wifi durumu"
+        ],
+        "en": [
+          "list network interfaces",
+          "nic status",
+          "ethernet wifi state"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "linux-ip-link",
+          "commands": [
+            "ip"
+          ],
+          "examples": [
+            {
+              "command": "ip -br link",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "macos-networksetup",
+          "commands": [
+            "networksetup"
+          ],
+          "examples": [
+            {
+              "command": "networksetup -listallhardwareports",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "macos"
+          ],
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ]
+        },
+        {
+          "id": "windows-ipconfig-all",
+          "commands": [
+            "ipconfig"
+          ],
+          "examples": [
+            {
+              "command": "ipconfig /all",
+              "risk": "safe",
+              "shell": "cmd",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "cmd"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 ip",
+          "man 8 networksetup"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "network",
+        "interfaces"
+      ],
+      "related_commands": [
+        "ip",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli"
+      ],
+      "related_tasks": [
+        "show-local-ip",
+        "inspect-routing-table"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "inspect-routing-table",
+      "name": {
+        "tr": "Yönlendirme tablosunu incele",
+        "en": "Inspect routing table"
+      },
+      "summary": {
+        "tr": "Varsayılan rota ve yönlendirme tablosunu oku (salt okuma).",
+        "en": "Read the default route and routing table (read-only)."
+      },
+      "category": "network",
+      "intent": {
+        "tr": [
+          "routing tablosu",
+          "varsayılan ağ geçidi",
+          "route göster"
+        ],
+        "en": [
+          "routing table",
+          "default gateway",
+          "show routes"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "linux-ip-route",
+          "commands": [
+            "ip",
+            "route"
+          ],
+          "examples": [
+            {
+              "command": "ip route",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "unix-netstat-r",
+          "commands": [
+            "netstat-bsd",
+            "route"
+          ],
+          "examples": [
+            {
+              "command": "netstat -rn",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "windows-route-print",
+          "commands": [
+            "route",
+            "netsh"
+          ],
+          "examples": [
+            {
+              "command": "route print",
+              "risk": "safe",
+              "shell": "cmd",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "cmd"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 ip-route",
+          "man 8 route"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "network",
+        "routing"
+      ],
+      "related_commands": [
+        "ip",
+        "route",
+        "netstat-bsd",
+        "netsh"
+      ],
+      "related_tasks": [
+        "inspect-network-interfaces",
+        "check-internet-connectivity"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "inspect-system-logs",
+      "name": {
+        "tr": "Sistem günlüklerini incele",
+        "en": "Inspect system logs"
+      },
+      "summary": {
+        "tr": "journalctl / Get-WinEvent / log / dmesg ile okuma odaklı günlük inceleme.",
+        "en": "Read-oriented log inspection via journalctl / Get-WinEvent / log / dmesg."
+      },
+      "category": "system",
+      "intent": {
+        "tr": [
+          "sistem logları",
+          "journalctl oku",
+          "hata günlükleri"
+        ],
+        "en": [
+          "system logs",
+          "read journalctl",
+          "error logs"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "linux-journalctl",
+          "commands": [
+            "journalctl"
+          ],
+          "examples": [
+            {
+              "command": "journalctl -xe --no-pager | tail -n 50",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "windows-winevent",
+          "commands": [
+            "get-winevent"
+          ],
+          "examples": [
+            {
+              "command": "Get-WinEvent -LogName System -MaxEvents 20",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ]
+        },
+        {
+          "id": "macos-log",
+          "commands": [
+            "log"
+          ],
+          "examples": [
+            {
+              "command": "log show --last 5m --style compact",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "macos"
+          ],
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ]
+        },
+        {
+          "id": "kernel-dmesg",
+          "commands": [
+            "dmesg"
+          ],
+          "examples": [
+            {
+              "command": "dmesg | tail -n 40",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 journalctl",
+          "man 1 log",
+          "man 1 dmesg"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "logs",
+        "journal"
+      ],
+      "related_commands": [
+        "journalctl",
+        "get-winevent",
+        "log",
+        "dmesg",
+        "tail",
+        "get-content"
+      ],
+      "related_tasks": [
+        "list-running-services"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "install-package",
+      "name": {
+        "tr": "Paket kur",
+        "en": "Install a package"
+      },
+      "summary": {
+        "tr": "İsim bilinen bir paketi platform PM ile kur (örnek placeholder).",
+        "en": "Install a named package with the platform PM (placeholder examples)."
+      },
+      "category": "packages",
+      "intent": {
+        "tr": [
+          "paket kur",
+          "yazılım yükle",
+          "pacman -S"
+        ],
+        "en": [
+          "install package",
+          "add software",
+          "pacman -S"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "arch-pacman",
+          "commands": [
+            "pacman"
+          ],
+          "examples": [
+            {
+              "command": "sudo pacman -S package-name",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated"
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "id": "debian-apt",
+          "commands": [
+            "apt"
+          ],
+          "examples": [
+            {
+              "command": "sudo apt install package-name",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated"
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "id": "fedora-dnf",
+          "commands": [
+            "dnf"
+          ],
+          "examples": [
+            {
+              "command": "sudo dnf install package-name",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated"
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "fedora"
+          ]
+        },
+        {
+          "id": "macos-brew",
+          "commands": [
+            "brew"
+          ],
+          "examples": [
+            {
+              "command": "brew install package-name",
+              "risk": "caution",
+              "shell": "zsh",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "macos"
+          ],
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ]
+        },
+        {
+          "id": "windows-winget",
+          "commands": [
+            "winget"
+          ],
+          "examples": [
+            {
+              "command": "winget install --id Vendor.Package",
+              "risk": "caution",
+              "shell": "powershell",
+              "privilege": "admin"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 pacman",
+          "man 8 apt",
+          "https://docs.brew.sh/Manpage"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "packages",
+        "install"
+      ],
+      "related_commands": [
+        "pacman",
+        "apt",
+        "dnf",
+        "brew",
+        "winget",
+        "pkg",
+        "zypper",
+        "apk"
+      ],
+      "related_tasks": [
+        "update-system"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "list-running-processes",
+      "name": {
+        "tr": "Çalışan süreçleri listele",
+        "en": "List running processes"
+      },
+      "summary": {
+        "tr": "ps / Get-Process / top ile süreç envanteri.",
+        "en": "Process inventory via ps / Get-Process / top."
+      },
+      "category": "processes",
+      "intent": {
+        "tr": [
+          "süreç listesi",
+          "hangi program çalışıyor",
+          "task manager cli"
+        ],
+        "en": [
+          "list processes",
+          "what is running",
+          "task manager cli"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "unix-ps",
+          "commands": [
+            "ps"
+          ],
+          "examples": [
+            {
+              "command": "ps aux",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "windows-get-process",
+          "commands": [
+            "get-process"
+          ],
+          "examples": [
+            {
+              "command": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 20",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 ps",
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-process"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "processes",
+        "monitoring"
+      ],
+      "related_commands": [
+        "ps",
+        "top",
+        "htop",
+        "get-process"
+      ],
+      "related_tasks": [
+        "check-memory",
+        "list-running-services"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "list-running-services",
+      "name": {
+        "tr": "Çalışan servisleri listele",
+        "en": "List running services"
+      },
+      "summary": {
+        "tr": "systemd / BSD service / Windows Get-Service / launchctl ile servis durumu.",
+        "en": "Service state via systemd / BSD service / Windows Get-Service / launchctl."
+      },
+      "category": "system",
+      "intent": {
+        "tr": [
+          "servis listesi",
+          "systemctl status",
+          "hangi servisler aktif"
+        ],
+        "en": [
+          "list services",
+          "systemctl status",
+          "which services are active"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "linux-systemctl",
+          "commands": [
+            "systemctl"
+          ],
+          "examples": [
+            {
+              "command": "systemctl list-units --type=service --state=running",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "bsd-service",
+          "commands": [
+            "service"
+          ],
+          "examples": [
+            {
+              "command": "service -e",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "freebsd",
+            "netbsd",
+            "dragonflybsd"
+          ],
+          "platforms": [
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "openbsd-rcctl",
+          "commands": [
+            "rcctl"
+          ],
+          "examples": [
+            {
+              "command": "rcctl ls started",
+              "risk": "safe",
+              "shell": "ksh",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "openbsd"
+          ],
+          "platforms": [
+            "bsd"
+          ],
+          "shells": [
+            "ksh"
+          ]
+        },
+        {
+          "id": "windows-get-service",
+          "commands": [
+            "get-service"
+          ],
+          "examples": [
+            {
+              "command": "Get-Service | Where-Object Status -eq Running",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ]
+        },
+        {
+          "id": "macos-launchctl",
+          "commands": [
+            "launchctl"
+          ],
+          "examples": [
+            {
+              "command": "launchctl list",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "macos"
+          ],
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 systemctl",
+          "man 8 service",
+          "man 8 rcctl",
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-service"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "description": {
+        "tr": "Servis modelleri eşitlenmez: systemctl ≠ service ≠ Get-Service ≠ launchctl.",
+        "en": "Service models are not equated: systemctl ≠ service ≠ Get-Service ≠ launchctl."
+      },
+      "tags": [
+        "services",
+        "systemd"
+      ],
+      "related_commands": [
+        "systemctl",
+        "service",
+        "rcctl",
+        "get-service",
+        "sc",
+        "launchctl",
+        "sysrc"
+      ],
+      "related_tasks": [
+        "inspect-system-logs",
+        "check-open-ports"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "show-local-ip",
+      "name": {
+        "tr": "Yerel IP adresini göster",
+        "en": "Show local IP address"
+      },
+      "summary": {
+        "tr": "Farklı platformlarda yerel IP / ağ yapılandırmasını öğrenme.",
+        "en": "Learn local IP / network configuration across platforms."
+      },
+      "category": "network",
+      "intent": {
+        "tr": [
+          "ip adresimi öğren",
+          "ağ yapılandırmasını göster",
+          "yerel IP adresini bul"
+        ],
+        "en": [
+          "show local ip",
+          "inspect network configuration",
+          "find my ip address"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "linux-ip",
+          "commands": [
+            "ip"
+          ],
+          "examples": [
+            {
+              "command": "ip -br addr",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "Kısa adres listesi",
+                "en": "Brief address list"
+              },
+              "explanation": {
+                "tr": "Arayüz adı, durum ve IPv4/IPv6 adreslerini kısaca listeler.",
+                "en": "Briefly lists interface name, state, and IPv4/IPv6 addresses."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "windows-powershell",
+          "commands": [
+            "get-netipconfiguration"
+          ],
+          "examples": [
+            {
+              "command": "Get-NetIPConfiguration",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none",
+              "title": {
+                "tr": "IP yapılandırması",
+                "en": "IP configuration"
+              },
+              "explanation": {
+                "tr": "Windows NetTCPIP modülü ile arayüz IP bilgisi.",
+                "en": "Interface IP info via Windows NetTCPIP module."
+              }
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ]
+        },
+        {
+          "id": "windows-cmd",
+          "commands": [
+            "ipconfig"
+          ],
+          "examples": [
+            {
+              "command": "ipconfig",
+              "risk": "safe",
+              "shell": "cmd",
+              "privilege": "none",
+              "title": {
+                "tr": "ipconfig özeti",
+                "en": "ipconfig summary"
+              },
+              "explanation": {
+                "tr": "Klasik CMD ile adapter IP özeti.",
+                "en": "Classic CMD adapter IP summary."
+              }
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "cmd"
+          ]
+        },
+        {
+          "id": "macos-bsd-ifconfig",
+          "commands": [
+            "ifconfig"
+          ],
+          "examples": [
+            {
+              "command": "ifconfig -a",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none",
+              "title": {
+                "tr": "Tüm arayüzler",
+                "en": "All interfaces"
+              },
+              "explanation": {
+                "tr": "macOS/BSD ifconfig; GNU ip ile aynı araç değildir.",
+                "en": "macOS/BSD ifconfig; not the same tool as GNU ip."
+              }
+            }
+          ],
+          "operating_systems": [
+            "macos",
+            "freebsd",
+            "openbsd",
+            "netbsd"
+          ],
+          "platforms": [
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash",
+            "zsh"
+          ],
+          "notes": {
+            "tr": "networksetup macOS GUI köprüsüdür; ayrı kayıt.",
+            "en": "networksetup is a macOS GUI bridge; separate record."
+          }
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 ip",
+          "https://learn.microsoft.com/powershell/module/nettcpip/get-netipconfiguration",
+          "man 8 ifconfig"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "description": {
+        "tr": "Aynı kullanıcı amacını Linux `ip`, Windows PowerShell/CMD ve macOS/BSD `ifconfig` ile ayrı uygulamalar olarak gösterir. Komutlar eşitlenmez.",
+        "en": "Shows the same user goal via Linux ip, Windows PowerShell/CMD, and macOS/BSD ifconfig as separate implementations. Commands are not equated."
+      },
+      "tags": [
+        "network",
+        "ip",
+        "diagnostics"
+      ],
+      "related_commands": [
+        "ip",
+        "get-netipconfiguration",
+        "ipconfig",
+        "ifconfig",
+        "networksetup"
+      ],
+      "related_tasks": [
+        "inspect-network-interfaces",
+        "show-public-ip"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "show-public-ip",
+      "name": {
+        "tr": "Genel (wan) IP adresini göster",
+        "en": "Show public (WAN) IP address"
+      },
+      "summary": {
+        "tr": "Harici HTTPS uç noktası ile görünen genel IP (ağ çıkışı).",
+        "en": "Query an external HTTPS endpoint for the apparent public IP."
+      },
+      "category": "network",
+      "intent": {
+        "tr": [
+          "genel ip adresim",
+          "wan ip",
+          "dış ip öğren"
+        ],
+        "en": [
+          "show public ip",
+          "wan ip address",
+          "external ip"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "curl-https",
+          "commands": [
+            "curl"
+          ],
+          "examples": [
+            {
+              "command": "curl -4 -s https://ifconfig.me/ip",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "IPv4 genel IP",
+                "en": "IPv4 public IP"
+              },
+              "explanation": {
+                "tr": "HTTPS ile görünen IPv4; uç nokta değişebilir.",
+                "en": "Apparent IPv4 over HTTPS; endpoint may change."
+              }
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd",
+            "windows"
+          ],
+          "shells": [
+            "bash",
+            "zsh",
+            "powershell"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://curl.se/docs/manpage.html"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "description": {
+        "tr": "Üçüncü taraf uç noktalara güvenir; gizlilik ve oran sınırları dikkate alın. Yerel IP görevi ile karıştırma.",
+        "en": "Depends on third-party endpoints; consider privacy and rate limits. Do not confuse with the local-IP task."
+      },
+      "tags": [
+        "network",
+        "ip",
+        "wan"
+      ],
+      "related_commands": [
+        "curl",
+        "wget",
+        "dig"
+      ],
+      "related_tasks": [
+        "show-local-ip",
+        "check-internet-connectivity"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "transfer-files-ssh",
+      "name": {
+        "tr": "SSH üzerinden dosya aktar",
+        "en": "Transfer files over SSH"
+      },
+      "summary": {
+        "tr": "scp veya rsync ile güvenli kopyalama (öğretici örnekler).",
+        "en": "Secure copy with scp or rsync (teaching examples)."
+      },
+      "category": "security",
+      "intent": {
+        "tr": [
+          "scp ile kopyala",
+          "rsync uzak",
+          "dosya gönder"
+        ],
+        "en": [
+          "scp copy",
+          "rsync remote",
+          "send files over ssh"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "scp",
+          "commands": [
+            "scp"
+          ],
+          "examples": [
+            {
+              "command": "scp ./report.txt user@server.example:~/inbox/",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "user"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd",
+            "windows"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "rsync-ssh",
+          "commands": [
+            "rsync",
+            "ssh"
+          ],
+          "examples": [
+            {
+              "command": "rsync -avz -e ssh ./dir/ user@server.example:~/dir/",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "user"
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 scp",
+          "man 1 rsync"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "tags": [
+        "ssh",
+        "scp",
+        "rsync"
+      ],
+      "related_commands": [
+        "scp",
+        "rsync",
+        "ssh",
+        "sftp"
+      ],
+      "related_tasks": [
+        "connect-ssh",
+        "backup-directory"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "update-system",
+      "name": {
+        "tr": "Sistem paketlerini güncelle",
+        "en": "Update system packages"
+      },
+      "summary": {
+        "tr": "Dağıtıma özgü paket yöneticisi ile güncelleme (yıkıcı olabilir).",
+        "en": "Distro-specific package manager update (may be disruptive)."
+      },
+      "category": "packages",
+      "intent": {
+        "tr": [
+          "sistem güncelle",
+          "paket upgrade",
+          "güncelleme yap"
+        ],
+        "en": [
+          "update system",
+          "upgrade packages",
+          "os update"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "arch-pacman",
+          "commands": [
+            "pacman"
+          ],
+          "examples": [
+            {
+              "command": "sudo pacman -Syu",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated"
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "arch",
+            "endeavouros",
+            "manjaro"
+          ],
+          "notes": {
+            "tr": "Arch-first: pacman -Syu; AUR yardımcıları ayrı kayıtlardır.",
+            "en": "Arch-first: pacman -Syu; AUR helpers are separate records."
+          }
+        },
+        {
+          "id": "debian-apt",
+          "commands": [
+            "apt"
+          ],
+          "examples": [
+            {
+              "command": "sudo apt update && sudo apt upgrade",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated"
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "debian",
+            "ubuntu",
+            "linux-mint",
+            "pop-os"
+          ]
+        },
+        {
+          "id": "fedora-dnf",
+          "commands": [
+            "dnf"
+          ],
+          "examples": [
+            {
+              "command": "sudo dnf upgrade",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated"
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "fedora",
+            "rhel",
+            "rocky",
+            "almalinux"
+          ]
+        },
+        {
+          "id": "freebsd-pkg",
+          "commands": [
+            "pkg",
+            "freebsd-update"
+          ],
+          "examples": [
+            {
+              "command": "sudo pkg upgrade",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated"
+            }
+          ],
+          "operating_systems": [
+            "freebsd"
+          ],
+          "platforms": [
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        },
+        {
+          "id": "macos-softwareupdate",
+          "commands": [
+            "softwareupdate",
+            "brew"
+          ],
+          "examples": [
+            {
+              "command": "softwareupdate -l",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none"
+            }
+          ],
+          "operating_systems": [
+            "macos"
+          ],
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ]
+        },
+        {
+          "id": "windows-winget",
+          "commands": [
+            "winget"
+          ],
+          "examples": [
+            {
+              "command": "winget upgrade --all",
+              "risk": "caution",
+              "shell": "powershell",
+              "privilege": "admin"
+            }
+          ],
+          "operating_systems": [
+            "windows"
+          ],
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ]
+        }
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 pacman",
+          "man 8 apt",
+          "man 8 dnf",
+          "https://docs.brew.sh/",
+          "https://learn.microsoft.com/windows/package-manager/winget/"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "description": {
+        "tr": "Arch'ta pacman tercih edilir. Windows/macOS güncelleme modelleri ayrıdır. Örnekler caution/elevated; otomatik çalıştırılmaz.",
+        "en": "Prefer pacman on Arch. Windows/macOS update models differ. Examples are caution/elevated; not auto-executed."
+      },
+      "tags": [
+        "packages",
+        "update",
+        "maintenance"
+      ],
+      "related_commands": [
+        "pacman",
+        "apt",
+        "dnf",
+        "zypper",
+        "apk",
+        "pkg",
+        "brew",
+        "softwareupdate",
+        "winget",
+        "freebsd-update"
+      ],
+      "related_tasks": [
+        "install-package"
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "arch-server",
+      "name": {
+        "tr": "Arch Linux sunucu",
+        "en": "Arch Linux server"
+      },
+      "summary": {
+        "tr": "pacman-first Arch sunucu: rolling güncelleme, systemd, nft/ufw seçenekleri.",
+        "en": "pacman-first Arch server: rolling updates, systemd, nft/ufw options."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://wiki.archlinux.org/title/Server"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "description": {
+        "tr": "Kurulum/güncelleme notlarında pacman tercih edilir (proje tercihi).",
+        "en": "Install/update notes prefer pacman (project preference)."
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [
+        "arch",
+        "endeavouros",
+        "manjaro"
+      ],
+      "related_commands": [
+        "pacman",
+        "systemctl",
+        "journalctl",
+        "ip",
+        "ss",
+        "nft",
+        "ufw",
+        "ssh"
+      ],
+      "related_tasks": [
+        "update-system",
+        "install-package",
+        "list-running-services",
+        "show-local-ip"
+      ],
+      "tags": [
+        "server",
+        "arch",
+        "pacman"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "database-server",
+      "name": {
+        "tr": "Veritabanı sunucu",
+        "en": "Database server"
+      },
+      "summary": {
+        "tr": "İstemci CLI odaklı DB profili (parola argv'de yok).",
+        "en": "Client-CLI oriented DB profile (no passwords on argv)."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "docs/SERVER_ADMINISTRATION.md"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "related_commands": [
+        "mysql",
+        "psql",
+        "redis-cli",
+        "sqlite3",
+        "systemctl",
+        "ss"
+      ],
+      "related_tasks": [
+        "list-running-services",
+        "check-open-ports",
+        "backup-directory",
+        "inspect-system-logs"
+      ],
+      "tags": [
+        "databases",
+        "server"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "debian-server",
+      "name": {
+        "tr": "Debian / Ubuntu sunucu",
+        "en": "Debian / Ubuntu server"
+      },
+      "summary": {
+        "tr": "apt tabanlı sunucu: servisler, ufw, günlükler, güncelleme.",
+        "en": "apt-based server: services, ufw, logs, updates."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://www.debian.org/doc/",
+          "https://ubuntu.com/server/docs"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [
+        "debian",
+        "ubuntu",
+        "linux-mint",
+        "pop-os"
+      ],
+      "related_commands": [
+        "apt",
+        "systemctl",
+        "journalctl",
+        "ufw",
+        "ss",
+        "ip",
+        "ssh"
+      ],
+      "related_tasks": [
+        "update-system",
+        "install-package",
+        "list-running-services",
+        "check-firewall-status"
+      ],
+      "tags": [
+        "server",
+        "debian",
+        "ubuntu"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "docker-host",
+      "name": {
+        "tr": "Docker ana makinesi",
+        "en": "Docker host"
+      },
+      "summary": {
+        "tr": "Konteyner runtime odaklı host: docker/podman/nerdctl, disk ve servisler.",
+        "en": "Container-runtime host: docker/podman/nerdctl, disk, and services."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.docker.com/engine/"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "server_platforms": [
+        "docker-engine"
+      ],
+      "related_commands": [
+        "docker",
+        "docker-compose",
+        "podman",
+        "nerdctl",
+        "systemctl",
+        "df",
+        "ss"
+      ],
+      "related_tasks": [
+        "inspect-container",
+        "check-container-logs",
+        "check-disk-space",
+        "list-running-services"
+      ],
+      "tags": [
+        "containers",
+        "docker"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "fedora-server",
+      "name": {
+        "tr": "Fedora / RHEL ailesi sunucu",
+        "en": "Fedora / RHEL-family server"
+      },
+      "summary": {
+        "tr": "dnf + firewalld + systemd odaklı sunucu profili.",
+        "en": "dnf + firewalld + systemd oriented server profile."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.fedoraproject.org/",
+          "https://access.redhat.com/documentation"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [
+        "fedora",
+        "fedora-server",
+        "rhel",
+        "rocky",
+        "almalinux"
+      ],
+      "related_commands": [
+        "dnf",
+        "systemctl",
+        "journalctl",
+        "firewall-cmd",
+        "ss",
+        "ip"
+      ],
+      "related_tasks": [
+        "update-system",
+        "install-package",
+        "list-running-services",
+        "check-firewall-status"
+      ],
+      "tags": [
+        "server",
+        "fedora",
+        "rhel"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "freebsd-server",
+      "name": {
+        "tr": "FreeBSD sunucu",
+        "en": "FreeBSD server"
+      },
+      "summary": {
+        "tr": "pkg / service / sysrc / pfctl — systemd ile eşitlenmez.",
+        "en": "pkg / service / sysrc / pfctl — not equated with systemd."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.freebsd.org/"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "freebsd"
+      ],
+      "distributions": [
+        "freebsd-release"
+      ],
+      "related_commands": [
+        "pkg",
+        "freebsd-update",
+        "service",
+        "sysrc",
+        "pfctl",
+        "ifconfig",
+        "ssh"
+      ],
+      "related_tasks": [
+        "update-system",
+        "list-running-services",
+        "check-firewall-status",
+        "show-local-ip"
+      ],
+      "tags": [
+        "server",
+        "freebsd",
+        "bsd"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "homelab",
+      "name": {
+        "tr": "Homelab sunucu",
+        "en": "Homelab server"
+      },
+      "summary": {
+        "tr": "Ev laboratuvarı: Docker, reverse proxy, yedek, SSH ve temel ağ.",
+        "en": "Home lab: Docker, reverse proxy, backup, SSH, and basic networking."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "docs/SERVER_ADMINISTRATION.md"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "server_platforms": [
+        "docker-engine",
+        "proxmox-ve"
+      ],
+      "related_commands": [
+        "docker",
+        "docker-compose",
+        "nginx",
+        "caddy",
+        "restic",
+        "rsync",
+        "ssh",
+        "ufw",
+        "systemctl"
+      ],
+      "related_tasks": [
+        "inspect-container",
+        "check-container-logs",
+        "backup-directory",
+        "connect-ssh",
+        "check-firewall-status",
+        "update-system"
+      ],
+      "tags": [
+        "homelab",
+        "server",
+        "self-hosted"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "kubernetes",
+      "name": {
+        "tr": "Kubernetes düğümü / operatör",
+        "en": "Kubernetes node / operator"
+      },
+      "summary": {
+        "tr": "kubectl/helm/crictl referansı; yanlış context riskine dikkat.",
+        "en": "kubectl/helm/crictl reference; watch wrong-context risk."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://kubernetes.io/docs/",
+          "https://helm.sh/docs/"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "server_platforms": [
+        "kubernetes",
+        "docker-engine"
+      ],
+      "related_commands": [
+        "kubectl",
+        "helm",
+        "crictl",
+        "nerdctl",
+        "ssh"
+      ],
+      "related_tasks": [
+        "inspect-container",
+        "check-container-logs",
+        "connect-ssh"
+      ],
+      "tags": [
+        "kubernetes",
+        "containers",
+        "devops"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "linux-server",
+      "name": {
+        "tr": "Linux sunucu (temel)",
+        "en": "Linux server (basics)"
+      },
+      "summary": {
+        "tr": "Genel amaçlı Linux sunucu: servisler, ağ, disk, güncelleme ve SSH.",
+        "en": "General-purpose Linux server: services, network, disk, updates, SSH."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "docs/SERVER_ADMINISTRATION.md"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "description": {
+        "tr": "Yönlendirici referans koleksiyonu; komutları otomatik çalıştırmaz. Dağıtıma özel profiller (debian/fedora/arch) ile birlikte kullan.",
+        "en": "Guiding reference collection; does not auto-run commands. Use with distro-specific profiles (debian/fedora/arch)."
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [
+        "arch",
+        "debian",
+        "ubuntu",
+        "fedora"
+      ],
+      "related_commands": [
+        "systemctl",
+        "journalctl",
+        "ip",
+        "ss",
+        "df",
+        "ssh",
+        "ufw",
+        "firewall-cmd",
+        "pacman",
+        "apt",
+        "dnf"
+      ],
+      "related_tasks": [
+        "show-local-ip",
+        "check-disk-space",
+        "list-running-services",
+        "inspect-system-logs",
+        "update-system",
+        "check-firewall-status",
+        "connect-ssh",
+        "check-open-ports",
+        "check-memory",
+        "list-running-processes"
+      ],
+      "tags": [
+        "server",
+        "linux"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "nas-server",
+      "name": {
+        "tr": "NAS / depolama sunucu",
+        "en": "NAS / storage server"
+      },
+      "summary": {
+        "tr": "Disk, paylaşım ve yedek odaklı depolama profili (vendor CLI bankası değil).",
+        "en": "Disk, share, and backup oriented storage profile (not a vendor CLI bank)."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "docs/SERVER_ADMINISTRATION.md"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "linux",
+        "freebsd"
+      ],
+      "server_platforms": [
+        "truenas-scale",
+        "truenas-core",
+        "openmediavault",
+        "synology-dsm"
+      ],
+      "related_commands": [
+        "df",
+        "du",
+        "lsblk",
+        "mount",
+        "rsync",
+        "restic",
+        "borg",
+        "rclone",
+        "zfs"
+      ],
+      "related_tasks": [
+        "check-disk-space",
+        "inspect-disk-usage",
+        "backup-directory",
+        "connect-ssh"
+      ],
+      "tags": [
+        "nas",
+        "storage",
+        "backup"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "virtualization-host",
+      "name": {
+        "tr": "Sanallaştırma ana makinesi",
+        "en": "Virtualization host"
+      },
+      "summary": {
+        "tr": "libvirt/QEMU host: virsh / qemu-img (konteyner ile eşitlenmez).",
+        "en": "libvirt/QEMU host: virsh / qemu-img (not equated with containers)."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://libvirt.org/manpages/virsh.html"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "server_platforms": [
+        "kvm",
+        "qemu",
+        "libvirt",
+        "proxmox-ve"
+      ],
+      "related_commands": [
+        "virsh",
+        "qemu-img",
+        "systemctl",
+        "ip",
+        "ss",
+        "df"
+      ],
+      "related_tasks": [
+        "list-running-services",
+        "check-disk-space",
+        "show-local-ip",
+        "connect-ssh"
+      ],
+      "tags": [
+        "virtualization",
+        "kvm"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "web-server",
+      "name": {
+        "tr": "Web / reverse proxy sunucu",
+        "en": "Web / reverse-proxy server"
+      },
+      "summary": {
+        "tr": "nginx/Caddy + TLS/servis alışkanlıkları (config test önce).",
+        "en": "nginx/Caddy + TLS/service habits (config test first)."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://nginx.org/en/docs/",
+          "https://caddyserver.com/docs/"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "related_commands": [
+        "nginx",
+        "caddy",
+        "systemctl",
+        "ss",
+        "ufw"
+      ],
+      "related_tasks": [
+        "list-running-services",
+        "check-open-ports",
+        "check-firewall-status",
+        "inspect-system-logs"
+      ],
+      "tags": [
+        "web",
+        "proxy",
+        "server"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "kind": "profile",
+      "id": "windows-server",
+      "name": {
+        "tr": "Windows sunucu / masaüstü yönetim",
+        "en": "Windows server / admin basics"
+      },
+      "summary": {
+        "tr": "PowerShell odaklı servis, ağ, disk ve WinGet güncelleme referansı.",
+        "en": "PowerShell-oriented services, network, disk, and WinGet update reference."
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/",
+          "https://learn.microsoft.com/powershell/"
+        ],
+        "notes": "Agent-authored Faz 8 draft; not human-verified."
+      },
+      "operating_systems": [
+        "windows"
+      ],
+      "distributions": [
+        "windows-server",
+        "windows-11",
+        "windows-10"
+      ],
+      "related_commands": [
+        "get-service",
+        "get-process",
+        "get-netipconfiguration",
+        "get-nettcpconnection",
+        "get-volume",
+        "get-winevent",
+        "winget",
+        "netsh",
+        "ipconfig",
+        "sc"
+      ],
+      "related_tasks": [
+        "show-local-ip",
+        "check-open-ports",
+        "check-disk-space",
+        "list-running-services",
+        "inspect-system-logs",
+        "update-system",
+        "check-firewall-status"
+      ],
+      "tags": [
+        "server",
+        "windows",
+        "powershell"
+      ]
     }
   ]
 }
