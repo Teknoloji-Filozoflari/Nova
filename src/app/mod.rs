@@ -6019,6 +6019,51 @@ mod tests {
     }
 
     #[test]
+    fn kurulu_detail_description_follows_store_catalog_match() {
+        use crate::store::sync::{detail_description_for_tool, find_store_for_catalog_tool};
+
+        let app = sample_app();
+        let btm = app
+            .catalog
+            .entries()
+            .iter()
+            .find(|e| e.id == "btm")
+            .expect("btm katalogda olmalı");
+        let store =
+            find_store_for_catalog_tool(app.store.entries(), &btm.id, &btm.executable, &btm.args)
+                .expect("btm → Mağaza bottom eşleşmeli");
+        assert_eq!(store.id, "bottom");
+        let desc = detail_description_for_tool(&btm.description, Some(store));
+        assert_eq!(desc, store.description.as_str());
+        assert_ne!(
+            desc,
+            btm.description.as_str(),
+            "Kurulu, Mağaza açıklamasını kullanmalı (id/ikili eşleşmesi)"
+        );
+
+        let speed = app
+            .catalog
+            .entries()
+            .iter()
+            .find(|e| e.id == "cloudflare-speed-test")
+            .expect("cloudflare-speed-test katalogda olmalı");
+        assert!(
+            find_store_for_catalog_tool(
+                app.store.entries(),
+                &speed.id,
+                &speed.executable,
+                &speed.args,
+            )
+            .is_none(),
+            "özel argv’li hız testi curl Mağaza kaydına bağlanmamalı"
+        );
+        assert_eq!(
+            detail_description_for_tool(&speed.description, None),
+            speed.description.as_str()
+        );
+    }
+
+    #[test]
     fn apply_install_outcome_is_idempotent_for_catalog_sync() {
         let mut app = sample_app();
         let outcome = crate::store::install::InstallOutcome {

@@ -2197,6 +2197,16 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     let mut lines: Vec<Line> = Vec::new();
     let inner_w = area.width.saturating_sub(4) as usize;
 
+    // Mağaza detayıyla aynı metin: eşleşen store kaydının açıklaması (id / ikili).
+    let store_match = crate::store::sync::find_store_for_catalog_tool(
+        app.store.entries(),
+        &entry.id,
+        &entry.executable,
+        &entry.args,
+    );
+    let description =
+        crate::store::sync::detail_description_for_tool(&entry.description, store_match);
+
     lines.push(Line::from(Span::styled(
         entry.name.clone(),
         Style::default().add_modifier(Modifier::BOLD),
@@ -2206,12 +2216,20 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         Span::styled(entry.category.clone(), Style::default().fg(Color::Cyan)),
     ]));
 
-    // Açıklama: satır kırarak tam göster (küçük şerit / `…` yok).
-    for part in wrap_text(&entry.description, inner_w) {
+    // Açıklama: satır kırarak tam göster (küçük şerit / `…` yok) — Mağaza ile aynı kaynak.
+    let desc = description.trim();
+    if desc.is_empty() {
         lines.push(Line::from(Span::styled(
-            part,
-            Style::default().fg(Color::Gray),
+            "Bu uygulama için katalog açıklaması yok.",
+            Style::default().fg(Color::DarkGray),
         )));
+    } else {
+        for part in wrap_text(desc, inner_w) {
+            lines.push(Line::from(Span::styled(
+                part,
+                Style::default().fg(Color::Gray),
+            )));
+        }
     }
 
     let status_line = match &entry.resolved_path {
@@ -2240,6 +2258,27 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
             Style::default().fg(Color::White),
         ),
     ]));
+
+    // Mağaza’daki kurulum notları (gerçek katalog metni; uydurma yok).
+    if let Some(notes) = store_match
+        .and_then(|e| e.install_notes.as_deref())
+        .map(str::trim)
+        .filter(|n| !n.is_empty())
+    {
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            "Notlar:",
+            Style::default()
+                .fg(Color::DarkGray)
+                .add_modifier(Modifier::BOLD),
+        )));
+        for part in wrap_text(notes, inner_w) {
+            lines.push(Line::from(Span::styled(
+                part,
+                Style::default().fg(Color::Yellow),
+            )));
+        }
+    }
 
     let examples = enriched_tool_examples(entry);
     if !examples.is_empty() {
