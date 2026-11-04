@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 228,
+  "entry_count": 246,
   "entries": [
     {
       "type": "command",
@@ -1024,6 +1024,44 @@
     },
     {
       "type": "command",
+      "id": "doas",
+      "name": "doas",
+      "category": "users",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "bsd",
+        "openbsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "openbsd",
+        "privilege",
+        "security"
+      ],
+      "summary": {
+        "tr": "OpenBSD sade yetki yükseltme (sudo alternatifi).",
+        "en": "OpenBSD minimal privilege elevation (sudo alternative)."
+      },
+      "intent": {
+        "tr": [
+          "doas",
+          "openbsd sudo",
+          "yetki yükselt"
+        ],
+        "en": [
+          "doas",
+          "openbsd sudo",
+          "privilege elevation"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
       "id": "docker",
       "name": "docker",
       "category": "containers",
@@ -1582,6 +1620,42 @@
       },
       "concepts": [
         "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "freebsd-update",
+      "name": "freebsd-update",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "freebsd",
+        "update",
+        "base"
+      ],
+      "summary": {
+        "tr": "FreeBSD taban sistemi ikili güncelleyicisi.",
+        "en": "FreeBSD base-system binary updater."
+      },
+      "intent": {
+        "tr": [
+          "freebsd-update",
+          "freebsd taban güncelle"
+        ],
+        "en": [
+          "freebsd-update",
+          "freebsd base update"
+        ]
+      },
+      "concepts": [
+        "packages"
       ]
     },
     {
@@ -2716,6 +2790,47 @@
     },
     {
       "type": "command",
+      "id": "ifconfig",
+      "name": "ifconfig",
+      "category": "network",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "bsd",
+        "freebsd",
+        "openbsd",
+        "netbsd",
+        "dragonflybsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "network",
+        "interfaces"
+      ],
+      "summary": {
+        "tr": "BSD ağ arayüzü yapılandırması / sorgusu.",
+        "en": "BSD network interface configuration / query."
+      },
+      "intent": {
+        "tr": [
+          "ifconfig",
+          "bsd ip adresi",
+          "ağ arayüzü"
+        ],
+        "en": [
+          "ifconfig",
+          "bsd show ip",
+          "network interface"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
       "id": "installpkg",
       "name": "installpkg",
       "category": "packages",
@@ -2919,6 +3034,78 @@
       "concepts": [
         "firewalls",
         "networking"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "jexec",
+      "name": "jexec",
+      "category": "containers",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "freebsd",
+        "jails",
+        "containers"
+      ],
+      "summary": {
+        "tr": "FreeBSD jail içinde komut çalıştırır.",
+        "en": "Execute a command inside a FreeBSD jail."
+      },
+      "intent": {
+        "tr": [
+          "jexec",
+          "freebsd jail komut"
+        ],
+        "en": [
+          "jexec",
+          "freebsd jail exec"
+        ]
+      },
+      "concepts": [
+        "containers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "jls",
+      "name": "jls",
+      "category": "containers",
+      "kind": "administrative_tool",
+      "risk": "safe",
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "freebsd",
+        "jails",
+        "containers"
+      ],
+      "summary": {
+        "tr": "FreeBSD jail listesi.",
+        "en": "List FreeBSD jails."
+      },
+      "intent": {
+        "tr": [
+          "jls",
+          "freebsd jail listele"
+        ],
+        "en": [
+          "jls",
+          "list freebsd jails"
+        ]
+      },
+      "concepts": [
+        "containers"
       ]
     },
     {
@@ -3877,6 +4064,47 @@
     },
     {
       "type": "command",
+      "id": "netstat-bsd",
+      "name": "netstat",
+      "category": "network",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "bsd",
+        "freebsd",
+        "openbsd",
+        "netbsd",
+        "dragonflybsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "network",
+        "sockets"
+      ],
+      "summary": {
+        "tr": "BSD netstat — soket ve yönlendirme tablosu.",
+        "en": "BSD netstat — sockets and routing table."
+      },
+      "intent": {
+        "tr": [
+          "netstat bsd",
+          "bsd dinleyen port",
+          "yönlendirme tablosu"
+        ],
+        "en": [
+          "bsd netstat",
+          "bsd listening ports",
+          "routing table"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
       "id": "networksetup",
       "name": "networksetup",
       "category": "network",
@@ -3904,6 +4132,41 @@
           "macos network",
           "networksetup",
           "set dns"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "newsyslog",
+      "name": "newsyslog",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "caution",
+      "platforms": [
+        "bsd",
+        "freebsd",
+        "openbsd",
+        "netbsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "logs",
+        "rotation"
+      ],
+      "summary": {
+        "tr": "BSD günlük döndürme (newsyslog.conf).",
+        "en": "BSD log rotation (newsyslog.conf)."
+      },
+      "intent": {
+        "tr": [
+          "newsyslog",
+          "bsd log döndür"
+        ],
+        "en": [
+          "newsyslog",
+          "bsd log rotate"
         ]
       },
       "concepts": []
@@ -4461,6 +4724,47 @@
     },
     {
       "type": "command",
+      "id": "pfctl",
+      "name": "pfctl",
+      "category": "security",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "bsd",
+        "openbsd",
+        "freebsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "openbsd",
+        "freebsd",
+        "firewall",
+        "pf"
+      ],
+      "summary": {
+        "tr": "PF (Packet Filter) denetimi — OpenBSD/FreeBSD.",
+        "en": "PF (Packet Filter) control — OpenBSD/FreeBSD."
+      },
+      "intent": {
+        "tr": [
+          "pfctl",
+          "pf firewall",
+          "openbsd güvenlik duvarı"
+        ],
+        "en": [
+          "pfctl",
+          "pf firewall",
+          "openbsd firewall"
+        ]
+      },
+      "concepts": [
+        "firewalls",
+        "networking"
+      ]
+    },
+    {
+      "type": "command",
       "id": "pgrep",
       "name": "pgrep",
       "category": "processes",
@@ -4525,6 +4829,163 @@
       "concepts": [
         "networking",
         "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pkg",
+      "name": "pkg",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "freebsd",
+        "packages",
+        "pkg"
+      ],
+      "summary": {
+        "tr": "FreeBSD ikili paket yöneticisi (pkgng).",
+        "en": "FreeBSD binary package manager (pkgng)."
+      },
+      "intent": {
+        "tr": [
+          "pkg kur",
+          "freebsd paket",
+          "pkg search"
+        ],
+        "en": [
+          "pkg install",
+          "freebsd package",
+          "pkg search"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pkg_add",
+      "name": "pkg_add",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "bsd",
+        "openbsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "openbsd",
+        "packages"
+      ],
+      "summary": {
+        "tr": "OpenBSD paket kurucu (pkg_* ailesi).",
+        "en": "OpenBSD package installer (pkg_* family)."
+      },
+      "intent": {
+        "tr": [
+          "pkg_add",
+          "openbsd paket",
+          "pkg_info"
+        ],
+        "en": [
+          "pkg_add",
+          "openbsd package",
+          "pkg_info"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pkgin",
+      "name": "pkgin",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "bsd",
+        "netbsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "netbsd",
+        "packages",
+        "pkgsrc"
+      ],
+      "summary": {
+        "tr": "NetBSD ikili paket aracı (pkgsrc ön yüzü).",
+        "en": "NetBSD binary package tool (pkgsrc frontend)."
+      },
+      "intent": {
+        "tr": [
+          "pkgin",
+          "netbsd paket",
+          "pkgin search"
+        ],
+        "en": [
+          "pkgin",
+          "netbsd package",
+          "pkgin search"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pkgsrc",
+      "name": "pkgsrc",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "bsd",
+        "netbsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "netbsd",
+        "pkgsrc",
+        "packages"
+      ],
+      "summary": {
+        "tr": "NetBSD pkgsrc kaynak paket koleksiyonu.",
+        "en": "NetBSD pkgsrc source package collection."
+      },
+      "intent": {
+        "tr": [
+          "pkgsrc",
+          "netbsd kaynak paket"
+        ],
+        "en": [
+          "pkgsrc",
+          "netbsd source packages"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
       ]
     },
     {
@@ -4690,6 +5151,46 @@
       },
       "concepts": [
         "packages",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ports",
+      "name": "ports",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "freebsd",
+        "ports",
+        "packages"
+      ],
+      "summary": {
+        "tr": "FreeBSD Ports kaynak ağacı (make tabanlı).",
+        "en": "FreeBSD Ports source tree (make-based)."
+      },
+      "intent": {
+        "tr": [
+          "freebsd ports",
+          "ports ara",
+          "make search"
+        ],
+        "en": [
+          "freebsd ports",
+          "ports search",
+          "make search"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
         "package-managers-comparison"
       ]
     },
@@ -4868,6 +5369,44 @@
       "concepts": [
         "path",
         "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "rcctl",
+      "name": "rcctl",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "bsd",
+        "openbsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "openbsd",
+        "rc",
+        "services"
+      ],
+      "summary": {
+        "tr": "OpenBSD rc.d servis denetimi (systemd / FreeBSD service değil).",
+        "en": "OpenBSD rc.d service control (not systemd / FreeBSD service)."
+      },
+      "intent": {
+        "tr": [
+          "rcctl",
+          "openbsd servis",
+          "rc.d"
+        ],
+        "en": [
+          "rcctl",
+          "openbsd service",
+          "rc.d"
+        ]
+      },
+      "concepts": [
+        "systemd"
       ]
     },
     {
@@ -5466,6 +6005,46 @@
       "concepts": [
         "files",
         "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "service",
+      "name": "service",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "bsd",
+        "freebsd",
+        "netbsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "freebsd",
+        "netbsd",
+        "rc",
+        "services"
+      ],
+      "summary": {
+        "tr": "FreeBSD/NetBSD rc.d servis denetimi (systemd değil).",
+        "en": "FreeBSD/NetBSD rc.d service control (not systemd)."
+      },
+      "intent": {
+        "tr": [
+          "freebsd servis",
+          "service status",
+          "rc.d"
+        ],
+        "en": [
+          "freebsd service",
+          "service status",
+          "rc.d"
+        ]
+      },
+      "concepts": [
+        "systemd"
       ]
     },
     {
@@ -6100,6 +6679,44 @@
       },
       "concepts": [
         "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "sysrc",
+      "name": "sysrc",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "freebsd",
+        "rc",
+        "services"
+      ],
+      "summary": {
+        "tr": "FreeBSD rc.conf güvenli okuma/yazma yardımcısı.",
+        "en": "FreeBSD rc.conf safe get/set helper."
+      },
+      "intent": {
+        "tr": [
+          "sysrc",
+          "rc.conf",
+          "freebsd servis ayar"
+        ],
+        "en": [
+          "sysrc",
+          "rc.conf",
+          "freebsd service config"
+        ]
+      },
+      "concepts": [
+        "systemd"
       ]
     },
     {
@@ -7456,6 +8073,44 @@
     },
     {
       "type": "command",
+      "id": "zfs",
+      "name": "zfs",
+      "category": "disks",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "freebsd",
+        "zfs",
+        "storage"
+      ],
+      "summary": {
+        "tr": "ZFS veri kümesi / anlık görüntü yönetimi (FreeBSD).",
+        "en": "ZFS dataset / snapshot management (FreeBSD)."
+      },
+      "intent": {
+        "tr": [
+          "zfs list",
+          "zfs snapshot",
+          "freebsd zfs"
+        ],
+        "en": [
+          "zfs list",
+          "zfs snapshot",
+          "freebsd zfs"
+        ]
+      },
+      "concepts": [
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
       "id": "zip",
       "name": "zip",
       "category": "archives",
@@ -7485,6 +8140,44 @@
       },
       "concepts": [
         "files"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "zpool",
+      "name": "zpool",
+      "category": "disks",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "bsd",
+        "freebsd",
+        "zfs",
+        "storage"
+      ],
+      "summary": {
+        "tr": "ZFS depolama havuzu yönetimi (FreeBSD).",
+        "en": "ZFS storage pool management (FreeBSD)."
+      },
+      "intent": {
+        "tr": [
+          "zpool",
+          "zfs havuz",
+          "freebsd disk"
+        ],
+        "en": [
+          "zpool",
+          "zfs pool",
+          "freebsd storage"
+        ]
+      },
+      "concepts": [
+        "storage"
       ]
     },
     {
@@ -7569,14 +8262,15 @@
         "en": "Firewall tools"
       },
       "summary": {
-        "tr": "nftables, iptables, firewalld ve ufw — ne zaman hangisi, güvenli okuma alışkanlığı.",
-        "en": "nftables, iptables, firewalld, and ufw — when to use which, safe read habits."
+        "tr": "nftables, iptables, firewalld, ufw ve BSD pfctl — ne zaman hangisi, güvenli okuma.",
+        "en": "nftables, iptables, firewalld, ufw, and BSD pfctl — when to use which, safe reads."
       },
       "related_commands": [
         "nft",
         "iptables",
         "firewall-cmd",
         "ufw",
+        "pfctl",
         "ss",
         "ip"
       ]
@@ -7686,8 +8380,8 @@
         "en": "Package managers"
       },
       "summary": {
-        "tr": "Linux PM’leri (pacman önce), Nix/Guix, WinGet/Homebrew/MacPorts notları.",
-        "en": "Linux PMs (pacman first), Nix/Guix, plus WinGet/Homebrew/MacPorts notes."
+        "tr": "Linux PM’leri (pacman önce), Nix/Guix, Win/macOS ve BSD PM notları.",
+        "en": "Linux PMs (pacman first), Nix/Guix, Win/macOS, and BSD PM notes."
       },
       "related_commands": [
         "pacman",
@@ -7709,7 +8403,12 @@
         "rpm-ostree",
         "brew",
         "port",
-        "winget"
+        "winget",
+        "pkg",
+        "ports",
+        "pkg_add",
+        "pkgin",
+        "pkgsrc"
       ]
     },
     {
@@ -7730,8 +8429,8 @@
         "en": "Package manager comparison tables"
       },
       "summary": {
-        "tr": "Linux PM’ler + WinGet / Homebrew / MacPorts yan yana (çoğu draft).",
-        "en": "Linux PMs plus WinGet / Homebrew / MacPorts side-by-side (mostly draft)."
+        "tr": "Linux + Win/macOS + BSD PM’ler yan yana (çoğu draft).",
+        "en": "Linux + Win/macOS + BSD PMs side-by-side (mostly draft)."
       },
       "related_commands": [
         "pacman",
@@ -7755,7 +8454,12 @@
         "rpm-ostree",
         "brew",
         "port",
-        "winget"
+        "winget",
+        "pkg",
+        "ports",
+        "pkg_add",
+        "pkgin",
+        "pkgsrc"
       ]
     },
     {
@@ -7904,7 +8608,11 @@
         "timedatectl",
         "loginctl",
         "systemd-analyze",
-        "bootctl"
+        "bootctl",
+        "service",
+        "sysrc",
+        "rcctl",
+        "launchctl"
       ]
     },
     {
@@ -7933,6 +8641,6 @@
       ]
     }
   ],
-  "content_sha256": "93e1b59ff6d63c2f117705b17a70e07f2fbce6800ba0661469f8f782c53fe03c",
-  "generated_at": "2026-11-04T19:37:05Z"
+  "content_sha256": "798249613e74b7e1c930204cbff62d23b5430c1147b3ae9c20c9d5fa81554204",
+  "generated_at": "2026-11-04T20:11:29Z"
 }
