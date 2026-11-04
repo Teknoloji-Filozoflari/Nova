@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 276,
+  "entry_count": 310,
   "entries": [
     {
       "type": "command",
@@ -9715,8 +9715,1434 @@
         "systemctl",
         "lsblk"
       ]
+    },
+    {
+      "type": "profile",
+      "id": "arch-server",
+      "name": {
+        "tr": "Arch Linux sunucu",
+        "en": "Arch Linux server"
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [
+        "arch",
+        "endeavouros",
+        "manjaro"
+      ],
+      "server_platforms": [],
+      "verification": "draft",
+      "tags": [
+        "server",
+        "arch",
+        "pacman"
+      ],
+      "summary": {
+        "tr": "pacman-first Arch sunucu: rolling güncelleme, systemd, nft/ufw seçenekleri.",
+        "en": "pacman-first Arch server: rolling updates, systemd, nft/ufw options."
+      },
+      "related_commands": [
+        "pacman",
+        "systemctl",
+        "journalctl",
+        "ip",
+        "ss",
+        "nft",
+        "ufw",
+        "ssh"
+      ],
+      "related_tasks": [
+        "update-system",
+        "install-package",
+        "list-running-services",
+        "show-local-ip"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "database-server",
+      "name": {
+        "tr": "Veritabanı sunucu",
+        "en": "Database server"
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [],
+      "server_platforms": [],
+      "verification": "draft",
+      "tags": [
+        "databases",
+        "server"
+      ],
+      "summary": {
+        "tr": "İstemci CLI odaklı DB profili (parola argv'de yok).",
+        "en": "Client-CLI oriented DB profile (no passwords on argv)."
+      },
+      "related_commands": [
+        "mysql",
+        "psql",
+        "redis-cli",
+        "sqlite3",
+        "systemctl",
+        "ss"
+      ],
+      "related_tasks": [
+        "list-running-services",
+        "check-open-ports",
+        "backup-directory",
+        "inspect-system-logs"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "debian-server",
+      "name": {
+        "tr": "Debian / Ubuntu sunucu",
+        "en": "Debian / Ubuntu server"
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [
+        "debian",
+        "ubuntu",
+        "linux-mint",
+        "pop-os"
+      ],
+      "server_platforms": [],
+      "verification": "draft",
+      "tags": [
+        "server",
+        "debian",
+        "ubuntu"
+      ],
+      "summary": {
+        "tr": "apt tabanlı sunucu: servisler, ufw, günlükler, güncelleme.",
+        "en": "apt-based server: services, ufw, logs, updates."
+      },
+      "related_commands": [
+        "apt",
+        "systemctl",
+        "journalctl",
+        "ufw",
+        "ss",
+        "ip",
+        "ssh"
+      ],
+      "related_tasks": [
+        "update-system",
+        "install-package",
+        "list-running-services",
+        "check-firewall-status"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "docker-host",
+      "name": {
+        "tr": "Docker ana makinesi",
+        "en": "Docker host"
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [],
+      "server_platforms": [
+        "docker-engine"
+      ],
+      "verification": "draft",
+      "tags": [
+        "containers",
+        "docker"
+      ],
+      "summary": {
+        "tr": "Konteyner runtime odaklı host: docker/podman/nerdctl, disk ve servisler.",
+        "en": "Container-runtime host: docker/podman/nerdctl, disk, and services."
+      },
+      "related_commands": [
+        "docker",
+        "docker-compose",
+        "podman",
+        "nerdctl",
+        "systemctl",
+        "df",
+        "ss"
+      ],
+      "related_tasks": [
+        "inspect-container",
+        "check-container-logs",
+        "check-disk-space",
+        "list-running-services"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "fedora-server",
+      "name": {
+        "tr": "Fedora / RHEL ailesi sunucu",
+        "en": "Fedora / RHEL-family server"
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [
+        "fedora",
+        "fedora-server",
+        "rhel",
+        "rocky",
+        "almalinux"
+      ],
+      "server_platforms": [],
+      "verification": "draft",
+      "tags": [
+        "server",
+        "fedora",
+        "rhel"
+      ],
+      "summary": {
+        "tr": "dnf + firewalld + systemd odaklı sunucu profili.",
+        "en": "dnf + firewalld + systemd oriented server profile."
+      },
+      "related_commands": [
+        "dnf",
+        "systemctl",
+        "journalctl",
+        "firewall-cmd",
+        "ss",
+        "ip"
+      ],
+      "related_tasks": [
+        "update-system",
+        "install-package",
+        "list-running-services",
+        "check-firewall-status"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "freebsd-server",
+      "name": {
+        "tr": "FreeBSD sunucu",
+        "en": "FreeBSD server"
+      },
+      "operating_systems": [
+        "freebsd"
+      ],
+      "distributions": [
+        "freebsd-release"
+      ],
+      "server_platforms": [],
+      "verification": "draft",
+      "tags": [
+        "server",
+        "freebsd",
+        "bsd"
+      ],
+      "summary": {
+        "tr": "pkg / service / sysrc / pfctl — systemd ile eşitlenmez.",
+        "en": "pkg / service / sysrc / pfctl — not equated with systemd."
+      },
+      "related_commands": [
+        "pkg",
+        "freebsd-update",
+        "service",
+        "sysrc",
+        "pfctl",
+        "ifconfig",
+        "ssh"
+      ],
+      "related_tasks": [
+        "update-system",
+        "list-running-services",
+        "check-firewall-status",
+        "show-local-ip"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "homelab",
+      "name": {
+        "tr": "Homelab sunucu",
+        "en": "Homelab server"
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [],
+      "server_platforms": [
+        "docker-engine",
+        "proxmox-ve"
+      ],
+      "verification": "draft",
+      "tags": [
+        "homelab",
+        "server",
+        "self-hosted"
+      ],
+      "summary": {
+        "tr": "Ev laboratuvarı: Docker, reverse proxy, yedek, SSH ve temel ağ.",
+        "en": "Home lab: Docker, reverse proxy, backup, SSH, and basic networking."
+      },
+      "related_commands": [
+        "docker",
+        "docker-compose",
+        "nginx",
+        "caddy",
+        "restic",
+        "rsync",
+        "ssh",
+        "ufw",
+        "systemctl"
+      ],
+      "related_tasks": [
+        "inspect-container",
+        "check-container-logs",
+        "backup-directory",
+        "connect-ssh",
+        "check-firewall-status",
+        "update-system"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "kubernetes",
+      "name": {
+        "tr": "Kubernetes düğümü / operatör",
+        "en": "Kubernetes node / operator"
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [],
+      "server_platforms": [
+        "kubernetes",
+        "docker-engine"
+      ],
+      "verification": "draft",
+      "tags": [
+        "kubernetes",
+        "containers",
+        "devops"
+      ],
+      "summary": {
+        "tr": "kubectl/helm/crictl referansı; yanlış context riskine dikkat.",
+        "en": "kubectl/helm/crictl reference; watch wrong-context risk."
+      },
+      "related_commands": [
+        "kubectl",
+        "helm",
+        "crictl",
+        "nerdctl",
+        "ssh"
+      ],
+      "related_tasks": [
+        "inspect-container",
+        "check-container-logs",
+        "connect-ssh"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "linux-server",
+      "name": {
+        "tr": "Linux sunucu (temel)",
+        "en": "Linux server (basics)"
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [
+        "arch",
+        "debian",
+        "ubuntu",
+        "fedora"
+      ],
+      "server_platforms": [],
+      "verification": "draft",
+      "tags": [
+        "server",
+        "linux"
+      ],
+      "summary": {
+        "tr": "Genel amaçlı Linux sunucu: servisler, ağ, disk, güncelleme ve SSH.",
+        "en": "General-purpose Linux server: services, network, disk, updates, SSH."
+      },
+      "related_commands": [
+        "systemctl",
+        "journalctl",
+        "ip",
+        "ss",
+        "df",
+        "ssh",
+        "ufw",
+        "firewall-cmd",
+        "pacman",
+        "apt",
+        "dnf"
+      ],
+      "related_tasks": [
+        "show-local-ip",
+        "check-disk-space",
+        "list-running-services",
+        "inspect-system-logs",
+        "update-system",
+        "check-firewall-status",
+        "connect-ssh",
+        "check-open-ports",
+        "check-memory",
+        "list-running-processes"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "nas-server",
+      "name": {
+        "tr": "NAS / depolama sunucu",
+        "en": "NAS / storage server"
+      },
+      "operating_systems": [
+        "linux",
+        "freebsd"
+      ],
+      "distributions": [],
+      "server_platforms": [
+        "truenas-scale",
+        "truenas-core",
+        "openmediavault",
+        "synology-dsm"
+      ],
+      "verification": "draft",
+      "tags": [
+        "nas",
+        "storage",
+        "backup"
+      ],
+      "summary": {
+        "tr": "Disk, paylaşım ve yedek odaklı depolama profili (vendor CLI bankası değil).",
+        "en": "Disk, share, and backup oriented storage profile (not a vendor CLI bank)."
+      },
+      "related_commands": [
+        "df",
+        "du",
+        "lsblk",
+        "mount",
+        "rsync",
+        "restic",
+        "borg",
+        "rclone",
+        "zfs"
+      ],
+      "related_tasks": [
+        "check-disk-space",
+        "inspect-disk-usage",
+        "backup-directory",
+        "connect-ssh"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "virtualization-host",
+      "name": {
+        "tr": "Sanallaştırma ana makinesi",
+        "en": "Virtualization host"
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [],
+      "server_platforms": [
+        "kvm",
+        "qemu",
+        "libvirt",
+        "proxmox-ve"
+      ],
+      "verification": "draft",
+      "tags": [
+        "virtualization",
+        "kvm"
+      ],
+      "summary": {
+        "tr": "libvirt/QEMU host: virsh / qemu-img (konteyner ile eşitlenmez).",
+        "en": "libvirt/QEMU host: virsh / qemu-img (not equated with containers)."
+      },
+      "related_commands": [
+        "virsh",
+        "qemu-img",
+        "systemctl",
+        "ip",
+        "ss",
+        "df"
+      ],
+      "related_tasks": [
+        "list-running-services",
+        "check-disk-space",
+        "show-local-ip",
+        "connect-ssh"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "web-server",
+      "name": {
+        "tr": "Web / reverse proxy sunucu",
+        "en": "Web / reverse-proxy server"
+      },
+      "operating_systems": [
+        "linux"
+      ],
+      "distributions": [],
+      "server_platforms": [],
+      "verification": "draft",
+      "tags": [
+        "web",
+        "proxy",
+        "server"
+      ],
+      "summary": {
+        "tr": "nginx/Caddy + TLS/servis alışkanlıkları (config test önce).",
+        "en": "nginx/Caddy + TLS/service habits (config test first)."
+      },
+      "related_commands": [
+        "nginx",
+        "caddy",
+        "systemctl",
+        "ss",
+        "ufw"
+      ],
+      "related_tasks": [
+        "list-running-services",
+        "check-open-ports",
+        "check-firewall-status",
+        "inspect-system-logs"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "windows-server",
+      "name": {
+        "tr": "Windows sunucu / masaüstü yönetim",
+        "en": "Windows server / admin basics"
+      },
+      "operating_systems": [
+        "windows"
+      ],
+      "distributions": [
+        "windows-server",
+        "windows-11",
+        "windows-10"
+      ],
+      "server_platforms": [],
+      "verification": "draft",
+      "tags": [
+        "server",
+        "windows",
+        "powershell"
+      ],
+      "summary": {
+        "tr": "PowerShell odaklı servis, ağ, disk ve WinGet güncelleme referansı.",
+        "en": "PowerShell-oriented services, network, disk, and WinGet update reference."
+      },
+      "related_commands": [
+        "get-service",
+        "get-process",
+        "get-netipconfiguration",
+        "get-nettcpconnection",
+        "get-volume",
+        "get-winevent",
+        "winget",
+        "netsh",
+        "ipconfig",
+        "sc"
+      ],
+      "related_tasks": [
+        "show-local-ip",
+        "check-open-ports",
+        "check-disk-space",
+        "list-running-services",
+        "inspect-system-logs",
+        "update-system",
+        "check-firewall-status"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "backup-directory",
+      "name": {
+        "tr": "Dizin yedekle",
+        "en": "Back up a directory"
+      },
+      "category": "backup",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "backup",
+        "storage"
+      ],
+      "summary": {
+        "tr": "rsync / restic / borg ile dizin yedeği (gizli anahtar örnek yok).",
+        "en": "Directory backup with rsync / restic / borg (no secret-key examples)."
+      },
+      "intent": {
+        "tr": [
+          "klasör yedekle",
+          "restic backup",
+          "rsync yedek"
+        ],
+        "en": [
+          "backup folder",
+          "restic backup",
+          "rsync backup"
+        ]
+      },
+      "related_commands": [
+        "borg",
+        "restic",
+        "rsync"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "check-container-logs",
+      "name": {
+        "tr": "Konteyner günlüklerini kontrol et",
+        "en": "Check container logs"
+      },
+      "category": "containers",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "containers",
+        "logs"
+      ],
+      "summary": {
+        "tr": "Runtime log akışını oku (kubectl logs ayrı orchestrator yolu).",
+        "en": "Read runtime log streams (kubectl logs is a separate orchestrator path)."
+      },
+      "intent": {
+        "tr": [
+          "docker logs",
+          "konteyner log",
+          "podman logs"
+        ],
+        "en": [
+          "docker logs",
+          "container logs",
+          "podman logs"
+        ]
+      },
+      "related_commands": [
+        "docker",
+        "kubectl"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "check-disk-space",
+      "name": {
+        "tr": "Disk alanını kontrol et",
+        "en": "Check disk space"
+      },
+      "category": "disks",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "disks",
+        "storage",
+        "capacity"
+      ],
+      "summary": {
+        "tr": "Dosya sistemlerinin doluluk oranını df / Get-Volume ile göster.",
+        "en": "Show filesystem free space with df / Get-Volume."
+      },
+      "intent": {
+        "tr": [
+          "disk dolu mu",
+          "boş alan",
+          "df çıktısı"
+        ],
+        "en": [
+          "disk space",
+          "free space",
+          "df output"
+        ]
+      },
+      "related_commands": [
+        "df",
+        "get-volume"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "check-dns",
+      "name": {
+        "tr": "DNS çözümlemesini kontrol et",
+        "en": "Check DNS resolution"
+      },
+      "category": "network",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "dns"
+      ],
+      "summary": {
+        "tr": "Bir adın DNS kaydını dig / Resolve-DnsName benzeri araçlarla sorgula.",
+        "en": "Query a name's DNS records with dig / Resolve-DnsName-style tools."
+      },
+      "intent": {
+        "tr": [
+          "dns kontrol",
+          "alan adı çözümle",
+          "dig sorgusu"
+        ],
+        "en": [
+          "check dns",
+          "resolve hostname",
+          "dig lookup"
+        ]
+      },
+      "related_commands": [
+        "dig"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "check-firewall-status",
+      "name": {
+        "tr": "Güvenlik duvarı durumunu kontrol et",
+        "en": "Check firewall status"
+      },
+      "category": "security",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "firewall",
+        "security"
+      ],
+      "summary": {
+        "tr": "ufw / firewall-cmd / pfctl / netsh ile durum okuma (kural silme yok).",
+        "en": "Read status via ufw / firewall-cmd / pfctl / netsh (no rule deletes)."
+      },
+      "intent": {
+        "tr": [
+          "firewall durumu",
+          "ufw status",
+          "pfctl kurallar"
+        ],
+        "en": [
+          "firewall status",
+          "ufw status",
+          "pfctl rules"
+        ]
+      },
+      "related_commands": [
+        "firewall-cmd",
+        "netsh",
+        "pfctl",
+        "ufw"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "check-internet-connectivity",
+      "name": {
+        "tr": "İnternet bağlantısını kontrol et",
+        "en": "Check internet connectivity"
+      },
+      "category": "network",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "connectivity"
+      ],
+      "summary": {
+        "tr": "ICMP ping veya HTTPS ile temel erişilebilirlik testi.",
+        "en": "Basic reachability via ICMP ping or HTTPS."
+      },
+      "intent": {
+        "tr": [
+          "internet var mı",
+          "bağlantı testi",
+          "ping at"
+        ],
+        "en": [
+          "am i online",
+          "connectivity test",
+          "ping host"
+        ]
+      },
+      "related_commands": [
+        "curl",
+        "ping"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "check-memory",
+      "name": {
+        "tr": "Bellek kullanımını kontrol et",
+        "en": "Check memory usage"
+      },
+      "category": "monitoring",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "memory",
+        "monitoring"
+      ],
+      "summary": {
+        "tr": "free / vm_stat tarzı araçlarla bellek özeti (okuma).",
+        "en": "Memory summary with free / vm_stat-style tools (read)."
+      },
+      "intent": {
+        "tr": [
+          "ram kullanımı",
+          "bellek dolu mu",
+          "free çıktısı"
+        ],
+        "en": [
+          "ram usage",
+          "memory pressure",
+          "free output"
+        ]
+      },
+      "related_commands": [
+        "free",
+        "get-computerinfo",
+        "get-process",
+        "vmstat"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "check-open-ports",
+      "name": {
+        "tr": "Açık / dinleyen portları kontrol et",
+        "en": "Check listening / open ports"
+      },
+      "category": "network",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "ports",
+        "security"
+      ],
+      "summary": {
+        "tr": "Yerel dinleyen soketleri ss/netstat veya Get-NetTCPConnection ile listele.",
+        "en": "List local listening sockets with ss/netstat or Get-NetTCPConnection."
+      },
+      "intent": {
+        "tr": [
+          "açık portlar",
+          "dinleyen servisler",
+          "hangi port dinliyor"
+        ],
+        "en": [
+          "open ports",
+          "listening sockets",
+          "which ports are listening"
+        ]
+      },
+      "related_commands": [
+        "get-nettcpconnection",
+        "netstat-bsd",
+        "ss"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "connect-ssh",
+      "name": {
+        "tr": "SSH ile bağlan",
+        "en": "Connect over SSH"
+      },
+      "category": "security",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "ssh",
+        "remote"
+      ],
+      "summary": {
+        "tr": "Uzak kabuğa OpenSSH istemcisi ile bağlanma (öğretici).",
+        "en": "Connect to a remote shell with the OpenSSH client (teaching)."
+      },
+      "intent": {
+        "tr": [
+          "ssh bağlan",
+          "uzak sunucuya gir",
+          "ssh user@host"
+        ],
+        "en": [
+          "ssh connect",
+          "remote shell",
+          "ssh user@host"
+        ]
+      },
+      "related_commands": [
+        "ssh"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "inspect-container",
+      "name": {
+        "tr": "Konteyneri incele",
+        "en": "Inspect a container"
+      },
+      "category": "containers",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "containers",
+        "docker"
+      ],
+      "summary": {
+        "tr": "docker/podman/nerdctl ile çalışan konteyner envanteri (orkestrasyon değil).",
+        "en": "Running container inventory via docker/podman/nerdctl (not orchestration)."
+      },
+      "intent": {
+        "tr": [
+          "konteyner listesi",
+          "docker ps",
+          "podman konteyner"
+        ],
+        "en": [
+          "list containers",
+          "docker ps",
+          "podman containers"
+        ]
+      },
+      "related_commands": [
+        "docker",
+        "nerdctl",
+        "podman"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "inspect-disk-usage",
+      "name": {
+        "tr": "Dizin disk kullanımını incele",
+        "en": "Inspect directory disk usage"
+      },
+      "category": "disks",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "disks",
+        "du"
+      ],
+      "summary": {
+        "tr": "Bir yolun kapladığı alanı du ile özetle (silme yok).",
+        "en": "Summarize space used by a path with du (no deletes)."
+      },
+      "intent": {
+        "tr": [
+          "hangi klasör yer kaplıyor",
+          "du kullanımı"
+        ],
+        "en": [
+          "which folder uses space",
+          "du usage"
+        ]
+      },
+      "related_commands": [
+        "du",
+        "get-childitem"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "inspect-network-interfaces",
+      "name": {
+        "tr": "Ağ arayüzlerini incele",
+        "en": "Inspect network interfaces"
+      },
+      "category": "network",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "interfaces"
+      ],
+      "summary": {
+        "tr": "Arayüz adı, durum ve adresleri platform araçlarıyla göster.",
+        "en": "Show interface names, state, and addresses with platform tools."
+      },
+      "intent": {
+        "tr": [
+          "ağ kartları",
+          "arayüz listesi",
+          "ethernet wifi durumu"
+        ],
+        "en": [
+          "list network interfaces",
+          "nic status",
+          "ethernet wifi state"
+        ]
+      },
+      "related_commands": [
+        "ip",
+        "ipconfig",
+        "networksetup"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "inspect-routing-table",
+      "name": {
+        "tr": "Yönlendirme tablosunu incele",
+        "en": "Inspect routing table"
+      },
+      "category": "network",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "routing"
+      ],
+      "summary": {
+        "tr": "Varsayılan rota ve yönlendirme tablosunu oku (salt okuma).",
+        "en": "Read the default route and routing table (read-only)."
+      },
+      "intent": {
+        "tr": [
+          "routing tablosu",
+          "varsayılan ağ geçidi",
+          "route göster"
+        ],
+        "en": [
+          "routing table",
+          "default gateway",
+          "show routes"
+        ]
+      },
+      "related_commands": [
+        "ip",
+        "netsh",
+        "netstat-bsd",
+        "route"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "inspect-system-logs",
+      "name": {
+        "tr": "Sistem günlüklerini incele",
+        "en": "Inspect system logs"
+      },
+      "category": "system",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "logs",
+        "journal"
+      ],
+      "summary": {
+        "tr": "journalctl / Get-WinEvent / log / dmesg ile okuma odaklı günlük inceleme.",
+        "en": "Read-oriented log inspection via journalctl / Get-WinEvent / log / dmesg."
+      },
+      "intent": {
+        "tr": [
+          "sistem logları",
+          "journalctl oku",
+          "hata günlükleri"
+        ],
+        "en": [
+          "system logs",
+          "read journalctl",
+          "error logs"
+        ]
+      },
+      "related_commands": [
+        "dmesg",
+        "get-winevent",
+        "journalctl",
+        "log"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "install-package",
+      "name": {
+        "tr": "Paket kur",
+        "en": "Install a package"
+      },
+      "category": "packages",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "install"
+      ],
+      "summary": {
+        "tr": "İsim bilinen bir paketi platform PM ile kur (örnek placeholder).",
+        "en": "Install a named package with the platform PM (placeholder examples)."
+      },
+      "intent": {
+        "tr": [
+          "paket kur",
+          "yazılım yükle",
+          "pacman -S"
+        ],
+        "en": [
+          "install package",
+          "add software",
+          "pacman -S"
+        ]
+      },
+      "related_commands": [
+        "apt",
+        "brew",
+        "dnf",
+        "pacman",
+        "winget"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "list-running-processes",
+      "name": {
+        "tr": "Çalışan süreçleri listele",
+        "en": "List running processes"
+      },
+      "category": "processes",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "processes",
+        "monitoring"
+      ],
+      "summary": {
+        "tr": "ps / Get-Process / top ile süreç envanteri.",
+        "en": "Process inventory via ps / Get-Process / top."
+      },
+      "intent": {
+        "tr": [
+          "süreç listesi",
+          "hangi program çalışıyor",
+          "task manager cli"
+        ],
+        "en": [
+          "list processes",
+          "what is running",
+          "task manager cli"
+        ]
+      },
+      "related_commands": [
+        "get-process",
+        "ps"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "list-running-services",
+      "name": {
+        "tr": "Çalışan servisleri listele",
+        "en": "List running services"
+      },
+      "category": "system",
+      "platforms": [
+        "bsd",
+        "dragonflybsd",
+        "freebsd",
+        "linux",
+        "macos",
+        "netbsd",
+        "openbsd",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "services",
+        "systemd"
+      ],
+      "summary": {
+        "tr": "systemd / BSD service / Windows Get-Service / launchctl ile servis durumu.",
+        "en": "Service state via systemd / BSD service / Windows Get-Service / launchctl."
+      },
+      "intent": {
+        "tr": [
+          "servis listesi",
+          "systemctl status",
+          "hangi servisler aktif"
+        ],
+        "en": [
+          "list services",
+          "systemctl status",
+          "which services are active"
+        ]
+      },
+      "related_commands": [
+        "get-service",
+        "launchctl",
+        "rcctl",
+        "service",
+        "systemctl"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "show-local-ip",
+      "name": {
+        "tr": "Yerel IP adresini göster",
+        "en": "Show local IP address"
+      },
+      "category": "network",
+      "platforms": [
+        "bsd",
+        "freebsd",
+        "linux",
+        "macos",
+        "netbsd",
+        "openbsd",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "ip",
+        "diagnostics"
+      ],
+      "summary": {
+        "tr": "Farklı platformlarda yerel IP / ağ yapılandırmasını öğrenme.",
+        "en": "Learn local IP / network configuration across platforms."
+      },
+      "intent": {
+        "tr": [
+          "ip adresimi öğren",
+          "ağ yapılandırmasını göster",
+          "yerel IP adresini bul"
+        ],
+        "en": [
+          "show local ip",
+          "inspect network configuration",
+          "find my ip address"
+        ]
+      },
+      "related_commands": [
+        "get-netipconfiguration",
+        "ifconfig",
+        "ip",
+        "ipconfig"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "show-public-ip",
+      "name": {
+        "tr": "Genel (wan) IP adresini göster",
+        "en": "Show public (WAN) IP address"
+      },
+      "category": "network",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "ip",
+        "wan"
+      ],
+      "summary": {
+        "tr": "Harici HTTPS uç noktası ile görünen genel IP (ağ çıkışı).",
+        "en": "Query an external HTTPS endpoint for the apparent public IP."
+      },
+      "intent": {
+        "tr": [
+          "genel ip adresim",
+          "wan ip",
+          "dış ip öğren"
+        ],
+        "en": [
+          "show public ip",
+          "wan ip address",
+          "external ip"
+        ]
+      },
+      "related_commands": [
+        "curl"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "transfer-files-ssh",
+      "name": {
+        "tr": "SSH üzerinden dosya aktar",
+        "en": "Transfer files over SSH"
+      },
+      "category": "security",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "ssh",
+        "scp",
+        "rsync"
+      ],
+      "summary": {
+        "tr": "scp veya rsync ile güvenli kopyalama (öğretici örnekler).",
+        "en": "Secure copy with scp or rsync (teaching examples)."
+      },
+      "intent": {
+        "tr": [
+          "scp ile kopyala",
+          "rsync uzak",
+          "dosya gönder"
+        ],
+        "en": [
+          "scp copy",
+          "rsync remote",
+          "send files over ssh"
+        ]
+      },
+      "related_commands": [
+        "rsync",
+        "scp",
+        "ssh"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "update-system",
+      "name": {
+        "tr": "Sistem paketlerini güncelle",
+        "en": "Update system packages"
+      },
+      "category": "packages",
+      "platforms": [
+        "bsd",
+        "freebsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "update",
+        "maintenance"
+      ],
+      "summary": {
+        "tr": "Dağıtıma özgü paket yöneticisi ile güncelleme (yıkıcı olabilir).",
+        "en": "Distro-specific package manager update (may be disruptive)."
+      },
+      "intent": {
+        "tr": [
+          "sistem güncelle",
+          "paket upgrade",
+          "güncelleme yap"
+        ],
+        "en": [
+          "update system",
+          "upgrade packages",
+          "os update"
+        ]
+      },
+      "related_commands": [
+        "apt",
+        "brew",
+        "dnf",
+        "freebsd-update",
+        "pacman",
+        "pkg",
+        "softwareupdate",
+        "winget"
+      ]
     }
   ],
-  "content_sha256": "cca5bd35662ba1c69d521669367942de222e2b9a9630bb0f3dc85f6ac5156ce5",
-  "generated_at": "2026-11-04T20:33:14Z"
+  "content_sha256": "f08edacc291b3d81d5d1ac24f8eead941873498c0e252e72f1ff96def4e2f6ee",
+  "generated_at": "2026-11-04T20:52:51Z",
+  "command_count": 256,
+  "concept_count": 20,
+  "task_count": 21,
+  "profile_count": 13
 }

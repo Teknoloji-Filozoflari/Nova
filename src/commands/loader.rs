@@ -3,7 +3,9 @@
 //! Öncelik: gömülü `assets/commands/{manifest,catalog,search-index}.json`
 //! (NOVA_INTEGRATION.md). İsteğe bağlı dosya yolu override testler içindir.
 
-use crate::commands::bank::{validate_bank_schema_version, CommandBank, BANK_KIND};
+use crate::commands::bank::{
+    validate_bank_schema_version, CommandBank, LocalizedString, BANK_KIND,
+};
 use serde::Deserialize;
 use std::path::Path;
 
@@ -34,6 +36,10 @@ pub struct CommandsManifest {
     pub command_count: Option<usize>,
     #[serde(default)]
     pub concept_count: Option<usize>,
+    #[serde(default)]
+    pub task_count: Option<usize>,
+    #[serde(default)]
+    pub profile_count: Option<usize>,
 }
 
 impl CommandsManifest {
@@ -64,13 +70,41 @@ pub struct SearchIndex {
     pub entries: Vec<SearchEntry>,
 }
 
+/// `search-index` `name`: komutlarda düz string; task/profile'da lokalize map (Faz 9).
+#[derive(Debug, Clone, Deserialize)]
+#[serde(untagged)]
+pub enum SearchName {
+    Text(String),
+    Localized(LocalizedString),
+}
+
+impl SearchName {
+    /// Arama eşleşmesi — düz ad veya `tr`/`en` lokalize metin.
+    pub fn matches_query(&self, q: &str, lang: &str) -> bool {
+        match self {
+            Self::Text(s) => s.to_ascii_lowercase().contains(q),
+            Self::Localized(loc) => {
+                loc.pick(lang).to_ascii_lowercase().contains(q)
+                    || loc
+                        .tr
+                        .as_ref()
+                        .is_some_and(|s| s.to_ascii_lowercase().contains(q))
+                    || loc
+                        .en
+                        .as_ref()
+                        .is_some_and(|s| s.to_ascii_lowercase().contains(q))
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct SearchEntry {
     #[serde(rename = "type")]
     pub entry_type: String,
     pub id: String,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: Option<SearchName>,
     #[serde(default)]
     pub category: Option<String>,
     #[serde(default)]
@@ -208,11 +242,11 @@ mod tests {
             bank.command_count.unwrap_or(bank.commands.len()),
             bank.commands.len()
         );
-        // Canlı banka schema v2 + beklenen digest (Nova-Commands #20 / Faz 7).
+        // Canlı banka schema v2 + beklenen digest (Nova-Commands #22 / Faz 9).
         assert_eq!(bank.schema_version, 2);
         assert_eq!(
             man.content_sha256,
-            "cca5bd35662ba1c69d521669367942de222e2b9a9630bb0f3dc85f6ac5156ce5"
+            "f08edacc291b3d81d5d1ac24f8eead941873498c0e252e72f1ff96def4e2f6ee"
         );
         let with_refs = bank
             .commands
@@ -248,6 +282,27 @@ mod tests {
         assert_ne!(idx.kind, MANIFEST_KIND);
         assert!(!idx.entries.is_empty());
         assert_eq!(idx.schema_version, 2);
+        let tasks = idx
+            .entries
+            .iter()
+            .filter(|e| e.entry_type == "task")
+            .count();
+        let profiles = idx
+            .entries
+            .iter()
+            .filter(|e| e.entry_type == "profile")
+            .count();
+        assert!(tasks > 0, "Faz 9 task entries beklenirdi");
+        assert!(profiles > 0, "Faz 9 profile entries beklenirdi");
+        let man = load_manifest().expect("manifest");
+        assert_eq!(man.task_count, Some(tasks));
+        assert_eq!(man.profile_count, Some(profiles));
+        assert!(
+            idx.entries.iter().any(|e| {
+                e.entry_type == "task" && matches!(e.name, Some(SearchName::Localized(_)))
+            }),
+            "task name lokalize map olmalı"
+        );
     }
 
     #[test]

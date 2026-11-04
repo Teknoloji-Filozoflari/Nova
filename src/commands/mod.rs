@@ -22,7 +22,7 @@ pub use bank::{
 };
 pub use loader::{
     load_bank, load_bank_preferring_cache, load_manifest, load_search_index, CommandsManifest,
-    SearchEntry, SearchIndex,
+    SearchEntry, SearchIndex, SearchName,
 };
 pub use local::{LocalCommandsSnapshot, LocalEntry, LOCAL_KIND};
 pub use repo_sync::{
