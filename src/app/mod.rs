@@ -1075,17 +1075,18 @@ impl App {
                     }
                 }
             }
-            // Paylaşılan sütun genişlikleri (Mağaza + Komut Rehberi + Ayarlar yan).
-            KeyCode::Char('[') if self.store_tab || self.commands_tab || self.settings_tab => {
+            // Paylaşılan sütun genişlikleri — her sekmede (Kurulu / Mağaza /
+            // Komut Rehberi / Ayarlar); tercihler `state.toml`'a yazılır.
+            KeyCode::Char('[') => {
                 self.nudge_pane_secondary(-1);
             }
-            KeyCode::Char(']') if self.store_tab || self.commands_tab || self.settings_tab => {
+            KeyCode::Char(']') => {
                 self.nudge_pane_secondary(1);
             }
-            KeyCode::Char('-') if self.store_tab || self.commands_tab => {
+            KeyCode::Char('-') => {
                 self.nudge_pane_list(-1);
             }
-            KeyCode::Char('=') | KeyCode::Char('+') if self.store_tab || self.commands_tab => {
+            KeyCode::Char('=') | KeyCode::Char('+') => {
                 self.nudge_pane_list(1);
             }
             _ => {}
@@ -4888,7 +4889,7 @@ mod tests {
         app.terminal_size = Some((100, 30));
         app.focus = PanelFocus::Category;
         app.category_index = category_index("Sistem ve Kaynak Kullanımı");
-        // Araç paneli: x >= 26; Borders::ALL sonrası ilk araç y = 3.
+        // Araç paneli: x >= pane_secondary (varsayılan 28); Borders::ALL sonrası ilk araç y = 3.
         app.handle_mouse(mouse_down(40, 3)).unwrap();
         assert_eq!(app.focus, PanelFocus::Tool);
         assert!(!app.filtered_tools().is_empty());
@@ -5195,7 +5196,7 @@ mod tests {
     }
 
     #[test]
-    fn pane_width_keys_nudge_shared_prefs_on_store_and_commands() {
+    fn pane_width_keys_nudge_shared_prefs_on_every_screen() {
         let mut app = sample_app();
         assert_eq!(
             app.pane_widths().secondary,
@@ -5224,13 +5225,29 @@ mod tests {
             app.state.file.prefs.pane_list_width,
             Some(crate::ui::LIST_PANEL_WIDTH_DEFAULT)
         );
-        // Araç sekmesinde sütun tuşları yoksayılır.
+        // Kurulu (araç) sekmesinde de sütun tuşları çalışır.
         app.set_tab_index(0);
-        let before = app.state.file.prefs.clone();
         app.handle_key(typed(']')).unwrap();
         assert_eq!(
             app.state.file.prefs.pane_secondary_width,
-            before.pane_secondary_width
+            Some(crate::ui::SECONDARY_PANEL_WIDTH_DEFAULT + 1)
+        );
+        app.handle_key(typed('=')).unwrap();
+        assert_eq!(
+            app.state.file.prefs.pane_list_width,
+            Some(crate::ui::LIST_PANEL_WIDTH_DEFAULT + 1)
+        );
+        // Ayarlar: hem [] hem -=.
+        app.select_settings_tab();
+        app.handle_key(typed('[')).unwrap();
+        assert_eq!(
+            app.state.file.prefs.pane_secondary_width,
+            Some(crate::ui::SECONDARY_PANEL_WIDTH_DEFAULT)
+        );
+        app.handle_key(typed('-')).unwrap();
+        assert_eq!(
+            app.state.file.prefs.pane_list_width,
+            Some(crate::ui::LIST_PANEL_WIDTH_DEFAULT)
         );
     }
 
