@@ -2063,12 +2063,12 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 lines.push(Line::from(lang.t(Msg::CommandsElevated).to_string()));
             }
             let is_arch = crate::commands::host_is_arch();
-            if !cmd.packages.is_empty() {
+            if cmd.has_package_hints() {
                 lines.push(Line::from(Span::styled(
                     format!("{}:", lang.t(Msg::CommandsPackages)),
                     Style::default().add_modifier(Modifier::BOLD),
                 )));
-                for (label, pkg) in cmd.packages.labeled_pairs(is_arch) {
+                for (label, pkg) in cmd.package_labeled_pairs(is_arch) {
                     let mark = if is_arch && label.starts_with("arch") {
                         " ←"
                     } else {

@@ -10,6 +10,11 @@ Gömülü artifact'lar [Nova-Commands](https://github.com/Teknoloji-Filozoflari/
 | `manifest.json` | `nova-commands-manifest` | `content_sha256` + sayımlar |
 | `search-index.json` | `nova-commands-search-index` | Arama alanları |
 
+Canlı banka **`schema_version: 2`** (Nova-Commands Faz 3). Nova `1` ve `2`
+okur; kurulum ipuçlarında `package_refs` tercih edilir, legacy `packages.*`
+geçiş için kalır. Dual-concept korunur: bu dizin ≠ PATH keşfi
+(`nova-local-commands`).
+
 Bu dizin **Mağaza** (`assets/store/`) ve **kurulu araç kataloğu**
 (`assets/catalog/`) ile karıştırılmaz.
 
