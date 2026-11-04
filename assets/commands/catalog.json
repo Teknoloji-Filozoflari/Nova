@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-04T19:37:05Z",
-  "content_sha256": "93e1b59ff6d63c2f117705b17a70e07f2fbce6800ba0661469f8f782c53fe03c",
-  "command_count": 215,
+  "generated_at": "2026-11-04T20:11:29Z",
+  "content_sha256": "798249613e74b7e1c930204cbff62d23b5430c1147b3ae9c20c9d5fa81554204",
+  "command_count": 233,
   "concept_count": 13,
   "commands": [
     {
@@ -490,6 +490,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [],
       "examples": [
         {
@@ -511,6 +516,18 @@
           "privilege": "admin"
         }
       ],
+      "related": [
+        "diskpart",
+        "bootctl"
+      ],
+      "security": {
+        "notes": {
+          "tr": "BCD yazma UAC ister; değişiklik öncesi `bcdedit /export` yedeği alın.",
+          "en": "BCD writes need UAC; take a bcdedit /export backup first."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "bcdedit",
@@ -527,23 +544,6 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/bcdedit"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "diskpart",
-        "bootctl"
-      ],
-      "security": {
-        "notes": {
-          "tr": "BCD yazma UAC ister; değişiklik öncesi `bcdedit /export` yedeği alın.",
-          "en": "BCD writes need UAC; take a bcdedit /export backup first."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -846,6 +846,19 @@
       "operating_systems": [
         "macos"
       ],
+      "package_refs": [
+        {
+          "manager": "homebrew",
+          "package": "homebrew",
+          "distributions": [
+            "macos-desktop"
+          ],
+          "notes": {
+            "tr": "Resmi kurulum betiği docs.brew.sh; Linuxbrew ayrı ortam.",
+            "en": "Official install script at docs.brew.sh; Linuxbrew is a separate env."
+          }
+        }
+      ],
       "flags": [
         {
           "flag": "install",
@@ -943,6 +956,12 @@
           ]
         }
       ],
+      "related": [
+        "port",
+        "softwareupdate",
+        "winget",
+        "pacman"
+      ],
       "intent": {
         "tr": [
           "brew kur",
@@ -963,25 +982,6 @@
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
       },
-      "related": [
-        "port",
-        "softwareupdate",
-        "winget",
-        "pacman"
-      ],
-      "package_refs": [
-        {
-          "manager": "homebrew",
-          "package": "homebrew",
-          "distributions": [
-            "macos-desktop"
-          ],
-          "notes": {
-            "tr": "Resmi kurulum betiği docs.brew.sh; Linuxbrew ayrı ortam.",
-            "en": "Official install script at docs.brew.sh; Linuxbrew is a separate env."
-          }
-        }
-      ],
       "nova": {
         "concepts": [
           "packages",
@@ -1490,6 +1490,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [],
       "examples": [
         {
@@ -1511,6 +1516,19 @@
           "privilege": "admin"
         }
       ],
+      "related": [
+        "sfc",
+        "dism",
+        "get-volume"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Onarım için yönetici ve çoğu zaman yeniden başlatma gerekir.",
+          "en": "Repair needs admin and often a reboot."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "chkdsk",
@@ -1527,24 +1545,6 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/chkdsk"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "sfc",
-        "dism",
-        "get-volume"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Onarım için yönetici ve çoğu zaman yeniden başlatma gerekir.",
-          "en": "Repair needs admin and often a reboot."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -2739,6 +2739,9 @@
           ]
         }
       ],
+      "related": [
+        "plutil"
+      ],
       "intent": {
         "tr": [
           "defaults",
@@ -2755,10 +2758,7 @@
           "man 1 defaults"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "plutil"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -3177,6 +3177,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [],
       "examples": [
         {
@@ -3197,6 +3202,19 @@
           ]
         }
       ],
+      "related": [
+        "get-disk",
+        "get-volume",
+        "bcdedit"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yönetici gerekir. Yanlış disk seçimi yıkıcıdır — list disk ile doğrulayın.",
+          "en": "Admin required. Wrong disk selection is destructive — verify with list disk."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "diskpart",
@@ -3213,24 +3231,6 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/diskpart"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "get-disk",
-        "get-volume",
-        "bcdedit"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Yönetici gerekir. Yanlış disk seçimi yıkıcıdır — list disk ile doğrulayın.",
-          "en": "Admin required. Wrong disk selection is destructive — verify with list disk."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -3310,6 +3310,11 @@
           ]
         }
       ],
+      "related": [
+        "get-disk",
+        "lsblk",
+        "df"
+      ],
       "intent": {
         "tr": [
           "macos disk listele",
@@ -3329,12 +3334,7 @@
           "https://ss64.com/mac/diskutil.html"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "get-disk",
-        "lsblk",
-        "df"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -3364,6 +3364,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [],
       "examples": [
         {
@@ -3385,6 +3390,18 @@
           "privilege": "admin"
         }
       ],
+      "related": [
+        "sfc",
+        "chkdsk"
+      ],
+      "security": {
+        "notes": {
+          "tr": "UAC yükseltmesi zorunlu; online onarım uzun sürer.",
+          "en": "UAC elevation required; online repair takes time."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "dism",
@@ -3401,23 +3418,6 @@
           "https://learn.microsoft.com/windows-hardware/manufacture/desktop/what-is-dism"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "sfc",
-        "chkdsk"
-      ],
-      "security": {
-        "notes": {
-          "tr": "UAC yükseltmesi zorunlu; online onarım uzun sürer.",
-          "en": "UAC elevation required; online repair takes time."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -3659,6 +3659,109 @@
           "packages",
           "package-managers",
           "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "doas",
+      "name": "doas",
+      "kind": "executable",
+      "category": "users",
+      "summary": {
+        "tr": "OpenBSD sade yetki yükseltme (sudo alternatifi).",
+        "en": "OpenBSD minimal privilege elevation (sudo alternative)."
+      },
+      "description": {
+        "tr": "`doas`, OpenBSD’te `doas.conf` politikasıyla komut çalıştırır. Linux/macOS `sudo` ayrı kayıttır; eş anlamlı değildir. FreeBSD’de port olarak bulunabilir ama bu banka OpenBSD odaklıdır. Yanlış kural kilitleyebilir.",
+        "en": "doas runs commands under doas.conf policy on OpenBSD. Linux/macOS sudo is a separate record — not a synonym. May exist as a FreeBSD port but this bank is OpenBSD-first. Bad rules can lock you out."
+      },
+      "tags": [
+        "bsd",
+        "openbsd",
+        "privilege",
+        "security"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "bsd",
+        "openbsd"
+      ],
+      "operating_systems": [
+        "openbsd"
+      ],
+      "flags": [
+        {
+          "flag": "-s",
+          "meaning": {
+            "tr": "Kabuk aç.",
+            "en": "Launch a shell."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-u",
+          "meaning": {
+            "tr": "Hedef kullanıcı.",
+            "en": "Target user."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "Etkileşimsiz (başarısız olabilir).",
+            "en": "Non-interactive (may fail)."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kimlik",
+            "en": "Identity"
+          },
+          "command": "doas -n id",
+          "explanation": {
+            "tr": "Politika izin veriyorsa id çalıştırır (etkileşimsiz).",
+            "en": "Runs id if policy allows (non-interactive)."
+          },
+          "risk": "caution",
+          "platforms": [
+            "bsd",
+            "openbsd"
+          ]
+        }
+      ],
+      "related": [
+        "sudo",
+        "rcctl"
+      ],
+      "intent": {
+        "tr": [
+          "doas",
+          "openbsd sudo",
+          "yetki yükselt"
+        ],
+        "en": [
+          "doas",
+          "openbsd sudo",
+          "privilege elevation"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.openbsd.org/doas.1",
+          "https://man.openbsd.org/doas.conf.5"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "permissions"
         ]
       }
     },
@@ -4149,6 +4252,10 @@
           ]
         }
       ],
+      "related": [
+        "id",
+        "whoami"
+      ],
       "intent": {
         "tr": [
           "dscl",
@@ -4165,11 +4272,7 @@
           "man 1 dscl"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "id",
-        "whoami"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -5823,6 +5926,108 @@
     },
     {
       "schema_version": 2,
+      "id": "freebsd-update",
+      "name": "freebsd-update",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "FreeBSD taban sistemi ikili güncelleyicisi.",
+        "en": "FreeBSD base-system binary updater."
+      },
+      "description": {
+        "tr": "`freebsd-update`, FreeBSD base (çekirdek/userland) ikili yamalarını yönetir. `pkg upgrade` paketleri günceller — aynı değildir. `fetch`/`show` salt okumaya yakındır; `install` yükseltir. systemd/apt ile karıştırılmaz.",
+        "en": "freebsd-update manages FreeBSD base (kernel/userland) binary patches. pkg upgrade updates packages — not the same. fetch/show are near-read-only; install applies upgrades. Not systemd/apt."
+      },
+      "tags": [
+        "bsd",
+        "freebsd",
+        "update",
+        "base"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "operating_systems": [
+        "freebsd"
+      ],
+      "flags": [
+        {
+          "flag": "fetch",
+          "meaning": {
+            "tr": "Güncellemeleri indir.",
+            "en": "Fetch updates."
+          },
+          "verified": false
+        },
+        {
+          "flag": "show",
+          "meaning": {
+            "tr": "Bekleyen güncellemeleri göster.",
+            "en": "Show pending updates."
+          },
+          "verified": false
+        },
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "İndirilenleri uygula.",
+            "en": "Install fetched updates."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Bekleyenleri göster",
+            "en": "Show pending"
+          },
+          "command": "freebsd-update fetch && freebsd-update show | head",
+          "explanation": {
+            "tr": "İndirir ve bekleyen değişiklik özetinin başını basmaya çalışır.",
+            "en": "Fetches and attempts to print the head of pending changes."
+          },
+          "risk": "caution",
+          "requires_elevated": true,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
+      "related": [
+        "pkg",
+        "service"
+      ],
+      "intent": {
+        "tr": [
+          "freebsd-update",
+          "freebsd taban güncelle"
+        ],
+        "en": [
+          "freebsd-update",
+          "freebsd base update"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.freebsd.org/en/books/handbook/cutting-edge/#updating-src-quick-start",
+          "https://man.freebsd.org/cgi/man.cgi?query=freebsd-update&sektion=8"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "fsck",
       "name": "fsck",
       "kind": "executable",
@@ -6151,6 +6356,11 @@
       "name": "Get-ChildItem",
       "kind": "powershell_cmdlet",
       "category": "filesystem",
+      "aliases": [
+        "gci",
+        "ls",
+        "dir"
+      ],
       "summary": {
         "tr": "Dizin içeriğini listeler (PowerShell).",
         "en": "Lists directory contents (PowerShell)."
@@ -6221,6 +6431,11 @@
           ]
         }
       ],
+      "related": [
+        "get-item",
+        "get-content",
+        "get-itemproperty"
+      ],
       "intent": {
         "tr": [
           "get-childitem",
@@ -6237,17 +6452,7 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-childitem"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "aliases": [
-        "gci",
-        "ls",
-        "dir"
-      ],
-      "related": [
-        "get-item",
-        "get-content",
-        "get-itemproperty"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -6255,6 +6460,9 @@
       "name": "Get-Command",
       "kind": "powershell_cmdlet",
       "category": "system",
+      "aliases": [
+        "gcm"
+      ],
       "summary": {
         "tr": "PowerShell’de komut, cmdlet, fonksiyon veya alias bulur.",
         "en": "Finds a cmdlet, function, alias, or executable in PowerShell."
@@ -6346,6 +6554,10 @@
           ]
         }
       ],
+      "related": [
+        "get-help",
+        "get-process"
+      ],
       "intent": {
         "tr": [
           "get-command",
@@ -6363,13 +6575,6 @@
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
       },
-      "aliases": [
-        "gcm"
-      ],
-      "related": [
-        "get-help",
-        "get-process"
-      ],
       "nova": {
         "concepts": [
           "path"
@@ -6427,6 +6632,10 @@
           ]
         }
       ],
+      "related": [
+        "system-profiler",
+        "get-winevent"
+      ],
       "intent": {
         "tr": [
           "windows sistem bilgisi",
@@ -6443,11 +6652,7 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-computerinfo"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "system-profiler",
-        "get-winevent"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -6455,6 +6660,11 @@
       "name": "Get-Content",
       "kind": "powershell_cmdlet",
       "category": "filesystem",
+      "aliases": [
+        "gc",
+        "cat",
+        "type"
+      ],
       "summary": {
         "tr": "Dosya içeriğini okur (PowerShell).",
         "en": "Reads file content (PowerShell)."
@@ -6527,6 +6737,11 @@
           ]
         }
       ],
+      "related": [
+        "get-childitem",
+        "get-item",
+        "cat"
+      ],
       "intent": {
         "tr": [
           "get-content",
@@ -6543,17 +6758,7 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-content"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "aliases": [
-        "gc",
-        "cat",
-        "type"
-      ],
-      "related": [
-        "get-childitem",
-        "get-item",
-        "cat"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -6606,6 +6811,10 @@
           ]
         }
       ],
+      "related": [
+        "get-volume",
+        "diskpart"
+      ],
       "intent": {
         "tr": [
           "windows disk listele",
@@ -6622,11 +6831,7 @@
           "https://learn.microsoft.com/powershell/module/storage/get-disk"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "get-volume",
-        "diskpart"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -6712,6 +6917,10 @@
       "name": "Get-Help",
       "kind": "powershell_cmdlet",
       "category": "system",
+      "aliases": [
+        "help",
+        "man"
+      ],
       "summary": {
         "tr": "PowerShell yardım konularını gösterir.",
         "en": "Displays PowerShell help topics."
@@ -6781,6 +6990,9 @@
           ]
         }
       ],
+      "related": [
+        "get-command"
+      ],
       "intent": {
         "tr": [
           "get-help",
@@ -6797,14 +7009,7 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.core/get-help"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "aliases": [
-        "help",
-        "man"
-      ],
-      "related": [
-        "get-command"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -6812,6 +7017,9 @@
       "name": "Get-Item",
       "kind": "powershell_cmdlet",
       "category": "filesystem",
+      "aliases": [
+        "gi"
+      ],
       "summary": {
         "tr": "Belirtilen yolu (dosya/klasör) nesne olarak alır.",
         "en": "Gets the item at a path as an object."
@@ -6856,6 +7064,10 @@
           ]
         }
       ],
+      "related": [
+        "get-childitem",
+        "get-itemproperty"
+      ],
       "intent": {
         "tr": [
           "get-item",
@@ -6872,14 +7084,7 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-item"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "aliases": [
-        "gi"
-      ],
-      "related": [
-        "get-childitem",
-        "get-itemproperty"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -6887,6 +7092,9 @@
       "name": "Get-ItemProperty",
       "kind": "powershell_cmdlet",
       "category": "filesystem",
+      "aliases": [
+        "gp"
+      ],
       "summary": {
         "tr": "Öğe özelliklerini (kayıt defteri değerleri vb.) okur.",
         "en": "Gets item properties (e.g. registry values)."
@@ -6931,6 +7139,16 @@
           ]
         }
       ],
+      "related": [
+        "get-item",
+        "get-childitem"
+      ],
+      "security": {
+        "notes": {
+          "tr": "HKLM okuma çoğu durumda normal kullanıcıyla çalışır; yazma işlemleri UAC ister.",
+          "en": "HKLM reads often work as a normal user; writes require UAC elevation."
+        }
+      },
       "intent": {
         "tr": [
           "get-itemproperty",
@@ -6947,19 +7165,6 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-itemproperty"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "aliases": [
-        "gp"
-      ],
-      "related": [
-        "get-item",
-        "get-childitem"
-      ],
-      "security": {
-        "notes": {
-          "tr": "HKLM okuma çoğu durumda normal kullanıcıyla çalışır; yazma işlemleri UAC ister.",
-          "en": "HKLM reads often work as a normal user; writes require UAC elevation."
-        }
       }
     },
     {
@@ -6968,6 +7173,9 @@
       "name": "Get-NetIPConfiguration",
       "kind": "powershell_cmdlet",
       "category": "network",
+      "aliases": [
+        "gip"
+      ],
       "summary": {
         "tr": "Windows ağ IP yapılandırmasını gösterir.",
         "en": "Show Windows network IP configuration."
@@ -7013,6 +7221,11 @@
           "privilege": "none"
         }
       ],
+      "related": [
+        "ipconfig",
+        "get-nettcpconnection",
+        "netsh"
+      ],
       "intent": {
         "tr": [
           "windows ip adresi",
@@ -7029,15 +7242,7 @@
           "https://learn.microsoft.com/powershell/module/nettcpip/get-netipconfiguration"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "aliases": [
-        "gip"
-      ],
-      "related": [
-        "ipconfig",
-        "get-nettcpconnection",
-        "netsh"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -7109,6 +7314,10 @@
           ]
         }
       ],
+      "related": [
+        "get-netipconfiguration",
+        "netstat"
+      ],
       "intent": {
         "tr": [
           "windows tcp bağlantı",
@@ -7125,11 +7334,7 @@
           "https://learn.microsoft.com/powershell/module/nettcpip/get-nettcpconnection"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "get-netipconfiguration",
-        "netstat"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -7137,6 +7342,10 @@
       "name": "Get-Process",
       "kind": "powershell_cmdlet",
       "category": "processes",
+      "aliases": [
+        "gps",
+        "ps"
+      ],
       "summary": {
         "tr": "Yerel süreçleri listeler (PowerShell).",
         "en": "Lists local processes (PowerShell)."
@@ -7218,6 +7427,10 @@
           ]
         }
       ],
+      "related": [
+        "get-service",
+        "stop-service"
+      ],
       "intent": {
         "tr": [
           "powershell süreç",
@@ -7236,15 +7449,7 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-process"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "aliases": [
-        "gps",
-        "ps"
-      ],
-      "related": [
-        "get-service",
-        "stop-service"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -7296,6 +7501,9 @@
           ]
         }
       ],
+      "related": [
+        "schtasks"
+      ],
       "intent": {
         "tr": [
           "get-scheduledtask",
@@ -7312,10 +7520,7 @@
           "https://learn.microsoft.com/powershell/module/scheduledtasks/get-scheduledtask"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "schtasks"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -7323,6 +7528,9 @@
       "name": "Get-Service",
       "kind": "powershell_cmdlet",
       "category": "system",
+      "aliases": [
+        "gsv"
+      ],
       "summary": {
         "tr": "Windows servislerini listeler / sorgular.",
         "en": "Lists or queries Windows services."
@@ -7402,6 +7610,13 @@
           ]
         }
       ],
+      "related": [
+        "start-service",
+        "stop-service",
+        "restart-service",
+        "set-service",
+        "sc"
+      ],
       "intent": {
         "tr": [
           "windows servis listele",
@@ -7421,16 +7636,6 @@
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
       },
-      "aliases": [
-        "gsv"
-      ],
-      "related": [
-        "start-service",
-        "stop-service",
-        "restart-service",
-        "set-service",
-        "sc"
-      ],
       "nova": {
         "concepts": [
           "systemd"
@@ -7488,6 +7693,10 @@
           ]
         }
       ],
+      "related": [
+        "get-disk",
+        "chkdsk"
+      ],
       "intent": {
         "tr": [
           "get-volume",
@@ -7504,11 +7713,7 @@
           "https://learn.microsoft.com/powershell/module/storage/get-volume"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "get-disk",
-        "chkdsk"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -7589,6 +7794,18 @@
           ]
         }
       ],
+      "related": [
+        "wevtutil",
+        "journalctl"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Güvenlik günlüğü gibi kanallar için yükseltilmiş kabuk (UAC) gerekebilir.",
+          "en": "Elevated shell (UAC) may be required for channels such as Security."
+        },
+        "requires_admin": false,
+        "uac_prompt": false
+      },
       "intent": {
         "tr": [
           "windows olay günlüğü",
@@ -7607,18 +7824,6 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.diagnostics/get-winevent"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "wevtutil",
-        "journalctl"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Güvenlik günlüğü gibi kanallar için yükseltilmiş kabuk (UAC) gerekebilir.",
-          "en": "Elevated shell (UAC) may be required for channels such as Security."
-        },
-        "requires_admin": false,
-        "uac_prompt": false
       }
     },
     {
@@ -9277,6 +9482,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [],
       "examples": [
         {
@@ -9296,6 +9506,18 @@
           ]
         }
       ],
+      "related": [
+        "takeown",
+        "chmod"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Sistem yollarında değişiklik UAC ister; yedek ACL alın.",
+          "en": "Changing ACLs on system paths needs UAC; back up ACLs first."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "icacls",
@@ -9312,23 +9534,6 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/icacls"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "takeown",
-        "chmod"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Sistem yollarında değişiklik UAC ister; yedek ACL alın.",
-          "en": "Changing ACLs on system paths needs UAC; back up ACLs first."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -9431,6 +9636,126 @@
           "permissions"
         ],
         "favorite_eligible": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "ifconfig",
+      "name": "ifconfig",
+      "kind": "executable",
+      "category": "network",
+      "summary": {
+        "tr": "BSD ağ arayüzü yapılandırması / sorgusu.",
+        "en": "BSD network interface configuration / query."
+      },
+      "description": {
+        "tr": "`ifconfig`, BSD userland’de arayüz adreslerini gösterir/ayarlar. Linux’ta modern karşılık `ip` ayrı kayıttır; Windows `ipconfig` / PowerShell `Get-NetIPConfiguration` ayrıdır. Yazma (`up`/`down`/adres ekleme) tehlikeli olabilir — örnekler salt okuma.",
+        "en": "ifconfig shows/sets interface addresses in BSD userland. On Linux the modern counterpart ip is a separate record; Windows ipconfig / PowerShell Get-NetIPConfiguration are separate. Writes (up/down/add address) can be dangerous — examples are read-only."
+      },
+      "tags": [
+        "bsd",
+        "network",
+        "interfaces"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "bsd",
+        "freebsd",
+        "openbsd",
+        "netbsd",
+        "dragonflybsd"
+      ],
+      "operating_systems": [
+        "freebsd",
+        "openbsd",
+        "netbsd",
+        "dragonflybsd"
+      ],
+      "flags": [
+        {
+          "flag": "-a",
+          "meaning": {
+            "tr": "Tüm arayüzler.",
+            "en": "All interfaces."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-l",
+          "meaning": {
+            "tr": "Yalnız ad listesi.",
+            "en": "Name list only."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Tüm arayüzler",
+            "en": "All interfaces"
+          },
+          "command": "ifconfig -a",
+          "explanation": {
+            "tr": "Tüm arayüz yapılandırmasını basar.",
+            "en": "Prints all interface configuration."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Ad listesi",
+            "en": "Name list"
+          },
+          "command": "ifconfig -l",
+          "explanation": {
+            "tr": "Arayüz adlarını listeler.",
+            "en": "Lists interface names."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
+      "related": [
+        "ip",
+        "ipconfig",
+        "get-netipconfiguration",
+        "netstat-bsd",
+        "networksetup"
+      ],
+      "intent": {
+        "tr": [
+          "ifconfig",
+          "bsd ip adresi",
+          "ağ arayüzü"
+        ],
+        "en": [
+          "ifconfig",
+          "bsd show ip",
+          "network interface"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.freebsd.org/cgi/man.cgi?query=ifconfig&sektion=8",
+          "https://man.openbsd.org/ifconfig.8"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "networking",
+          "networking-basics"
+        ]
       }
     },
     {
@@ -9985,6 +10310,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [
         {
           "flag": "/all",
@@ -10038,6 +10368,11 @@
           "privilege": "none"
         }
       ],
+      "related": [
+        "get-netipconfiguration",
+        "netsh",
+        "route"
+      ],
       "intent": {
         "tr": [
           "ipconfig",
@@ -10056,17 +10391,7 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/ipconfig"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "get-netipconfiguration",
-        "netsh",
-        "route"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -10212,6 +10537,175 @@
         "concepts": [
           "firewalls",
           "networking"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "jexec",
+      "name": "jexec",
+      "kind": "administrative_tool",
+      "category": "containers",
+      "summary": {
+        "tr": "FreeBSD jail içinde komut çalıştırır.",
+        "en": "Execute a command inside a FreeBSD jail."
+      },
+      "description": {
+        "tr": "`jexec`, seçili jail içinde komut/kabuk çalıştırır. `docker exec` değildir. Yanlış jail kimliği zararlı olabilir; önce `jls` ile kimlik doğrulayın. Örnekler salt yardım/kimlik odaklıdır.",
+        "en": "jexec runs a command/shell inside a selected jail. Not docker exec. A wrong jail id can be harmful; confirm with jls first. Examples stay help/identity oriented."
+      },
+      "tags": [
+        "bsd",
+        "freebsd",
+        "jails",
+        "containers"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "operating_systems": [
+        "freebsd"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yardım",
+            "en": "Help"
+          },
+          "command": "jexec 2>&1 | head",
+          "explanation": {
+            "tr": "Kullanım özetini basmaya çalışır (jail seçmeden).",
+            "en": "Attempts to print usage summary (without selecting a jail)."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
+      "related": [
+        "jls"
+      ],
+      "intent": {
+        "tr": [
+          "jexec",
+          "freebsd jail komut"
+        ],
+        "en": [
+          "jexec",
+          "freebsd jail exec"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.freebsd.org/cgi/man.cgi?query=jexec&sektion=8",
+          "https://docs.freebsd.org/en/books/handbook/jails/"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "containers"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "jls",
+      "name": "jls",
+      "kind": "administrative_tool",
+      "category": "containers",
+      "summary": {
+        "tr": "FreeBSD jail listesi.",
+        "en": "List FreeBSD jails."
+      },
+      "description": {
+        "tr": "`jls`, çalışan FreeBSD jail’lerini listeler. Linux konteynerleri (Docker/Podman) veya zone’lar değildir. `jexec` ile birlikte jail yönetiminin salt okuma yüzüdür.",
+        "en": "jls lists running FreeBSD jails. Not Linux containers (Docker/Podman) or zones. With jexec it is the read-oriented face of jail management."
+      },
+      "tags": [
+        "bsd",
+        "freebsd",
+        "jails",
+        "containers"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "operating_systems": [
+        "freebsd"
+      ],
+      "flags": [
+        {
+          "flag": "-v",
+          "meaning": {
+            "tr": "Ayrıntılı.",
+            "en": "Verbose."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "İsimleri sayısal göster.",
+            "en": "Show names numerically."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Jail listesi",
+            "en": "List jails"
+          },
+          "command": "jls",
+          "explanation": {
+            "tr": "Çalışan jail’leri tablo olarak basar.",
+            "en": "Prints running jails as a table."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
+      "related": [
+        "jexec",
+        "docker"
+      ],
+      "intent": {
+        "tr": [
+          "jls",
+          "freebsd jail listele"
+        ],
+        "en": [
+          "jls",
+          "list freebsd jails"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.freebsd.org/cgi/man.cgi?query=jls&sektion=8",
+          "https://docs.freebsd.org/en/books/handbook/jails/"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "containers"
         ]
       }
     },
@@ -10730,6 +11224,10 @@
           ]
         }
       ],
+      "related": [
+        "systemctl",
+        "softwareupdate"
+      ],
       "intent": {
         "tr": [
           "launchctl",
@@ -10750,10 +11248,6 @@
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
       },
-      "related": [
-        "systemctl",
-        "softwareupdate"
-      ],
       "nova": {
         "concepts": [
           "systemd"
@@ -11184,6 +11678,10 @@
           ]
         }
       ],
+      "related": [
+        "get-winevent",
+        "journalctl"
+      ],
       "intent": {
         "tr": [
           "log",
@@ -11201,11 +11699,7 @@
           "https://developer.apple.com/documentation/os/logging"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "get-winevent",
-        "journalctl"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -13740,6 +14234,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [],
       "examples": [
         {
@@ -13761,6 +14260,19 @@
           "privilege": "none"
         }
       ],
+      "related": [
+        "ipconfig",
+        "route",
+        "get-netipconfiguration"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yapılandırma değişiklikleri UAC yükseltmesi ister; üretimde dikkat.",
+          "en": "Configuration changes require UAC elevation; use care in production."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "netsh",
@@ -13777,24 +14289,6 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/netsh"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "ipconfig",
-        "route",
-        "get-netipconfiguration"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Yapılandırma değişiklikleri UAC yükseltmesi ister; üretimde dikkat.",
-          "en": "Configuration changes require UAC elevation; use care in production."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -13823,6 +14317,11 @@
       ],
       "operating_systems": [
         "windows"
+      ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
       ],
       "flags": [
         {
@@ -13860,6 +14359,18 @@
           ]
         }
       ],
+      "related": [
+        "get-nettcpconnection",
+        "netsh"
+      ],
+      "security": {
+        "notes": {
+          "tr": "`netstat -b` için yükseltilmiş kabuk (UAC) gerekir.",
+          "en": "`netstat -b` requires an elevated shell (UAC)."
+        },
+        "requires_admin": false,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "netstat",
@@ -13876,23 +14387,144 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/netstat"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "netstat-bsd",
+      "name": "netstat",
+      "kind": "executable",
+      "category": "network",
+      "aliases": [
+        "netstat"
+      ],
+      "summary": {
+        "tr": "BSD netstat — soket ve yönlendirme tablosu.",
+        "en": "BSD netstat — sockets and routing table."
       },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
+      "description": {
+        "tr": "BSD `netstat`, soket/yönlendirme istatistiklerini gösterir. Windows `netstat` kaydı (id: netstat) ayrıdır — bu kayıt BSD ailesi içindir. Linux `ss` modern alternatiftir. `-an` / `-r` salt okuma.",
+        "en": "BSD netstat shows socket/routing statistics. The Windows netstat record (id: netstat) is separate — this record is for the BSD family. Linux ss is the modern alternative. -an / -r are read-only."
+      },
+      "tags": [
+        "bsd",
+        "network",
+        "sockets"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "bsd",
+        "freebsd",
+        "openbsd",
+        "netbsd",
+        "dragonflybsd"
+      ],
+      "operating_systems": [
+        "freebsd",
+        "openbsd",
+        "netbsd",
+        "dragonflybsd"
+      ],
+      "flags": [
+        {
+          "flag": "-a",
+          "meaning": {
+            "tr": "Tüm soketler.",
+            "en": "All sockets."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "Sayısal adres/port.",
+            "en": "Numeric addresses/ports."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-r",
+          "meaning": {
+            "tr": "Yönlendirme tablosu.",
+            "en": "Routing table."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-s",
+          "meaning": {
+            "tr": "İstatistikler.",
+            "en": "Statistics."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Dinleyen soketler",
+            "en": "Listening sockets"
+          },
+          "command": "netstat -an | head",
+          "explanation": {
+            "tr": "Soket tablosunun başını basar.",
+            "en": "Prints the head of the socket table."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Yönlendirme tablosu",
+            "en": "Routing table"
+          },
+          "command": "netstat -rn",
+          "explanation": {
+            "tr": "Sayısal yönlendirme tablosunu gösterir.",
+            "en": "Shows the numeric routing table."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
       ],
       "related": [
-        "get-nettcpconnection",
-        "netsh"
+        "netstat",
+        "ss",
+        "ifconfig",
+        "get-nettcpconnection"
       ],
-      "security": {
-        "notes": {
-          "tr": "`netstat -b` için yükseltilmiş kabuk (UAC) gerekir.",
-          "en": "`netstat -b` requires an elevated shell (UAC)."
-        },
-        "requires_admin": false,
-        "uac_prompt": true
+      "intent": {
+        "tr": [
+          "netstat bsd",
+          "bsd dinleyen port",
+          "yönlendirme tablosu"
+        ],
+        "en": [
+          "bsd netstat",
+          "bsd listening ports",
+          "routing table"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.freebsd.org/cgi/man.cgi?query=netstat&sektion=1",
+          "https://man.openbsd.org/netstat.1"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "networking",
+          "networking-basics"
+        ]
       }
     },
     {
@@ -13956,6 +14588,10 @@
           ]
         }
       ],
+      "related": [
+        "scutil",
+        "ip"
+      ],
       "intent": {
         "tr": [
           "macos ağ",
@@ -13975,11 +14611,106 @@
           "https://ss64.com/mac/networksetup.html"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "newsyslog",
+      "name": "newsyslog",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "BSD günlük döndürme (newsyslog.conf).",
+        "en": "BSD log rotation (newsyslog.conf)."
       },
+      "description": {
+        "tr": "`newsyslog`, FreeBSD/OpenBSD/NetBSD’te günlük dosyalarını döndürür. Linux `logrotate` ayrı araçtır. `-n` / `-v` ile kuru deneme tercih edilir; gerçek döndürme yazma yapar.",
+        "en": "newsyslog rotates log files on FreeBSD/OpenBSD/NetBSD. Linux logrotate is a separate tool. Prefer -n/-v dry runs; real rotation writes."
+      },
+      "tags": [
+        "bsd",
+        "logs",
+        "rotation"
+      ],
+      "risk": "caution",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "freebsd",
+        "openbsd",
+        "netbsd"
+      ],
+      "operating_systems": [
+        "freebsd",
+        "openbsd",
+        "netbsd"
+      ],
+      "flags": [
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "Kuru çalıştır (yazma).",
+            "en": "Dry-run (no rotate)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-v",
+          "meaning": {
+            "tr": "Ayrıntılı.",
+            "en": "Verbose."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-r",
+          "meaning": {
+            "tr": "Kök dışı çalışma notu.",
+            "en": "Non-root run note."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kuru döndürme",
+            "en": "Dry-run rotation"
+          },
+          "command": "newsyslog -n -v | head",
+          "explanation": {
+            "tr": "Ne döndürüleceğini gösterir; dosya yazmaz.",
+            "en": "Shows what would rotate without writing files."
+          },
+          "risk": "safe",
+          "requires_elevated": true,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
       "related": [
-        "scutil",
-        "ip"
-      ]
+        "service"
+      ],
+      "intent": {
+        "tr": [
+          "newsyslog",
+          "bsd log döndür"
+        ],
+        "en": [
+          "newsyslog",
+          "bsd log rotate"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.freebsd.org/cgi/man.cgi?query=newsyslog&sektion=8",
+          "https://man.openbsd.org/newsyslog.8"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      }
     },
     {
       "schema_version": 2,
@@ -16194,6 +16925,134 @@
     },
     {
       "schema_version": 2,
+      "id": "pfctl",
+      "name": "pfctl",
+      "kind": "administrative_tool",
+      "category": "security",
+      "summary": {
+        "tr": "PF (Packet Filter) denetimi — OpenBSD/FreeBSD.",
+        "en": "PF (Packet Filter) control — OpenBSD/FreeBSD."
+      },
+      "description": {
+        "tr": "`pfctl`, BSD Packet Filter kurallarını yükler/sorgular. Linux `iptables`/`nft`/`ufw` ile **eşitlenmez**. `-s rules` salt okuma; `-f` / `-d` yazma/devre dışı bırakma tehlikelidir — örneklerde yok.",
+        "en": "pfctl loads/queries BSD Packet Filter rules. **Not** equivalent to Linux iptables/nft/ufw. -s rules is read-only; -f/-d write/disable are dangerous — omitted from examples."
+      },
+      "tags": [
+        "bsd",
+        "openbsd",
+        "freebsd",
+        "firewall",
+        "pf"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "openbsd",
+        "freebsd"
+      ],
+      "operating_systems": [
+        "openbsd",
+        "freebsd"
+      ],
+      "flags": [
+        {
+          "flag": "-s",
+          "meaning": {
+            "tr": "Durum göster (rules/info/…).",
+            "en": "Show state (rules/info/…)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-v",
+          "meaning": {
+            "tr": "Ayrıntılı.",
+            "en": "Verbose."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "Sözdizimi kontrol / kuru.",
+            "en": "Syntax check / dry."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kuralları göster",
+            "en": "Show rules"
+          },
+          "command": "pfctl -s rules | head",
+          "explanation": {
+            "tr": "Yüklü PF kurallarının başını basar (salt okuma).",
+            "en": "Prints the head of loaded PF rules (read-only)."
+          },
+          "risk": "safe",
+          "requires_elevated": true,
+          "platforms": [
+            "bsd",
+            "openbsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Bilgi",
+            "en": "Info"
+          },
+          "command": "pfctl -s info",
+          "explanation": {
+            "tr": "PF durum özetini gösterir.",
+            "en": "Shows PF status summary."
+          },
+          "risk": "safe",
+          "requires_elevated": true,
+          "platforms": [
+            "bsd",
+            "openbsd"
+          ]
+        }
+      ],
+      "related": [
+        "iptables",
+        "nft",
+        "ufw",
+        "firewall-cmd"
+      ],
+      "intent": {
+        "tr": [
+          "pfctl",
+          "pf firewall",
+          "openbsd güvenlik duvarı"
+        ],
+        "en": [
+          "pfctl",
+          "pf firewall",
+          "openbsd firewall"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.openbsd.org/pfctl.8",
+          "https://www.openbsd.org/faq/pf/",
+          "https://docs.freebsd.org/en/books/handbook/firewalls/#firewalls-pf"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "firewalls",
+          "networking"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "pgrep",
       "name": "pgrep",
       "kind": "executable",
@@ -16427,6 +17286,567 @@
     },
     {
       "schema_version": 2,
+      "id": "pkg",
+      "name": "pkg",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "FreeBSD ikili paket yöneticisi (pkgng).",
+        "en": "FreeBSD binary package manager (pkgng)."
+      },
+      "description": {
+        "tr": "FreeBSD `pkg`, uzak depolardan ikili paket kurar/sorgular. FreeBSD Ports (`ports` kaydı) kaynak ağacıdır — aynı değildir. OpenBSD `pkg_add`, NetBSD `pkgin`/`pkgsrc` ve DragonFly `pkg` ayrı ekosistemlerdir; isim benzerliği özdeşlik değildir. Arch host’ta sistem PM olarak pacman tercih edilir.",
+        "en": "FreeBSD pkg installs/queries binary packages from remote repos. FreeBSD Ports (ports record) is the source tree — not the same. OpenBSD pkg_add, NetBSD pkgin/pkgsrc, and DragonFly pkg are separate ecosystems; similar names are not identity. On Arch hosts prefer pacman as the system PM."
+      },
+      "tags": [
+        "bsd",
+        "freebsd",
+        "packages",
+        "pkg"
+      ],
+      "risk": "caution",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "operating_systems": [
+        "freebsd"
+      ],
+      "package_refs": [
+        {
+          "manager": "freebsd-pkg",
+          "package": "pkg",
+          "distributions": [
+            "freebsd-release"
+          ],
+          "notes": {
+            "tr": "Base/pkgng; Handbook ports bölümü.",
+            "en": "Base/pkgng; see Handbook ports chapter."
+          }
+        }
+      ],
+      "flags": [
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "Paket kur.",
+            "en": "Install package."
+          },
+          "verified": false
+        },
+        {
+          "flag": "delete",
+          "meaning": {
+            "tr": "Paket kaldır.",
+            "en": "Delete package."
+          },
+          "verified": false
+        },
+        {
+          "flag": "upgrade",
+          "meaning": {
+            "tr": "Kurulu paketleri yükselt.",
+            "en": "Upgrade installed packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "Depoda ara.",
+            "en": "Search repository."
+          },
+          "verified": false
+        },
+        {
+          "flag": "info",
+          "meaning": {
+            "tr": "Kurulu/uzak paket bilgisi.",
+            "en": "Installed/remote package info."
+          },
+          "verified": false
+        },
+        {
+          "flag": "update",
+          "meaning": {
+            "tr": "Depo kataloğunu yenile.",
+            "en": "Refresh repository catalog."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "pkg search nginx",
+          "explanation": {
+            "tr": "Depoda nginx ile eşleşen paketleri listeler.",
+            "en": "Lists packages matching nginx in the repo."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Bilgi",
+            "en": "Info"
+          },
+          "command": "pkg info -x nginx",
+          "explanation": {
+            "tr": "Kurulu paketlerde nginx geçenleri gösterir (salt okuma).",
+            "en": "Shows installed packages matching nginx (read-only)."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Katalog güncelle",
+            "en": "Update catalog"
+          },
+          "command": "pkg update",
+          "explanation": {
+            "tr": "Uzak paket indeksini yeniler (paket yükseltmez).",
+            "en": "Refreshes the remote package index (does not upgrade packages)."
+          },
+          "risk": "caution",
+          "requires_elevated": true,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
+      "related": [
+        "ports",
+        "pkg_add",
+        "pkgin",
+        "pkgsrc",
+        "pacman",
+        "brew"
+      ],
+      "intent": {
+        "tr": [
+          "pkg kur",
+          "freebsd paket",
+          "pkg search"
+        ],
+        "en": [
+          "pkg install",
+          "freebsd package",
+          "pkg search"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.freebsd.org/en/books/handbook/ports/#pkgng-intro",
+          "https://man.freebsd.org/cgi/man.cgi?query=pkg&sektion=8"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "pkg_add",
+      "name": "pkg_add",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "OpenBSD paket kurucu (pkg_* ailesi).",
+        "en": "OpenBSD package installer (pkg_* family)."
+      },
+      "description": {
+        "tr": "OpenBSD `pkg_add`, resmi paketleri kurar. FreeBSD `pkg` ve NetBSD `pkgin` ile aynı değildir. Sorgu için `pkg_info`, kaldırma için `pkg_delete` ayrı araçlardır; bu kayıt kurulum odaklıdır. Salt okuma örnekleri tercih edilir.",
+        "en": "OpenBSD pkg_add installs official packages. Not the same as FreeBSD pkg or NetBSD pkgin. Query via pkg_info, removal via pkg_delete — separate tools; this record is install-oriented. Prefer read-only examples."
+      },
+      "tags": [
+        "bsd",
+        "openbsd",
+        "packages"
+      ],
+      "risk": "caution",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "openbsd"
+      ],
+      "operating_systems": [
+        "openbsd"
+      ],
+      "package_refs": [
+        {
+          "manager": "openbsd-pkg",
+          "package": "pkg_add",
+          "distributions": [
+            "openbsd-release"
+          ]
+        }
+      ],
+      "flags": [
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "Kuru çalıştır / göster.",
+            "en": "Dry-run / show."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-v",
+          "meaning": {
+            "tr": "Ayrıntılı.",
+            "en": "Verbose."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-u",
+          "meaning": {
+            "tr": "Güncelle.",
+            "en": "Update."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Paket bilgisi (pkg_info)",
+            "en": "Package info (pkg_info)"
+          },
+          "command": "pkg_info -Q nginx",
+          "explanation": {
+            "tr": "Depoda nginx geçen paket adlarını sorar (kurmaz).",
+            "en": "Queries package names matching nginx (does not install)."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "openbsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Kuru kurulum denemesi",
+            "en": "Dry-run install"
+          },
+          "command": "pkg_add -n nginx",
+          "explanation": {
+            "tr": "Ne yapılacağını gösterir; yazmaz (ortama göre değişir).",
+            "en": "Shows what would be done without writing (environment-dependent)."
+          },
+          "risk": "safe",
+          "requires_elevated": true,
+          "platforms": [
+            "bsd",
+            "openbsd"
+          ]
+        }
+      ],
+      "related": [
+        "pkg",
+        "pkgin",
+        "rcctl"
+      ],
+      "intent": {
+        "tr": [
+          "pkg_add",
+          "openbsd paket",
+          "pkg_info"
+        ],
+        "en": [
+          "pkg_add",
+          "openbsd package",
+          "pkg_info"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://www.openbsd.org/faq/faq15.html",
+          "https://man.openbsd.org/pkg_add.1"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "pkgin",
+      "name": "pkgin",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "NetBSD ikili paket aracı (pkgsrc ön yüzü).",
+        "en": "NetBSD binary package tool (pkgsrc frontend)."
+      },
+      "description": {
+        "tr": "`pkgin`, NetBSD’te pkgsrc ikili paketlerini yönetir. Kaynak ağacı `pkgsrc` ayrı kayıttır. FreeBSD `pkg` / OpenBSD `pkg_add` ile karıştırılmaz.",
+        "en": "pkgin manages NetBSD pkgsrc binary packages. The pkgsrc source tree is a separate record. Do not confuse with FreeBSD pkg or OpenBSD pkg_add."
+      },
+      "tags": [
+        "bsd",
+        "netbsd",
+        "packages",
+        "pkgsrc"
+      ],
+      "risk": "caution",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "netbsd"
+      ],
+      "operating_systems": [
+        "netbsd"
+      ],
+      "package_refs": [
+        {
+          "manager": "pkgin",
+          "package": "pkgin",
+          "distributions": [
+            "netbsd-release"
+          ]
+        }
+      ],
+      "flags": [
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "Ara.",
+            "en": "Search."
+          },
+          "verified": false
+        },
+        {
+          "flag": "avail",
+          "meaning": {
+            "tr": "Uzakta uygun paketler.",
+            "en": "Available remote packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "list",
+          "meaning": {
+            "tr": "Kurulu liste.",
+            "en": "List installed."
+          },
+          "verified": false
+        },
+        {
+          "flag": "update",
+          "meaning": {
+            "tr": "İndeks güncelle.",
+            "en": "Update index."
+          },
+          "verified": false
+        },
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "Kur.",
+            "en": "Install."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "pkgin search nginx",
+          "explanation": {
+            "tr": "İkili depoda nginx arar.",
+            "en": "Searches the binary repo for nginx."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "netbsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Kurulu liste",
+            "en": "List installed"
+          },
+          "command": "pkgin list",
+          "explanation": {
+            "tr": "Kurulu pkgin paketlerini listeler.",
+            "en": "Lists installed pkgin packages."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "netbsd"
+          ]
+        }
+      ],
+      "related": [
+        "pkgsrc",
+        "pkg",
+        "pkg_add"
+      ],
+      "intent": {
+        "tr": [
+          "pkgin",
+          "netbsd paket",
+          "pkgin search"
+        ],
+        "en": [
+          "pkgin",
+          "netbsd package",
+          "pkgin search"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://www.netbsd.org/docs/pkgsrc/using.html",
+          "https://man.netbsd.org/pkgin.1"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "pkgsrc",
+      "name": "pkgsrc",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "NetBSD pkgsrc kaynak paket koleksiyonu.",
+        "en": "NetBSD pkgsrc source package collection."
+      },
+      "description": {
+        "tr": "pkgsrc, NetBSD kökenli taşınabilir kaynak paket ağacıdır (`bmake` ile). İkili `pkgin` ön yüzü ayrıdır. FreeBSD Ports ve OpenBSD ports ile aynı değildir. Yıkıcı kurulum örnekleri yok — yalnızca bilgi/arama odaklı.",
+        "en": "pkgsrc is a portable NetBSD-origin source package tree (via bmake). Binary pkgin frontend is separate. Not the same as FreeBSD Ports or OpenBSD ports. No destructive install examples — info/search oriented only."
+      },
+      "tags": [
+        "bsd",
+        "netbsd",
+        "pkgsrc",
+        "packages"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "bsd",
+        "netbsd"
+      ],
+      "operating_systems": [
+        "netbsd"
+      ],
+      "package_refs": [
+        {
+          "manager": "pkgsrc",
+          "package": "pkgsrc",
+          "distributions": [
+            "netbsd-release"
+          ]
+        }
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ağaç var mı",
+            "en": "Check tree present"
+          },
+          "command": "test -d /usr/pkgsrc && echo pkgsrc-tree-ok",
+          "explanation": {
+            "tr": "pkgsrc kökünün varlığını kontrol eder.",
+            "en": "Checks whether the pkgsrc root exists."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "netbsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Kategori listele",
+            "en": "List category"
+          },
+          "command": "ls /usr/pkgsrc/www 2>/dev/null | head",
+          "explanation": {
+            "tr": "Örnek kategori içeriğinin başını listeler (ağaç yoksa boş).",
+            "en": "Lists the head of a sample category (empty if no tree)."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "netbsd"
+          ]
+        }
+      ],
+      "related": [
+        "pkgin",
+        "ports",
+        "pkg"
+      ],
+      "intent": {
+        "tr": [
+          "pkgsrc",
+          "netbsd kaynak paket"
+        ],
+        "en": [
+          "pkgsrc",
+          "netbsd source packages"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://www.netbsd.org/docs/pkgsrc/",
+          "https://www.netbsd.org/docs/pkgsrc/getting.html"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "pkill",
       "name": "pkill",
       "kind": "executable",
@@ -16629,6 +18049,9 @@
           ]
         }
       ],
+      "related": [
+        "defaults"
+      ],
       "intent": {
         "tr": [
           "plutil",
@@ -16645,10 +18068,7 @@
           "man 1 plutil"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "defaults"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -16694,6 +18114,9 @@
           ]
         }
       ],
+      "related": [
+        "system-profiler"
+      ],
       "intent": {
         "tr": [
           "pmset",
@@ -16710,10 +18133,7 @@
           "man 1 pmset"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "system-profiler"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -16857,6 +18277,19 @@
       "operating_systems": [
         "macos"
       ],
+      "package_refs": [
+        {
+          "manager": "macports",
+          "package": "MacPorts",
+          "distributions": [
+            "macos-desktop"
+          ],
+          "notes": {
+            "tr": "Resmi kurulum pkg/guide.macports.org.",
+            "en": "Official install via pkg / guide.macports.org."
+          }
+        }
+      ],
       "flags": [],
       "examples": [
         {
@@ -16892,6 +18325,10 @@
           ]
         }
       ],
+      "related": [
+        "brew",
+        "softwareupdate"
+      ],
       "intent": {
         "tr": [
           "port",
@@ -16910,26 +18347,136 @@
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
       },
-      "related": [
-        "brew",
-        "softwareupdate"
-      ],
-      "package_refs": [
-        {
-          "manager": "macports",
-          "package": "MacPorts",
-          "distributions": [
-            "macos-desktop"
-          ],
-          "notes": {
-            "tr": "Resmi kurulum pkg/guide.macports.org.",
-            "en": "Official install via pkg / guide.macports.org."
-          }
-        }
-      ],
       "nova": {
         "concepts": [
           "packages",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "ports",
+      "name": "ports",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "FreeBSD Ports kaynak ağacı (make tabanlı).",
+        "en": "FreeBSD Ports source tree (make-based)."
+      },
+      "description": {
+        "tr": "FreeBSD Ports, `/usr/ports` altında kaynaktan derleme ağacıdır. İkili `pkg` ile karıştırılmaz. Bu kayıt Ports iş akışını belgeler; genel `make` (GNU/BSD make) ayrı kayıttır. Yıkıcı `make install`/`deinstall` örnekleri verilmez — yalnız arama/açıklama. OpenBSD ports ve NetBSD pkgsrc ayrıdır.",
+        "en": "FreeBSD Ports is a from-source build tree under /usr/ports. Do not confuse with binary pkg. This record documents the Ports workflow; generic make is a separate record. No destructive make install/deinstall examples — search/describe only. OpenBSD ports and NetBSD pkgsrc are separate."
+      },
+      "tags": [
+        "bsd",
+        "freebsd",
+        "ports",
+        "packages"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "operating_systems": [
+        "freebsd"
+      ],
+      "package_refs": [
+        {
+          "manager": "freebsd-ports",
+          "package": "ports",
+          "distributions": [
+            "freebsd-release"
+          ],
+          "notes": {
+            "tr": "Ports Collection; pkg ile ikili alternatif.",
+            "en": "Ports Collection; pkg is the binary alternative."
+          }
+        }
+      ],
+      "flags": [
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "make search / port arama.",
+            "en": "make search / port lookup."
+          },
+          "verified": false
+        },
+        {
+          "flag": "describe",
+          "meaning": {
+            "tr": "Port açıklaması.",
+            "en": "Port description."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "İsimle ara",
+            "en": "Search by name"
+          },
+          "command": "cd /usr/ports && make search name=nginx",
+          "explanation": {
+            "tr": "Ports ağacında isim arar (ağaç kurulu olmalı).",
+            "en": "Searches the Ports tree by name (tree must be present)."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Port açıklaması",
+            "en": "Describe port"
+          },
+          "command": "cd /usr/ports/www/nginx && make describe",
+          "explanation": {
+            "tr": "Port özetini basar; kurulum yapmaz.",
+            "en": "Prints the port summary; does not install."
+          },
+          "risk": "safe",
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
+      "related": [
+        "pkg",
+        "pkgsrc",
+        "make"
+      ],
+      "intent": {
+        "tr": [
+          "freebsd ports",
+          "ports ara",
+          "make search"
+        ],
+        "en": [
+          "freebsd ports",
+          "ports search",
+          "make search"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.freebsd.org/en/books/handbook/ports/",
+          "https://docs.freebsd.org/en/books/porters-handbook/"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
           "package-managers-comparison"
         ]
       }
@@ -16980,6 +18527,9 @@
           ]
         }
       ],
+      "related": [
+        "softwareupdate"
+      ],
       "intent": {
         "tr": [
           "profiles",
@@ -16996,10 +18546,7 @@
           "man 1 profiles"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "softwareupdate"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -17576,6 +19123,137 @@
     },
     {
       "schema_version": 2,
+      "id": "rcctl",
+      "name": "rcctl",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "OpenBSD rc.d servis denetimi (systemd / FreeBSD service değil).",
+        "en": "OpenBSD rc.d service control (not systemd / FreeBSD service)."
+      },
+      "description": {
+        "tr": "`rcctl`, OpenBSD’te rc.d servislerini yönetir. FreeBSD `service`/`sysrc` ve Linux `systemctl` ayrı modellerdir — **eş anlamlı değildir**. `get`/`ls` güvenli sorgu; `enable`/`start` yapılandırmayı değiştirir.",
+        "en": "rcctl manages OpenBSD rc.d services. FreeBSD service/sysrc and Linux systemctl are separate models — **not synonyms**. get/ls are safe queries; enable/start change configuration."
+      },
+      "tags": [
+        "bsd",
+        "openbsd",
+        "rc",
+        "services"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "openbsd"
+      ],
+      "operating_systems": [
+        "openbsd"
+      ],
+      "flags": [
+        {
+          "flag": "get",
+          "meaning": {
+            "tr": "Servis değişkenini oku.",
+            "en": "Get service variable."
+          },
+          "verified": false
+        },
+        {
+          "flag": "ls",
+          "meaning": {
+            "tr": "Servisleri listele.",
+            "en": "List services."
+          },
+          "verified": false
+        },
+        {
+          "flag": "check",
+          "meaning": {
+            "tr": "Çalışıyor mu kontrol et.",
+            "en": "Check if running."
+          },
+          "verified": false
+        },
+        {
+          "flag": "enable",
+          "meaning": {
+            "tr": "Açılışta etkinleştir.",
+            "en": "Enable at boot."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "sshd ayarını oku",
+            "en": "Get sshd setting"
+          },
+          "command": "rcctl get sshd",
+          "explanation": {
+            "tr": "sshd rc değişkenlerini basar.",
+            "en": "Prints sshd rc variables."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "openbsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Çalışan servisler",
+            "en": "Running services"
+          },
+          "command": "rcctl ls started",
+          "explanation": {
+            "tr": "Başlatılmış servisleri listeler.",
+            "en": "Lists started services."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "openbsd"
+          ]
+        }
+      ],
+      "related": [
+        "service",
+        "sysrc",
+        "systemctl",
+        "pkg_add"
+      ],
+      "intent": {
+        "tr": [
+          "rcctl",
+          "openbsd servis",
+          "rc.d"
+        ],
+        "en": [
+          "rcctl",
+          "openbsd service",
+          "rc.d"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.openbsd.org/rcctl.8",
+          "https://www.openbsd.org/faq/faq10.html"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "removepkg",
       "name": "removepkg",
       "kind": "package_manager",
@@ -18043,6 +19721,18 @@
           "privilege": "admin"
         }
       ],
+      "related": [
+        "get-service",
+        "sc"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
+          "en": "Requires an elevated PowerShell session (UAC prompt)."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "restart-service",
@@ -18059,18 +19749,6 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/restart-service"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "get-service",
-        "sc"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
-          "en": "Requires an elevated PowerShell session (UAC prompt)."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       },
       "nova": {
         "concepts": [
@@ -18454,6 +20132,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [
         {
           "flag": "/E",
@@ -18498,6 +20181,10 @@
           ]
         }
       ],
+      "related": [
+        "rsync",
+        "icacls"
+      ],
       "intent": {
         "tr": [
           "robocopy",
@@ -18514,16 +20201,7 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/robocopy"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "rsync",
-        "icacls"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -18551,6 +20229,11 @@
       ],
       "operating_systems": [
         "windows"
+      ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
       ],
       "flags": [
         {
@@ -18596,6 +20279,18 @@
           ]
         }
       ],
+      "related": [
+        "netsh",
+        "ipconfig"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Rota ekleme/silme UAC yükseltmesi ister.",
+          "en": "Adding/deleting routes requires UAC elevation."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "route",
@@ -18612,23 +20307,6 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/route"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "netsh",
-        "ipconfig"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Rota ekleme/silme UAC yükseltmesi ister.",
-          "en": "Adding/deleting routes requires UAC elevation."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -19163,6 +20841,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [],
       "examples": [
         {
@@ -19184,6 +20867,19 @@
           "privilege": "none"
         }
       ],
+      "related": [
+        "get-service",
+        "start-service",
+        "stop-service"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Servis değiştirme UAC ister. PowerShell’de sc ≠ sc.exe.",
+          "en": "Changing services needs UAC. In PowerShell sc ≠ sc.exe."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "sc.exe",
@@ -19202,24 +20898,6 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/sc-query"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "get-service",
-        "start-service",
-        "stop-service"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Servis değiştirme UAC ister. PowerShell’de sc ≠ sc.exe.",
-          "en": "Changing services needs UAC. In PowerShell sc ≠ sc.exe."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -19249,6 +20927,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [],
       "examples": [
         {
@@ -19268,6 +20951,17 @@
           ]
         }
       ],
+      "related": [
+        "get-scheduledtask"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Görev oluşturma/silme UAC gerektirebilir.",
+          "en": "Creating/deleting tasks may require UAC."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "schtasks",
@@ -19284,22 +20978,6 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/schtasks"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "get-scheduledtask"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Görev oluşturma/silme UAC gerektirebilir.",
-          "en": "Creating/deleting tasks may require UAC."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -19507,6 +21185,9 @@
           ]
         }
       ],
+      "related": [
+        "networksetup"
+      ],
       "intent": {
         "tr": [
           "scutil",
@@ -19523,10 +21204,7 @@
           "man 8 scutil"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "networksetup"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -19573,6 +21251,10 @@
           ]
         }
       ],
+      "related": [
+        "openssl",
+        "gpg"
+      ],
       "intent": {
         "tr": [
           "security",
@@ -19589,11 +21271,7 @@
           "man 1 security"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "openssl",
-        "gpg"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -19737,6 +21415,132 @@
     },
     {
       "schema_version": 2,
+      "id": "service",
+      "name": "service",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "FreeBSD/NetBSD rc.d servis denetimi (systemd değil).",
+        "en": "FreeBSD/NetBSD rc.d service control (not systemd)."
+      },
+      "description": {
+        "tr": "`service`, BSD rc.d betiklerini başlatır/durdurur/sorgular. Linux `systemctl` veya OpenBSD `rcctl` ile **eşitlenmez**. `service -e` etkin servisleri listeler; start/stop yükseltme ister ve yıkıcı olabilir.",
+        "en": "service starts/stops/queries BSD rc.d scripts. It is **not** equivalent to Linux systemctl or OpenBSD rcctl. service -e lists enabled services; start/stop need elevation and can be disruptive."
+      },
+      "tags": [
+        "bsd",
+        "freebsd",
+        "netbsd",
+        "rc",
+        "services"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "freebsd",
+        "netbsd"
+      ],
+      "operating_systems": [
+        "freebsd",
+        "netbsd"
+      ],
+      "flags": [
+        {
+          "flag": "-e",
+          "meaning": {
+            "tr": "Etkin servisleri listele.",
+            "en": "List enabled services."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-l",
+          "meaning": {
+            "tr": "Tüm rc.d betiklerini listele.",
+            "en": "List all rc.d scripts."
+          },
+          "verified": false
+        },
+        {
+          "flag": "status",
+          "meaning": {
+            "tr": "Servis durumu (argüman).",
+            "en": "Service status (argument)."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Etkin servisler",
+            "en": "Enabled services"
+          },
+          "command": "service -e",
+          "explanation": {
+            "tr": "rc.conf ile etkinleştirilmiş servisleri listeler.",
+            "en": "Lists services enabled via rc.conf."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "sshd durumu",
+            "en": "sshd status"
+          },
+          "command": "service sshd status",
+          "explanation": {
+            "tr": "sshd rc.d durumunu sorar (systemd status değildir).",
+            "en": "Queries sshd rc.d status (not systemd status)."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
+      "related": [
+        "sysrc",
+        "rcctl",
+        "systemctl",
+        "launchctl"
+      ],
+      "intent": {
+        "tr": [
+          "freebsd servis",
+          "service status",
+          "rc.d"
+        ],
+        "en": [
+          "freebsd service",
+          "service status",
+          "rc.d"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.freebsd.org/cgi/man.cgi?query=service&sektion=8",
+          "https://docs.freebsd.org/en/books/handbook/config/#configtuning-rcng"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "set-service",
       "name": "Set-Service",
       "kind": "powershell_cmdlet",
@@ -19788,6 +21592,18 @@
           "privilege": "admin"
         }
       ],
+      "related": [
+        "get-service",
+        "sc"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
+          "en": "Requires an elevated PowerShell session (UAC prompt)."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "set-service",
@@ -19804,18 +21620,6 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/set-service"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "get-service",
-        "sc"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
-          "en": "Requires an elevated PowerShell session (UAC prompt)."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       },
       "nova": {
         "concepts": [
@@ -19850,6 +21654,11 @@
       ],
       "operating_systems": [
         "windows"
+      ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
       ],
       "flags": [
         {
@@ -19888,6 +21697,18 @@
           ]
         }
       ],
+      "related": [
+        "dism",
+        "chkdsk"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yükseltilmiş CMD/PowerShell (UAC) zorunlu.",
+          "en": "Elevated CMD/PowerShell (UAC) required."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "sfc",
@@ -19904,23 +21725,6 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/sfc"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "dism",
-        "chkdsk"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Yükseltilmiş CMD/PowerShell (UAC) zorunlu.",
-          "en": "Elevated CMD/PowerShell (UAC) required."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -20300,6 +22104,10 @@
           ]
         }
       ],
+      "related": [
+        "brew",
+        "launchctl"
+      ],
       "intent": {
         "tr": [
           "macos güncelle",
@@ -20316,11 +22124,7 @@
           "https://support.apple.com/guide/terminal/update-software-apd3c5f3772/mac"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "brew",
-        "launchctl"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -21384,6 +23188,18 @@
           "privilege": "admin"
         }
       ],
+      "related": [
+        "get-service",
+        "sc"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
+          "en": "Requires an elevated PowerShell session (UAC prompt)."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "start-service",
@@ -21400,18 +23216,6 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/start-service"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "get-service",
-        "sc"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
-          "en": "Requires an elevated PowerShell session (UAC prompt)."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       },
       "nova": {
         "concepts": [
@@ -21604,6 +23408,18 @@
           "privilege": "admin"
         }
       ],
+      "related": [
+        "get-service",
+        "sc"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
+          "en": "Requires an elevated PowerShell session (UAC prompt)."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "stop-service",
@@ -21620,18 +23436,6 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/stop-service"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "get-service",
-        "sc"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
-          "en": "Requires an elevated PowerShell session (UAC prompt)."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       },
       "nova": {
         "concepts": [
@@ -22046,6 +23850,120 @@
     },
     {
       "schema_version": 2,
+      "id": "sysrc",
+      "name": "sysrc",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "FreeBSD rc.conf güvenli okuma/yazma yardımcısı.",
+        "en": "FreeBSD rc.conf safe get/set helper."
+      },
+      "description": {
+        "tr": "`sysrc`, FreeBSD `/etc/rc.conf` değerlerini okur/yazar. `service` ile birlikte rc tabanlı servis modelinin parçasıdır — **systemd değildir**. Yanlış yazma önyüklemeyi bozabilir; önce sorgu örnekleri.",
+        "en": "sysrc reads/writes FreeBSD /etc/rc.conf values. Together with service it is part of the rc-based service model — **not systemd**. Bad writes can break boot; prefer query examples first."
+      },
+      "tags": [
+        "bsd",
+        "freebsd",
+        "rc",
+        "services"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "operating_systems": [
+        "freebsd"
+      ],
+      "flags": [
+        {
+          "flag": "-a",
+          "meaning": {
+            "tr": "Tüm ayarları listele.",
+            "en": "List all settings."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "Yalnız değer.",
+            "en": "Value only."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Değer oku",
+            "en": "Read value"
+          },
+          "command": "sysrc sshd_enable",
+          "explanation": {
+            "tr": "sshd_enable rc.conf değerini basar.",
+            "en": "Prints the sshd_enable rc.conf value."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Tümünü listele (özet)",
+            "en": "List all (summary)"
+          },
+          "command": "sysrc -a | head",
+          "explanation": {
+            "tr": "rc.conf değişkenlerinin başını listeler.",
+            "en": "Lists the head of rc.conf variables."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
+      "related": [
+        "service",
+        "rcctl",
+        "systemctl"
+      ],
+      "intent": {
+        "tr": [
+          "sysrc",
+          "rc.conf",
+          "freebsd servis ayar"
+        ],
+        "en": [
+          "sysrc",
+          "rc.conf",
+          "freebsd service config"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.freebsd.org/cgi/man.cgi?query=sysrc&sektion=8",
+          "https://docs.freebsd.org/en/books/handbook/config/#configtuning-rcng"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "system-profiler",
       "name": "system_profiler",
       "kind": "executable",
@@ -22089,6 +24007,10 @@
           ]
         }
       ],
+      "related": [
+        "get-computerinfo",
+        "lscpu"
+      ],
       "intent": {
         "tr": [
           "system_profiler",
@@ -22105,11 +24027,7 @@
           "man 8 system_profiler"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "get-computerinfo",
-        "lscpu"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -22577,6 +24495,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [],
       "examples": [
         {
@@ -22597,6 +24520,17 @@
           ]
         }
       ],
+      "related": [
+        "icacls"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Sahiplik değişimi UAC ister; OS dosyalarında kullanmayın.",
+          "en": "Ownership changes need UAC; avoid on OS files."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
       "intent": {
         "tr": [
           "takeown",
@@ -22613,22 +24547,6 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/takeown"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "icacls"
-      ],
-      "security": {
-        "notes": {
-          "tr": "Sahiplik değişimi UAC ister; OS dosyalarında kullanmayın.",
-          "en": "Ownership changes need UAC; avoid on OS files."
-        },
-        "requires_admin": true,
-        "uac_prompt": true
       }
     },
     {
@@ -25274,6 +27192,11 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
       "flags": [],
       "examples": [
         {
@@ -25293,6 +27216,9 @@
           ]
         }
       ],
+      "related": [
+        "get-winevent"
+      ],
       "intent": {
         "tr": [
           "wevtutil",
@@ -25309,15 +27235,7 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/wevtutil"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "get-winevent"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -25771,6 +27689,26 @@
       "operating_systems": [
         "windows"
       ],
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "package_refs": [
+        {
+          "manager": "winget",
+          "package": "Microsoft.AppInstaller",
+          "distributions": [
+            "windows-10",
+            "windows-11",
+            "windows-server"
+          ],
+          "notes": {
+            "tr": "App Installer / WinGet ile gelir; sürümler Windows’a göre değişir.",
+            "en": "Ships via App Installer / WinGet; versions vary by Windows edition."
+          }
+        }
+      ],
       "flags": [
         {
           "flag": "search",
@@ -25863,6 +27801,10 @@
           ]
         }
       ],
+      "related": [
+        "brew",
+        "pacman"
+      ],
       "intent": {
         "tr": [
           "winget kur",
@@ -25883,30 +27825,6 @@
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
       },
-      "shells": [
-        "cmd",
-        "powershell",
-        "windows-powershell"
-      ],
-      "related": [
-        "brew",
-        "pacman"
-      ],
-      "package_refs": [
-        {
-          "manager": "winget",
-          "package": "Microsoft.AppInstaller",
-          "distributions": [
-            "windows-10",
-            "windows-11",
-            "windows-server"
-          ],
-          "notes": {
-            "tr": "App Installer / WinGet ile gelir; sürümler Windows’a göre değişir.",
-            "en": "Ships via App Installer / WinGet; versions vary by Windows edition."
-          }
-        }
-      ],
       "nova": {
         "concepts": [
           "packages",
@@ -26669,6 +28587,9 @@
           ]
         }
       ],
+      "related": [
+        "xcrun"
+      ],
       "intent": {
         "tr": [
           "xcode-select",
@@ -26685,10 +28606,7 @@
           "man 1 xcode-select"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "xcrun"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -26735,6 +28653,9 @@
           ]
         }
       ],
+      "related": [
+        "xcode-select"
+      ],
       "intent": {
         "tr": [
           "xcrun",
@@ -26751,10 +28672,7 @@
           "man 1 xcrun"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      },
-      "related": [
-        "xcode-select"
-      ]
+      }
     },
     {
       "schema_version": 2,
@@ -26905,6 +28823,128 @@
     },
     {
       "schema_version": 2,
+      "id": "zfs",
+      "name": "zfs",
+      "kind": "administrative_tool",
+      "category": "disks",
+      "summary": {
+        "tr": "ZFS veri kümesi / anlık görüntü yönetimi (FreeBSD).",
+        "en": "ZFS dataset / snapshot management (FreeBSD)."
+      },
+      "description": {
+        "tr": "`zfs`, veri kümeleri, anlık görüntüler ve özellikleri yönetir. `zpool` havuz katmanıdır. `list` güvenli; `destroy` yıkıcıdır — örneklerde yok. systemd veya Linux LVM ile karıştırılmaz.",
+        "en": "zfs manages datasets, snapshots, and properties. zpool is the pool layer. list is safe; destroy is destructive — omitted. Not systemd or Linux LVM."
+      },
+      "tags": [
+        "bsd",
+        "freebsd",
+        "zfs",
+        "storage"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "operating_systems": [
+        "freebsd"
+      ],
+      "flags": [
+        {
+          "flag": "list",
+          "meaning": {
+            "tr": "Veri kümelerini listele.",
+            "en": "List datasets."
+          },
+          "verified": false
+        },
+        {
+          "flag": "get",
+          "meaning": {
+            "tr": "Özellik oku.",
+            "en": "Get property."
+          },
+          "verified": false
+        },
+        {
+          "flag": "snapshot",
+          "meaning": {
+            "tr": "Anlık görüntü (yazma).",
+            "en": "Snapshot (writes)."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Veri kümeleri",
+            "en": "List datasets"
+          },
+          "command": "zfs list",
+          "explanation": {
+            "tr": "ZFS veri kümelerini listeler.",
+            "en": "Lists ZFS datasets."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Mountpoint özelliği",
+            "en": "Mountpoint property"
+          },
+          "command": "zfs get mountpoint 2>/dev/null | head",
+          "explanation": {
+            "tr": "mountpoint özelliklerinin başını basar.",
+            "en": "Prints the head of mountpoint properties."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
+      "related": [
+        "zpool",
+        "df",
+        "mount"
+      ],
+      "intent": {
+        "tr": [
+          "zfs list",
+          "zfs snapshot",
+          "freebsd zfs"
+        ],
+        "en": [
+          "zfs list",
+          "zfs snapshot",
+          "freebsd zfs"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.freebsd.org/cgi/man.cgi?query=zfs&sektion=8",
+          "https://docs.freebsd.org/en/books/handbook/zfs/"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "storage"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "zip",
       "name": "zip",
       "kind": "executable",
@@ -27003,6 +29043,127 @@
       "nova": {
         "concepts": [
           "files"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "zpool",
+      "name": "zpool",
+      "kind": "administrative_tool",
+      "category": "disks",
+      "summary": {
+        "tr": "ZFS depolama havuzu yönetimi (FreeBSD).",
+        "en": "ZFS storage pool management (FreeBSD)."
+      },
+      "description": {
+        "tr": "`zpool`, ZFS havuzlarını oluşturur/yönetir. FreeBSD’de taban ZFS yaygındır; OpenBSD’de yoktur. `list`/`status` salt okuma; `destroy`/`replace` yıkıcıdır ve örneklerde yoktur. Linux OpenZFS ayrı doğrulanmalıdır.",
+        "en": "zpool creates/manages ZFS pools. Common in FreeBSD base; not in OpenBSD. list/status are read-only; destroy/replace are destructive and omitted. Linux OpenZFS must be verified separately."
+      },
+      "tags": [
+        "bsd",
+        "freebsd",
+        "zfs",
+        "storage"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "bsd",
+        "freebsd"
+      ],
+      "operating_systems": [
+        "freebsd"
+      ],
+      "flags": [
+        {
+          "flag": "list",
+          "meaning": {
+            "tr": "Havuzları listele.",
+            "en": "List pools."
+          },
+          "verified": false
+        },
+        {
+          "flag": "status",
+          "meaning": {
+            "tr": "Havuz durumu.",
+            "en": "Pool status."
+          },
+          "verified": false
+        },
+        {
+          "flag": "get",
+          "meaning": {
+            "tr": "Özellik oku.",
+            "en": "Get property."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Havuz listesi",
+            "en": "List pools"
+          },
+          "command": "zpool list",
+          "explanation": {
+            "tr": "ZFS havuzlarını listeler (yoksa boş/hata).",
+            "en": "Lists ZFS pools (empty/error if none)."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Durum",
+            "en": "Status"
+          },
+          "command": "zpool status",
+          "explanation": {
+            "tr": "Havuz sağlığını gösterir.",
+            "en": "Shows pool health."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "bsd",
+            "freebsd"
+          ]
+        }
+      ],
+      "related": [
+        "zfs",
+        "df"
+      ],
+      "intent": {
+        "tr": [
+          "zpool",
+          "zfs havuz",
+          "freebsd disk"
+        ],
+        "en": [
+          "zpool",
+          "zfs pool",
+          "freebsd storage"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://man.freebsd.org/cgi/man.cgi?query=zpool&sektion=8",
+          "https://docs.freebsd.org/en/books/handbook/zfs/"
+        ],
+        "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "storage"
         ]
       }
     },
@@ -27262,8 +29423,8 @@
         "en": "Firewall tools"
       },
       "summary": {
-        "tr": "nftables, iptables, firewalld ve ufw — ne zaman hangisi, güvenli okuma alışkanlığı.",
-        "en": "nftables, iptables, firewalld, and ufw — when to use which, safe read habits."
+        "tr": "nftables, iptables, firewalld, ufw ve BSD pfctl — ne zaman hangisi, güvenli okuma.",
+        "en": "nftables, iptables, firewalld, ufw, and BSD pfctl — when to use which, safe reads."
       },
       "difficulty": "intermediate",
       "tags": [
@@ -27277,6 +29438,7 @@
         "iptables",
         "firewall-cmd",
         "ufw",
+        "pfctl",
         "ss",
         "ip"
       ],
@@ -27292,8 +29454,8 @@
         "Arch Wiki: Firewalls"
       ],
       "body": {
-        "tr": "Linux’ta paket süzme çoğunlukla **netfilter** üzerinde durur. Kullanıcı alanı araçları\nfarklı kuşaklardadır; hepsi aynı kernel kancalarına yazabilir.\n\n**Araç haritası (kısa):**\n- **nft** (`nftables`) — modern birincil arayüz; tablolar/zincirler/kurallar.\n- **iptables** — eski IPv4 aracı; birçok sistemde `iptables-nft` uyumluluk katmanı.\n- **firewall-cmd** (`firewalld`) — bölge/servis modeli (Fedora’da sık varsayılan).\n- **ufw** — Ubuntu’da yaygın “basit” ön yüz.\n\n**Güvenli alışkanlık:** Uzaktan oturumdayken önce **listele** (`nft list ruleset`,\n`iptables -L -n`, `firewall-cmd --list-all`, `ufw status`). Bu bankadaki örnekler\nbilerek yıkıcı `flush` / kör `deny` tarifleri vermez — yanlış kural SSH’yi keser.\n\n**Nova bankası:** `nft` / `iptables` / `ufw` girdileri `draft` veya dikkatli\n`reviewed` olabilir; `verification.status: verified` insan onayı ister.\nRisk etiketleri `dangerous` / `destructive` abartı değil — erişim kaybı gerçektir.\n\n**Seçim ipucu:** Yeni otomasyon için distro varsayılanını izleyin (Arch/nft veya\nfirewalld; Ubuntu/ufw; Fedora/firewalld). İki yöneticinin aynı anda yazması\nçakışma yaratır.\n",
-        "en": "Linux packet filtering mostly sits on **netfilter**. Userland tools are different\ngenerations; they can all write the same kernel hooks.\n\n**Short map:**\n- **nft** (`nftables`) — modern primary interface; tables/chains/rules.\n- **iptables** — legacy IPv4 tool; many systems use an `iptables-nft` compat layer.\n- **firewall-cmd** (`firewalld`) — zone/service model (often default on Fedora).\n- **ufw** — “simple” frontend common on Ubuntu.\n\n**Safe habit:** On remote sessions, **list first** (`nft list ruleset`,\n`iptables -L -n`, `firewall-cmd --list-all`, `ufw status`). Catalog examples\ndeliberately omit destructive flush / blind deny recipes — a bad rule cuts SSH.\n\n**Nova bank:** `nft` / `iptables` / `ufw` may be `draft` or carefully `reviewed`;\n`verification.status: verified` needs a human. `dangerous` / `destructive` labels\nare not theatrical — lockouts are real.\n\n**Choosing:** Follow the distro default for new automation (Arch/nft or firewalld;\nUbuntu/ufw; Fedora/firewalld). Two managers writing at once causes fights.\n"
+        "tr": "Linux’ta paket süzme çoğunlukla **netfilter** üzerinde durur. Kullanıcı alanı araçları\nfarklı kuşaklardadır; hepsi aynı kernel kancalarına yazabilir.\n\n**Araç haritası (kısa):**\n- **nft** (`nftables`) — modern birincil arayüz; tablolar/zincirler/kurallar.\n- **iptables** — eski IPv4 aracı; birçok sistemde `iptables-nft` uyumluluk katmanı.\n- **firewall-cmd** (`firewalld`) — bölge/servis modeli (Fedora’da sık varsayılan).\n- **ufw** — Ubuntu’da yaygın “basit” ön yüz.\n- **pfctl** (BSD PF) — OpenBSD/FreeBSD; Linux netfilter araçları ile **eşitlenmez**.\n\n**Güvenli alışkanlık:** Uzaktan oturumdayken önce **listele** (`nft list ruleset`,\n`iptables -L -n`, `firewall-cmd --list-all`, `ufw status`, BSD’de `pfctl -s rules`).\nBu bankadaki örnekler bilerek yıkıcı `flush` / kör `deny` tarifleri vermez —\nyanlış kural SSH’yi keser.\n\n**Nova bankası:** `nft` / `iptables` / `ufw` girdileri `draft` veya dikkatli\n`reviewed` olabilir; `verification.status: verified` insan onayı ister.\nRisk etiketleri `dangerous` / `destructive` abartı değil — erişim kaybı gerçektir.\n\n**Seçim ipucu:** Yeni otomasyon için distro varsayılanını izleyin (Arch/nft veya\nfirewalld; Ubuntu/ufw; Fedora/firewalld). İki yöneticinin aynı anda yazması\nçakışma yaratır.\n",
+        "en": "Linux packet filtering mostly sits on **netfilter**. Userland tools are different\ngenerations; they can all write the same kernel hooks.\n\n**Short map:**\n- **nft** (`nftables`) — modern primary interface; tables/chains/rules.\n- **iptables** — legacy IPv4 tool; many systems use an `iptables-nft` compat layer.\n- **firewall-cmd** (`firewalld`) — zone/service model (often default on Fedora).\n- **ufw** — “simple” frontend common on Ubuntu.\n- **pfctl** (BSD PF) — OpenBSD/FreeBSD; **not** equivalent to Linux netfilter tools.\n\n**Safe habit:** On remote sessions, **list first** (`nft list ruleset`,\n`iptables -L -n`, `firewall-cmd --list-all`, `ufw status`, on BSD `pfctl -s rules`).\nCatalog examples deliberately omit destructive flush / blind deny recipes — a bad\nrule cuts SSH.\n\n**Nova bank:** `nft` / `iptables` / `ufw` may be `draft` or carefully `reviewed`;\n`verification.status: verified` needs a human. `dangerous` / `destructive` labels\nare not theatrical — lockouts are real.\n\n**Choosing:** Follow the distro default for new automation (Arch/nft or firewalld;\nUbuntu/ufw; Fedora/firewalld). Two managers writing at once causes fights.\n"
       },
       "verification": {
         "status": "reviewed",
@@ -27472,8 +29634,8 @@
         "en": "Package managers"
       },
       "summary": {
-        "tr": "Linux PM’leri (pacman önce), Nix/Guix, WinGet/Homebrew/MacPorts notları.",
-        "en": "Linux PMs (pacman first), Nix/Guix, plus WinGet/Homebrew/MacPorts notes."
+        "tr": "Linux PM’leri (pacman önce), Nix/Guix, Win/macOS ve BSD PM notları.",
+        "en": "Linux PMs (pacman first), Nix/Guix, Win/macOS, and BSD PM notes."
       },
       "difficulty": "beginner",
       "tags": [
@@ -27504,7 +29666,12 @@
         "rpm-ostree",
         "brew",
         "port",
-        "winget"
+        "winget",
+        "pkg",
+        "ports",
+        "pkg_add",
+        "pkgin",
+        "pkgsrc"
       ],
       "related_concepts": [
         "packages",
@@ -27521,26 +29688,26 @@
         "concepts/nix-guix.yaml"
       ],
       "body": {
-        "tr": "Dağıtımlar yazılıımı *paket* olarak kurar. Aynı komut farklı paket adında olabilir;\nbilinmeyen ad **uydurulmaz** (omit / `draft`).\n\n**Birinci sınıf yöneticiler (çekirdek):**\n- **Arch — pacman:** `pacman -Syu` sistem güncellemesi; `pacman -S paket` kurulum;\n  `pacman -Ss anahtar` arama. AUR yardımcıları (ör. `paru`) resmi depoda olmayabilir.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; düşük seviye `dpkg`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` sorguları.\n\n**Genişleyen Linux PM’ler (Faz 4, çoğu draft):**\n- **openSUSE/SUSE — zypper** (Leap `update` ≠ Tumbleweed `dup`)\n- **Alpine — apk** (Android APK ile karıştırma)\n- **Gentoo — emerge / Portage** (kaynak derleme, USE / `@world`)\n- **Void — xbps-install / query / remove**\n- **Solus — eopkg** · **Slackware — slackpkg** (+ installpkg/removepkg/upgradepkg)\n- **OpenWrt — opkg** (gömülü; flash alanı)\n- **Atomik Fedora — rpm-ostree** (klasik dnf modeli değil; genelde reboot)\n\n**Deklaratif ekosistemler:** Nix (NixOS + diğer Linux/macOS) ve GNU Guix —\nayrı makale: `concepts/nix-guix.yaml`. Eski `nix-env` ile modern `nix profile`\nkarıştırılmaz.\n\n**Flatpak:** Dağıtımdan bağımsız uygulama sandboxes; çekirdek toolchain yerine geçmez.\n\n**Windows / macOS (Faz 5, draft):** WinGet (`winget`); macOS’ta Homebrew (`brew`) ve\nMacPorts (`port`) ayrı kayıtlardır. `softwareupdate` OS güncellemesidir — `brew upgrade`\nile karıştırılmaz. Arch host’ta sistem PM olarak pacman önceliklidir.\n\n**Nova tercihi:** Arch host’ta kurulum ipuçlarında **pacman / `packages.arch` önce**.\nCI yıkıcı kurulum çalıştırmaz. `verification: verified` yalnızca insan incelemesi sonrası.\n",
-        "en": "Distros install software as *packages*. The same command may live in differently\nnamed packages; unknown names are **not invented** (omit / `draft`).\n\n**First-class managers (core):**\n- **Arch — pacman:** `pacman -Syu` full upgrade; `pacman -S pkg` install;\n  `pacman -Ss keyword` search. AUR helpers (e.g. `paru`) may be unofficial.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; lower-level `dpkg`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` queries.\n\n**Broader Linux PMs (Faz 4, mostly draft):**\n- **openSUSE/SUSE — zypper** (Leap `update` ≠ Tumbleweed `dup`)\n- **Alpine — apk** (not Android APK)\n- **Gentoo — emerge / Portage** (source builds, USE / `@world`)\n- **Void — xbps-install / query / remove**\n- **Solus — eopkg** · **Slackware — slackpkg** (+ installpkg/removepkg/upgradepkg)\n- **OpenWrt — opkg** (embedded; watch flash space)\n- **Atomic Fedora — rpm-ostree** (not classic dnf; reboot often required)\n\n**Declarative ecosystems:** Nix (NixOS + other Linux/macOS) and GNU Guix —\nsee `concepts/nix-guix.yaml`. Do not mix legacy `nix-env` with modern `nix profile`.\n\n**Flatpak:** Distro-agnostic sandboxed apps; does not replace the base toolchain.\n\n**Windows / macOS (Faz 5, draft):** WinGet (`winget`); on macOS Homebrew (`brew`) and\nMacPorts (`port`) are separate records. `softwareupdate` is OS update — not\n`brew upgrade`. On Arch hosts pacman remains the preferred system PM.\n\n**Nova preference:** On Arch hosts prefer **pacman / `packages.arch` first**.\nCI does not run destructive installs. `verification: verified` only after human review.\n"
+        "tr": "Dağıtımlar yazılıımı *paket* olarak kurar. Aynı komut farklı paket adında olabilir;\nbilinmeyen ad **uydurulmaz** (omit / `draft`).\n\n**Birinci sınıf yöneticiler (çekirdek):**\n- **Arch — pacman:** `pacman -Syu` sistem güncellemesi; `pacman -S paket` kurulum;\n  `pacman -Ss anahtar` arama. AUR yardımcıları (ör. `paru`) resmi depoda olmayabilir.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; düşük seviye `dpkg`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` sorguları.\n\n**Genişleyen Linux PM’ler (Faz 4, çoğu draft):**\n- **openSUSE/SUSE — zypper** (Leap `update` ≠ Tumbleweed `dup`)\n- **Alpine — apk** (Android APK ile karıştırma)\n- **Gentoo — emerge / Portage** (kaynak derleme, USE / `@world`)\n- **Void — xbps-install / query / remove**\n- **Solus — eopkg** · **Slackware — slackpkg** (+ installpkg/removepkg/upgradepkg)\n- **OpenWrt — opkg** (gömülü; flash alanı)\n- **Atomik Fedora — rpm-ostree** (klasik dnf modeli değil; genelde reboot)\n\n**Deklaratif ekosistemler:** Nix (NixOS + diğer Linux/macOS) ve GNU Guix —\nayrı makale: `concepts/nix-guix.yaml`. Eski `nix-env` ile modern `nix profile`\nkarıştırılmaz.\n\n**Flatpak:** Dağıtımdan bağımsız uygulama sandboxes; çekirdek toolchain yerine geçmez.\n\n**Windows / macOS (Faz 5, draft):** WinGet (`winget`); macOS’ta Homebrew (`brew`) ve\nMacPorts (`port`) ayrı kayıtlardır. `softwareupdate` OS güncellemesidir — `brew upgrade`\nile karıştırılmaz. Arch host’ta sistem PM olarak pacman önceliklidir.\n\n**BSD (Faz 6, draft):** FreeBSD `pkg` ≠ Ports (`ports`); OpenBSD `pkg_add`; NetBSD\n`pkgin` ≠ `pkgsrc`; DragonFly `pkg` FreeBSD `pkg` ile aynı değildir. `freebsd-update`\ntaban güncellemesidir — `pkg upgrade` değildir.\n\n**Nova tercihi:** Arch host’ta kurulum ipuçlarında **pacman / `packages.arch` önce**.\nCI yıkıcı kurulum çalıştırmaz. `verification: verified` yalnızca insan incelemesi sonrası.\n",
+        "en": "Distros install software as *packages*. The same command may live in differently\nnamed packages; unknown names are **not invented** (omit / `draft`).\n\n**First-class managers (core):**\n- **Arch — pacman:** `pacman -Syu` full upgrade; `pacman -S pkg` install;\n  `pacman -Ss keyword` search. AUR helpers (e.g. `paru`) may be unofficial.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; lower-level `dpkg`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` queries.\n\n**Broader Linux PMs (Faz 4, mostly draft):**\n- **openSUSE/SUSE — zypper** (Leap `update` ≠ Tumbleweed `dup`)\n- **Alpine — apk** (not Android APK)\n- **Gentoo — emerge / Portage** (source builds, USE / `@world`)\n- **Void — xbps-install / query / remove**\n- **Solus — eopkg** · **Slackware — slackpkg** (+ installpkg/removepkg/upgradepkg)\n- **OpenWrt — opkg** (embedded; watch flash space)\n- **Atomic Fedora — rpm-ostree** (not classic dnf; reboot often required)\n\n**Declarative ecosystems:** Nix (NixOS + other Linux/macOS) and GNU Guix —\nsee `concepts/nix-guix.yaml`. Do not mix legacy `nix-env` with modern `nix profile`.\n\n**Flatpak:** Distro-agnostic sandboxed apps; does not replace the base toolchain.\n\n**Windows / macOS (Faz 5, draft):** WinGet (`winget`); on macOS Homebrew (`brew`) and\nMacPorts (`port`) are separate records. `softwareupdate` is OS update — not\n`brew upgrade`. On Arch hosts pacman remains the preferred system PM.\n\n**BSD (Faz 6, draft):** FreeBSD `pkg` ≠ Ports (`ports`); OpenBSD `pkg_add`; NetBSD\n`pkgin` ≠ `pkgsrc`; DragonFly `pkg` is not FreeBSD `pkg`. `freebsd-update` is base\nupdate — not `pkg upgrade`.\n\n**Nova preference:** On Arch hosts prefer **pacman / `packages.arch` first**.\nCI does not run destructive installs. `verification: verified` only after human review.\n"
       },
       "verification": {
         "status": "draft",
         "sources": [
           "https://wiki.archlinux.org/title/Pacman",
           "https://wiki.archlinux.org/title/Pacman/Rosetta",
-          "https://en.opensuse.org/SDB:Zypper_manual",
-          "https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper",
           "https://nixos.org/manual/nix/stable/",
-          "https://guix.gnu.org/manual/en/html_node/",
-          "https://coreos.github.io/rpm-ostree/",
-          "https://openwrt.org/docs/guide-user/additional-software/opkg",
           "https://learn.microsoft.com/windows/package-manager/winget/",
           "https://docs.brew.sh/",
           "https://guide.macports.org/",
+          "https://docs.freebsd.org/en/books/handbook/ports/",
+          "https://www.openbsd.org/faq/faq15.html",
+          "https://www.netbsd.org/docs/pkgsrc/",
+          "https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper",
+          "https://guix.gnu.org/manual/en/html_node/",
           "docs/package-managers-comparison.md"
         ],
-        "notes": "Faz 4–5 expansion; draft pending human review of PM coverage."
+        "notes": "Faz 4–6 expansion; draft pending human review of PM coverage."
       }
     },
     {
@@ -27551,8 +29718,8 @@
         "en": "Package manager comparison tables"
       },
       "summary": {
-        "tr": "Linux PM’ler + WinGet / Homebrew / MacPorts yan yana (çoğu draft).",
-        "en": "Linux PMs plus WinGet / Homebrew / MacPorts side-by-side (mostly draft)."
+        "tr": "Linux + Win/macOS + BSD PM’ler yan yana (çoğu draft).",
+        "en": "Linux + Win/macOS + BSD PMs side-by-side (mostly draft)."
       },
       "difficulty": "beginner",
       "tags": [
@@ -27586,7 +29753,12 @@
         "rpm-ostree",
         "brew",
         "port",
-        "winget"
+        "winget",
+        "pkg",
+        "ports",
+        "pkg_add",
+        "pkgin",
+        "pkgsrc"
       ],
       "related_concepts": [
         "package-managers",
@@ -27602,25 +29774,26 @@
         "concepts/nix-guix.yaml"
       ],
       "body": {
-        "tr": "Aynı iş farklı dağıtımlarda farklı komutlarla yapılır. Aşağıdaki tablolar **sık\nokuma/kurulum** yollarını özetler; bayrak uydurma yok. Ayrıntılı Markdown:\n`docs/package-managers-comparison.md`. Arch satırları Nova tercihine göre önde.\n\n### Sistem güncelle / kur / ara (çekirdek + genişleme)\n\n| Amaç | Arch (pacman) | Debian (apt) | Fedora (dnf) | openSUSE (zypper) | Alpine (apk) | Void (xbps) |\n|------|---------------|--------------|--------------|-------------------|--------------|-------------|\n| Yenile + yükselt | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` | Leap: `zypper update` / TW: `zypper dup` | `apk update && apk upgrade` | `xbps-install -Su` |\n| Kur | `pacman -S ad` | `apt install ad` | `dnf install ad` | `zypper install ad` | `apk add ad` | `xbps-install ad` |\n| Kaldır | `pacman -Rns ad` | `apt purge ad` | `dnf remove ad` | `zypper remove ad` | `apk del ad` | `xbps-remove ad` |\n| Ara | `pacman -Ss q` | `apt search q` | `dnf search q` | `zypper search q` | `apk search q` | `xbps-query -Rs q` |\n\nGentoo: `emerge --sync` + `emerge -uDN @world` / `emerge --ask ad`.  \nSolus: `eopkg upgrade` / `eopkg install`. Slackware: `slackpkg update` / `install`.  \nOpenWrt: `opkg update` / `opkg install` (flash alanı!).  \nAtomik Fedora: `rpm-ostree upgrade` / `rpm-ostree install` (reboot).\n\n### Sorgulama (yerel)\n\n| Amaç | pacman | dpkg/apt | rpm/dnf | xbps | apk |\n|------|--------|----------|---------|------|-----|\n| Kurulu mu? | `pacman -Q ad` | `dpkg -l ad` | `rpm -q ad` | `xbps-query ad` | `apk info -e ad` |\n| Dosya → paket | `pacman -Qo yol` | `dpkg -S yol` | `rpm -qf yol` | `xbps-query -o yol` | `apk info -W yol` |\n\n### Deklaratif / profil\n\n| Amaç | Nix (modern) | Guix |\n|------|--------------|------|\n| Ara | `nix search nixpkgs q` | `guix search q` |\n| Profil kur | `nix profile install nixpkgs#ad` | `guix install ad` |\n| Geçici kabuk | `nix shell` / `nix develop` | `guix shell` |\n| Sistem uygula | `nixos-rebuild switch` (NixOS) | `guix system …` (Guix System) |\n\nEski `nix-env` / klasik `nix-shell` modern CLI ile **karıştırılmaz** — bkz. `nix-guix`.\n\n### Windows / macOS (Faz 5 draft)\n\n| Amaç | WinGet | Homebrew | MacPorts |\n|------|--------|----------|----------|\n| Ara | `winget search` | `brew search` | `port search` |\n| Kur | `winget install` | `brew install` | `sudo port install` |\n| Liste | `winget list` | `brew list` | `port installed` |\n\nOS güncellemesi macOS’ta `softwareupdate` — `brew upgrade` değildir. `brew` ≠ `port`.\n\n**Kural:** Bilinmeyen paket adı **uydurulmaz**. Yeni PM kayıtları çoğunlukla `draft`.\nNova Arch host’ta pacman notunu önce tutar.\n",
-        "en": "The same job uses different commands per distro. Tables below summarize **common\nupdate/install/query** paths — no invented flags. Longer Markdown:\n`docs/package-managers-comparison.md`. Arch rows first per Nova preference.\n\n### System update / install / search (core + expansion)\n\n| Goal | Arch (pacman) | Debian (apt) | Fedora (dnf) | openSUSE (zypper) | Alpine (apk) | Void (xbps) |\n|------|---------------|--------------|--------------|-------------------|--------------|-------------|\n| Refresh + upgrade | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` | Leap: `zypper update` / TW: `zypper dup` | `apk update && apk upgrade` | `xbps-install -Su` |\n| Install | `pacman -S name` | `apt install name` | `dnf install name` | `zypper install name` | `apk add name` | `xbps-install name` |\n| Remove | `pacman -Rns name` | `apt purge name` | `dnf remove name` | `zypper remove name` | `apk del name` | `xbps-remove name` |\n| Search | `pacman -Ss q` | `apt search q` | `dnf search q` | `zypper search q` | `apk search q` | `xbps-query -Rs q` |\n\nGentoo: `emerge --sync` + `emerge -uDN @world` / `emerge --ask name`.  \nSolus: `eopkg upgrade` / `eopkg install`. Slackware: `slackpkg update` / `install`.  \nOpenWrt: `opkg update` / `opkg install` (watch flash!).  \nAtomic Fedora: `rpm-ostree upgrade` / `rpm-ostree install` (reboot).\n\n### Local queries\n\n| Goal | pacman | dpkg/apt | rpm/dnf | xbps | apk |\n|------|--------|----------|---------|------|-----|\n| Installed? | `pacman -Q name` | `dpkg -l name` | `rpm -q name` | `xbps-query name` | `apk info -e name` |\n| File → package | `pacman -Qo path` | `dpkg -S path` | `rpm -qf path` | `xbps-query -o path` | `apk info -W path` |\n\n### Declarative / profiles\n\n| Goal | Nix (modern) | Guix |\n|------|--------------|------|\n| Search | `nix search nixpkgs q` | `guix search q` |\n| Profile install | `nix profile install nixpkgs#name` | `guix install name` |\n| Ephemeral shell | `nix shell` / `nix develop` | `guix shell` |\n| Apply system | `nixos-rebuild switch` (NixOS) | `guix system …` (Guix System) |\n\nDo **not** mix legacy `nix-env` / classic `nix-shell` with the modern CLI —\nsee `nix-guix`.\n\n### Windows / macOS (Faz 5 draft)\n\n| Goal | WinGet | Homebrew | MacPorts |\n|------|--------|----------|----------|\n| Search | `winget search` | `brew search` | `port search` |\n| Install | `winget install` | `brew install` | `sudo port install` |\n| List | `winget list` | `brew list` | `port installed` |\n\nOS updates on macOS use `softwareupdate` — not `brew upgrade`. `brew` ≠ `port`.\n\n**Rule:** unknown package names are **not invented**. New PM records are mostly\n`draft`. On Arch hosts Nova keeps pacman notes first.\n"
+        "tr": "Aynı iş farklı dağıtımlarda farklı komutlarla yapılır. Aşağıdaki tablolar **sık\nokuma/kurulum** yollarını özetler; bayrak uydurma yok. Ayrıntılı Markdown:\n`docs/package-managers-comparison.md`. Arch satırları Nova tercihine göre önde.\n\n### Sistem güncelle / kur / ara (çekirdek + genişleme)\n\n| Amaç | Arch (pacman) | Debian (apt) | Fedora (dnf) | openSUSE (zypper) | Alpine (apk) | Void (xbps) |\n|------|---------------|--------------|--------------|-------------------|--------------|-------------|\n| Yenile + yükselt | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` | Leap: `zypper update` / TW: `zypper dup` | `apk update && apk upgrade` | `xbps-install -Su` |\n| Kur | `pacman -S ad` | `apt install ad` | `dnf install ad` | `zypper install ad` | `apk add ad` | `xbps-install ad` |\n| Kaldır | `pacman -Rns ad` | `apt purge ad` | `dnf remove ad` | `zypper remove ad` | `apk del ad` | `xbps-remove ad` |\n| Ara | `pacman -Ss q` | `apt search q` | `dnf search q` | `zypper search q` | `apk search q` | `xbps-query -Rs q` |\n\nGentoo: `emerge --sync` + `emerge -uDN @world` / `emerge --ask ad`.  \nSolus: `eopkg upgrade` / `eopkg install`. Slackware: `slackpkg update` / `install`.  \nOpenWrt: `opkg update` / `opkg install` (flash alanı!).  \nAtomik Fedora: `rpm-ostree upgrade` / `rpm-ostree install` (reboot).\n\n### Sorgulama (yerel)\n\n| Amaç | pacman | dpkg/apt | rpm/dnf | xbps | apk |\n|------|--------|----------|---------|------|-----|\n| Kurulu mu? | `pacman -Q ad` | `dpkg -l ad` | `rpm -q ad` | `xbps-query ad` | `apk info -e ad` |\n| Dosya → paket | `pacman -Qo yol` | `dpkg -S yol` | `rpm -qf yol` | `xbps-query -o yol` | `apk info -W yol` |\n\n### Deklaratif / profil\n\n| Amaç | Nix (modern) | Guix |\n|------|--------------|------|\n| Ara | `nix search nixpkgs q` | `guix search q` |\n| Profil kur | `nix profile install nixpkgs#ad` | `guix install ad` |\n| Geçici kabuk | `nix shell` / `nix develop` | `guix shell` |\n| Sistem uygula | `nixos-rebuild switch` (NixOS) | `guix system …` (Guix System) |\n\nEski `nix-env` / klasik `nix-shell` modern CLI ile **karıştırılmaz** — bkz. `nix-guix`.\n\n### Windows / macOS (Faz 5 draft)\n\n| Amaç | WinGet | Homebrew | MacPorts |\n|------|--------|----------|----------|\n| Ara | `winget search` | `brew search` | `port search` |\n| Kur | `winget install` | `brew install` | `sudo port install` |\n| Liste | `winget list` | `brew list` | `port installed` |\n\nOS güncellemesi macOS’ta `softwareupdate` — `brew upgrade` değildir. `brew` ≠ `port`.\n\n### BSD (Faz 6 draft)\n\n| Amaç | FreeBSD pkg | OpenBSD pkg_add | NetBSD pkgin |\n|------|-------------|-----------------|--------------|\n| Ara | `pkg search` | `pkg_info -Q` | `pkgin search` |\n| Liste / bilgi | `pkg info` | `pkg_info` | `pkgin list` |\n| İndeks güncelle | `pkg update` | (FAQ) | `pkgin update` |\n\nFreeBSD Ports / pkgsrc **kaynak ağaçlarıdır** (ayrı kayıt). DragonFly `pkg` ≠ FreeBSD `pkg`.\n\n**Kural:** Bilinmeyen paket adı **uydurulmaz**. Yeni PM kayıtları çoğunlukla `draft`.\nNova Arch host’ta pacman notunu önce tutar.\n",
+        "en": "The same job uses different commands per distro. Tables below summarize **common\nupdate/install/query** paths — no invented flags. Longer Markdown:\n`docs/package-managers-comparison.md`. Arch rows first per Nova preference.\n\n### System update / install / search (core + expansion)\n\n| Goal | Arch (pacman) | Debian (apt) | Fedora (dnf) | openSUSE (zypper) | Alpine (apk) | Void (xbps) |\n|------|---------------|--------------|--------------|-------------------|--------------|-------------|\n| Refresh + upgrade | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` | Leap: `zypper update` / TW: `zypper dup` | `apk update && apk upgrade` | `xbps-install -Su` |\n| Install | `pacman -S name` | `apt install name` | `dnf install name` | `zypper install name` | `apk add name` | `xbps-install name` |\n| Remove | `pacman -Rns name` | `apt purge name` | `dnf remove name` | `zypper remove name` | `apk del name` | `xbps-remove name` |\n| Search | `pacman -Ss q` | `apt search q` | `dnf search q` | `zypper search q` | `apk search q` | `xbps-query -Rs q` |\n\nGentoo: `emerge --sync` + `emerge -uDN @world` / `emerge --ask name`.  \nSolus: `eopkg upgrade` / `eopkg install`. Slackware: `slackpkg update` / `install`.  \nOpenWrt: `opkg update` / `opkg install` (watch flash!).  \nAtomic Fedora: `rpm-ostree upgrade` / `rpm-ostree install` (reboot).\n\n### Local queries\n\n| Goal | pacman | dpkg/apt | rpm/dnf | xbps | apk |\n|------|--------|----------|---------|------|-----|\n| Installed? | `pacman -Q name` | `dpkg -l name` | `rpm -q name` | `xbps-query name` | `apk info -e name` |\n| File → package | `pacman -Qo path` | `dpkg -S path` | `rpm -qf path` | `xbps-query -o path` | `apk info -W path` |\n\n### Declarative / profiles\n\n| Goal | Nix (modern) | Guix |\n|------|--------------|------|\n| Search | `nix search nixpkgs q` | `guix search q` |\n| Profile install | `nix profile install nixpkgs#name` | `guix install name` |\n| Ephemeral shell | `nix shell` / `nix develop` | `guix shell` |\n| Apply system | `nixos-rebuild switch` (NixOS) | `guix system …` (Guix System) |\n\nDo **not** mix legacy `nix-env` / classic `nix-shell` with the modern CLI —\nsee `nix-guix`.\n\n### Windows / macOS (Faz 5 draft)\n\n| Goal | WinGet | Homebrew | MacPorts |\n|------|--------|----------|----------|\n| Search | `winget search` | `brew search` | `port search` |\n| Install | `winget install` | `brew install` | `sudo port install` |\n| List | `winget list` | `brew list` | `port installed` |\n\nOS updates on macOS use `softwareupdate` — not `brew upgrade`. `brew` ≠ `port`.\n\n### BSD (Faz 6 draft)\n\n| Goal | FreeBSD pkg | OpenBSD pkg_add | NetBSD pkgin |\n|------|-------------|-----------------|--------------|\n| Search | `pkg search` | `pkg_info -Q` | `pkgin search` |\n| List / info | `pkg info` | `pkg_info` | `pkgin list` |\n| Update index | `pkg update` | (see FAQ) | `pkgin update` |\n\nFreeBSD Ports / pkgsrc are **source trees** (separate records). DragonFly `pkg` ≠ FreeBSD `pkg`.\n\n**Rule:** unknown package names are **not invented**. New PM records are mostly\n`draft`. On Arch hosts Nova keeps pacman notes first.\n"
       },
       "verification": {
         "status": "draft",
         "sources": [
           "https://wiki.archlinux.org/title/Pacman/Rosetta",
-          "https://en.opensuse.org/SDB:Zypper_manual",
           "https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper",
           "https://docs.voidlinux.org/xbps/",
-          "https://wiki.gentoo.org/wiki/Emerge",
           "https://nixos.org/manual/nix/stable/",
-          "https://guix.gnu.org/manual/en/html_node/",
-          "https://coreos.github.io/rpm-ostree/",
           "https://learn.microsoft.com/windows/package-manager/winget/",
           "https://docs.brew.sh/",
-          "https://guide.macports.org/"
+          "https://guide.macports.org/",
+          "https://docs.freebsd.org/en/books/handbook/ports/",
+          "https://www.openbsd.org/faq/faq15.html",
+          "https://www.netbsd.org/docs/pkgsrc/",
+          "https://en.opensuse.org/SDB:Zypper_manual",
+          "https://guix.gnu.org/manual/en/html_node/"
         ],
-        "notes": "Faz 4–5 comparison expansion; draft pending human review."
+        "notes": "Faz 4–6 comparison expansion; draft pending human review."
       }
     },
     {
@@ -27855,7 +30028,11 @@
         "timedatectl",
         "loginctl",
         "systemd-analyze",
-        "bootctl"
+        "bootctl",
+        "service",
+        "sysrc",
+        "rcctl",
+        "launchctl"
       ],
       "related_concepts": [
         "terminal-basics",
@@ -27867,8 +30044,8 @@
         "Arch Wiki: systemd"
       ],
       "body": {
-        "tr": "**systemd**, birçok Linux dağıtımında init/PID 1 ve servis yöneticisidir. Yapılandırma\nbirimleri (unit) `.service`, `.timer`, `.socket`, `.mount`, `.target` gibi türlerdedir.\n\n**Sık birim türleri:**\n- `.service` — uzun yaşayan süreç / oneshot görev.\n- `.target` — bir grup birimi senkronlamak (ör. `multi-user.target`).\n- `.timer` — cron benzeri zamanlama (systemd zamanlayıcıları).\n\n**systemctl (yaygın okuma/yazma):**\n- `systemctl status birim` — durum (çoğu zaman sudo gerekmez).\n- `systemctl start|stop|restart birim` — çalışma anı (genelde root).\n- `systemctl enable|disable birim` — boot’ta etkinleştirme.\n- `systemctl daemon-reload` — unit dosyası değişince.\n\n**Günlükler:** `journalctl -u birim -e` son logları gösterir; `-f` takip eder.\nKalıcı journal dağıtıma göre `/var/log/journal` altında olabilir.\n\n**İlgili ctl araçları:** `hostnamectl`, `timedatectl`, `loginctl`,\n`systemd-analyze blame` (boot süresi analizi), `bootctl` (systemd-boot; her\nkurulumda yok).\n\n**Risk:** Yanlış `stop`/`disable` uzaktan erişimi veya ağı kesebilir; bankada\nbirçok systemd işlemi `dangerous` / `requires_elevated: true` işaretlidir.\nUnit dosyası yolları ve distro varsayılanları değişebilir — uydurma bayrak yok.\n",
-        "en": "**systemd** is init/PID 1 and the service manager on many Linux distributions.\nConfiguration lives in units: `.service`, `.timer`, `.socket`, `.mount`, `.target`, …\n\n**Common unit types:**\n- `.service` — long-running process or oneshot job.\n- `.target` — synchronization point (e.g. `multi-user.target`).\n- `.timer` — calendar/monotonic scheduling (systemd timers).\n\n**systemctl (common):**\n- `systemctl status unit` — status (often without sudo).\n- `systemctl start|stop|restart unit` — runtime control (usually root).\n- `systemctl enable|disable unit` — boot enablement.\n- `systemctl daemon-reload` — after editing unit files.\n\n**Logs:** `journalctl -u unit -e` shows recent logs; `-f` follows.\nPersistent journals may live under `/var/log/journal` depending on distro config.\n\n**Related ctl tools:** `hostnamectl`, `timedatectl`, `loginctl`,\n`systemd-analyze blame` (boot timing), `bootctl` (systemd-boot; not everywhere).\n\n**Risk:** Mistaken `stop`/`disable` can cut remote access or networking; many\nentries are `dangerous` / `requires_elevated`. Unit paths and defaults vary —\nnever invent flags or package names.\n"
+        "tr": "**systemd**, birçok Linux dağıtımında init/PID 1 ve servis yöneticisidir. Yapılandırma\nbirimleri (unit) `.service`, `.timer`, `.socket`, `.mount`, `.target` gibi türlerdedir.\n\n**Sık birim türleri:**\n- `.service` — uzun yaşayan süreç / oneshot görev.\n- `.target` — bir grup birimi senkronlamak (ör. `multi-user.target`).\n- `.timer` — cron benzeri zamanlama (systemd zamanlayıcıları).\n\n**systemctl (yaygın okuma/yazma):**\n- `systemctl status birim` — durum (çoğu zaman sudo gerekmez).\n- `systemctl start|stop|restart birim` — çalışma anı (genelde root).\n- `systemctl enable|disable birim` — boot’ta etkinleştirme.\n- `systemctl daemon-reload` — unit dosyası değişince.\n\n**Günlükler:** `journalctl -u birim -e` son logları gösterir; `-f` takip eder.\nKalıcı journal dağıtıma göre `/var/log/journal` altında olabilir.\n\n**İlgili ctl araçları:** `hostnamectl`, `timedatectl`, `loginctl`,\n`systemd-analyze blame` (boot süresi analizi), `bootctl` (systemd-boot; her\nkurulumda yok).\n\n**Risk:** Yanlış `stop`/`disable` uzaktan erişimi veya ağı kesebilir; bankada\nbirçok systemd işlemi `dangerous` / `requires_elevated: true` işaretlidir.\nUnit dosyası yolları ve distro varsayılanları değişebilir — uydurma bayrak yok.\n\n**BSD değil:** FreeBSD `service`/`sysrc`, OpenBSD `rcctl` ve macOS `launchctl`\nsystemd birimleri değildir — ayrı kayıtlardır (Faz 5–6).\n",
+        "en": "**systemd** is init/PID 1 and the service manager on many Linux distributions.\nConfiguration lives in units: `.service`, `.timer`, `.socket`, `.mount`, `.target`, …\n\n**Common unit types:**\n- `.service` — long-running process or oneshot job.\n- `.target` — synchronization point (e.g. `multi-user.target`).\n- `.timer` — calendar/monotonic scheduling (systemd timers).\n\n**systemctl (common):**\n- `systemctl status unit` — status (often without sudo).\n- `systemctl start|stop|restart unit` — runtime control (usually root).\n- `systemctl enable|disable unit` — boot enablement.\n- `systemctl daemon-reload` — after editing unit files.\n\n**Logs:** `journalctl -u unit -e` shows recent logs; `-f` follows.\nPersistent journals may live under `/var/log/journal` depending on distro config.\n\n**Related ctl tools:** `hostnamectl`, `timedatectl`, `loginctl`,\n`systemd-analyze blame` (boot timing), `bootctl` (systemd-boot; not everywhere).\n\n**Risk:** Mistaken `stop`/`disable` can cut remote access or networking; many\nentries are `dangerous` / `requires_elevated`. Unit paths and defaults vary —\nnever invent flags or package names.\n\n**Not BSD:** FreeBSD `service`/`sysrc`, OpenBSD `rcctl`, and macOS `launchctl`\nare not systemd units — separate records (Faz 5–6).\n"
       },
       "verification": {
         "status": "reviewed",
