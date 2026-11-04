@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-04T19:11:41Z",
-  "content_sha256": "f57c17a45da45ab0d41100c6a855705a808f971b7673b8a88beadff0d701ff1f",
-  "command_count": 162,
+  "generated_at": "2026-11-04T19:37:05Z",
+  "content_sha256": "93e1b59ff6d63c2f117705b17a70e07f2fbce6800ba0661469f8f782c53fe03c",
+  "command_count": 215,
   "concept_count": 13,
   "commands": [
     {
@@ -465,6 +465,89 @@
     },
     {
       "schema_version": 2,
+      "id": "bcdedit",
+      "name": "bcdedit",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "Önyükleme Yapılandırma Verisi (BCD) düzenleyicisi.",
+        "en": "Boot Configuration Data (BCD) editor."
+      },
+      "description": {
+        "tr": "bcdedit önyükleme girdilerini görüntüler/değiştirir. Yanlış değişiklik sistemi açılmaz hale getirebilir. Yönetici gerekir; bu kayıtta salt görüntüleme örneği vardır.",
+        "en": "bcdedit displays/modifies boot entries. Wrong edits can make the system unbootable. Admin required; this record only shows a display example."
+      },
+      "tags": [
+        "windows",
+        "boot",
+        "admin"
+      ],
+      "risk": "destructive",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "BCD özeti",
+            "en": "BCD summary"
+          },
+          "command": "bcdedit /enum",
+          "explanation": {
+            "tr": "Önyükleme girdilerini listeler (yazmaz).",
+            "en": "Lists boot entries (does not write)."
+          },
+          "risk": "caution",
+          "requires_elevated": true,
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "admin"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "bcdedit",
+          "bcdedit"
+        ],
+        "en": [
+          "bcdedit",
+          "bcdedit"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/bcdedit"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "diskpart",
+        "bootctl"
+      ],
+      "security": {
+        "notes": {
+          "tr": "BCD yazma UAC ister; değişiklik öncesi `bcdedit /export` yedeği alın.",
+          "en": "BCD writes need UAC; take a bcdedit /export backup first."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "blkid",
       "name": "blkid",
       "kind": "executable",
@@ -733,6 +816,177 @@
         "concepts": [
           "systemd",
           "terminal-basics"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "brew",
+      "name": "brew",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Homebrew paket yöneticisi (macOS).",
+        "en": "Homebrew package manager (macOS)."
+      },
+      "description": {
+        "tr": "Homebrew (`brew`), macOS (ve Linuxbrew) için kullanıcı alanı paket yöneticisidir. MacPorts `port` ayrı kayıttır. formül/cask ayrımına dikkat; sistem güncellemesi `softwareupdate` ile karıştırılmamalı. Arch host’ta sistem PM olarak pacman tercih edilir.",
+        "en": "Homebrew (brew) is a user-space package manager for macOS (and Linuxbrew). MacPorts port is a separate record. Mind formula vs cask; do not confuse with OS updates via softwareupdate. On Arch hosts prefer pacman as the system PM."
+      },
+      "tags": [
+        "macos",
+        "packages",
+        "homebrew"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "Formül/cask kur.",
+            "en": "Install formula/cask."
+          },
+          "verified": false
+        },
+        {
+          "flag": "uninstall",
+          "meaning": {
+            "tr": "Kaldır.",
+            "en": "Uninstall."
+          },
+          "verified": false
+        },
+        {
+          "flag": "update",
+          "meaning": {
+            "tr": "brew’i ve formül indekslerini güncelle.",
+            "en": "Update brew and formula indexes."
+          },
+          "verified": false
+        },
+        {
+          "flag": "upgrade",
+          "meaning": {
+            "tr": "Kurulu formülleri yükselt.",
+            "en": "Upgrade installed formulae."
+          },
+          "verified": false
+        },
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "Ara.",
+            "en": "Search."
+          },
+          "verified": false
+        },
+        {
+          "flag": "info",
+          "meaning": {
+            "tr": "Paket bilgisi.",
+            "en": "Package info."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "brew search ripgrep",
+          "explanation": {
+            "tr": "ripgrep formül/cask arar.",
+            "en": "Searches formulae/casks for ripgrep."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Bilgi",
+            "en": "Info"
+          },
+          "command": "brew info git",
+          "explanation": {
+            "tr": "git formül ayrıntısını gösterir.",
+            "en": "Shows git formula details."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Güncelle indeksler",
+            "en": "Update indexes"
+          },
+          "command": "brew update",
+          "explanation": {
+            "tr": "Homebrew ve formül tanımlarını yeniler (paket yükseltmez).",
+            "en": "Refreshes Homebrew and formula definitions (does not upgrade packages)."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "brew kur",
+          "homebrew",
+          "macos paket"
+        ],
+        "en": [
+          "brew install",
+          "homebrew",
+          "macos package"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.brew.sh/",
+          "https://docs.brew.sh/Manpage"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "port",
+        "softwareupdate",
+        "winget",
+        "pacman"
+      ],
+      "package_refs": [
+        {
+          "manager": "homebrew",
+          "package": "homebrew",
+          "distributions": [
+            "macos-desktop"
+          ],
+          "notes": {
+            "tr": "Resmi kurulum betiği docs.brew.sh; Linuxbrew ayrı ortam.",
+            "en": "Official install script at docs.brew.sh; Linuxbrew is a separate env."
+          }
+        }
+      ],
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
         ]
       }
     },
@@ -1206,6 +1460,91 @@
         "concepts": [
           "permissions"
         ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "chkdsk",
+      "name": "chkdsk",
+      "kind": "administrative_tool",
+      "category": "disks",
+      "summary": {
+        "tr": "NTFS/FAT birim bütünlüğü denetimi.",
+        "en": "NTFS/FAT volume integrity check."
+      },
+      "description": {
+        "tr": "chkdsk dosya sistemi hatalarını tarar; `/f` onarım yapar ve birimi kilitleyebilir. Linux fsck karşılığı değildir. Üretimde yedek ve bakım penceresi.",
+        "en": "chkdsk scans filesystem errors; /f repairs and may lock the volume. Not an fsck alias. Use backups and a maintenance window in production."
+      },
+      "tags": [
+        "windows",
+        "disks",
+        "ntfs",
+        "admin"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Salt okuma tarama",
+            "en": "Read-only scan"
+          },
+          "command": "chkdsk C:",
+          "explanation": {
+            "tr": "C: birimini onarmadan tarar (yine de yük bindirir).",
+            "en": "Scans C: without fixing (still I/O heavy)."
+          },
+          "risk": "caution",
+          "requires_elevated": true,
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "admin"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "chkdsk",
+          "chkdsk"
+        ],
+        "en": [
+          "chkdsk",
+          "chkdsk"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/chkdsk"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "sfc",
+        "dism",
+        "get-volume"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Onarım için yönetici ve çoğu zaman yeniden başlatma gerekir.",
+          "en": "Repair needs admin and often a reboot."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
       }
     },
     {
@@ -2087,8 +2426,8 @@
         "en": "Print or set the system date."
       },
       "description": {
-        "tr": "Biçimli tarih/saat çıktısı üretir; ayarlamak root ister.",
-        "en": "Formats date/time output; setting requires root."
+        "tr": "Biçimli tarih/saat çıktısı üretir; ayarlamak root ister. macOS/BSD `date` GNU date’ten farklıdır (ör. `-d` yok; `-v` / `-r` kullanın).",
+        "en": "Formats date/time output; setting requires root. macOS/BSD date differs from GNU date (e.g. no -d; use -v / -r)."
       },
       "tags": [
         "system",
@@ -2354,6 +2693,72 @@
           "storage"
         ]
       }
+    },
+    {
+      "schema_version": 2,
+      "id": "defaults",
+      "name": "defaults",
+      "kind": "executable",
+      "category": "system",
+      "summary": {
+        "tr": "macOS kullanıcı tercihlerine (plist) okuma/yazma.",
+        "en": "Read/write macOS user preferences (plists)."
+      },
+      "description": {
+        "tr": "defaults, uygulama domain tercihlerini okur/yazar. Yanlış yazma uygulama ayarlarını bozar. `plutil` plist doğrulama için ayrı kayıttır.",
+        "en": "defaults reads/writes app domain preferences. Wrong writes break app settings. plutil is a separate record for plist validation."
+      },
+      "tags": [
+        "macos",
+        "preferences",
+        "plist"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Domain oku",
+            "en": "Read domain"
+          },
+          "command": "defaults read com.apple.dock tilesize",
+          "explanation": {
+            "tr": "Dock simge boyutunu okur (varsa).",
+            "en": "Reads Dock icon size if present."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "defaults",
+          "defaults"
+        ],
+        "en": [
+          "defaults",
+          "defaults"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 defaults"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "plutil"
+      ]
     },
     {
       "schema_version": 2,
@@ -2742,6 +3147,277 @@
           "networking-basics"
         ],
         "ui_priority": 70
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "diskpart",
+      "name": "diskpart",
+      "kind": "administrative_tool",
+      "category": "disks",
+      "summary": {
+        "tr": "Etkileşimli disk bölümleme aracı (yıkıcı olabilir).",
+        "en": "Interactive disk partitioning tool (can be destructive)."
+      },
+      "description": {
+        "tr": "diskpart.exe bölüm/disk yönetir. `clean` / yanlış disk numarası veri kaybına yol açar. PowerShell Get-Disk ayrı kayıttır. Bu bankada yıkıcı örnek yok — yalnız list.",
+        "en": "diskpart.exe manages disks/partitions. clean / wrong disk numbers cause data loss. PowerShell Get-Disk is separate. No destructive examples here — list only."
+      },
+      "tags": [
+        "windows",
+        "disks",
+        "partition",
+        "admin"
+      ],
+      "risk": "destructive",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yardım (etkileşimsiz)",
+            "en": "Help (non-interactive)"
+          },
+          "command": "diskpart /?",
+          "explanation": {
+            "tr": "Kullanım bilgisini gösterir; diske yazmaz.",
+            "en": "Shows usage; does not write to disks."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "diskpart",
+          "diskpart"
+        ],
+        "en": [
+          "diskpart",
+          "diskpart"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/diskpart"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "get-disk",
+        "get-volume",
+        "bcdedit"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yönetici gerekir. Yanlış disk seçimi yıkıcıdır — list disk ile doğrulayın.",
+          "en": "Admin required. Wrong disk selection is destructive — verify with list disk."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "diskutil",
+      "name": "diskutil",
+      "kind": "administrative_tool",
+      "category": "disks",
+      "summary": {
+        "tr": "macOS disk / APFS yönetim aracı.",
+        "en": "macOS disk / APFS management utility."
+      },
+      "description": {
+        "tr": "diskutil birimleri listeler, bağlar/ayarlar ve APFS işlemleri yapar. `eraseDisk` yıkıcıdır — örneklerde yok. Linux lsblk/fdisk karşılığı değildir. macOS diskleri listelemek için `diskutil list` kullanın.",
+        "en": "diskutil lists volumes, mounts/manages, and performs APFS ops. eraseDisk is destructive — omitted from examples. Not an lsblk/fdisk alias. Use diskutil list to list macOS disks."
+      },
+      "tags": [
+        "macos",
+        "disks",
+        "apfs"
+      ],
+      "risk": "destructive",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [
+        {
+          "flag": "list",
+          "meaning": {
+            "tr": "Diskleri listele.",
+            "en": "List disks."
+          },
+          "verified": false
+        },
+        {
+          "flag": "info",
+          "meaning": {
+            "tr": "Birim bilgisi.",
+            "en": "Volume info."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Diskleri listele",
+            "en": "List disks"
+          },
+          "command": "diskutil list",
+          "explanation": {
+            "tr": "Bağlı disk ve bölümleri listeler (yazmaz).",
+            "en": "Lists attached disks and partitions (no writes)."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Birim bilgisi",
+            "en": "Volume info"
+          },
+          "command": "diskutil info /",
+          "explanation": {
+            "tr": "Kök birim hakkında bilgi basar.",
+            "en": "Prints info about the root volume."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "macos disk listele",
+          "diskutil",
+          "apfs"
+        ],
+        "en": [
+          "list macos disks",
+          "diskutil",
+          "apfs"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 diskutil",
+          "https://ss64.com/mac/diskutil.html"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "get-disk",
+        "lsblk",
+        "df"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "dism",
+      "name": "DISM",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "Deployment Image Servicing and Management.",
+        "en": "Deployment Image Servicing and Management."
+      },
+      "description": {
+        "tr": "DISM, Windows imajlarını ve çevrimiçi bileşen deposunu yönetir. `/Cleanup-Image /RestoreHealth` onarım için yaygındır; yönetici ister. Yanlış imaj yolu sistemi bozabilir.",
+        "en": "DISM services Windows images and the online component store. /Cleanup-Image /RestoreHealth is a common repair path; needs admin. Wrong image paths can damage the system."
+      },
+      "tags": [
+        "windows",
+        "system",
+        "image",
+        "admin"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Bileşen deposu sağlığı (bilgi)",
+            "en": "Component store health (info)"
+          },
+          "command": "DISM /Online /Cleanup-Image /CheckHealth",
+          "explanation": {
+            "tr": "Depo bozulma işaretini kontrol eder (düşük etkili).",
+            "en": "Checks for component-store corruption flags (low impact)."
+          },
+          "risk": "caution",
+          "requires_elevated": true,
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "admin"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "dism",
+          "dism"
+        ],
+        "en": [
+          "DISM",
+          "dism"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-hardware/manufacture/desktop/what-is-dism"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "sfc",
+        "chkdsk"
+      ],
+      "security": {
+        "notes": {
+          "tr": "UAC yükseltmesi zorunlu; online onarım uzun sürer.",
+          "en": "UAC elevation required; online repair takes time."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
       }
     },
     {
@@ -3426,6 +4102,74 @@
           "package-managers-comparison"
         ]
       }
+    },
+    {
+      "schema_version": 2,
+      "id": "dscl",
+      "name": "dscl",
+      "kind": "administrative_tool",
+      "category": "users",
+      "summary": {
+        "tr": "Directory Service komut satırı (kullanıcı/düğüm).",
+        "en": "Directory Service command line (users/nodes)."
+      },
+      "description": {
+        "tr": "dscl, Open Directory / yerel dizin düğümlerini okur/yazar. Kullanıcı oluşturma/silme yıkıcı olabilir. Linux getent/useradd modeli değildir.",
+        "en": "dscl reads/writes Open Directory / local directory nodes. Creating/deleting users can be destructive. Not the Linux getent/useradd model."
+      },
+      "tags": [
+        "macos",
+        "directory",
+        "users"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yerel kullanıcıları listele",
+            "en": "List local users"
+          },
+          "command": "dscl . -list /Users",
+          "explanation": {
+            "tr": "Yerel dizin kullanıcı adlarını listeler (salt okuma).",
+            "en": "Lists local directory usernames (read-only)."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "dscl",
+          "dscl"
+        ],
+        "en": [
+          "dscl",
+          "dscl"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 dscl"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "id",
+        "whoami"
+      ]
     },
     {
       "schema_version": 2,
@@ -4337,8 +5081,8 @@
         "en": "Search for files in a directory hierarchy."
       },
       "description": {
-        "tr": "İsim, tip, zaman ve başka ölçütlerle dosya bulur; aksiyonlar çalıştırabilir.",
-        "en": "Finds files by name, type, time, and more; can run actions."
+        "tr": "İsim, tip, zaman ve başka ölçütlerle dosya bulur; aksiyonlar çalıştırabilir. macOS/BSD `find` GNU findutils’ten farklıdır (ör. `-printf` yok; `-exec` sonlandırma alışkanlıkları kontrol edin).",
+        "en": "Finds files by name, type, time, and more; can run actions. macOS/BSD find differs from GNU findutils (e.g. no -printf; check -exec termination)."
       },
       "tags": [
         "search",
@@ -5399,6 +6143,1482 @@
           "terminal-basics"
         ],
         "ui_priority": 75
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "get-childitem",
+      "name": "Get-ChildItem",
+      "kind": "powershell_cmdlet",
+      "category": "filesystem",
+      "summary": {
+        "tr": "Dizin içeriğini listeler (PowerShell).",
+        "en": "Lists directory contents (PowerShell)."
+      },
+      "description": {
+        "tr": "Get-ChildItem dosya/klasör listeler; `dir`/`ls` alias’ları PowerShell içindedir. CMD `dir` ve Linux `ls` ayrı kayıtlardır — bayraklar birebir değildir. Gizli/sistem öğeleri için -Force.",
+        "en": "Get-ChildItem lists files/folders; dir/ls are PowerShell aliases. CMD dir and Linux ls are separate records — flags are not 1:1. Use -Force for hidden/system items."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "filesystem"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [
+        {
+          "flag": "-Recurse",
+          "meaning": {
+            "tr": "Alt dizinlere in.",
+            "en": "Recurse into children."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-Force",
+          "meaning": {
+            "tr": "Gizli öğeleri de göster.",
+            "en": "Include hidden items."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-Filter",
+          "meaning": {
+            "tr": "Sağlayıcı süzgeci.",
+            "en": "Provider filter."
+          },
+          "verified": false,
+          "takes_value": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Listele",
+            "en": "List"
+          },
+          "command": "Get-ChildItem -Path C:\\Windows -Filter *.exe",
+          "explanation": {
+            "tr": "Belirtilen yolda exe süzgeçli liste.",
+            "en": "Lists matching exe files under the path."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "get-childitem",
+          "powershell get childitem"
+        ],
+        "en": [
+          "Get-ChildItem",
+          "powershell get childitem"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-childitem"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "aliases": [
+        "gci",
+        "ls",
+        "dir"
+      ],
+      "related": [
+        "get-item",
+        "get-content",
+        "get-itemproperty"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-command",
+      "name": "Get-Command",
+      "kind": "powershell_cmdlet",
+      "category": "system",
+      "summary": {
+        "tr": "PowerShell’de komut, cmdlet, fonksiyon veya alias bulur.",
+        "en": "Finds a cmdlet, function, alias, or executable in PowerShell."
+      },
+      "description": {
+        "tr": "Get-Command, PowerShell oturumunda hangi komutların yüklü/erişilebilir olduğunu listeler. Linux `which`/`type` karşılığı değildir — ayrı kayıt. PowerShell 7+ (`pwsh`) ve Windows PowerShell 5.1’de çalışır; bazı modüller yalnızca Windows’ta bulunur.",
+        "en": "Get-Command lists which commands are available in the PowerShell session. It is not a Linux which/type alias — separate record. Works on PowerShell 7+ (pwsh) and Windows PowerShell 5.1; some modules are Windows-only."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "discovery"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [
+        {
+          "flag": "-Name",
+          "meaning": {
+            "tr": "Komut adı / joker.",
+            "en": "Command name / wildcard."
+          },
+          "verified": false,
+          "takes_value": true,
+          "value_name": "Name"
+        },
+        {
+          "flag": "-Module",
+          "meaning": {
+            "tr": "Belirli modülden listele.",
+            "en": "List from a module."
+          },
+          "verified": false,
+          "takes_value": true,
+          "value_name": "Module"
+        },
+        {
+          "flag": "-CommandType",
+          "meaning": {
+            "tr": "Cmdlet/Function/Alias/Application süz.",
+            "en": "Filter by CommandType."
+          },
+          "verified": false,
+          "takes_value": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Cmdlet ara",
+            "en": "Find cmdlet"
+          },
+          "command": "Get-Command Get-Process",
+          "explanation": {
+            "tr": "Get-Process cmdlet bilgisini gösterir.",
+            "en": "Shows metadata for Get-Process."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "none"
+        },
+        {
+          "title": {
+            "tr": "Joker",
+            "en": "Wildcard"
+          },
+          "command": "Get-Command Get-Net*",
+          "explanation": {
+            "tr": "Get-Net* ile başlayan komutları listeler.",
+            "en": "Lists commands matching Get-Net*."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "get-command",
+          "powershell get command"
+        ],
+        "en": [
+          "Get-Command",
+          "powershell get command"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.core/get-command"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "aliases": [
+        "gcm"
+      ],
+      "related": [
+        "get-help",
+        "get-process"
+      ],
+      "nova": {
+        "concepts": [
+          "path"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "get-computerinfo",
+      "name": "Get-ComputerInfo",
+      "kind": "powershell_cmdlet",
+      "category": "system",
+      "summary": {
+        "tr": "Windows sistem / donanım özet bilgisi.",
+        "en": "Windows system / hardware summary info."
+      },
+      "description": {
+        "tr": "Get-ComputerInfo, işletim sistemi, BIOS ve donanım özetini bir nesnede toplar. Windows Server ve istemci sürümlerinde yönetim keşfi için kullanışlıdır. Linux `uname`/`hostnamectl` karşılığı değildir.",
+        "en": "Get-ComputerInfo aggregates OS, BIOS, and hardware summary into one object. Useful on Windows Server and client for inventory. Not a uname/hostnamectl alias."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "system",
+        "inventory"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Özet",
+            "en": "Summary"
+          },
+          "command": "Get-ComputerInfo | Select-Object WindowsProductName, OsVersion, CsProcessors",
+          "explanation": {
+            "tr": "Ürün adı, OS sürümü ve işlemci özetini seçer.",
+            "en": "Selects product name, OS version, and CPU summary."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "windows sistem bilgisi",
+          "get-computerinfo"
+        ],
+        "en": [
+          "windows system info",
+          "get-computerinfo"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-computerinfo"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "system-profiler",
+        "get-winevent"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-content",
+      "name": "Get-Content",
+      "kind": "powershell_cmdlet",
+      "category": "filesystem",
+      "summary": {
+        "tr": "Dosya içeriğini okur (PowerShell).",
+        "en": "Reads file content (PowerShell)."
+      },
+      "description": {
+        "tr": "Get-Content satır satır veya ham içerik okur (`cat`/`type` alias). Linux `cat` ve CMD `type` ayrı kayıtlardır. Büyük dosyalarda -TotalCount / -Tail kullanın.",
+        "en": "Get-Content reads line-oriented or raw content (cat/type aliases). Linux cat and CMD type are separate records. Prefer -TotalCount / -Tail for large files."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "filesystem",
+        "text"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [
+        {
+          "flag": "-TotalCount",
+          "meaning": {
+            "tr": "İlk N satır.",
+            "en": "First N lines."
+          },
+          "verified": false,
+          "takes_value": true
+        },
+        {
+          "flag": "-Tail",
+          "meaning": {
+            "tr": "Son N satır.",
+            "en": "Last N lines."
+          },
+          "verified": false,
+          "takes_value": true
+        },
+        {
+          "flag": "-Raw",
+          "meaning": {
+            "tr": "Tek dize olarak oku.",
+            "en": "Read as a single string."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Son satırlar",
+            "en": "Tail lines"
+          },
+          "command": "Get-Content -Path C:\\log.txt -Tail 50",
+          "explanation": {
+            "tr": "Dosyanın son 50 satırını basar.",
+            "en": "Prints the last 50 lines of the file."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "get-content",
+          "powershell get content"
+        ],
+        "en": [
+          "Get-Content",
+          "powershell get content"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-content"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "aliases": [
+        "gc",
+        "cat",
+        "type"
+      ],
+      "related": [
+        "get-childitem",
+        "get-item",
+        "cat"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-disk",
+      "name": "Get-Disk",
+      "kind": "powershell_cmdlet",
+      "category": "disks",
+      "summary": {
+        "tr": "Fiziksel diskleri listeler (Storage cmdlet).",
+        "en": "Lists physical disks (Storage cmdlet)."
+      },
+      "description": {
+        "tr": "Get-Disk, Windows Storage modülü ile fiziksel diskleri gösterir. Linux `lsblk` karşılığı değildir. Disk numarası ile Get-Partition/Get-Volume birlikte kullanılır. Yazma işlemleri yönetici ister; bu kayıt salt okuma odaklıdır.",
+        "en": "Get-Disk lists physical disks via the Windows Storage module. Not an lsblk alias. Often paired with Get-Partition/Get-Volume by disk number. Write ops need admin; this record focuses on read-only queries."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "disks",
+        "storage"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Diskleri listele",
+            "en": "List disks"
+          },
+          "command": "Get-Disk",
+          "explanation": {
+            "tr": "Fiziksel disk numarası, boyutu ve sağlık bilgisini gösterir.",
+            "en": "Shows physical disk number, size, and health."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "windows disk listele",
+          "get-disk"
+        ],
+        "en": [
+          "list windows disks",
+          "get-disk"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/storage/get-disk"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "get-volume",
+        "diskpart"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-executionpolicy",
+      "name": "Get-ExecutionPolicy",
+      "kind": "powershell_cmdlet",
+      "category": "security",
+      "summary": {
+        "tr": "PowerShell betik yürütme ilkesini gösterir.",
+        "en": "Shows the PowerShell script execution policy."
+      },
+      "description": {
+        "tr": "Get-ExecutionPolicy, betiklerin nasıl çalıştırılacağını kontrol eden ExecutionPolicy değerini gösterir. Set-ExecutionPolicy değiştirir ve yönetici / grup ilkesi etkisi olabilir — bu kayıt salt okuma odaklıdır. PowerShell 7+ ile Windows PowerShell 5.1 kapsamları farklı olabilir (CurrentUser vs MachinePolicy).",
+        "en": "Get-ExecutionPolicy reports how scripts may run. Set-ExecutionPolicy changes it and may need admin / be overridden by Group Policy — this record is read-focused. PowerShell 7+ vs Windows PowerShell 5.1 scopes can differ (CurrentUser vs MachinePolicy)."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "security",
+        "policy"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [
+        {
+          "flag": "-List",
+          "meaning": {
+            "tr": "Tüm kapsamları listele.",
+            "en": "List all scopes."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "İlke listesi",
+            "en": "List policies"
+          },
+          "command": "Get-ExecutionPolicy -List",
+          "explanation": {
+            "tr": "Kapsam bazında ExecutionPolicy değerlerini gösterir.",
+            "en": "Shows ExecutionPolicy values by scope."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "execution policy",
+          "powershell betik izni"
+        ],
+        "en": [
+          "execution policy",
+          "powershell script policy"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.security/get-executionpolicy"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "get-help",
+      "name": "Get-Help",
+      "kind": "powershell_cmdlet",
+      "category": "system",
+      "summary": {
+        "tr": "PowerShell yardım konularını gösterir.",
+        "en": "Displays PowerShell help topics."
+      },
+      "description": {
+        "tr": "Get-Help, cmdlet ve kavramlar için yardım metnini getirir. İlk kullanımda `Update-Help` gerekebilir. man/—help ile karıştırılmamalı; PowerShell’e özgüdür. PowerShell 7+ ve Windows PowerShell 5.1’de mevcuttur.",
+        "en": "Get-Help shows help for cmdlets and conceptual topics. Update-Help may be needed first. Not the same as man/--help — PowerShell-specific. Available in PowerShell 7+ and Windows PowerShell 5.1."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "help"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [
+        {
+          "flag": "-Full",
+          "meaning": {
+            "tr": "Tam yardım.",
+            "en": "Full help."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-Examples",
+          "meaning": {
+            "tr": "Yalnız örnekler.",
+            "en": "Examples only."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-Online",
+          "meaning": {
+            "tr": "Çevrimiçi yardıma git.",
+            "en": "Open online help."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Örnekler",
+            "en": "Examples"
+          },
+          "command": "Get-Help Get-Service -Examples",
+          "explanation": {
+            "tr": "Get-Service için örnekleri listeler.",
+            "en": "Lists examples for Get-Service."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "get-help",
+          "powershell get help"
+        ],
+        "en": [
+          "Get-Help",
+          "powershell get help"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.core/get-help"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "aliases": [
+        "help",
+        "man"
+      ],
+      "related": [
+        "get-command"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-item",
+      "name": "Get-Item",
+      "kind": "powershell_cmdlet",
+      "category": "filesystem",
+      "summary": {
+        "tr": "Belirtilen yolu (dosya/klasör) nesne olarak alır.",
+        "en": "Gets the item at a path as an object."
+      },
+      "description": {
+        "tr": "Get-Item tek bir öğeyi (dosya, dizin, kayıt defteri anahtarı vb. sağlayıcı yolu) döndürür. Get-ChildItem alt öğeleri listeler; karıştırmayın.",
+        "en": "Get-Item returns a single item (file, directory, registry key, etc.). Get-ChildItem lists children — do not confuse them."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "filesystem"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Dosya nesnesi",
+            "en": "File object"
+          },
+          "command": "Get-Item -Path C:\\Windows\\System32\\notepad.exe",
+          "explanation": {
+            "tr": "Dosya meta verisini nesne olarak döndürür.",
+            "en": "Returns file metadata as an object."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "get-item",
+          "powershell get item"
+        ],
+        "en": [
+          "Get-Item",
+          "powershell get item"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-item"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "aliases": [
+        "gi"
+      ],
+      "related": [
+        "get-childitem",
+        "get-itemproperty"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-itemproperty",
+      "name": "Get-ItemProperty",
+      "kind": "powershell_cmdlet",
+      "category": "filesystem",
+      "summary": {
+        "tr": "Öğe özelliklerini (kayıt defteri değerleri vb.) okur.",
+        "en": "Gets item properties (e.g. registry values)."
+      },
+      "description": {
+        "tr": "Get-ItemProperty sağlayıcı özelliklerini okur; Windows’ta sıkça kayıt defteri değerleri için kullanılır. Yazma için Set-ItemProperty (ayrı kayıt olabilir) — yanlış anahtar sistem davranışını bozar.",
+        "en": "Get-ItemProperty reads provider properties; on Windows often used for registry values. Writing uses Set-ItemProperty — wrong keys can break the system."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "registry"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kayıt değeri oku",
+            "en": "Read registry value"
+          },
+          "command": "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion' | Select-Object ProductName",
+          "explanation": {
+            "tr": "Ürün adını kayıt defterinden okur (salt okuma).",
+            "en": "Reads product name from the registry (read-only)."
+          },
+          "risk": "caution",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "get-itemproperty",
+          "powershell get itemproperty"
+        ],
+        "en": [
+          "Get-ItemProperty",
+          "powershell get itemproperty"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-itemproperty"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "aliases": [
+        "gp"
+      ],
+      "related": [
+        "get-item",
+        "get-childitem"
+      ],
+      "security": {
+        "notes": {
+          "tr": "HKLM okuma çoğu durumda normal kullanıcıyla çalışır; yazma işlemleri UAC ister.",
+          "en": "HKLM reads often work as a normal user; writes require UAC elevation."
+        }
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "get-netipconfiguration",
+      "name": "Get-NetIPConfiguration",
+      "kind": "powershell_cmdlet",
+      "category": "network",
+      "summary": {
+        "tr": "Windows ağ IP yapılandırmasını gösterir.",
+        "en": "Show Windows network IP configuration."
+      },
+      "description": {
+        "tr": "PowerShell NetTCPIP modülü cmdlet’i; Linux ip/ifconfig veya CMD ipconfig karşılığı değildir — ayrı kayıtlar. Tipik olarak Windows PowerShell 5.1 ve Windows üzerinde PowerShell 7+ ile kullanılır (NetTCPIP Windows’a özgüdür).",
+        "en": "PowerShell NetTCPIP cmdlet; not a Linux ip/ifconfig or CMD ipconfig alias — separate records. Typically used with Windows PowerShell 5.1 and PowerShell 7+ on Windows (NetTCPIP is Windows-specific)."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "network"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "IP yapılandırması",
+            "en": "IP configuration"
+          },
+          "command": "Get-NetIPConfiguration",
+          "explanation": {
+            "tr": "Yerel arabirim IP/DNS/gateway özetini listeler.",
+            "en": "Lists local interface IP/DNS/gateway summary."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "none"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "windows ip adresi",
+          "ağ yapılandırması powershell"
+        ],
+        "en": [
+          "windows show ip",
+          "powershell network configuration"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/nettcpip/get-netipconfiguration"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "aliases": [
+        "gip"
+      ],
+      "related": [
+        "ipconfig",
+        "get-nettcpconnection",
+        "netsh"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-nettcpconnection",
+      "name": "Get-NetTCPConnection",
+      "kind": "powershell_cmdlet",
+      "category": "network",
+      "summary": {
+        "tr": "Windows TCP bağlantılarını listeler.",
+        "en": "Lists Windows TCP connections."
+      },
+      "description": {
+        "tr": "NetTCPIP Get-NetTCPConnection, yerel TCP dinleyicileri ve bağlantıları gösterir. Linux `ss`/`netstat` veya CMD `netstat` ile aynı komut değildir. Windows’a özgü NetTCPIP modülü gerektirir.",
+        "en": "Get-NetTCPConnection shows local TCP listeners and connections. Not the same command as Linux ss/netstat or CMD netstat. Requires the Windows NetTCPIP module."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "network",
+        "tcp"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [
+        {
+          "flag": "-LocalPort",
+          "meaning": {
+            "tr": "Yerel port süz.",
+            "en": "Filter local port."
+          },
+          "verified": false,
+          "takes_value": true
+        },
+        {
+          "flag": "-State",
+          "meaning": {
+            "tr": "Listen/Established vb.",
+            "en": "Filter by state."
+          },
+          "verified": false,
+          "takes_value": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Dinleyen portlar",
+            "en": "Listening ports"
+          },
+          "command": "Get-NetTCPConnection -State Listen",
+          "explanation": {
+            "tr": "Dinleme durumundaki TCP soketleri listeler.",
+            "en": "Lists TCP sockets in Listen state."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "windows tcp bağlantı",
+          "dinleyen port powershell"
+        ],
+        "en": [
+          "windows tcp connections",
+          "listening ports powershell"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/nettcpip/get-nettcpconnection"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "get-netipconfiguration",
+        "netstat"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-process",
+      "name": "Get-Process",
+      "kind": "powershell_cmdlet",
+      "category": "processes",
+      "summary": {
+        "tr": "Yerel süreçleri listeler (PowerShell).",
+        "en": "Lists local processes (PowerShell)."
+      },
+      "description": {
+        "tr": "Get-Process, çalışan süreçleri nesne olarak döndürür. Linux `ps` karşılığı değildir — ayrı kayıt. Windows’ta Task Manager / tasklist ile benzer amaç. PowerShell 7+ ve Windows PowerShell 5.1.",
+        "en": "Get-Process returns running processes as objects. Not a Linux ps alias — separate record. Similar intent to Task Manager / tasklist on Windows. PowerShell 7+ and Windows PowerShell 5.1."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "processes"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [
+        {
+          "flag": "-Name",
+          "meaning": {
+            "tr": "Süreç adı.",
+            "en": "Process name."
+          },
+          "verified": false,
+          "takes_value": true,
+          "value_name": "Name"
+        },
+        {
+          "flag": "-Id",
+          "meaning": {
+            "tr": "PID.",
+            "en": "Process id."
+          },
+          "verified": false,
+          "takes_value": true,
+          "value_name": "Id"
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ada göre",
+            "en": "By name"
+          },
+          "command": "Get-Process -Name explorer",
+          "explanation": {
+            "tr": "explorer süreçlerini listeler.",
+            "en": "Lists explorer processes."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        },
+        {
+          "title": {
+            "tr": "CPU sıralı",
+            "en": "Sort by CPU"
+          },
+          "command": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10",
+          "explanation": {
+            "tr": "CPU’ya göre ilk 10 süreç.",
+            "en": "Top 10 processes by CPU."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "powershell süreç",
+          "get-process",
+          "çalışan process"
+        ],
+        "en": [
+          "powershell processes",
+          "get-process",
+          "list processes windows"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-process"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "aliases": [
+        "gps",
+        "ps"
+      ],
+      "related": [
+        "get-service",
+        "stop-service"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-scheduledtask",
+      "name": "Get-ScheduledTask",
+      "kind": "powershell_cmdlet",
+      "category": "system",
+      "summary": {
+        "tr": "Zamanlanmış görevleri listeler (Task Scheduler).",
+        "en": "Lists scheduled tasks (Task Scheduler)."
+      },
+      "description": {
+        "tr": "Get-ScheduledTask, Windows Görev Zamanlayıcı görevlerini listeler. `schtasks.exe` ayrı bir executable kaydıdır. Görev oluşturma/silme yönetici gerektirebilir; bu kayıt sorgu odaklıdır.",
+        "en": "Get-ScheduledTask lists Windows Task Scheduler tasks. schtasks.exe is a separate executable record. Creating/deleting tasks may need admin; this record is query-focused."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "scheduler"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Görevleri listele",
+            "en": "List tasks"
+          },
+          "command": "Get-ScheduledTask | Select-Object TaskName, State",
+          "explanation": {
+            "tr": "Görev adı ve durumunu listeler.",
+            "en": "Lists task name and state."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "get-scheduledtask",
+          "powershell get scheduledtask"
+        ],
+        "en": [
+          "Get-ScheduledTask",
+          "powershell get scheduledtask"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/scheduledtasks/get-scheduledtask"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "schtasks"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-service",
+      "name": "Get-Service",
+      "kind": "powershell_cmdlet",
+      "category": "system",
+      "summary": {
+        "tr": "Windows servislerini listeler / sorgular.",
+        "en": "Lists or queries Windows services."
+      },
+      "description": {
+        "tr": "Get-Service, Service Control Manager üzerinden Windows servis durumunu gösterir. Linux systemctl karşılığı değildir. Servis değiştirmek için Start/Stop/Restart/Set-Service kullanılır; çoğu yazma işlemi yönetici (UAC) ister.",
+        "en": "Get-Service reports Windows service status via SCM. Not a systemctl alias. Use Start/Stop/Restart/Set-Service to change state; most write ops need Administrator (UAC)."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "services"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [
+        {
+          "flag": "-Name",
+          "meaning": {
+            "tr": "Servis adı / joker.",
+            "en": "Service name / wildcard."
+          },
+          "verified": false,
+          "takes_value": true
+        },
+        {
+          "flag": "-DisplayName",
+          "meaning": {
+            "tr": "Görünen ad.",
+            "en": "Display name."
+          },
+          "verified": false,
+          "takes_value": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Tüm servisler",
+            "en": "All services"
+          },
+          "command": "Get-Service",
+          "explanation": {
+            "tr": "Yerel servisleri listeler.",
+            "en": "Lists local services."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Ada göre",
+            "en": "By name"
+          },
+          "command": "Get-Service -Name wuauserv",
+          "explanation": {
+            "tr": "Windows Update servis durumunu gösterir.",
+            "en": "Shows Windows Update service status."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "windows servis listele",
+          "get-service",
+          "servis durumu"
+        ],
+        "en": [
+          "list windows services",
+          "get-service",
+          "service status"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-service"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "aliases": [
+        "gsv"
+      ],
+      "related": [
+        "start-service",
+        "stop-service",
+        "restart-service",
+        "set-service",
+        "sc"
+      ],
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "get-volume",
+      "name": "Get-Volume",
+      "kind": "powershell_cmdlet",
+      "category": "disks",
+      "summary": {
+        "tr": "Birimleri (volume) listeler — sürücü harfi / FS.",
+        "en": "Lists volumes — drive letter / filesystem."
+      },
+      "description": {
+        "tr": "Get-Volume, Windows birimlerini (NTFS/ReFS vb.) gösterir. Linux `df` karşılığı değildir. Get-Disk ile birlikte depolama envanteri için kullanılır.",
+        "en": "Get-Volume lists Windows volumes (NTFS/ReFS, etc.). Not a df alias. Used with Get-Disk for storage inventory."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "disks",
+        "volume"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Birimleri listele",
+            "en": "List volumes"
+          },
+          "command": "Get-Volume",
+          "explanation": {
+            "tr": "Sürücü harfi, dosya sistemi ve boş alanı listeler.",
+            "en": "Lists drive letter, filesystem, and free space."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "get-volume",
+          "powershell get volume"
+        ],
+        "en": [
+          "Get-Volume",
+          "powershell get volume"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/storage/get-volume"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "get-disk",
+        "chkdsk"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "get-winevent",
+      "name": "Get-WinEvent",
+      "kind": "powershell_cmdlet",
+      "category": "monitoring",
+      "summary": {
+        "tr": "Windows Olay Günlüğü kayıtlarını sorgular.",
+        "en": "Queries Windows Event Log records."
+      },
+      "description": {
+        "tr": "Get-WinEvent, Event Viewer / Windows Event Log kanallarını PowerShell ile okur. Linux journalctl karşılığı değildir. Geniş sorgular yavaş olabilir; FilterHashtable tercih edin. Bazı kanallar yönetici hakkı ister.",
+        "en": "Get-WinEvent reads Event Viewer / Windows Event Log channels from PowerShell. Not a journalctl alias. Prefer FilterHashtable for performance. Some channels require Administrator."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "logs",
+        "events"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [
+        {
+          "flag": "-LogName",
+          "meaning": {
+            "tr": "Kanal adı (System, Application…).",
+            "en": "Log channel name."
+          },
+          "verified": false,
+          "takes_value": true
+        },
+        {
+          "flag": "-MaxEvents",
+          "meaning": {
+            "tr": "En fazla olay sayısı.",
+            "en": "Maximum events."
+          },
+          "verified": false,
+          "takes_value": true
+        },
+        {
+          "flag": "-FilterHashtable",
+          "meaning": {
+            "tr": "Süzgeç hash tablosu.",
+            "en": "Filter hashtable."
+          },
+          "verified": false,
+          "takes_value": true
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Son System olayları",
+            "en": "Recent System events"
+          },
+          "command": "Get-WinEvent -LogName System -MaxEvents 20",
+          "explanation": {
+            "tr": "System kanalından son 20 olayı getirir.",
+            "en": "Fetches the latest 20 System-channel events."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "windows olay günlüğü",
+          "get-winevent",
+          "event viewer"
+        ],
+        "en": [
+          "windows event log",
+          "get-winevent",
+          "event viewer powershell"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.diagnostics/get-winevent"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "wevtutil",
+        "journalctl"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Güvenlik günlüğü gibi kanallar için yükseltilmiş kabuk (UAC) gerekebilir.",
+          "en": "Elevated shell (UAC) may be required for channels such as Security."
+        },
+        "requires_admin": false,
+        "uac_prompt": false
       }
     },
     {
@@ -7031,6 +9251,88 @@
     },
     {
       "schema_version": 2,
+      "id": "icacls",
+      "name": "icacls",
+      "kind": "executable",
+      "category": "users",
+      "summary": {
+        "tr": "NTFS ACL görüntüleme ve düzenleme.",
+        "en": "Display and edit NTFS ACLs."
+      },
+      "description": {
+        "tr": "icacls, Windows NTFS izinlerini gösterir/değiştirir. Linux chmod/chown modeli değildir. Yanlış /grant veya /reset erişimi kilitleyebilir; yönetici gerekebilir.",
+        "en": "icacls displays/changes Windows NTFS permissions. Not the Linux chmod/chown model. Wrong /grant or /reset can lock you out; admin may be required."
+      },
+      "tags": [
+        "windows",
+        "acl",
+        "ntfs",
+        "permissions"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "ACL göster",
+            "en": "Show ACL"
+          },
+          "command": "icacls C:\\Users\\Public",
+          "explanation": {
+            "tr": "Dizin ACL’sini salt okuma listeler.",
+            "en": "Lists the directory ACL read-only."
+          },
+          "risk": "safe",
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "icacls",
+          "icacls"
+        ],
+        "en": [
+          "icacls",
+          "icacls"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/icacls"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "takeown",
+        "chmod"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Sistem yollarında değişiklik UAC ister; yedek ACL alın.",
+          "en": "Changing ACLs on system paths needs UAC; back up ACLs first."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "id",
       "name": "id",
       "kind": "executable",
@@ -7658,6 +9960,116 @@
     },
     {
       "schema_version": 2,
+      "id": "ipconfig",
+      "name": "ipconfig",
+      "kind": "executable",
+      "category": "network",
+      "summary": {
+        "tr": "CMD/Windows IP yapılandırmasını gösterir.",
+        "en": "Shows CMD/Windows IP configuration."
+      },
+      "description": {
+        "tr": "ipconfig.exe, cmd.exe ve PowerShell’den çağrılabilen klasik Windows ağ yapılandırma aracısıdır. PowerShell `Get-NetIPConfiguration` ve Linux `ip` ayrı kayıtlardır — bayraklar eşdeğer değildir. `/release` `/renew` DHCP’yi etkiler.",
+        "en": "ipconfig.exe is the classic Windows IP config tool callable from cmd.exe and PowerShell. PowerShell Get-NetIPConfiguration and Linux ip are separate records — flags are not equivalent. /release and /renew affect DHCP."
+      },
+      "tags": [
+        "windows",
+        "cmd",
+        "network"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [
+        {
+          "flag": "/all",
+          "meaning": {
+            "tr": "Ayrıntılı yapılandırma.",
+            "en": "Detailed configuration."
+          },
+          "verified": false
+        },
+        {
+          "flag": "/flushdns",
+          "meaning": {
+            "tr": "DNS çözümleyici önbelleğini temizle.",
+            "en": "Flush DNS resolver cache."
+          },
+          "verified": false
+        },
+        {
+          "flag": "/release",
+          "meaning": {
+            "tr": "DHCP adresini bırak (etki).",
+            "en": "Release DHCP address (side effect)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "/renew",
+          "meaning": {
+            "tr": "DHCP yenile (etki).",
+            "en": "Renew DHCP (side effect)."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ayrıntılı bilgi",
+            "en": "Detailed info"
+          },
+          "command": "ipconfig /all",
+          "explanation": {
+            "tr": "Tüm arabirimler için ayrıntılı IP/DNS bilgisini basar.",
+            "en": "Prints detailed IP/DNS info for all interfaces."
+          },
+          "risk": "safe",
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "none"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "ipconfig",
+          "windows ip",
+          "cmd ip adresi"
+        ],
+        "en": [
+          "ipconfig",
+          "windows ip",
+          "cmd show ip"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/ipconfig"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "get-netipconfiguration",
+        "netsh",
+        "route"
+      ]
+    },
+    {
+      "schema_version": 2,
       "id": "iptables",
       "name": "iptables",
       "kind": "executable",
@@ -8260,6 +10672,96 @@
     },
     {
       "schema_version": 2,
+      "id": "launchctl",
+      "name": "launchctl",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "launchd iş yükü denetimi (macOS servisleri).",
+        "en": "launchd job control (macOS services)."
+      },
+      "description": {
+        "tr": "launchctl, macOS launchd ajanlarını yükler/başlatır/durdurur. Linux systemctl karşılığı değildir. `bootout`/`enable` yanlış kullanıldığında oturum ajanlarını bozar; sorgu örnekleri tercih edilir.",
+        "en": "launchctl loads/starts/stops macOS launchd agents. Not a systemctl alias. Misused bootout/enable can break session agents; prefer query examples."
+      },
+      "tags": [
+        "macos",
+        "services",
+        "launchd"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kullanıcı etki alanı listesi",
+            "en": "List user domain"
+          },
+          "command": "launchctl print gui/$(id -u) 2>/dev/null | head",
+          "explanation": {
+            "tr": "GUI etki alanı özetini basmaya çalışır (ortama göre değişir).",
+            "en": "Attempts to print GUI domain summary (varies by environment)."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Yardım",
+            "en": "Help"
+          },
+          "command": "launchctl help",
+          "explanation": {
+            "tr": "Alt komut yardımını gösterir.",
+            "en": "Shows subcommand help."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "launchctl",
+          "macos servis",
+          "launchd"
+        ],
+        "en": [
+          "launchctl",
+          "macos services",
+          "launchd"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html",
+          "man 1 launchctl"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "systemctl",
+        "softwareupdate"
+      ],
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "less",
       "name": "less",
       "kind": "executable",
@@ -8637,6 +11139,73 @@
         ],
         "favorite_eligible": true
       }
+    },
+    {
+      "schema_version": 2,
+      "id": "log",
+      "name": "log",
+      "kind": "executable",
+      "category": "monitoring",
+      "summary": {
+        "tr": "macOS birleşik günlük (unified logging) CLI.",
+        "en": "macOS unified logging CLI."
+      },
+      "description": {
+        "tr": "`log` aracı unified logging akışını gösterir/toplar. Linux journalctl karşılığı değildir. `log show` yoğun olabilir; predicate süzgeçleri kullanın.",
+        "en": "The log tool shows/collects the unified logging stream. Not a journalctl alias. log show can be heavy; use predicate filters."
+      },
+      "tags": [
+        "macos",
+        "logs"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Son satırlar (kısa)",
+            "en": "Recent lines (short)"
+          },
+          "command": "log show --last 2m --style compact | tail",
+          "explanation": {
+            "tr": "Son 2 dakikalık kompakt günlükten kuyruk alır.",
+            "en": "Tails a compact log from the last 2 minutes."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "log",
+          "log"
+        ],
+        "en": [
+          "log",
+          "log"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 log",
+          "https://developer.apple.com/documentation/os/logging"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "get-winevent",
+        "journalctl"
+      ]
     },
     {
       "schema_version": 2,
@@ -11143,6 +13712,274 @@
           "networking-basics"
         ]
       }
+    },
+    {
+      "schema_version": 2,
+      "id": "netsh",
+      "name": "netsh",
+      "kind": "administrative_tool",
+      "category": "network",
+      "summary": {
+        "tr": "Windows ağ yığını yapılandırma kabuğu.",
+        "en": "Windows networking stack configuration shell."
+      },
+      "description": {
+        "tr": "netsh, arabirim, güvenlik duvarı, WLAN ve diğer ağ bağlamlarını yönetir. Yazma komutları yönetici (UAC) ister. Salt okuma örnekleri tercih edilir; yanlış bağlam sistemi ağdan düşürebilir.",
+        "en": "netsh manages interface, firewall, WLAN, and other networking contexts. Write commands need Administrator (UAC). Prefer read-only examples; wrong context can drop connectivity."
+      },
+      "tags": [
+        "windows",
+        "network",
+        "admin"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Arabirimleri göster",
+            "en": "Show interfaces"
+          },
+          "command": "netsh interface show interface",
+          "explanation": {
+            "tr": "Ağ arabirimlerini salt okuma listeler.",
+            "en": "Lists network interfaces read-only."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "none"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "netsh",
+          "netsh"
+        ],
+        "en": [
+          "netsh",
+          "netsh"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/netsh"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "ipconfig",
+        "route",
+        "get-netipconfiguration"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yapılandırma değişiklikleri UAC yükseltmesi ister; üretimde dikkat.",
+          "en": "Configuration changes require UAC elevation; use care in production."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "netstat",
+      "name": "netstat",
+      "kind": "executable",
+      "category": "network",
+      "summary": {
+        "tr": "Windows TCP/UDP bağlantı ve dinleme tablosu.",
+        "en": "Windows TCP/UDP connection and listening table."
+      },
+      "description": {
+        "tr": "netstat.exe bağlantı istatistiklerini listeler. Linux netstat/ss ve PowerShell Get-NetTCPConnection ayrı kayıtlardır. `-b` yönetici ister.",
+        "en": "netstat.exe lists connection statistics. Linux netstat/ss and PowerShell Get-NetTCPConnection are separate records. -b requires elevation."
+      },
+      "tags": [
+        "windows",
+        "network",
+        "tcp"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [
+        {
+          "flag": "-an",
+          "meaning": {
+            "tr": "Sayısal adres/port, tüm bağlantılar.",
+            "en": "Numeric addresses/ports, all connections."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-b",
+          "meaning": {
+            "tr": "Yürütülebilir adı (yönetici).",
+            "en": "Owning executable (admin)."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Dinleyen portlar",
+            "en": "Listening ports"
+          },
+          "command": "netstat -an | findstr LISTENING",
+          "explanation": {
+            "tr": "Dinleme durumundaki soketleri süzgeçler (CMD).",
+            "en": "Filters sockets in LISTENING state (CMD)."
+          },
+          "risk": "safe",
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "netstat",
+          "netstat"
+        ],
+        "en": [
+          "netstat",
+          "netstat"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/netstat"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "get-nettcpconnection",
+        "netsh"
+      ],
+      "security": {
+        "notes": {
+          "tr": "`netstat -b` için yükseltilmiş kabuk (UAC) gerekir.",
+          "en": "`netstat -b` requires an elevated shell (UAC)."
+        },
+        "requires_admin": false,
+        "uac_prompt": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "networksetup",
+      "name": "networksetup",
+      "kind": "administrative_tool",
+      "category": "network",
+      "summary": {
+        "tr": "macOS ağ servisleri yapılandırması (System Settings CLI).",
+        "en": "macOS network service configuration (System Settings CLI)."
+      },
+      "description": {
+        "tr": "networksetup, ağ konumları, DNS ve proxy ayarlarını yönetir. Linux `ip` veya `ifconfig` ile aynı değildir; BSD `ifconfig` macOS’ta da vardır ama farklı model. Yazma işlemleri yönetici ister.",
+        "en": "networksetup manages network locations, DNS, and proxies. Not the same as Linux ip or ifconfig; BSD ifconfig also exists on macOS under a different model. Writes need admin."
+      },
+      "tags": [
+        "macos",
+        "network"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Donanım portları",
+            "en": "Hardware ports"
+          },
+          "command": "networksetup -listallhardwareports",
+          "explanation": {
+            "tr": "Donanım portlarını listeler (salt okuma).",
+            "en": "Lists hardware ports (read-only)."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "macos"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Ağ servisleri",
+            "en": "Network services"
+          },
+          "command": "networksetup -listallnetworkservices",
+          "explanation": {
+            "tr": "Yapılandırılmış ağ servislerini listeler.",
+            "en": "Lists configured network services."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "macos ağ",
+          "networksetup",
+          "dns ayarla"
+        ],
+        "en": [
+          "macos network",
+          "networksetup",
+          "set dns"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 networksetup",
+          "https://ss64.com/mac/networksetup.html"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "scutil",
+        "ip"
+      ]
     },
     {
       "schema_version": 2,
@@ -13749,6 +16586,137 @@
     },
     {
       "schema_version": 2,
+      "id": "plutil",
+      "name": "plutil",
+      "kind": "executable",
+      "category": "development",
+      "summary": {
+        "tr": "Property list (plist) doğrulama ve dönüştürme.",
+        "en": "Validate and convert property list (plist) files."
+      },
+      "description": {
+        "tr": "plutil plist dosyalarını lint’ler ve xml1/binary1/json arasında dönüştürür. `defaults` tercih yazma aracıdır — karıştırmayın.",
+        "en": "plutil lints plists and converts among xml1/binary1/json. defaults is for preference writes — do not confuse them."
+      },
+      "tags": [
+        "macos",
+        "plist",
+        "development"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Lint",
+            "en": "Lint"
+          },
+          "command": "plutil -lint ~/Library/Preferences/com.apple.dock.plist",
+          "explanation": {
+            "tr": "Plist sözdizimini doğrular.",
+            "en": "Validates plist syntax."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "plutil",
+          "plutil"
+        ],
+        "en": [
+          "plutil",
+          "plutil"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 plutil"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "defaults"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "pmset",
+      "name": "pmset",
+      "kind": "executable",
+      "category": "system",
+      "summary": {
+        "tr": "macOS güç yönetimi ayarları.",
+        "en": "macOS power management settings."
+      },
+      "description": {
+        "tr": "pmset uyku, hibernation ve güç profillerini yönetir. Yazma `sudo` ister; yanlış ayar dizüstü pili ve sunucu erişimini etkiler.",
+        "en": "pmset manages sleep, hibernation, and power profiles. Writes need sudo; wrong settings affect laptop battery and server reachability."
+      },
+      "tags": [
+        "macos",
+        "power"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Güç ayarlarını göster",
+            "en": "Show power settings"
+          },
+          "command": "pmset -g",
+          "explanation": {
+            "tr": "Geçerli güç yönetimi ayarlarını basar.",
+            "en": "Prints current power management settings."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "pmset",
+          "pmset"
+        ],
+        "en": [
+          "pmset",
+          "pmset"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 pmset"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "system-profiler"
+      ]
+    },
+    {
+      "schema_version": 2,
       "id": "podman",
       "name": "podman",
       "kind": "executable",
@@ -13861,6 +16829,177 @@
           "containers"
         ]
       }
+    },
+    {
+      "schema_version": 2,
+      "id": "port",
+      "name": "port",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "MacPorts paket yöneticisi CLI.",
+        "en": "MacPorts package manager CLI."
+      },
+      "description": {
+        "tr": "MacPorts (`port`), macOS için ports-tree tabanlı paket yöneticisidir. Homebrew `brew` ile aynı değildir — ayrı kayıt. Çoğu işlem `sudo` ister.",
+        "en": "MacPorts (port) is a ports-tree package manager for macOS. It is not Homebrew brew — separate record. Most operations need sudo."
+      },
+      "tags": [
+        "macos",
+        "packages",
+        "macports"
+      ],
+      "risk": "caution",
+      "requires_elevated": true,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "port search ripgrep",
+          "explanation": {
+            "tr": "Ports ağacında arar.",
+            "en": "Searches the ports tree."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "macos"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Bilgi",
+            "en": "Info"
+          },
+          "command": "port info git",
+          "explanation": {
+            "tr": "Port meta verisini gösterir.",
+            "en": "Shows port metadata."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "port",
+          "port"
+        ],
+        "en": [
+          "port",
+          "port"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://guide.macports.org/",
+          "https://www.macports.org/"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "brew",
+        "softwareupdate"
+      ],
+      "package_refs": [
+        {
+          "manager": "macports",
+          "package": "MacPorts",
+          "distributions": [
+            "macos-desktop"
+          ],
+          "notes": {
+            "tr": "Resmi kurulum pkg/guide.macports.org.",
+            "en": "Official install via pkg / guide.macports.org."
+          }
+        }
+      ],
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "profiles",
+      "name": "profiles",
+      "kind": "administrative_tool",
+      "category": "security",
+      "summary": {
+        "tr": "Yapılandırma profilleri (MDM) yönetimi.",
+        "en": "Configuration profiles (MDM) management."
+      },
+      "description": {
+        "tr": "profiles, cihaz/kullanıcı yapılandırma profillerini listeler/yükler. Kurumsal MDM ortamlarında kritiktir; kaldırma politikaya bağlıdır.",
+        "en": "profiles lists/installs device/user configuration profiles. Critical in enterprise MDM; removal depends on policy."
+      },
+      "tags": [
+        "macos",
+        "mdm",
+        "profiles"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Profilleri listele",
+            "en": "List profiles"
+          },
+          "command": "profiles list",
+          "explanation": {
+            "tr": "Yüklü yapılandırma profillerini listeler.",
+            "en": "Lists installed configuration profiles."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "profiles",
+          "profiles"
+        ],
+        "en": [
+          "profiles",
+          "profiles"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 profiles"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "softwareupdate"
+      ]
     },
     {
       "schema_version": 2,
@@ -14853,6 +17992,94 @@
     },
     {
       "schema_version": 2,
+      "id": "restart-service",
+      "name": "Restart-Service",
+      "kind": "powershell_cmdlet",
+      "category": "system",
+      "summary": {
+        "tr": "Windows servisini yeniden başlatır.",
+        "en": "Restarts a Windows service."
+      },
+      "description": {
+        "tr": "Restart-Service, Service Control Manager üzerinden servis durumunu/özelliklerini değiştirir. Linux systemctl karşılığı değildir. Kısa kesinti yaratır. Yönetici (UAC) gerekir.",
+        "en": "Restart-Service changes service state/properties via SCM. Not a systemctl alias. Causes a brief outage. Requires Administrator (UAC)."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "services",
+        "admin"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Güvenli örnek (ad değiştirin)",
+            "en": "Safe example (change name)"
+          },
+          "command": "Restart-Service -Name Spooler -WhatIf",
+          "explanation": {
+            "tr": "WhatIf ile etkiyi simüle eder; gerçek değişiklik yapmaz.",
+            "en": "Simulates the effect with -WhatIf; makes no real change."
+          },
+          "risk": "safe",
+          "requires_elevated": true,
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "admin"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "restart-service",
+          "powershell restart service"
+        ],
+        "en": [
+          "Restart-Service",
+          "powershell restart service"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/restart-service"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "get-service",
+        "sc"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
+          "en": "Requires an elevated PowerShell session (UAC prompt)."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "rg",
       "name": "rg",
       "kind": "executable",
@@ -15198,6 +18425,210 @@
           "files",
           "terminal-basics"
         ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "robocopy",
+      "name": "robocopy",
+      "kind": "executable",
+      "category": "filesystem",
+      "summary": {
+        "tr": "Sağlam Windows dosya kopyalama aracı.",
+        "en": "Robust Windows file copy utility."
+      },
+      "description": {
+        "tr": "robocopy, büyük/özellikli kopyalar için tasarlanmıştır. Linux rsync karşılığı değildir. Yanlış /MIR hedefi dosya silebilir — dikkat.",
+        "en": "robocopy is built for large/attribute-aware copies. Not an rsync alias. Wrong /MIR targets can delete files — use care."
+      },
+      "tags": [
+        "windows",
+        "filesystem",
+        "copy"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [
+        {
+          "flag": "/E",
+          "meaning": {
+            "tr": "Boş dahil alt dizinler.",
+            "en": "Subdirs including empty."
+          },
+          "verified": false
+        },
+        {
+          "flag": "/MIR",
+          "meaning": {
+            "tr": "Ayna (fazla dosyaları siler — tehlikeli).",
+            "en": "Mirror (deletes extras — dangerous)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "/L",
+          "meaning": {
+            "tr": "Listele, kopyalama (kuru koşu).",
+            "en": "List only, no copy (dry run)."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kuru koşu",
+            "en": "Dry run"
+          },
+          "command": "robocopy C:\\src D:\\dst /E /L",
+          "explanation": {
+            "tr": "Ne kopyalanacağını listeler; yazmaz.",
+            "en": "Lists what would be copied; writes nothing."
+          },
+          "risk": "safe",
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "robocopy",
+          "robocopy"
+        ],
+        "en": [
+          "robocopy",
+          "robocopy"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/robocopy"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "rsync",
+        "icacls"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "route",
+      "name": "route",
+      "kind": "executable",
+      "category": "network",
+      "summary": {
+        "tr": "Windows IPv4 yönlendirme tablosu aracı.",
+        "en": "Windows IPv4 routing table tool."
+      },
+      "description": {
+        "tr": "route.exe yönlendirme tablosunu gösterir veya değiştirir. `route print` salt okumadır; add/delete yönetici ister. Linux `ip route` ayrı kayıttır.",
+        "en": "route.exe displays or modifies the routing table. route print is read-only; add/delete need admin. Linux ip route is a separate record."
+      },
+      "tags": [
+        "windows",
+        "network",
+        "routing"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [
+        {
+          "flag": "print",
+          "meaning": {
+            "tr": "Tabloyu yazdır (alt komut).",
+            "en": "Print table (subcommand)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "add",
+          "meaning": {
+            "tr": "Rota ekle (yönetici).",
+            "en": "Add route (admin)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "delete",
+          "meaning": {
+            "tr": "Rota sil (yönetici).",
+            "en": "Delete route (admin)."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Tabloyu yazdır",
+            "en": "Print table"
+          },
+          "command": "route print",
+          "explanation": {
+            "tr": "IPv4/IPv6 yönlendirme tablosunu basar.",
+            "en": "Prints the IPv4/IPv6 routing table."
+          },
+          "risk": "safe",
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "route",
+          "route"
+        ],
+        "en": [
+          "route",
+          "route"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/route"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "netsh",
+        "ipconfig"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Rota ekleme/silme UAC yükseltmesi ister.",
+          "en": "Adding/deleting routes requires UAC elevation."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
       }
     },
     {
@@ -15706,6 +19137,173 @@
     },
     {
       "schema_version": 2,
+      "id": "sc",
+      "name": "sc.exe",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "Service Control — Windows servis yönetimi (executable).",
+        "en": "Service Control — Windows service management (executable)."
+      },
+      "description": {
+        "tr": "sc.exe, cmd.exe’den servis sorgu/denetimi yapar. PowerShell Get-Service / Start-Service ayrı kayıtlardır. PowerShell’de `sc` alias’ı Set-Content’tir — mutlaka `sc.exe` çağırın. Yazma işlemleri yönetici (UAC) ister.",
+        "en": "sc.exe queries/controls services from cmd.exe. PowerShell Get-Service / Start-Service are separate records. In PowerShell, sc aliases Set-Content — always invoke sc.exe. Write ops need Administrator (UAC)."
+      },
+      "tags": [
+        "windows",
+        "services",
+        "cmd",
+        "admin"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Servis sorgula",
+            "en": "Query service"
+          },
+          "command": "sc.exe query wuauserv",
+          "explanation": {
+            "tr": "Windows Update servis durumunu sorgular (salt okuma).",
+            "en": "Queries Windows Update service status (read-only)."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "none"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "sc.exe",
+          "windows servis cmd",
+          "servis sorgula"
+        ],
+        "en": [
+          "sc.exe",
+          "windows service cmd",
+          "query service"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/sc-query"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "get-service",
+        "start-service",
+        "stop-service"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Servis değiştirme UAC ister. PowerShell’de sc ≠ sc.exe.",
+          "en": "Changing services needs UAC. In PowerShell sc ≠ sc.exe."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "schtasks",
+      "name": "schtasks",
+      "kind": "executable",
+      "category": "system",
+      "summary": {
+        "tr": "Görev Zamanlayıcı komut satırı (executable).",
+        "en": "Task Scheduler command line (executable)."
+      },
+      "description": {
+        "tr": "schtasks.exe görev oluşturur/sorgular/siler. PowerShell Get-ScheduledTask ayrı kayıttır. Değişiklikler çoğu ortamda yönetici ister.",
+        "en": "schtasks.exe creates/queries/deletes tasks. PowerShell Get-ScheduledTask is a separate record. Changes usually need admin."
+      },
+      "tags": [
+        "windows",
+        "scheduler",
+        "cmd"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Görevleri listele",
+            "en": "List tasks"
+          },
+          "command": "schtasks /Query /FO LIST",
+          "explanation": {
+            "tr": "Zamanlanmış görevleri listeler (salt okuma).",
+            "en": "Lists scheduled tasks (read-only)."
+          },
+          "risk": "safe",
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "schtasks",
+          "schtasks"
+        ],
+        "en": [
+          "schtasks",
+          "schtasks"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/schtasks"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "get-scheduledtask"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Görev oluşturma/silme UAC gerektirebilir.",
+          "en": "Creating/deleting tasks may require UAC."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "scp",
       "name": "scp",
       "kind": "executable",
@@ -15866,6 +19464,139 @@
     },
     {
       "schema_version": 2,
+      "id": "scutil",
+      "name": "scutil",
+      "kind": "executable",
+      "category": "network",
+      "summary": {
+        "tr": "Sistem yapılandırma çerçevesi aracı (DNS/proxy vb.).",
+        "en": "System configuration framework tool (DNS/proxy, etc.)."
+      },
+      "description": {
+        "tr": "scutil, dynamic store ve DNS yapılandırmasını inceler. networksetup yüksek seviye ağ servisi CLI’sidir — birlikte kullanılır, aynı değildir.",
+        "en": "scutil inspects the dynamic store and DNS configuration. networksetup is the higher-level network-service CLI — complementary, not identical."
+      },
+      "tags": [
+        "macos",
+        "network",
+        "dns"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "DNS göster",
+            "en": "Show DNS"
+          },
+          "command": "scutil --dns | head",
+          "explanation": {
+            "tr": "Çözümleyici yapılandırmasının başını basar.",
+            "en": "Prints the head of resolver configuration."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "scutil",
+          "scutil"
+        ],
+        "en": [
+          "scutil",
+          "scutil"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 scutil"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "networksetup"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "security",
+      "name": "security",
+      "kind": "administrative_tool",
+      "category": "security",
+      "summary": {
+        "tr": "macOS Anahtarlık (Keychain) komut satırı.",
+        "en": "macOS Keychain command-line tool."
+      },
+      "description": {
+        "tr": "security, anahtarlık öğelerini listeler/yönetir. Gizli anahtar işlemleri dikkat ister; örnekler salt listeleme odaklıdır.",
+        "en": "security lists/manages keychain items. Secret-key operations need care; examples focus on listing only."
+      },
+      "tags": [
+        "macos",
+        "keychain",
+        "security"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Anahtarlıkları listele",
+            "en": "List keychains"
+          },
+          "command": "security list-keychains",
+          "explanation": {
+            "tr": "Arama listesindeki anahtarlıkları basar.",
+            "en": "Prints keychains on the search list."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "security",
+          "security"
+        ],
+        "en": [
+          "security",
+          "security"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 security"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "openssl",
+        "gpg"
+      ]
+    },
+    {
+      "schema_version": 2,
       "id": "sed",
       "name": "sed",
       "kind": "executable",
@@ -15875,8 +19606,8 @@
         "en": "Stream editor."
       },
       "description": {
-        "tr": "Metni satır satır süzüp dönüştürür; yerinde düzenleme (-i) dikkat ister.",
-        "en": "Filters/transforms text line by line; in-place (-i) edits need care."
+        "tr": "Metni satır satır süzüp dönüştürür; yerinde düzenleme (-i) dikkat ister. macOS/BSD `sed` GNU sed’den farklıdır (ör. yerinde düzenleme: BSD `sed -i ''`; GNU `sed -i`). Platforma özgü seçenekleri ayrı doğrulayın.",
+        "en": "Filters/transforms text line by line; in-place (-i) edits need care. macOS/BSD sed differs from GNU sed (e.g. in-place: BSD `sed -i ''` vs GNU `sed -i`). Verify platform-specific options separately."
       },
       "tags": [
         "text"
@@ -16002,6 +19733,194 @@
           "files",
           "shell-pipes-redirection"
         ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "set-service",
+      "name": "Set-Service",
+      "kind": "powershell_cmdlet",
+      "category": "system",
+      "summary": {
+        "tr": "Windows servis özelliklerini değiştirir.",
+        "en": "Changes Windows service properties."
+      },
+      "description": {
+        "tr": "Set-Service, Service Control Manager üzerinden servis durumunu/özelliklerini değiştirir. Linux systemctl karşılığı değildir. Başlangıç türü vb. değiştirir; yanlış yapılandırma kalıcı etki yapar. UAC gerekir.",
+        "en": "Set-Service changes service state/properties via SCM. Not a systemctl alias. Changes startup type etc.; misconfiguration persists. UAC required."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "services",
+        "admin"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Güvenli örnek (ad değiştirin)",
+            "en": "Safe example (change name)"
+          },
+          "command": "Set-Service -Name Spooler -StartupType Manual -WhatIf",
+          "explanation": {
+            "tr": "WhatIf ile etkiyi simüle eder; gerçek değişiklik yapmaz.",
+            "en": "Simulates the effect with -WhatIf; makes no real change."
+          },
+          "risk": "safe",
+          "requires_elevated": true,
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "admin"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "set-service",
+          "powershell set service"
+        ],
+        "en": [
+          "Set-Service",
+          "powershell set service"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/set-service"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "get-service",
+        "sc"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
+          "en": "Requires an elevated PowerShell session (UAC prompt)."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "sfc",
+      "name": "sfc",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "Sistem Dosyası Denetleyicisi (Windows).",
+        "en": "System File Checker (Windows)."
+      },
+      "description": {
+        "tr": "sfc.exe korunan sistem dosyalarını tarar/onarır. `/scannow` uzun sürer ve yönetici ister. DISM ile birlikte kullanılır; diskpart ile karıştırmayın.",
+        "en": "sfc.exe scans/repairs protected system files. /scannow is long-running and needs admin. Often paired with DISM; do not confuse with diskpart."
+      },
+      "tags": [
+        "windows",
+        "system",
+        "repair",
+        "admin"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [
+        {
+          "flag": "/scannow",
+          "meaning": {
+            "tr": "Tara ve onarmaya çalış.",
+            "en": "Scan and attempt repairs."
+          },
+          "verified": false
+        },
+        {
+          "flag": "/verifyonly",
+          "meaning": {
+            "tr": "Onarmadan doğrula.",
+            "en": "Verify without repairing."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yardım",
+            "en": "Help"
+          },
+          "command": "sfc /?",
+          "explanation": {
+            "tr": "Sözdizimini gösterir.",
+            "en": "Shows syntax."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "sfc",
+          "sfc"
+        ],
+        "en": [
+          "sfc",
+          "sfc"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/sfc"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "dism",
+        "chkdsk"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yükseltilmiş CMD/PowerShell (UAC) zorunlu.",
+          "en": "Elevated CMD/PowerShell (UAC) required."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
       }
     },
     {
@@ -16309,6 +20228,99 @@
           "package-managers-comparison"
         ]
       }
+    },
+    {
+      "schema_version": 2,
+      "id": "softwareupdate",
+      "name": "softwareupdate",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "macOS yazılım / sistem güncelleme CLI.",
+        "en": "macOS software / system update CLI."
+      },
+      "description": {
+        "tr": "softwareupdate, Apple sistem ve güvenlik güncellemelerini listeler/kurar. Homebrew `brew upgrade` OS güncellemesi değildir. Kurulum yeniden başlatma gerektirebilir; üretimde bakım penceresi kullanın.",
+        "en": "softwareupdate lists/installs Apple system and security updates. Homebrew brew upgrade is not an OS update. Installs may require reboot; use a maintenance window in production."
+      },
+      "tags": [
+        "macos",
+        "system",
+        "updates"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [
+        {
+          "flag": "-l",
+          "meaning": {
+            "tr": "Kullanılabilir güncellemeleri listele.",
+            "en": "List available updates."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-i",
+          "meaning": {
+            "tr": "Güncelleme kur.",
+            "en": "Install updates."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--all",
+          "meaning": {
+            "tr": "Tüm uygun güncellemeler.",
+            "en": "All applicable updates."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Listele",
+            "en": "List"
+          },
+          "command": "softwareupdate -l",
+          "explanation": {
+            "tr": "Bekleyen güncellemeleri listeler (kurmaz).",
+            "en": "Lists pending updates (does not install)."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "macos güncelle",
+          "softwareupdate"
+        ],
+        "en": [
+          "macos update",
+          "softwareupdate"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://support.apple.com/guide/terminal/update-software-apd3c5f3772/mac"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "brew",
+        "launchctl"
+      ]
     },
     {
       "schema_version": 2,
@@ -17321,6 +21333,94 @@
     },
     {
       "schema_version": 2,
+      "id": "start-service",
+      "name": "Start-Service",
+      "kind": "powershell_cmdlet",
+      "category": "system",
+      "summary": {
+        "tr": "Windows servisini başlatır.",
+        "en": "Starts a Windows service."
+      },
+      "description": {
+        "tr": "Start-Service, Service Control Manager üzerinden servis durumunu/özelliklerini değiştirir. Linux systemctl karşılığı değildir. Yönetici (UAC) gerekir. Get-Service ile durumu doğrulayın.",
+        "en": "Start-Service changes service state/properties via SCM. Not a systemctl alias. Requires Administrator (UAC). Verify state with Get-Service."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "services",
+        "admin"
+      ],
+      "risk": "caution",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Güvenli örnek (ad değiştirin)",
+            "en": "Safe example (change name)"
+          },
+          "command": "Start-Service -Name Spooler -WhatIf",
+          "explanation": {
+            "tr": "WhatIf ile etkiyi simüle eder; gerçek değişiklik yapmaz.",
+            "en": "Simulates the effect with -WhatIf; makes no real change."
+          },
+          "risk": "safe",
+          "requires_elevated": true,
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "admin"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "start-service",
+          "powershell start service"
+        ],
+        "en": [
+          "Start-Service",
+          "powershell start service"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/start-service"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "get-service",
+        "sc"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
+          "en": "Requires an elevated PowerShell session (UAC prompt)."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "stat",
       "name": "stat",
       "kind": "executable",
@@ -17330,8 +21430,8 @@
         "en": "Display file status and inode data."
       },
       "description": {
-        "tr": "Boyut, izinler, zaman damgaları ve dosya türü gibi meta verileri basar.",
-        "en": "Prints metadata such as size, permissions, timestamps, and file type."
+        "tr": "Boyut, izinler, zaman damgaları ve dosya türü gibi meta verileri basar. macOS/BSD `stat` biçim dizgileri GNU `stat -c` ile uyumlu değildir (`-f` vs `-c`).",
+        "en": "Prints metadata such as size, permissions, timestamps, and file type. macOS/BSD stat format strings are not compatible with GNU `stat -c` (`-f` vs `-c`)."
       },
       "tags": [
         "files",
@@ -17449,6 +21549,94 @@
           "terminal-basics"
         ],
         "favorite_eligible": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "stop-service",
+      "name": "Stop-Service",
+      "kind": "powershell_cmdlet",
+      "category": "system",
+      "summary": {
+        "tr": "Windows servisini durdurur.",
+        "en": "Stops a Windows service."
+      },
+      "description": {
+        "tr": "Stop-Service, Service Control Manager üzerinden servis durumunu/özelliklerini değiştirir. Linux systemctl karşılığı değildir. Kritik servisleri durdurmak oturumu veya rolleri bozabilir. UAC gerekir.",
+        "en": "Stop-Service changes service state/properties via SCM. Not a systemctl alias. Stopping critical services can break sessions or roles. UAC required."
+      },
+      "tags": [
+        "powershell",
+        "windows",
+        "services",
+        "admin"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "shells": [
+        "powershell",
+        "windows-powershell"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Güvenli örnek (ad değiştirin)",
+            "en": "Safe example (change name)"
+          },
+          "command": "Stop-Service -Name Spooler -WhatIf",
+          "explanation": {
+            "tr": "WhatIf ile etkiyi simüle eder; gerçek değişiklik yapmaz.",
+            "en": "Simulates the effect with -WhatIf; makes no real change."
+          },
+          "risk": "safe",
+          "requires_elevated": true,
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ],
+          "privilege": "admin"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "stop-service",
+          "powershell stop service"
+        ],
+        "en": [
+          "Stop-Service",
+          "powershell stop service"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/stop-service"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "get-service",
+        "sc"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Yükseltilmiş PowerShell oturumu (UAC onayı) gerekir.",
+          "en": "Requires an elevated PowerShell session (UAC prompt)."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      },
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
       }
     },
     {
@@ -17855,6 +22043,73 @@
           "storage"
         ]
       }
+    },
+    {
+      "schema_version": 2,
+      "id": "system-profiler",
+      "name": "system_profiler",
+      "kind": "executable",
+      "category": "hardware",
+      "summary": {
+        "tr": "macOS sistem / donanım envanter raporu.",
+        "en": "macOS system / hardware inventory report."
+      },
+      "description": {
+        "tr": "system_profiler, System Information uygulamasının CLI karşılığıdır. Belirli veri türleri (SPHardwareDataType vb.) ile süzülür. Linux lshw/lscpu karşılığı değildir.",
+        "en": "system_profiler is the CLI counterpart of System Information. Filter with data types (SPHardwareDataType, etc.). Not an lshw/lscpu alias."
+      },
+      "tags": [
+        "macos",
+        "hardware",
+        "inventory"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Donanım özeti",
+            "en": "Hardware overview"
+          },
+          "command": "system_profiler SPHardwareDataType",
+          "explanation": {
+            "tr": "Model, çip ve bellek özetini basar.",
+            "en": "Prints model, chip, and memory overview."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "system_profiler",
+          "system profiler"
+        ],
+        "en": [
+          "system_profiler",
+          "system profiler"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 8 system_profiler"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "get-computerinfo",
+        "lscpu"
+      ]
     },
     {
       "schema_version": 2,
@@ -18297,6 +22552,87 @@
     },
     {
       "schema_version": 2,
+      "id": "takeown",
+      "name": "takeown",
+      "kind": "executable",
+      "category": "users",
+      "summary": {
+        "tr": "Dosya/klasör sahipliğini alır.",
+        "en": "Takes ownership of a file or folder."
+      },
+      "description": {
+        "tr": "takeown, nesne sahipliğini mevcut kullanıcıya geçirir; ardından icacls gerekebilir. Sistem dosyalarında tehlikelidir — yönetici (UAC) ister.",
+        "en": "takeown assigns ownership to the current user; icacls may still be needed. Dangerous on system files — requires Administrator (UAC)."
+      },
+      "tags": [
+        "windows",
+        "acl",
+        "admin"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yardım",
+            "en": "Help"
+          },
+          "command": "takeown /?",
+          "explanation": {
+            "tr": "Sözdizimini gösterir; sahiplik değiştirmez.",
+            "en": "Shows syntax; does not change ownership."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "takeown",
+          "takeown"
+        ],
+        "en": [
+          "takeown",
+          "takeown"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/takeown"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "icacls"
+      ],
+      "security": {
+        "notes": {
+          "tr": "Sahiplik değişimi UAC ister; OS dosyalarında kullanmayın.",
+          "en": "Ownership changes need UAC; avoid on OS files."
+        },
+        "requires_admin": true,
+        "uac_prompt": true
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "tar",
       "name": "tar",
       "kind": "executable",
@@ -18306,8 +22642,8 @@
         "en": "Create or extract tape archives."
       },
       "description": {
-        "tr": "Dosya ağaçlarını arşivler; sık sık gzip/xz ile birlikte.",
-        "en": "Archives file trees; often combined with gzip/xz."
+        "tr": "Dosya ağaçlarını arşivler; sık sık gzip/xz ile birlikte. macOS/BSD `tar` ile GNU tar seçenekleri birebir değildir (ör. `--selinux` yok; bazı uzun seçenekler farklı).",
+        "en": "Archives file trees; often combined with gzip/xz. macOS/BSD tar options are not 1:1 with GNU tar (e.g. no --selinux; some long options differ)."
       },
       "tags": [
         "archive"
@@ -20913,6 +25249,78 @@
     },
     {
       "schema_version": 2,
+      "id": "wevtutil",
+      "name": "wevtutil",
+      "kind": "executable",
+      "category": "monitoring",
+      "summary": {
+        "tr": "Windows Event Log komut satırı aracı.",
+        "en": "Windows Event Log command-line tool."
+      },
+      "description": {
+        "tr": "wevtutil.exe olay günlüklerini sorgular/dışa aktarır. PowerShell Get-WinEvent ayrı kayıttır. cl (clear) yıkıcıdır — örneklerde yok.",
+        "en": "wevtutil.exe queries/exports event logs. PowerShell Get-WinEvent is separate. cl (clear) is destructive — omitted from examples."
+      },
+      "tags": [
+        "windows",
+        "logs",
+        "events"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kanalları listele",
+            "en": "List channels"
+          },
+          "command": "wevtutil el",
+          "explanation": {
+            "tr": "Olay günlüğü kanal adlarını listeler.",
+            "en": "Lists event log channel names."
+          },
+          "risk": "safe",
+          "shell": "cmd",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "wevtutil",
+          "wevtutil"
+        ],
+        "en": [
+          "wevtutil",
+          "wevtutil"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows-server/administration/windows-commands/wevtutil"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "get-winevent"
+      ]
+    },
+    {
+      "schema_version": 2,
       "id": "wget",
       "name": "wget",
       "kind": "executable",
@@ -21334,6 +25742,177 @@
           "permissions"
         ],
         "favorite_eligible": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "winget",
+      "name": "winget",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Windows Paket Yöneticisi (WinGet) CLI.",
+        "en": "Windows Package Manager (WinGet) CLI."
+      },
+      "description": {
+        "tr": "winget, Microsoft’un Windows paket yöneticisidir. Chocolatey/Scoop ayrı kayıtlardır (henüz bankada olmayabilir). Kurulum/upgrade yönetici veya kullanıcı kapsamına göre değişir. Arch/pacman ile ilişkisi yoktur.",
+        "en": "winget is Microsoft’s Windows package manager. Chocolatey/Scoop are separate records (may not be in the bank yet). Install/upgrade elevation depends on scope. Unrelated to Arch/pacman."
+      },
+      "tags": [
+        "windows",
+        "packages",
+        "winget"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "windows"
+      ],
+      "operating_systems": [
+        "windows"
+      ],
+      "flags": [
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "Depoda ara (alt komut).",
+            "en": "Search repository (subcommand)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "Paket kur (alt komut).",
+            "en": "Install package (subcommand)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "upgrade",
+          "meaning": {
+            "tr": "Paket yükselt.",
+            "en": "Upgrade package."
+          },
+          "verified": false
+        },
+        {
+          "flag": "list",
+          "meaning": {
+            "tr": "Kurulu paketleri listele.",
+            "en": "List installed packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "show",
+          "meaning": {
+            "tr": "Paket ayrıntısı.",
+            "en": "Show package details."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "winget search vscode",
+          "explanation": {
+            "tr": "vscode ile eşleşen paketleri arar.",
+            "en": "Searches packages matching vscode."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Listele",
+            "en": "List"
+          },
+          "command": "winget list",
+          "explanation": {
+            "tr": "Kurulu WinGet paketlerini listeler.",
+            "en": "Lists installed WinGet packages."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Göster",
+            "en": "Show"
+          },
+          "command": "winget show Microsoft.PowerShell",
+          "explanation": {
+            "tr": "PowerShell paket manifesto özetini gösterir.",
+            "en": "Shows the PowerShell package manifest summary."
+          },
+          "risk": "safe",
+          "shell": "powershell",
+          "platforms": [
+            "windows"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "winget kur",
+          "windows paket",
+          "winget ara"
+        ],
+        "en": [
+          "winget install",
+          "windows package",
+          "winget search"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/windows/package-manager/winget/",
+          "https://learn.microsoft.com/windows/package-manager/winget/install"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "shells": [
+        "cmd",
+        "powershell",
+        "windows-powershell"
+      ],
+      "related": [
+        "brew",
+        "pacman"
+      ],
+      "package_refs": [
+        {
+          "manager": "winget",
+          "package": "Microsoft.AppInstaller",
+          "distributions": [
+            "windows-10",
+            "windows-11",
+            "windows-server"
+          ],
+          "notes": {
+            "tr": "App Installer / WinGet ile gelir; sürümler Windows’a göre değişir.",
+            "en": "Ships via App Installer / WinGet; versions vary by Windows edition."
+          }
+        }
+      ],
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
       }
     },
     {
@@ -22043,6 +26622,139 @@
           "package-managers-comparison"
         ]
       }
+    },
+    {
+      "schema_version": 2,
+      "id": "xcode-select",
+      "name": "xcode-select",
+      "kind": "executable",
+      "category": "development",
+      "summary": {
+        "tr": "Aktif Xcode / CLT geliştirici dizinini seçer.",
+        "en": "Selects the active Xcode / CLT developer directory."
+      },
+      "description": {
+        "tr": "xcode-select, derleyici araçlarının hangi Developer dizinini kullanacağını ayarlar. `xcrun` araçları bu seçime göre yollar. Yanlış yol derlemeyi bozar.",
+        "en": "xcode-select sets which Developer directory compiler tools use. xcrun resolves tools from that selection. A wrong path breaks builds."
+      },
+      "tags": [
+        "macos",
+        "xcode",
+        "development"
+      ],
+      "risk": "caution",
+      "requires_elevated": true,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yolu yazdır",
+            "en": "Print path"
+          },
+          "command": "xcode-select -p",
+          "explanation": {
+            "tr": "Aktif geliştirici dizinini basar.",
+            "en": "Prints the active developer directory."
+          },
+          "risk": "safe",
+          "requires_elevated": false,
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "xcode-select",
+          "xcode select"
+        ],
+        "en": [
+          "xcode-select",
+          "xcode select"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 xcode-select"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "xcrun"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "id": "xcrun",
+      "name": "xcrun",
+      "kind": "executable",
+      "category": "development",
+      "summary": {
+        "tr": "Xcode araç zincirinden komut çalıştırır / yol bulur.",
+        "en": "Runs / locates tools from the Xcode toolchain."
+      },
+      "description": {
+        "tr": "xcrun, seçili Developer dizini içindeki araçları bulur veya çalıştırır (ör. `xcrun simctl`). xcode-select ile birlikte kullanılır.",
+        "en": "xcrun finds or runs tools inside the selected Developer directory (e.g. xcrun simctl). Used together with xcode-select."
+      },
+      "tags": [
+        "macos",
+        "xcode",
+        "development"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "macos"
+      ],
+      "operating_systems": [
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "clang yolunu bul",
+            "en": "Find clang path"
+          },
+          "command": "xcrun --find clang",
+          "explanation": {
+            "tr": "Aktif toolchain’deki clang yolunu basar.",
+            "en": "Prints the clang path from the active toolchain."
+          },
+          "risk": "safe",
+          "platforms": [
+            "macos"
+          ]
+        }
+      ],
+      "intent": {
+        "tr": [
+          "xcrun",
+          "xcrun"
+        ],
+        "en": [
+          "xcrun",
+          "xcrun"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 xcrun"
+        ],
+        "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
+      },
+      "related": [
+        "xcode-select"
+      ]
     },
     {
       "schema_version": 2,
@@ -22760,8 +27472,8 @@
         "en": "Package managers"
       },
       "summary": {
-        "tr": "Linux sistem PM’leri (pacman önce), Nix/Guix ve atomik ostree notları.",
-        "en": "Linux system PMs (pacman first), Nix/Guix, and atomic ostree notes."
+        "tr": "Linux PM’leri (pacman önce), Nix/Guix, WinGet/Homebrew/MacPorts notları.",
+        "en": "Linux PMs (pacman first), Nix/Guix, plus WinGet/Homebrew/MacPorts notes."
       },
       "difficulty": "beginner",
       "tags": [
@@ -22789,7 +27501,10 @@
         "nix",
         "guix",
         "opkg",
-        "rpm-ostree"
+        "rpm-ostree",
+        "brew",
+        "port",
+        "winget"
       ],
       "related_concepts": [
         "packages",
@@ -22806,8 +27521,8 @@
         "concepts/nix-guix.yaml"
       ],
       "body": {
-        "tr": "Dağıtımlar yazılıımı *paket* olarak kurar. Aynı komut farklı paket adında olabilir;\nbilinmeyen ad **uydurulmaz** (omit / `draft`).\n\n**Birinci sınıf yöneticiler (çekirdek):**\n- **Arch — pacman:** `pacman -Syu` sistem güncellemesi; `pacman -S paket` kurulum;\n  `pacman -Ss anahtar` arama. AUR yardımcıları (ör. `paru`) resmi depoda olmayabilir.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; düşük seviye `dpkg`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` sorguları.\n\n**Genişleyen Linux PM’ler (Faz 4, çoğu draft):**\n- **openSUSE/SUSE — zypper** (Leap `update` ≠ Tumbleweed `dup`)\n- **Alpine — apk** (Android APK ile karıştırma)\n- **Gentoo — emerge / Portage** (kaynak derleme, USE / `@world`)\n- **Void — xbps-install / query / remove**\n- **Solus — eopkg** · **Slackware — slackpkg** (+ installpkg/removepkg/upgradepkg)\n- **OpenWrt — opkg** (gömülü; flash alanı)\n- **Atomik Fedora — rpm-ostree** (klasik dnf modeli değil; genelde reboot)\n\n**Deklaratif ekosistemler:** Nix (NixOS + diğer Linux/macOS) ve GNU Guix —\nayrı makale: `concepts/nix-guix.yaml`. Eski `nix-env` ile modern `nix profile`\nkarıştırılmaz.\n\n**Flatpak:** Dağıtımdan bağımsız uygulama sandboxes; çekirdek toolchain yerine geçmez.\n\n**Nova tercihi:** Arch host’ta kurulum ipuçlarında **pacman / `packages.arch` önce**.\nCI yıkıcı kurulum çalıştırmaz. `verification: verified` yalnızca insan incelemesi sonrası.\n",
-        "en": "Distros install software as *packages*. The same command may live in differently\nnamed packages; unknown names are **not invented** (omit / `draft`).\n\n**First-class managers (core):**\n- **Arch — pacman:** `pacman -Syu` full upgrade; `pacman -S pkg` install;\n  `pacman -Ss keyword` search. AUR helpers (e.g. `paru`) may be unofficial.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; lower-level `dpkg`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` queries.\n\n**Broader Linux PMs (Faz 4, mostly draft):**\n- **openSUSE/SUSE — zypper** (Leap `update` ≠ Tumbleweed `dup`)\n- **Alpine — apk** (not Android APK)\n- **Gentoo — emerge / Portage** (source builds, USE / `@world`)\n- **Void — xbps-install / query / remove**\n- **Solus — eopkg** · **Slackware — slackpkg** (+ installpkg/removepkg/upgradepkg)\n- **OpenWrt — opkg** (embedded; watch flash space)\n- **Atomic Fedora — rpm-ostree** (not classic dnf; reboot often required)\n\n**Declarative ecosystems:** Nix (NixOS + other Linux/macOS) and GNU Guix —\nsee `concepts/nix-guix.yaml`. Do not mix legacy `nix-env` with modern `nix profile`.\n\n**Flatpak:** Distro-agnostic sandboxed apps; does not replace the base toolchain.\n\n**Nova preference:** On Arch hosts prefer **pacman / `packages.arch` first**.\nCI does not run destructive installs. `verification: verified` only after human review.\n"
+        "tr": "Dağıtımlar yazılıımı *paket* olarak kurar. Aynı komut farklı paket adında olabilir;\nbilinmeyen ad **uydurulmaz** (omit / `draft`).\n\n**Birinci sınıf yöneticiler (çekirdek):**\n- **Arch — pacman:** `pacman -Syu` sistem güncellemesi; `pacman -S paket` kurulum;\n  `pacman -Ss anahtar` arama. AUR yardımcıları (ör. `paru`) resmi depoda olmayabilir.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; düşük seviye `dpkg`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` sorguları.\n\n**Genişleyen Linux PM’ler (Faz 4, çoğu draft):**\n- **openSUSE/SUSE — zypper** (Leap `update` ≠ Tumbleweed `dup`)\n- **Alpine — apk** (Android APK ile karıştırma)\n- **Gentoo — emerge / Portage** (kaynak derleme, USE / `@world`)\n- **Void — xbps-install / query / remove**\n- **Solus — eopkg** · **Slackware — slackpkg** (+ installpkg/removepkg/upgradepkg)\n- **OpenWrt — opkg** (gömülü; flash alanı)\n- **Atomik Fedora — rpm-ostree** (klasik dnf modeli değil; genelde reboot)\n\n**Deklaratif ekosistemler:** Nix (NixOS + diğer Linux/macOS) ve GNU Guix —\nayrı makale: `concepts/nix-guix.yaml`. Eski `nix-env` ile modern `nix profile`\nkarıştırılmaz.\n\n**Flatpak:** Dağıtımdan bağımsız uygulama sandboxes; çekirdek toolchain yerine geçmez.\n\n**Windows / macOS (Faz 5, draft):** WinGet (`winget`); macOS’ta Homebrew (`brew`) ve\nMacPorts (`port`) ayrı kayıtlardır. `softwareupdate` OS güncellemesidir — `brew upgrade`\nile karıştırılmaz. Arch host’ta sistem PM olarak pacman önceliklidir.\n\n**Nova tercihi:** Arch host’ta kurulum ipuçlarında **pacman / `packages.arch` önce**.\nCI yıkıcı kurulum çalıştırmaz. `verification: verified` yalnızca insan incelemesi sonrası.\n",
+        "en": "Distros install software as *packages*. The same command may live in differently\nnamed packages; unknown names are **not invented** (omit / `draft`).\n\n**First-class managers (core):**\n- **Arch — pacman:** `pacman -Syu` full upgrade; `pacman -S pkg` install;\n  `pacman -Ss keyword` search. AUR helpers (e.g. `paru`) may be unofficial.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; lower-level `dpkg`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` queries.\n\n**Broader Linux PMs (Faz 4, mostly draft):**\n- **openSUSE/SUSE — zypper** (Leap `update` ≠ Tumbleweed `dup`)\n- **Alpine — apk** (not Android APK)\n- **Gentoo — emerge / Portage** (source builds, USE / `@world`)\n- **Void — xbps-install / query / remove**\n- **Solus — eopkg** · **Slackware — slackpkg** (+ installpkg/removepkg/upgradepkg)\n- **OpenWrt — opkg** (embedded; watch flash space)\n- **Atomic Fedora — rpm-ostree** (not classic dnf; reboot often required)\n\n**Declarative ecosystems:** Nix (NixOS + other Linux/macOS) and GNU Guix —\nsee `concepts/nix-guix.yaml`. Do not mix legacy `nix-env` with modern `nix profile`.\n\n**Flatpak:** Distro-agnostic sandboxed apps; does not replace the base toolchain.\n\n**Windows / macOS (Faz 5, draft):** WinGet (`winget`); on macOS Homebrew (`brew`) and\nMacPorts (`port`) are separate records. `softwareupdate` is OS update — not\n`brew upgrade`. On Arch hosts pacman remains the preferred system PM.\n\n**Nova preference:** On Arch hosts prefer **pacman / `packages.arch` first**.\nCI does not run destructive installs. `verification: verified` only after human review.\n"
       },
       "verification": {
         "status": "draft",
@@ -22816,14 +27531,16 @@
           "https://wiki.archlinux.org/title/Pacman/Rosetta",
           "https://en.opensuse.org/SDB:Zypper_manual",
           "https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper",
-          "https://wiki.gentoo.org/wiki/Portage",
-          "https://docs.voidlinux.org/xbps/",
           "https://nixos.org/manual/nix/stable/",
           "https://guix.gnu.org/manual/en/html_node/",
           "https://coreos.github.io/rpm-ostree/",
-          "https://openwrt.org/docs/guide-user/additional-software/opkg"
+          "https://openwrt.org/docs/guide-user/additional-software/opkg",
+          "https://learn.microsoft.com/windows/package-manager/winget/",
+          "https://docs.brew.sh/",
+          "https://guide.macports.org/",
+          "docs/package-managers-comparison.md"
         ],
-        "notes": "Faz 4 expansion; demoted to draft pending human review of new PM coverage."
+        "notes": "Faz 4–5 expansion; draft pending human review of PM coverage."
       }
     },
     {
@@ -22834,8 +27551,8 @@
         "en": "Package manager comparison tables"
       },
       "summary": {
-        "tr": "pacman / apt / dnf / zypper / apk / xbps / emerge / Nix / Guix / ostree yan yana.",
-        "en": "Side-by-side pacman / apt / dnf / zypper / apk / xbps / emerge / Nix / Guix / ostree."
+        "tr": "Linux PM’ler + WinGet / Homebrew / MacPorts yan yana (çoğu draft).",
+        "en": "Linux PMs plus WinGet / Homebrew / MacPorts side-by-side (mostly draft)."
       },
       "difficulty": "beginner",
       "tags": [
@@ -22866,7 +27583,10 @@
         "nix",
         "guix",
         "opkg",
-        "rpm-ostree"
+        "rpm-ostree",
+        "brew",
+        "port",
+        "winget"
       ],
       "related_concepts": [
         "package-managers",
@@ -22882,8 +27602,8 @@
         "concepts/nix-guix.yaml"
       ],
       "body": {
-        "tr": "Aynı iş farklı dağıtımlarda farklı komutlarla yapılır. Aşağıdaki tablolar **sık\nokuma/kurulum** yollarını özetler; bayrak uydurma yok. Ayrıntılı Markdown:\n`docs/package-managers-comparison.md`. Arch satırları Nova tercihine göre önde.\n\n### Sistem güncelle / kur / ara (çekirdek + genişleme)\n\n| Amaç | Arch (pacman) | Debian (apt) | Fedora (dnf) | openSUSE (zypper) | Alpine (apk) | Void (xbps) |\n|------|---------------|--------------|--------------|-------------------|--------------|-------------|\n| Yenile + yükselt | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` | Leap: `zypper update` / TW: `zypper dup` | `apk update && apk upgrade` | `xbps-install -Su` |\n| Kur | `pacman -S ad` | `apt install ad` | `dnf install ad` | `zypper install ad` | `apk add ad` | `xbps-install ad` |\n| Kaldır | `pacman -Rns ad` | `apt purge ad` | `dnf remove ad` | `zypper remove ad` | `apk del ad` | `xbps-remove ad` |\n| Ara | `pacman -Ss q` | `apt search q` | `dnf search q` | `zypper search q` | `apk search q` | `xbps-query -Rs q` |\n\nGentoo: `emerge --sync` + `emerge -uDN @world` / `emerge --ask ad`.  \nSolus: `eopkg upgrade` / `eopkg install`. Slackware: `slackpkg update` / `install`.  \nOpenWrt: `opkg update` / `opkg install` (flash alanı!).  \nAtomik Fedora: `rpm-ostree upgrade` / `rpm-ostree install` (reboot).\n\n### Sorgulama (yerel)\n\n| Amaç | pacman | dpkg/apt | rpm/dnf | xbps | apk |\n|------|--------|----------|---------|------|-----|\n| Kurulu mu? | `pacman -Q ad` | `dpkg -l ad` | `rpm -q ad` | `xbps-query ad` | `apk info -e ad` |\n| Dosya → paket | `pacman -Qo yol` | `dpkg -S yol` | `rpm -qf yol` | `xbps-query -o yol` | `apk info -W yol` |\n\n### Deklaratif / profil\n\n| Amaç | Nix (modern) | Guix |\n|------|--------------|------|\n| Ara | `nix search nixpkgs q` | `guix search q` |\n| Profil kur | `nix profile install nixpkgs#ad` | `guix install ad` |\n| Geçici kabuk | `nix shell` / `nix develop` | `guix shell` |\n| Sistem uygula | `nixos-rebuild switch` (NixOS) | `guix system …` (Guix System) |\n\nEski `nix-env` / klasik `nix-shell` modern CLI ile **karıştırılmaz** — bkz. `nix-guix`.\n\n**Kural:** Bilinmeyen paket adı **uydurulmaz**. Yeni PM kayıtları çoğunlukla `draft`.\nNova Arch host’ta pacman notunu önce tutar.\n",
-        "en": "The same job uses different commands per distro. Tables below summarize **common\nupdate/install/query** paths — no invented flags. Longer Markdown:\n`docs/package-managers-comparison.md`. Arch rows first per Nova preference.\n\n### System update / install / search (core + expansion)\n\n| Goal | Arch (pacman) | Debian (apt) | Fedora (dnf) | openSUSE (zypper) | Alpine (apk) | Void (xbps) |\n|------|---------------|--------------|--------------|-------------------|--------------|-------------|\n| Refresh + upgrade | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` | Leap: `zypper update` / TW: `zypper dup` | `apk update && apk upgrade` | `xbps-install -Su` |\n| Install | `pacman -S name` | `apt install name` | `dnf install name` | `zypper install name` | `apk add name` | `xbps-install name` |\n| Remove | `pacman -Rns name` | `apt purge name` | `dnf remove name` | `zypper remove name` | `apk del name` | `xbps-remove name` |\n| Search | `pacman -Ss q` | `apt search q` | `dnf search q` | `zypper search q` | `apk search q` | `xbps-query -Rs q` |\n\nGentoo: `emerge --sync` + `emerge -uDN @world` / `emerge --ask name`.  \nSolus: `eopkg upgrade` / `eopkg install`. Slackware: `slackpkg update` / `install`.  \nOpenWrt: `opkg update` / `opkg install` (watch flash!).  \nAtomic Fedora: `rpm-ostree upgrade` / `rpm-ostree install` (reboot).\n\n### Local queries\n\n| Goal | pacman | dpkg/apt | rpm/dnf | xbps | apk |\n|------|--------|----------|---------|------|-----|\n| Installed? | `pacman -Q name` | `dpkg -l name` | `rpm -q name` | `xbps-query name` | `apk info -e name` |\n| File → package | `pacman -Qo path` | `dpkg -S path` | `rpm -qf path` | `xbps-query -o path` | `apk info -W path` |\n\n### Declarative / profiles\n\n| Goal | Nix (modern) | Guix |\n|------|--------------|------|\n| Search | `nix search nixpkgs q` | `guix search q` |\n| Profile install | `nix profile install nixpkgs#name` | `guix install name` |\n| Ephemeral shell | `nix shell` / `nix develop` | `guix shell` |\n| Apply system | `nixos-rebuild switch` (NixOS) | `guix system …` (Guix System) |\n\nDo **not** mix legacy `nix-env` / classic `nix-shell` with the modern CLI —\nsee `nix-guix`.\n\n**Rule:** unknown package names are **not invented**. New PM records are mostly\n`draft`. On Arch hosts Nova keeps pacman notes first.\n"
+        "tr": "Aynı iş farklı dağıtımlarda farklı komutlarla yapılır. Aşağıdaki tablolar **sık\nokuma/kurulum** yollarını özetler; bayrak uydurma yok. Ayrıntılı Markdown:\n`docs/package-managers-comparison.md`. Arch satırları Nova tercihine göre önde.\n\n### Sistem güncelle / kur / ara (çekirdek + genişleme)\n\n| Amaç | Arch (pacman) | Debian (apt) | Fedora (dnf) | openSUSE (zypper) | Alpine (apk) | Void (xbps) |\n|------|---------------|--------------|--------------|-------------------|--------------|-------------|\n| Yenile + yükselt | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` | Leap: `zypper update` / TW: `zypper dup` | `apk update && apk upgrade` | `xbps-install -Su` |\n| Kur | `pacman -S ad` | `apt install ad` | `dnf install ad` | `zypper install ad` | `apk add ad` | `xbps-install ad` |\n| Kaldır | `pacman -Rns ad` | `apt purge ad` | `dnf remove ad` | `zypper remove ad` | `apk del ad` | `xbps-remove ad` |\n| Ara | `pacman -Ss q` | `apt search q` | `dnf search q` | `zypper search q` | `apk search q` | `xbps-query -Rs q` |\n\nGentoo: `emerge --sync` + `emerge -uDN @world` / `emerge --ask ad`.  \nSolus: `eopkg upgrade` / `eopkg install`. Slackware: `slackpkg update` / `install`.  \nOpenWrt: `opkg update` / `opkg install` (flash alanı!).  \nAtomik Fedora: `rpm-ostree upgrade` / `rpm-ostree install` (reboot).\n\n### Sorgulama (yerel)\n\n| Amaç | pacman | dpkg/apt | rpm/dnf | xbps | apk |\n|------|--------|----------|---------|------|-----|\n| Kurulu mu? | `pacman -Q ad` | `dpkg -l ad` | `rpm -q ad` | `xbps-query ad` | `apk info -e ad` |\n| Dosya → paket | `pacman -Qo yol` | `dpkg -S yol` | `rpm -qf yol` | `xbps-query -o yol` | `apk info -W yol` |\n\n### Deklaratif / profil\n\n| Amaç | Nix (modern) | Guix |\n|------|--------------|------|\n| Ara | `nix search nixpkgs q` | `guix search q` |\n| Profil kur | `nix profile install nixpkgs#ad` | `guix install ad` |\n| Geçici kabuk | `nix shell` / `nix develop` | `guix shell` |\n| Sistem uygula | `nixos-rebuild switch` (NixOS) | `guix system …` (Guix System) |\n\nEski `nix-env` / klasik `nix-shell` modern CLI ile **karıştırılmaz** — bkz. `nix-guix`.\n\n### Windows / macOS (Faz 5 draft)\n\n| Amaç | WinGet | Homebrew | MacPorts |\n|------|--------|----------|----------|\n| Ara | `winget search` | `brew search` | `port search` |\n| Kur | `winget install` | `brew install` | `sudo port install` |\n| Liste | `winget list` | `brew list` | `port installed` |\n\nOS güncellemesi macOS’ta `softwareupdate` — `brew upgrade` değildir. `brew` ≠ `port`.\n\n**Kural:** Bilinmeyen paket adı **uydurulmaz**. Yeni PM kayıtları çoğunlukla `draft`.\nNova Arch host’ta pacman notunu önce tutar.\n",
+        "en": "The same job uses different commands per distro. Tables below summarize **common\nupdate/install/query** paths — no invented flags. Longer Markdown:\n`docs/package-managers-comparison.md`. Arch rows first per Nova preference.\n\n### System update / install / search (core + expansion)\n\n| Goal | Arch (pacman) | Debian (apt) | Fedora (dnf) | openSUSE (zypper) | Alpine (apk) | Void (xbps) |\n|------|---------------|--------------|--------------|-------------------|--------------|-------------|\n| Refresh + upgrade | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` | Leap: `zypper update` / TW: `zypper dup` | `apk update && apk upgrade` | `xbps-install -Su` |\n| Install | `pacman -S name` | `apt install name` | `dnf install name` | `zypper install name` | `apk add name` | `xbps-install name` |\n| Remove | `pacman -Rns name` | `apt purge name` | `dnf remove name` | `zypper remove name` | `apk del name` | `xbps-remove name` |\n| Search | `pacman -Ss q` | `apt search q` | `dnf search q` | `zypper search q` | `apk search q` | `xbps-query -Rs q` |\n\nGentoo: `emerge --sync` + `emerge -uDN @world` / `emerge --ask name`.  \nSolus: `eopkg upgrade` / `eopkg install`. Slackware: `slackpkg update` / `install`.  \nOpenWrt: `opkg update` / `opkg install` (watch flash!).  \nAtomic Fedora: `rpm-ostree upgrade` / `rpm-ostree install` (reboot).\n\n### Local queries\n\n| Goal | pacman | dpkg/apt | rpm/dnf | xbps | apk |\n|------|--------|----------|---------|------|-----|\n| Installed? | `pacman -Q name` | `dpkg -l name` | `rpm -q name` | `xbps-query name` | `apk info -e name` |\n| File → package | `pacman -Qo path` | `dpkg -S path` | `rpm -qf path` | `xbps-query -o path` | `apk info -W path` |\n\n### Declarative / profiles\n\n| Goal | Nix (modern) | Guix |\n|------|--------------|------|\n| Search | `nix search nixpkgs q` | `guix search q` |\n| Profile install | `nix profile install nixpkgs#name` | `guix install name` |\n| Ephemeral shell | `nix shell` / `nix develop` | `guix shell` |\n| Apply system | `nixos-rebuild switch` (NixOS) | `guix system …` (Guix System) |\n\nDo **not** mix legacy `nix-env` / classic `nix-shell` with the modern CLI —\nsee `nix-guix`.\n\n### Windows / macOS (Faz 5 draft)\n\n| Goal | WinGet | Homebrew | MacPorts |\n|------|--------|----------|----------|\n| Search | `winget search` | `brew search` | `port search` |\n| Install | `winget install` | `brew install` | `sudo port install` |\n| List | `winget list` | `brew list` | `port installed` |\n\nOS updates on macOS use `softwareupdate` — not `brew upgrade`. `brew` ≠ `port`.\n\n**Rule:** unknown package names are **not invented**. New PM records are mostly\n`draft`. On Arch hosts Nova keeps pacman notes first.\n"
       },
       "verification": {
         "status": "draft",
@@ -22895,9 +27615,12 @@
           "https://wiki.gentoo.org/wiki/Emerge",
           "https://nixos.org/manual/nix/stable/",
           "https://guix.gnu.org/manual/en/html_node/",
-          "https://coreos.github.io/rpm-ostree/"
+          "https://coreos.github.io/rpm-ostree/",
+          "https://learn.microsoft.com/windows/package-manager/winget/",
+          "https://docs.brew.sh/",
+          "https://guide.macports.org/"
         ],
-        "notes": "Faz 4 comparison expansion; draft pending human review."
+        "notes": "Faz 4–5 comparison expansion; draft pending human review."
       }
     },
     {

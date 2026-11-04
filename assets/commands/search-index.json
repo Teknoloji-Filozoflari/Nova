@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 175,
+  "entry_count": 228,
   "entries": [
     {
       "type": "command",
@@ -112,6 +112,38 @@
     },
     {
       "type": "command",
+      "id": "bcdedit",
+      "name": "bcdedit",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "destructive",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "boot",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Önyükleme Yapılandırma Verisi (BCD) düzenleyicisi.",
+        "en": "Boot Configuration Data (BCD) editor."
+      },
+      "intent": {
+        "tr": [
+          "bcdedit",
+          "bcdedit"
+        ],
+        "en": [
+          "bcdedit",
+          "bcdedit"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
       "id": "blkid",
       "name": "blkid",
       "category": "disks",
@@ -177,6 +209,44 @@
       "concepts": [
         "systemd",
         "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "brew",
+      "name": "brew",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "packages",
+        "homebrew"
+      ],
+      "summary": {
+        "tr": "Homebrew paket yöneticisi (macOS).",
+        "en": "Homebrew package manager (macOS)."
+      },
+      "intent": {
+        "tr": [
+          "brew kur",
+          "homebrew",
+          "macos paket"
+        ],
+        "en": [
+          "brew install",
+          "homebrew",
+          "macos package"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
       ]
     },
     {
@@ -322,6 +392,39 @@
       "concepts": [
         "permissions"
       ]
+    },
+    {
+      "type": "command",
+      "id": "chkdsk",
+      "name": "chkdsk",
+      "category": "disks",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "disks",
+        "ntfs",
+        "admin"
+      ],
+      "summary": {
+        "tr": "NTFS/FAT birim bütünlüğü denetimi.",
+        "en": "NTFS/FAT volume integrity check."
+      },
+      "intent": {
+        "tr": [
+          "chkdsk",
+          "chkdsk"
+        ],
+        "en": [
+          "chkdsk",
+          "chkdsk"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -611,6 +714,38 @@
     },
     {
       "type": "command",
+      "id": "defaults",
+      "name": "defaults",
+      "category": "system",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "preferences",
+        "plist"
+      ],
+      "summary": {
+        "tr": "macOS kullanıcı tercihlerine (plist) okuma/yazma.",
+        "en": "Read/write macOS user preferences (plists)."
+      },
+      "intent": {
+        "tr": [
+          "defaults",
+          "defaults"
+        ],
+        "en": [
+          "defaults",
+          "defaults"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
       "id": "df",
       "name": "df",
       "category": "disks",
@@ -716,6 +851,106 @@
         "dns",
         "networking-basics"
       ]
+    },
+    {
+      "type": "command",
+      "id": "diskpart",
+      "name": "diskpart",
+      "category": "disks",
+      "kind": "administrative_tool",
+      "risk": "destructive",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "disks",
+        "partition",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Etkileşimli disk bölümleme aracı (yıkıcı olabilir).",
+        "en": "Interactive disk partitioning tool (can be destructive)."
+      },
+      "intent": {
+        "tr": [
+          "diskpart",
+          "diskpart"
+        ],
+        "en": [
+          "diskpart",
+          "diskpart"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "diskutil",
+      "name": "diskutil",
+      "category": "disks",
+      "kind": "administrative_tool",
+      "risk": "destructive",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "disks",
+        "apfs"
+      ],
+      "summary": {
+        "tr": "macOS disk / APFS yönetim aracı.",
+        "en": "macOS disk / APFS management utility."
+      },
+      "intent": {
+        "tr": [
+          "macos disk listele",
+          "diskutil",
+          "apfs"
+        ],
+        "en": [
+          "list macos disks",
+          "diskutil",
+          "apfs"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "dism",
+      "name": "DISM",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "system",
+        "image",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Deployment Image Servicing and Management.",
+        "en": "Deployment Image Servicing and Management."
+      },
+      "intent": {
+        "tr": [
+          "dism",
+          "dism"
+        ],
+        "en": [
+          "DISM",
+          "dism"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -888,6 +1123,38 @@
         "package-managers",
         "package-managers-comparison"
       ]
+    },
+    {
+      "type": "command",
+      "id": "dscl",
+      "name": "dscl",
+      "category": "users",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "directory",
+        "users"
+      ],
+      "summary": {
+        "tr": "Directory Service komut satırı (kullanıcı/düğüm).",
+        "en": "Directory Service command line (users/nodes)."
+      },
+      "intent": {
+        "tr": [
+          "dscl",
+          "dscl"
+        ],
+        "en": [
+          "dscl",
+          "dscl"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -1392,6 +1659,535 @@
     },
     {
       "type": "command",
+      "id": "get-childitem",
+      "name": "Get-ChildItem",
+      "category": "filesystem",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "filesystem"
+      ],
+      "summary": {
+        "tr": "Dizin içeriğini listeler (PowerShell).",
+        "en": "Lists directory contents (PowerShell)."
+      },
+      "intent": {
+        "tr": [
+          "get-childitem",
+          "powershell get childitem"
+        ],
+        "en": [
+          "Get-ChildItem",
+          "powershell get childitem"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-command",
+      "name": "Get-Command",
+      "category": "system",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "discovery"
+      ],
+      "summary": {
+        "tr": "PowerShell’de komut, cmdlet, fonksiyon veya alias bulur.",
+        "en": "Finds a cmdlet, function, alias, or executable in PowerShell."
+      },
+      "intent": {
+        "tr": [
+          "get-command",
+          "powershell get command"
+        ],
+        "en": [
+          "Get-Command",
+          "powershell get command"
+        ]
+      },
+      "concepts": [
+        "path"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "get-computerinfo",
+      "name": "Get-ComputerInfo",
+      "category": "system",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "system",
+        "inventory"
+      ],
+      "summary": {
+        "tr": "Windows sistem / donanım özet bilgisi.",
+        "en": "Windows system / hardware summary info."
+      },
+      "intent": {
+        "tr": [
+          "windows sistem bilgisi",
+          "get-computerinfo"
+        ],
+        "en": [
+          "windows system info",
+          "get-computerinfo"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-content",
+      "name": "Get-Content",
+      "category": "filesystem",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "filesystem",
+        "text"
+      ],
+      "summary": {
+        "tr": "Dosya içeriğini okur (PowerShell).",
+        "en": "Reads file content (PowerShell)."
+      },
+      "intent": {
+        "tr": [
+          "get-content",
+          "powershell get content"
+        ],
+        "en": [
+          "Get-Content",
+          "powershell get content"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-disk",
+      "name": "Get-Disk",
+      "category": "disks",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "disks",
+        "storage"
+      ],
+      "summary": {
+        "tr": "Fiziksel diskleri listeler (Storage cmdlet).",
+        "en": "Lists physical disks (Storage cmdlet)."
+      },
+      "intent": {
+        "tr": [
+          "windows disk listele",
+          "get-disk"
+        ],
+        "en": [
+          "list windows disks",
+          "get-disk"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-executionpolicy",
+      "name": "Get-ExecutionPolicy",
+      "category": "security",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "security",
+        "policy"
+      ],
+      "summary": {
+        "tr": "PowerShell betik yürütme ilkesini gösterir.",
+        "en": "Shows the PowerShell script execution policy."
+      },
+      "intent": {
+        "tr": [
+          "execution policy",
+          "powershell betik izni"
+        ],
+        "en": [
+          "execution policy",
+          "powershell script policy"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-help",
+      "name": "Get-Help",
+      "category": "system",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "help"
+      ],
+      "summary": {
+        "tr": "PowerShell yardım konularını gösterir.",
+        "en": "Displays PowerShell help topics."
+      },
+      "intent": {
+        "tr": [
+          "get-help",
+          "powershell get help"
+        ],
+        "en": [
+          "Get-Help",
+          "powershell get help"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-item",
+      "name": "Get-Item",
+      "category": "filesystem",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "filesystem"
+      ],
+      "summary": {
+        "tr": "Belirtilen yolu (dosya/klasör) nesne olarak alır.",
+        "en": "Gets the item at a path as an object."
+      },
+      "intent": {
+        "tr": [
+          "get-item",
+          "powershell get item"
+        ],
+        "en": [
+          "Get-Item",
+          "powershell get item"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-itemproperty",
+      "name": "Get-ItemProperty",
+      "category": "filesystem",
+      "kind": "powershell_cmdlet",
+      "risk": "caution",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "registry"
+      ],
+      "summary": {
+        "tr": "Öğe özelliklerini (kayıt defteri değerleri vb.) okur.",
+        "en": "Gets item properties (e.g. registry values)."
+      },
+      "intent": {
+        "tr": [
+          "get-itemproperty",
+          "powershell get itemproperty"
+        ],
+        "en": [
+          "Get-ItemProperty",
+          "powershell get itemproperty"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-netipconfiguration",
+      "name": "Get-NetIPConfiguration",
+      "category": "network",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "network"
+      ],
+      "summary": {
+        "tr": "Windows ağ IP yapılandırmasını gösterir.",
+        "en": "Show Windows network IP configuration."
+      },
+      "intent": {
+        "tr": [
+          "windows ip adresi",
+          "ağ yapılandırması powershell"
+        ],
+        "en": [
+          "windows show ip",
+          "powershell network configuration"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-nettcpconnection",
+      "name": "Get-NetTCPConnection",
+      "category": "network",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "network",
+        "tcp"
+      ],
+      "summary": {
+        "tr": "Windows TCP bağlantılarını listeler.",
+        "en": "Lists Windows TCP connections."
+      },
+      "intent": {
+        "tr": [
+          "windows tcp bağlantı",
+          "dinleyen port powershell"
+        ],
+        "en": [
+          "windows tcp connections",
+          "listening ports powershell"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-process",
+      "name": "Get-Process",
+      "category": "processes",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "processes"
+      ],
+      "summary": {
+        "tr": "Yerel süreçleri listeler (PowerShell).",
+        "en": "Lists local processes (PowerShell)."
+      },
+      "intent": {
+        "tr": [
+          "powershell süreç",
+          "get-process",
+          "çalışan process"
+        ],
+        "en": [
+          "powershell processes",
+          "get-process",
+          "list processes windows"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-scheduledtask",
+      "name": "Get-ScheduledTask",
+      "category": "system",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "scheduler"
+      ],
+      "summary": {
+        "tr": "Zamanlanmış görevleri listeler (Task Scheduler).",
+        "en": "Lists scheduled tasks (Task Scheduler)."
+      },
+      "intent": {
+        "tr": [
+          "get-scheduledtask",
+          "powershell get scheduledtask"
+        ],
+        "en": [
+          "Get-ScheduledTask",
+          "powershell get scheduledtask"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-service",
+      "name": "Get-Service",
+      "category": "system",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "services"
+      ],
+      "summary": {
+        "tr": "Windows servislerini listeler / sorgular.",
+        "en": "Lists or queries Windows services."
+      },
+      "intent": {
+        "tr": [
+          "windows servis listele",
+          "get-service",
+          "servis durumu"
+        ],
+        "en": [
+          "list windows services",
+          "get-service",
+          "service status"
+        ]
+      },
+      "concepts": [
+        "systemd"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "get-volume",
+      "name": "Get-Volume",
+      "category": "disks",
+      "kind": "powershell_cmdlet",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "disks",
+        "volume"
+      ],
+      "summary": {
+        "tr": "Birimleri (volume) listeler — sürücü harfi / FS.",
+        "en": "Lists volumes — drive letter / filesystem."
+      },
+      "intent": {
+        "tr": [
+          "get-volume",
+          "powershell get volume"
+        ],
+        "en": [
+          "Get-Volume",
+          "powershell get volume"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "get-winevent",
+      "name": "Get-WinEvent",
+      "category": "monitoring",
+      "kind": "powershell_cmdlet",
+      "risk": "caution",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "logs",
+        "events"
+      ],
+      "summary": {
+        "tr": "Windows Olay Günlüğü kayıtlarını sorgular.",
+        "en": "Queries Windows Event Log records."
+      },
+      "intent": {
+        "tr": [
+          "windows olay günlüğü",
+          "get-winevent",
+          "event viewer"
+        ],
+        "en": [
+          "windows event log",
+          "get-winevent",
+          "event viewer powershell"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
       "id": "getent",
       "name": "getent",
       "category": "users",
@@ -1853,6 +2649,39 @@
     },
     {
       "type": "command",
+      "id": "icacls",
+      "name": "icacls",
+      "category": "users",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "acl",
+        "ntfs",
+        "permissions"
+      ],
+      "summary": {
+        "tr": "NTFS ACL görüntüleme ve düzenleme.",
+        "en": "Display and edit NTFS ACLs."
+      },
+      "intent": {
+        "tr": [
+          "icacls",
+          "icacls"
+        ],
+        "en": [
+          "icacls",
+          "icacls"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
       "id": "id",
       "name": "id",
       "category": "users",
@@ -2025,6 +2854,40 @@
     },
     {
       "type": "command",
+      "id": "ipconfig",
+      "name": "ipconfig",
+      "category": "network",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "cmd",
+        "network"
+      ],
+      "summary": {
+        "tr": "CMD/Windows IP yapılandırmasını gösterir.",
+        "en": "Shows CMD/Windows IP configuration."
+      },
+      "intent": {
+        "tr": [
+          "ipconfig",
+          "windows ip",
+          "cmd ip adresi"
+        ],
+        "en": [
+          "ipconfig",
+          "windows ip",
+          "cmd show ip"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
       "id": "iptables",
       "name": "iptables",
       "category": "security",
@@ -2166,6 +3029,42 @@
     },
     {
       "type": "command",
+      "id": "launchctl",
+      "name": "launchctl",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "services",
+        "launchd"
+      ],
+      "summary": {
+        "tr": "launchd iş yükü denetimi (macOS servisleri).",
+        "en": "launchd job control (macOS services)."
+      },
+      "intent": {
+        "tr": [
+          "launchctl",
+          "macos servis",
+          "launchd"
+        ],
+        "en": [
+          "launchctl",
+          "macos services",
+          "launchd"
+        ]
+      },
+      "concepts": [
+        "systemd"
+      ]
+    },
+    {
+      "type": "command",
       "id": "less",
       "name": "less",
       "category": "text",
@@ -2270,6 +3169,37 @@
         "files",
         "shell-pipes-redirection"
       ]
+    },
+    {
+      "type": "command",
+      "id": "log",
+      "name": "log",
+      "category": "monitoring",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "logs"
+      ],
+      "summary": {
+        "tr": "macOS birleşik günlük (unified logging) CLI.",
+        "en": "macOS unified logging CLI."
+      },
+      "intent": {
+        "tr": [
+          "log",
+          "log"
+        ],
+        "en": [
+          "log",
+          "log"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -2880,6 +3810,103 @@
         "networking",
         "networking-basics"
       ]
+    },
+    {
+      "type": "command",
+      "id": "netsh",
+      "name": "netsh",
+      "category": "network",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "network",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Windows ağ yığını yapılandırma kabuğu.",
+        "en": "Windows networking stack configuration shell."
+      },
+      "intent": {
+        "tr": [
+          "netsh",
+          "netsh"
+        ],
+        "en": [
+          "netsh",
+          "netsh"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "netstat",
+      "name": "netstat",
+      "category": "network",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "network",
+        "tcp"
+      ],
+      "summary": {
+        "tr": "Windows TCP/UDP bağlantı ve dinleme tablosu.",
+        "en": "Windows TCP/UDP connection and listening table."
+      },
+      "intent": {
+        "tr": [
+          "netstat",
+          "netstat"
+        ],
+        "en": [
+          "netstat",
+          "netstat"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "networksetup",
+      "name": "networksetup",
+      "category": "network",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "network"
+      ],
+      "summary": {
+        "tr": "macOS ağ servisleri yapılandırması (System Settings CLI).",
+        "en": "macOS network service configuration (System Settings CLI)."
+      },
+      "intent": {
+        "tr": [
+          "macos ağ",
+          "networksetup",
+          "dns ayarla"
+        ],
+        "en": [
+          "macos network",
+          "networksetup",
+          "set dns"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -3538,6 +4565,69 @@
     },
     {
       "type": "command",
+      "id": "plutil",
+      "name": "plutil",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "plist",
+        "development"
+      ],
+      "summary": {
+        "tr": "Property list (plist) doğrulama ve dönüştürme.",
+        "en": "Validate and convert property list (plist) files."
+      },
+      "intent": {
+        "tr": [
+          "plutil",
+          "plutil"
+        ],
+        "en": [
+          "plutil",
+          "plutil"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "pmset",
+      "name": "pmset",
+      "category": "system",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "power"
+      ],
+      "summary": {
+        "tr": "macOS güç yönetimi ayarları.",
+        "en": "macOS power management settings."
+      },
+      "intent": {
+        "tr": [
+          "pmset",
+          "pmset"
+        ],
+        "en": [
+          "pmset",
+          "pmset"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
       "id": "podman",
       "name": "podman",
       "category": "containers",
@@ -3567,6 +4657,73 @@
       "concepts": [
         "containers"
       ]
+    },
+    {
+      "type": "command",
+      "id": "port",
+      "name": "port",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "packages",
+        "macports"
+      ],
+      "summary": {
+        "tr": "MacPorts paket yöneticisi CLI.",
+        "en": "MacPorts package manager CLI."
+      },
+      "intent": {
+        "tr": [
+          "port",
+          "port"
+        ],
+        "en": [
+          "port",
+          "port"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "profiles",
+      "name": "profiles",
+      "category": "security",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "mdm",
+        "profiles"
+      ],
+      "summary": {
+        "tr": "Yapılandırma profilleri (MDM) yönetimi.",
+        "en": "Configuration profiles (MDM) management."
+      },
+      "intent": {
+        "tr": [
+          "profiles",
+          "profiles"
+        ],
+        "en": [
+          "profiles",
+          "profiles"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -3823,6 +4980,41 @@
     },
     {
       "type": "command",
+      "id": "restart-service",
+      "name": "Restart-Service",
+      "category": "system",
+      "kind": "powershell_cmdlet",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "services",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Windows servisini yeniden başlatır.",
+        "en": "Restarts a Windows service."
+      },
+      "intent": {
+        "tr": [
+          "restart-service",
+          "powershell restart service"
+        ],
+        "en": [
+          "Restart-Service",
+          "powershell restart service"
+        ]
+      },
+      "concepts": [
+        "systemd"
+      ]
+    },
+    {
+      "type": "command",
       "id": "rg",
       "name": "rg",
       "category": "search",
@@ -3893,6 +5085,70 @@
         "files",
         "terminal-basics"
       ]
+    },
+    {
+      "type": "command",
+      "id": "robocopy",
+      "name": "robocopy",
+      "category": "filesystem",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "filesystem",
+        "copy"
+      ],
+      "summary": {
+        "tr": "Sağlam Windows dosya kopyalama aracı.",
+        "en": "Robust Windows file copy utility."
+      },
+      "intent": {
+        "tr": [
+          "robocopy",
+          "robocopy"
+        ],
+        "en": [
+          "robocopy",
+          "robocopy"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "route",
+      "name": "route",
+      "category": "network",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "network",
+        "routing"
+      ],
+      "summary": {
+        "tr": "Windows IPv4 yönlendirme tablosu aracı.",
+        "en": "Windows IPv4 routing table tool."
+      },
+      "intent": {
+        "tr": [
+          "route",
+          "route"
+        ],
+        "en": [
+          "route",
+          "route"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -4010,6 +5266,73 @@
     },
     {
       "type": "command",
+      "id": "sc",
+      "name": "sc.exe",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "services",
+        "cmd",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Service Control — Windows servis yönetimi (executable).",
+        "en": "Service Control — Windows service management (executable)."
+      },
+      "intent": {
+        "tr": [
+          "sc.exe",
+          "windows servis cmd",
+          "servis sorgula"
+        ],
+        "en": [
+          "sc.exe",
+          "windows service cmd",
+          "query service"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "schtasks",
+      "name": "schtasks",
+      "category": "system",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "scheduler",
+        "cmd"
+      ],
+      "summary": {
+        "tr": "Görev Zamanlayıcı komut satırı (executable).",
+        "en": "Task Scheduler command line (executable)."
+      },
+      "intent": {
+        "tr": [
+          "schtasks",
+          "schtasks"
+        ],
+        "en": [
+          "schtasks",
+          "schtasks"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
       "id": "scp",
       "name": "scp",
       "category": "security",
@@ -4048,6 +5371,70 @@
     },
     {
       "type": "command",
+      "id": "scutil",
+      "name": "scutil",
+      "category": "network",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "network",
+        "dns"
+      ],
+      "summary": {
+        "tr": "Sistem yapılandırma çerçevesi aracı (DNS/proxy vb.).",
+        "en": "System configuration framework tool (DNS/proxy, etc.)."
+      },
+      "intent": {
+        "tr": [
+          "scutil",
+          "scutil"
+        ],
+        "en": [
+          "scutil",
+          "scutil"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "security",
+      "name": "security",
+      "category": "security",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "keychain",
+        "security"
+      ],
+      "summary": {
+        "tr": "macOS Anahtarlık (Keychain) komut satırı.",
+        "en": "macOS Keychain command-line tool."
+      },
+      "intent": {
+        "tr": [
+          "security",
+          "security"
+        ],
+        "en": [
+          "security",
+          "security"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
       "id": "sed",
       "name": "sed",
       "category": "text",
@@ -4080,6 +5467,74 @@
         "files",
         "shell-pipes-redirection"
       ]
+    },
+    {
+      "type": "command",
+      "id": "set-service",
+      "name": "Set-Service",
+      "category": "system",
+      "kind": "powershell_cmdlet",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "services",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Windows servis özelliklerini değiştirir.",
+        "en": "Changes Windows service properties."
+      },
+      "intent": {
+        "tr": [
+          "set-service",
+          "powershell set service"
+        ],
+        "en": [
+          "Set-Service",
+          "powershell set service"
+        ]
+      },
+      "concepts": [
+        "systemd"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "sfc",
+      "name": "sfc",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "system",
+        "repair",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Sistem Dosyası Denetleyicisi (Windows).",
+        "en": "System File Checker (Windows)."
+      },
+      "intent": {
+        "tr": [
+          "sfc",
+          "sfc"
+        ],
+        "en": [
+          "sfc",
+          "sfc"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -4152,6 +5607,38 @@
         "package-managers",
         "package-managers-comparison"
       ]
+    },
+    {
+      "type": "command",
+      "id": "softwareupdate",
+      "name": "softwareupdate",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "system",
+        "updates"
+      ],
+      "summary": {
+        "tr": "macOS yazılım / sistem güncelleme CLI.",
+        "en": "macOS software / system update CLI."
+      },
+      "intent": {
+        "tr": [
+          "macos güncelle",
+          "softwareupdate"
+        ],
+        "en": [
+          "macos update",
+          "softwareupdate"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -4407,6 +5894,41 @@
     },
     {
       "type": "command",
+      "id": "start-service",
+      "name": "Start-Service",
+      "category": "system",
+      "kind": "powershell_cmdlet",
+      "risk": "caution",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "services",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Windows servisini başlatır.",
+        "en": "Starts a Windows service."
+      },
+      "intent": {
+        "tr": [
+          "start-service",
+          "powershell start service"
+        ],
+        "en": [
+          "Start-Service",
+          "powershell start service"
+        ]
+      },
+      "concepts": [
+        "systemd"
+      ]
+    },
+    {
+      "type": "command",
       "id": "stat",
       "name": "stat",
       "category": "filesystem",
@@ -4439,6 +5961,41 @@
       "concepts": [
         "files",
         "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "stop-service",
+      "name": "Stop-Service",
+      "category": "system",
+      "kind": "powershell_cmdlet",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "powershell",
+        "windows",
+        "services",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Windows servisini durdurur.",
+        "en": "Stops a Windows service."
+      },
+      "intent": {
+        "tr": [
+          "stop-service",
+          "powershell stop service"
+        ],
+        "en": [
+          "Stop-Service",
+          "powershell stop service"
+        ]
+      },
+      "concepts": [
+        "systemd"
       ]
     },
     {
@@ -4547,6 +6104,38 @@
     },
     {
       "type": "command",
+      "id": "system-profiler",
+      "name": "system_profiler",
+      "category": "hardware",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "hardware",
+        "inventory"
+      ],
+      "summary": {
+        "tr": "macOS sistem / donanım envanter raporu.",
+        "en": "macOS system / hardware inventory report."
+      },
+      "intent": {
+        "tr": [
+          "system_profiler",
+          "system profiler"
+        ],
+        "en": [
+          "system_profiler",
+          "system profiler"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
       "id": "systemctl",
       "name": "systemctl",
       "category": "system",
@@ -4650,6 +6239,38 @@
         "files",
         "shell-pipes-redirection"
       ]
+    },
+    {
+      "type": "command",
+      "id": "takeown",
+      "name": "takeown",
+      "category": "users",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "acl",
+        "admin"
+      ],
+      "summary": {
+        "tr": "Dosya/klasör sahipliğini alır.",
+        "en": "Takes ownership of a file or folder."
+      },
+      "intent": {
+        "tr": [
+          "takeown",
+          "takeown"
+        ],
+        "en": [
+          "takeown",
+          "takeown"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -5344,6 +6965,38 @@
     },
     {
       "type": "command",
+      "id": "wevtutil",
+      "name": "wevtutil",
+      "category": "monitoring",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "logs",
+        "events"
+      ],
+      "summary": {
+        "tr": "Windows Event Log komut satırı aracı.",
+        "en": "Windows Event Log command-line tool."
+      },
+      "intent": {
+        "tr": [
+          "wevtutil",
+          "wevtutil"
+        ],
+        "en": [
+          "wevtutil",
+          "wevtutil"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
       "id": "wget",
       "name": "wget",
       "category": "network",
@@ -5479,6 +7132,44 @@
       },
       "concepts": [
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "winget",
+      "name": "winget",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "windows",
+        "packages",
+        "winget"
+      ],
+      "summary": {
+        "tr": "Windows Paket Yöneticisi (WinGet) CLI.",
+        "en": "Windows Package Manager (WinGet) CLI."
+      },
+      "intent": {
+        "tr": [
+          "winget kur",
+          "windows paket",
+          "winget ara"
+        ],
+        "en": [
+          "winget install",
+          "windows package",
+          "winget search"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
       ]
     },
     {
@@ -5663,6 +7354,70 @@
         "package-managers",
         "package-managers-comparison"
       ]
+    },
+    {
+      "type": "command",
+      "id": "xcode-select",
+      "name": "xcode-select",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "xcode",
+        "development"
+      ],
+      "summary": {
+        "tr": "Aktif Xcode / CLT geliştirici dizinini seçer.",
+        "en": "Selects the active Xcode / CLT developer directory."
+      },
+      "intent": {
+        "tr": [
+          "xcode-select",
+          "xcode select"
+        ],
+        "en": [
+          "xcode-select",
+          "xcode select"
+        ]
+      },
+      "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "xcrun",
+      "name": "xcrun",
+      "category": "development",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "macos",
+        "xcode",
+        "development"
+      ],
+      "summary": {
+        "tr": "Xcode araç zincirinden komut çalıştırır / yol bulur.",
+        "en": "Runs / locates tools from the Xcode toolchain."
+      },
+      "intent": {
+        "tr": [
+          "xcrun",
+          "xcrun"
+        ],
+        "en": [
+          "xcrun",
+          "xcrun"
+        ]
+      },
+      "concepts": []
     },
     {
       "type": "command",
@@ -5931,8 +7686,8 @@
         "en": "Package managers"
       },
       "summary": {
-        "tr": "Linux sistem PM’leri (pacman önce), Nix/Guix ve atomik ostree notları.",
-        "en": "Linux system PMs (pacman first), Nix/Guix, and atomic ostree notes."
+        "tr": "Linux PM’leri (pacman önce), Nix/Guix, WinGet/Homebrew/MacPorts notları.",
+        "en": "Linux PMs (pacman first), Nix/Guix, plus WinGet/Homebrew/MacPorts notes."
       },
       "related_commands": [
         "pacman",
@@ -5951,7 +7706,10 @@
         "nix",
         "guix",
         "opkg",
-        "rpm-ostree"
+        "rpm-ostree",
+        "brew",
+        "port",
+        "winget"
       ]
     },
     {
@@ -5972,8 +7730,8 @@
         "en": "Package manager comparison tables"
       },
       "summary": {
-        "tr": "pacman / apt / dnf / zypper / apk / xbps / emerge / Nix / Guix / ostree yan yana.",
-        "en": "Side-by-side pacman / apt / dnf / zypper / apk / xbps / emerge / Nix / Guix / ostree."
+        "tr": "Linux PM’ler + WinGet / Homebrew / MacPorts yan yana (çoğu draft).",
+        "en": "Linux PMs plus WinGet / Homebrew / MacPorts side-by-side (mostly draft)."
       },
       "related_commands": [
         "pacman",
@@ -5994,7 +7752,10 @@
         "nix",
         "guix",
         "opkg",
-        "rpm-ostree"
+        "rpm-ostree",
+        "brew",
+        "port",
+        "winget"
       ]
     },
     {
@@ -6172,6 +7933,6 @@
       ]
     }
   ],
-  "content_sha256": "f57c17a45da45ab0d41100c6a855705a808f971b7673b8a88beadff0d701ff1f",
-  "generated_at": "2026-11-04T19:11:41Z"
+  "content_sha256": "93e1b59ff6d63c2f117705b17a70e07f2fbce6800ba0661469f8f782c53fe03c",
+  "generated_at": "2026-11-04T19:37:05Z"
 }
