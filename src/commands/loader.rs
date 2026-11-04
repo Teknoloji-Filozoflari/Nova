@@ -3,7 +3,7 @@
 //! Öncelik: gömülü `assets/commands/{manifest,catalog,search-index}.json`
 //! (NOVA_INTEGRATION.md). İsteğe bağlı dosya yolu override testler içindir.
 
-use crate::commands::bank::{CommandBank, BANK_KIND};
+use crate::commands::bank::{validate_bank_schema_version, CommandBank, BANK_KIND};
 use serde::Deserialize;
 use std::path::Path;
 
@@ -44,12 +44,7 @@ impl CommandsManifest {
                 self.kind
             ));
         }
-        if self.schema_version != 1 {
-            return Err(format!(
-                "beklenen schema_version=1, gelen={}",
-                self.schema_version
-            ));
-        }
+        validate_bank_schema_version(self.schema_version)?;
         if self.content_sha256.len() != 64 {
             return Err("content_sha256 64 hex olmalı".into());
         }
@@ -94,12 +89,7 @@ impl SearchIndex {
                 self.kind
             ));
         }
-        if self.schema_version != 1 {
-            return Err(format!(
-                "beklenen schema_version=1, gelen={}",
-                self.schema_version
-            ));
-        }
+        validate_bank_schema_version(self.schema_version)?;
         Ok(())
     }
 }
@@ -203,6 +193,12 @@ mod tests {
         let bank = load_bank().expect("bank");
         let man = load_manifest().expect("manifest");
         assert_eq!(bank.kind, BANK_KIND);
+        assert!(
+            crate::commands::bank::SUPPORTED_BANK_SCHEMA_VERSIONS.contains(&bank.schema_version),
+            "schema {}",
+            bank.schema_version
+        );
+        assert_eq!(bank.schema_version, man.schema_version);
         assert_eq!(
             bank.content_sha256.as_deref(),
             Some(man.content_sha256.as_str())
@@ -211,6 +207,31 @@ mod tests {
         assert_eq!(
             bank.command_count.unwrap_or(bank.commands.len()),
             bank.commands.len()
+        );
+        // Canlı banka schema v2 + beklenen digest (Nova-Commands #16).
+        assert_eq!(bank.schema_version, 2);
+        assert_eq!(
+            man.content_sha256,
+            "8e96bcdb478208734bf30ddc1ecfa95fca585a5809819dc4d14f8f6b82471418"
+        );
+        let with_refs = bank
+            .commands
+            .iter()
+            .filter(|c| !c.package_refs.is_empty())
+            .count();
+        assert!(with_refs > 0, "package_refs beklenirdi");
+        let sample = bank
+            .commands
+            .iter()
+            .find(|c| !c.package_refs.is_empty())
+            .expect("ref");
+        let pairs = sample.package_labeled_pairs(true);
+        assert!(!pairs.is_empty());
+        assert!(
+            pairs
+                .iter()
+                .any(|(l, _)| l.starts_with("arch") || l == "pacman" || l == "apt" || l == "dnf"),
+            "{pairs:?}"
         );
     }
 
@@ -221,12 +242,49 @@ mod tests {
         assert_ne!(idx.kind, BANK_KIND);
         assert_ne!(idx.kind, MANIFEST_KIND);
         assert!(!idx.entries.is_empty());
+        assert_eq!(idx.schema_version, 2);
     }
 
     #[test]
     fn rejects_wrong_kind() {
-        let bad = r#"{"schema_version":1,"kind":"nova-store-catalog","commands":[]}"#;
+        let bad = r#"{"schema_version":2,"kind":"nova-store-catalog","commands":[]}"#;
         let err = load_bank_from_str(bad, None).unwrap_err();
         assert!(err.contains("nova-commands-bank"), "{err}");
+    }
+
+    #[test]
+    fn accepts_schema_v1_and_v2_rejects_other() {
+        let v1 = r#"{"schema_version":1,"kind":"nova-commands-bank","commands":[],"concepts":[]}"#;
+        load_bank_from_str(v1, None).expect("v1 ok");
+        let v2 = r#"{"schema_version":2,"kind":"nova-commands-bank","commands":[],"concepts":[]}"#;
+        load_bank_from_str(v2, None).expect("v2 ok");
+        let v3 = r#"{"schema_version":3,"kind":"nova-commands-bank","commands":[],"concepts":[]}"#;
+        let err = load_bank_from_str(v3, None).unwrap_err();
+        assert!(err.contains("schema_version"), "{err}");
+    }
+
+    #[test]
+    fn prefers_package_refs_over_legacy_packages() {
+        let json = r#"{
+            "schema_version": 2,
+            "kind": "nova-commands-bank",
+            "commands": [{
+                "id": "demo",
+                "name": "demo",
+                "packages": {"arch": "legacy-pkg", "debian": "legacy-deb"},
+                "package_refs": [
+                    {"manager": "apt", "package": "ref-apt", "distributions": ["debian"]},
+                    {"manager": "pacman", "package": "ref-pacman", "distributions": ["arch"]}
+                ]
+            }],
+            "concepts": []
+        }"#;
+        let bank = load_bank_from_str(json, None).expect("bank");
+        let cmd = &bank.commands[0];
+        let pairs = cmd.package_labeled_pairs(true);
+        assert_eq!(pairs[0].0, "arch/pacman");
+        assert_eq!(pairs[0].1, "ref-pacman");
+        assert!(pairs.iter().any(|(l, p)| l == "apt" && p == "ref-apt"));
+        assert!(!pairs.iter().any(|(_, p)| p.starts_with("legacy")));
     }
 }

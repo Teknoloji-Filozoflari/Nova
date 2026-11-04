@@ -330,7 +330,7 @@ impl App {
                 eprintln!("Nova-Commands bankası yüklenemedi: {e}");
                 (
                     CommandBank {
-                        schema_version: 1,
+                        schema_version: 2,
                         kind: commands::BANK_KIND.to_string(),
                         generated_at: None,
                         content_sha256: None,
@@ -340,7 +340,7 @@ impl App {
                         concepts: Vec::new(),
                     },
                     SearchIndex {
-                        schema_version: 1,
+                        schema_version: 2,
                         kind: commands::loader::SEARCH_INDEX_KIND.to_string(),
                         entry_count: Some(0),
                         content_sha256: None,

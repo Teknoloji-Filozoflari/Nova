@@ -48,10 +48,13 @@ assert man["kind"] == "nova-commands-manifest", man["kind"]
 assert cat["kind"] == "nova-commands-bank", cat["kind"]
 assert idx["kind"] == "nova-commands-search-index", idx["kind"]
 assert "store" not in cat["kind"]
+for doc, name in ((man, "manifest"), (cat, "catalog"), (idx, "search-index")):
+    sv = doc.get("schema_version")
+    assert sv in (1, 2), f"{name} schema_version={sv} (expected 1 or 2)"
 sha = man["content_sha256"]
 assert cat.get("content_sha256") == sha, "catalog SHA ≠ manifest"
 assert idx.get("content_sha256") in (None, sha), "search-index SHA ≠ manifest"
-print(f"OK: {man.get('command_count')} commands, {man.get('concept_count')} concepts, sha={sha[:12]}…")
+print(f"OK: schema={man.get('schema_version')} {man.get('command_count')} commands, {man.get('concept_count')} concepts, sha={sha[:12]}…")
 PY
 
 echo "Yazıldı: ${DEST}/{catalog,manifest,search-index}.json"

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "kind": "nova-commands-search-index",
   "entry_count": 155,
   "entries": [
@@ -8,7 +8,11 @@
       "id": "apt",
       "name": "apt",
       "category": "packages",
+      "kind": "package_manager",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "packages",
@@ -38,7 +42,13 @@
       "id": "awk",
       "name": "awk",
       "category": "text",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "text"
@@ -67,7 +77,11 @@
       "id": "blkid",
       "name": "blkid",
       "category": "disks",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -96,7 +110,11 @@
       "id": "bootctl",
       "name": "bootctl",
       "category": "system",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "draft",
       "tags": [
         "system",
@@ -128,7 +146,13 @@
       "id": "cargo",
       "name": "cargo",
       "category": "development",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "rust",
@@ -159,7 +183,13 @@
       "id": "cat",
       "name": "cat",
       "category": "text",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "text",
@@ -189,7 +219,13 @@
       "id": "cd",
       "name": "cd",
       "category": "shell",
+      "kind": "shell_builtin",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "shell"
@@ -219,7 +255,13 @@
       "id": "chgrp",
       "name": "chgrp",
       "category": "users",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "users",
@@ -248,7 +290,13 @@
       "id": "chmod",
       "name": "chmod",
       "category": "users",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "users",
@@ -277,7 +325,13 @@
       "id": "chown",
       "name": "chown",
       "category": "users",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "users",
@@ -306,7 +360,13 @@
       "id": "cmake",
       "name": "cmake",
       "category": "development",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "build",
@@ -336,7 +396,13 @@
       "id": "cp",
       "name": "cp",
       "category": "filesystem",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "files",
@@ -366,7 +432,13 @@
       "id": "curl",
       "name": "curl",
       "category": "network",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "network",
@@ -396,7 +468,13 @@
       "id": "cut",
       "name": "cut",
       "category": "text",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "text",
@@ -426,7 +504,13 @@
       "id": "date",
       "name": "date",
       "category": "system",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "system",
@@ -456,7 +540,13 @@
       "id": "dd",
       "name": "dd",
       "category": "disks",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -486,7 +576,13 @@
       "id": "df",
       "name": "df",
       "category": "disks",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "disk"
@@ -514,7 +610,13 @@
       "id": "diff",
       "name": "diff",
       "category": "development",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "development",
@@ -543,7 +645,13 @@
       "id": "dig",
       "name": "dig",
       "category": "network",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "network",
@@ -576,7 +684,13 @@
       "id": "dmesg",
       "name": "dmesg",
       "category": "monitoring",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "monitoring",
@@ -605,7 +719,11 @@
       "id": "dnf",
       "name": "dnf",
       "category": "packages",
+      "kind": "package_manager",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "packages",
@@ -635,7 +753,11 @@
       "id": "docker",
       "name": "docker",
       "category": "containers",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "draft",
       "tags": [
         "containers"
@@ -665,7 +787,11 @@
       "id": "docker-compose",
       "name": "docker-compose",
       "category": "containers",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "draft",
       "tags": [
         "containers",
@@ -694,7 +820,11 @@
       "id": "dpkg",
       "name": "dpkg",
       "category": "packages",
+      "kind": "package_manager",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "packages",
@@ -724,7 +854,13 @@
       "id": "du",
       "name": "du",
       "category": "disks",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "disk"
@@ -752,7 +888,13 @@
       "id": "echo",
       "name": "echo",
       "category": "shell",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "shell"
@@ -782,7 +924,13 @@
       "id": "env",
       "name": "env",
       "category": "shell",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "shell",
@@ -813,7 +961,13 @@
       "id": "export",
       "name": "export",
       "category": "shell",
+      "kind": "shell_builtin",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "shell",
@@ -844,7 +998,11 @@
       "id": "fdisk",
       "name": "fdisk",
       "category": "disks",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -874,7 +1032,13 @@
       "id": "find",
       "name": "find",
       "category": "search",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "search",
@@ -904,7 +1068,11 @@
       "id": "findmnt",
       "name": "findmnt",
       "category": "disks",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "verified",
       "tags": [
         "disk",
@@ -934,7 +1102,11 @@
       "id": "firewall-cmd",
       "name": "firewall-cmd",
       "category": "security",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "security",
@@ -967,7 +1139,11 @@
       "id": "flatpak",
       "name": "flatpak",
       "category": "packages",
+      "kind": "package_manager",
       "risk": "caution",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "packages",
@@ -997,7 +1173,11 @@
       "id": "free",
       "name": "free",
       "category": "monitoring",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "verified",
       "tags": [
         "monitoring",
@@ -1026,7 +1206,11 @@
       "id": "fsck",
       "name": "fsck",
       "category": "disks",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -1059,7 +1243,13 @@
       "id": "gcc",
       "name": "gcc",
       "category": "development",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "compiler",
@@ -1089,7 +1279,11 @@
       "id": "getent",
       "name": "getent",
       "category": "users",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "verified",
       "tags": [
         "users",
@@ -1119,7 +1313,13 @@
       "id": "git",
       "name": "git",
       "category": "development",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "git",
@@ -1148,7 +1348,13 @@
       "id": "gpg",
       "name": "gpg",
       "category": "security",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "draft",
       "tags": [
         "security",
@@ -1177,7 +1383,13 @@
       "id": "grep",
       "name": "grep",
       "category": "search",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "search",
@@ -1207,7 +1419,13 @@
       "id": "groups",
       "name": "groups",
       "category": "users",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "users",
@@ -1236,7 +1454,13 @@
       "id": "gzip",
       "name": "gzip",
       "category": "archives",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "archive",
@@ -1265,7 +1489,13 @@
       "id": "head",
       "name": "head",
       "category": "text",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "text"
@@ -1294,7 +1524,13 @@
       "id": "history",
       "name": "history",
       "category": "shell",
+      "kind": "shell_builtin",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "shell"
@@ -1324,7 +1560,13 @@
       "id": "host",
       "name": "host",
       "category": "network",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "network",
@@ -1355,7 +1597,13 @@
       "id": "hostname",
       "name": "hostname",
       "category": "system",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "system"
@@ -1384,7 +1632,11 @@
       "id": "hostnamectl",
       "name": "hostnamectl",
       "category": "system",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "system",
@@ -1414,7 +1666,13 @@
       "id": "htop",
       "name": "htop",
       "category": "processes",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "processes",
@@ -1443,7 +1701,13 @@
       "id": "id",
       "name": "id",
       "category": "users",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "users"
@@ -1471,7 +1735,11 @@
       "id": "iostat",
       "name": "iostat",
       "category": "monitoring",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "io",
@@ -1502,7 +1770,11 @@
       "id": "iotop",
       "name": "iotop",
       "category": "monitoring",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "io",
@@ -1533,7 +1805,11 @@
       "id": "ip",
       "name": "ip",
       "category": "network",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "network"
@@ -1562,7 +1838,11 @@
       "id": "iptables",
       "name": "iptables",
       "category": "security",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "draft",
       "tags": [
         "firewall",
@@ -1593,7 +1873,11 @@
       "id": "journalctl",
       "name": "journalctl",
       "category": "monitoring",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "monitoring",
@@ -1624,7 +1908,13 @@
       "id": "jq",
       "name": "jq",
       "category": "text",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "json",
@@ -1655,7 +1945,13 @@
       "id": "kill",
       "name": "kill",
       "category": "processes",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "process"
@@ -1683,7 +1979,13 @@
       "id": "less",
       "name": "less",
       "category": "text",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "text",
@@ -1713,7 +2015,13 @@
       "id": "ln",
       "name": "ln",
       "category": "filesystem",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "files",
@@ -1743,7 +2051,13 @@
       "id": "locate",
       "name": "locate",
       "category": "search",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "draft",
       "tags": [
         "search"
@@ -1772,7 +2086,11 @@
       "id": "loginctl",
       "name": "loginctl",
       "category": "system",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "system",
@@ -1803,7 +2121,13 @@
       "id": "ls",
       "name": "ls",
       "category": "filesystem",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "files",
@@ -1836,7 +2160,11 @@
       "id": "lsblk",
       "name": "lsblk",
       "category": "disks",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "verified",
       "tags": [
         "disk"
@@ -1864,7 +2192,11 @@
       "id": "lscpu",
       "name": "lscpu",
       "category": "hardware",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "verified",
       "tags": [
         "hardware",
@@ -1893,7 +2225,13 @@
       "id": "lsof",
       "name": "lsof",
       "category": "processes",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "processes",
@@ -1924,7 +2262,11 @@
       "id": "lspci",
       "name": "lspci",
       "category": "hardware",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "hardware"
@@ -1952,7 +2294,11 @@
       "id": "lsusb",
       "name": "lsusb",
       "category": "hardware",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "hardware"
@@ -1980,7 +2326,13 @@
       "id": "make",
       "name": "make",
       "category": "development",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "development",
@@ -2009,7 +2361,13 @@
       "id": "mkdir",
       "name": "mkdir",
       "category": "filesystem",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "files",
@@ -2039,7 +2397,11 @@
       "id": "mkfs",
       "name": "mkfs",
       "category": "disks",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -2072,7 +2434,11 @@
       "id": "mkfs.btrfs",
       "name": "mkfs.btrfs",
       "category": "disks",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -2104,7 +2470,11 @@
       "id": "mkfs.ext4",
       "name": "mkfs.ext4",
       "category": "disks",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -2138,7 +2508,11 @@
       "id": "mkfs.fat",
       "name": "mkfs.fat",
       "category": "disks",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -2175,7 +2549,11 @@
       "id": "mkfs.xfs",
       "name": "mkfs.xfs",
       "category": "disks",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -2207,7 +2585,13 @@
       "id": "mount",
       "name": "mount",
       "category": "disks",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -2239,7 +2623,13 @@
       "id": "mv",
       "name": "mv",
       "category": "filesystem",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "files",
@@ -2270,7 +2660,13 @@
       "id": "nc",
       "name": "nc",
       "category": "network",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "draft",
       "tags": [
         "network",
@@ -2300,7 +2696,11 @@
       "id": "nft",
       "name": "nft",
       "category": "security",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "draft",
       "tags": [
         "firewall",
@@ -2332,7 +2732,13 @@
       "id": "nice",
       "name": "nice",
       "category": "processes",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "processes"
@@ -2360,7 +2766,11 @@
       "id": "nmcli",
       "name": "nmcli",
       "category": "network",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "network",
@@ -2392,7 +2802,13 @@
       "id": "openssl",
       "name": "openssl",
       "category": "security",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "tls",
@@ -2423,7 +2839,11 @@
       "id": "pacman",
       "name": "pacman",
       "category": "packages",
+      "kind": "package_manager",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "packages",
@@ -2454,7 +2874,11 @@
       "id": "parted",
       "name": "parted",
       "category": "disks",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -2486,7 +2910,11 @@
       "id": "paru",
       "name": "paru",
       "category": "packages",
+      "kind": "package_manager",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "draft",
       "tags": [
         "packages",
@@ -2518,7 +2946,13 @@
       "id": "passwd",
       "name": "passwd",
       "category": "users",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "users",
@@ -2547,7 +2981,13 @@
       "id": "patch",
       "name": "patch",
       "category": "development",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "diff",
@@ -2578,7 +3018,11 @@
       "id": "pgrep",
       "name": "pgrep",
       "category": "processes",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "verified",
       "tags": [
         "process",
@@ -2607,7 +3051,13 @@
       "id": "ping",
       "name": "ping",
       "category": "network",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "network"
@@ -2636,7 +3086,13 @@
       "id": "pkill",
       "name": "pkill",
       "category": "processes",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "signal",
@@ -2666,7 +3122,11 @@
       "id": "podman",
       "name": "podman",
       "category": "containers",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "draft",
       "tags": [
         "containers"
@@ -2694,7 +3154,13 @@
       "id": "ps",
       "name": "ps",
       "category": "processes",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "process"
@@ -2722,7 +3188,13 @@
       "id": "psql",
       "name": "psql",
       "category": "development",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "draft",
       "tags": [
         "sql",
@@ -2753,7 +3225,13 @@
       "id": "pwd",
       "name": "pwd",
       "category": "filesystem",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "files",
@@ -2784,7 +3262,13 @@
       "id": "python3",
       "name": "python3",
       "category": "development",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "python",
@@ -2815,7 +3299,13 @@
       "id": "renice",
       "name": "renice",
       "category": "processes",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "priority",
@@ -2845,7 +3335,11 @@
       "id": "resolvectl",
       "name": "resolvectl",
       "category": "network",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "network",
@@ -2878,7 +3372,13 @@
       "id": "rg",
       "name": "rg",
       "category": "search",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "search",
@@ -2909,7 +3409,13 @@
       "id": "rm",
       "name": "rm",
       "category": "filesystem",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "files",
@@ -2939,7 +3445,11 @@
       "id": "rpm",
       "name": "rpm",
       "category": "packages",
+      "kind": "package_manager",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "packages",
@@ -2970,7 +3480,13 @@
       "id": "rsync",
       "name": "rsync",
       "category": "network",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "network",
@@ -3002,7 +3518,13 @@
       "id": "scp",
       "name": "scp",
       "category": "security",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "security",
@@ -3034,7 +3556,13 @@
       "id": "sed",
       "name": "sed",
       "category": "text",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "text"
@@ -3063,7 +3591,13 @@
       "id": "sftp",
       "name": "sftp",
       "category": "security",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "security",
@@ -3094,7 +3628,13 @@
       "id": "sort",
       "name": "sort",
       "category": "text",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "text"
@@ -3123,7 +3663,13 @@
       "id": "sqlite3",
       "name": "sqlite3",
       "category": "development",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "sql",
@@ -3154,7 +3700,11 @@
       "id": "ss",
       "name": "ss",
       "category": "network",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "network",
@@ -3184,7 +3734,13 @@
       "id": "ssh",
       "name": "ssh",
       "category": "security",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "security",
@@ -3216,7 +3772,13 @@
       "id": "ssh-add",
       "name": "ssh-add",
       "category": "security",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "security",
@@ -3246,7 +3808,13 @@
       "id": "ssh-copy-id",
       "name": "ssh-copy-id",
       "category": "security",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "security",
@@ -3276,7 +3844,13 @@
       "id": "ssh-keygen",
       "name": "ssh-keygen",
       "category": "security",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "security",
@@ -3306,7 +3880,13 @@
       "id": "stat",
       "name": "stat",
       "category": "filesystem",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "files",
@@ -3336,7 +3916,11 @@
       "id": "strace",
       "name": "strace",
       "category": "development",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "debug",
@@ -3367,7 +3951,12 @@
       "id": "sudo",
       "name": "sudo",
       "category": "users",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
       "verification": "reviewed",
       "tags": [
         "users",
@@ -3396,7 +3985,13 @@
       "id": "sync",
       "name": "sync",
       "category": "disks",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -3425,7 +4020,11 @@
       "id": "systemctl",
       "name": "systemctl",
       "category": "system",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "system",
@@ -3456,7 +4055,11 @@
       "id": "systemd-analyze",
       "name": "systemd-analyze",
       "category": "system",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "system",
@@ -3487,7 +4090,13 @@
       "id": "tail",
       "name": "tail",
       "category": "text",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "text",
@@ -3517,7 +4126,13 @@
       "id": "tar",
       "name": "tar",
       "category": "archives",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "archive"
@@ -3545,7 +4160,13 @@
       "id": "tee",
       "name": "tee",
       "category": "text",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "text",
@@ -3575,7 +4196,11 @@
       "id": "timedatectl",
       "name": "timedatectl",
       "category": "system",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "system",
@@ -3606,7 +4231,13 @@
       "id": "top",
       "name": "top",
       "category": "processes",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "process",
@@ -3635,7 +4266,13 @@
       "id": "touch",
       "name": "touch",
       "category": "filesystem",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "files"
@@ -3664,7 +4301,13 @@
       "id": "traceroute",
       "name": "traceroute",
       "category": "network",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "network",
@@ -3694,7 +4337,12 @@
       "id": "tree",
       "name": "tree",
       "category": "filesystem",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
       "verification": "reviewed",
       "tags": [
         "files",
@@ -3724,7 +4372,11 @@
       "id": "ufw",
       "name": "ufw",
       "category": "security",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "draft",
       "tags": [
         "firewall",
@@ -3756,7 +4408,13 @@
       "id": "umount",
       "name": "umount",
       "category": "disks",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -3785,7 +4443,13 @@
       "id": "uname",
       "name": "uname",
       "category": "system",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "system",
@@ -3815,7 +4479,13 @@
       "id": "uniq",
       "name": "uniq",
       "category": "text",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "text"
@@ -3844,7 +4514,12 @@
       "id": "unzip",
       "name": "unzip",
       "category": "archives",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
       "verification": "reviewed",
       "tags": [
         "archive"
@@ -3872,7 +4547,13 @@
       "id": "uptime",
       "name": "uptime",
       "category": "system",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "system"
@@ -3901,7 +4582,11 @@
       "id": "useradd",
       "name": "useradd",
       "category": "users",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "users",
@@ -3930,7 +4615,11 @@
       "id": "userdel",
       "name": "userdel",
       "category": "users",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "users",
@@ -3959,7 +4648,11 @@
       "id": "usermod",
       "name": "usermod",
       "category": "users",
+      "kind": "executable",
       "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "users",
@@ -3988,7 +4681,11 @@
       "id": "vmstat",
       "name": "vmstat",
       "category": "monitoring",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "monitoring",
@@ -4017,7 +4714,11 @@
       "id": "watch",
       "name": "watch",
       "category": "monitoring",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "monitoring"
@@ -4045,7 +4746,13 @@
       "id": "wc",
       "name": "wc",
       "category": "text",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "text",
@@ -4075,7 +4782,11 @@
       "id": "wget",
       "name": "wget",
       "category": "network",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "network",
@@ -4105,7 +4816,11 @@
       "id": "whereis",
       "name": "whereis",
       "category": "search",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
       "verification": "verified",
       "tags": [
         "search"
@@ -4135,7 +4850,13 @@
       "id": "which",
       "name": "which",
       "category": "search",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "search",
@@ -4166,7 +4887,13 @@
       "id": "whoami",
       "name": "whoami",
       "category": "users",
+      "kind": "executable",
       "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "verified",
       "tags": [
         "users"
@@ -4194,7 +4921,11 @@
       "id": "wipefs",
       "name": "wipefs",
       "category": "disks",
+      "kind": "executable",
       "risk": "destructive",
+      "platforms": [
+        "linux"
+      ],
       "verification": "reviewed",
       "tags": [
         "disk",
@@ -4227,7 +4958,13 @@
       "id": "xargs",
       "name": "xargs",
       "category": "text",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "text",
@@ -4257,7 +4994,13 @@
       "id": "xz",
       "name": "xz",
       "category": "archives",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "verification": "reviewed",
       "tags": [
         "archives",
@@ -4286,7 +5029,12 @@
       "id": "zip",
       "name": "zip",
       "category": "archives",
+      "kind": "executable",
       "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
       "verification": "reviewed",
       "tags": [
         "archive"
@@ -4653,6 +5401,6 @@
       ]
     }
   ],
-  "content_sha256": "7331be6bdefb792afb20616f0a7d2aa64f74918bda7ba119c56a5d4f79622750",
-  "generated_at": "2026-11-02T20:12:20Z"
+  "content_sha256": "8e96bcdb478208734bf30ddc1ecfa95fca585a5809819dc4d14f8f6b82471418",
+  "generated_at": "2026-11-04T18:56:43Z"
 }

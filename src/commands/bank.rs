@@ -5,6 +5,21 @@ use serde::Deserialize;
 /// Katalog `kind` sabiti — Mağaza / yerel PATH ile karıştırılmaz.
 pub const BANK_KIND: &str = "nova-commands-bank";
 
+/// Desteklenen banka / manifest / search-index `schema_version` değerleri.
+///
+/// v1 (Linux-era) önbellekleri hâlâ okunur; canlı banka v2 (`package_refs`).
+pub const SUPPORTED_BANK_SCHEMA_VERSIONS: &[u32] = &[1, 2];
+
+pub(crate) fn validate_bank_schema_version(version: u32) -> Result<(), String> {
+    if SUPPORTED_BANK_SCHEMA_VERSIONS.contains(&version) {
+        Ok(())
+    } else {
+        Err(format!(
+            "desteklenen schema_version={SUPPORTED_BANK_SCHEMA_VERSIONS:?}, gelen={version}"
+        ))
+    }
+}
+
 /// Risk seviyesi (YAML/JSON).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
@@ -123,6 +138,33 @@ pub struct CommandExample {
     pub risk: RiskLevel,
     #[serde(default)]
     pub requires_elevated: bool,
+    /// v2 additive — yoksa yok sayılır.
+    #[serde(default)]
+    pub shell: Option<String>,
+    /// v2 additive (`user` / `elevated` / …) — yoksa yok sayılır.
+    #[serde(default)]
+    pub privilege: Option<String>,
+}
+
+/// Schema v2 paket eşlemesi (`metadata/package-managers.yaml` id + paket adı).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct PackageRef {
+    pub manager: String,
+    pub package: String,
+    #[serde(default)]
+    pub distributions: Vec<String>,
+    #[serde(default)]
+    pub notes: LocalizedString,
+}
+
+impl PackageRef {
+    /// UI etiketi — pacman için mevcut `arch/pacman` işaretine uyum.
+    pub fn label(&self) -> String {
+        match self.manager.as_str() {
+            "pacman" => "arch/pacman".into(),
+            other => other.to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -209,6 +251,9 @@ pub struct NovaHints {
 pub struct CommandEntry {
     pub id: String,
     pub name: String,
+    /// v2: `executable` / `package_manager` / `shell_builtin` (yoksa yok sayılır).
+    #[serde(default)]
+    pub kind: Option<String>,
     #[serde(default)]
     pub category: String,
     #[serde(default)]
@@ -223,8 +268,14 @@ pub struct CommandEntry {
     pub requires_elevated: bool,
     #[serde(default)]
     pub platforms: Vec<String>,
+    /// v2 additive OS registry id'leri (`linux` / `macos` / `windows` / …).
+    #[serde(default)]
+    pub operating_systems: Vec<String>,
     #[serde(default)]
     pub packages: Packages,
+    /// v2 tercih edilen paket eşlemesi; doluysa legacy `packages` yerine kullanılır.
+    #[serde(default)]
+    pub package_refs: Vec<PackageRef>,
     #[serde(default)]
     pub install_notes: LocalizedString,
     #[serde(default)]
@@ -239,6 +290,45 @@ pub struct CommandEntry {
     pub verification: VerificationInfo,
     #[serde(default)]
     pub nova: NovaHints,
+}
+
+impl CommandEntry {
+    /// Kurulum ipucu satırları: `package_refs` varsa onu, yoksa legacy `packages`.
+    ///
+    /// Arch-first: `pacman` / `arch` önce.
+    pub fn package_labeled_pairs(&self, arch_first: bool) -> Vec<(String, String)> {
+        if !self.package_refs.is_empty() {
+            let mut refs = self.package_refs.clone();
+            refs.sort_by_key(|r| {
+                let is_pacman = r.manager == "pacman";
+                if arch_first {
+                    if is_pacman {
+                        0u8
+                    } else {
+                        1
+                    }
+                } else if is_pacman {
+                    1
+                } else {
+                    0
+                }
+            });
+            refs.into_iter()
+                .filter(|r| !r.package.is_empty())
+                .map(|r| (r.label(), r.package))
+                .collect()
+        } else {
+            self.packages
+                .labeled_pairs(arch_first)
+                .into_iter()
+                .map(|(label, pkg)| (label.to_string(), pkg.to_string()))
+                .collect()
+        }
+    }
+
+    pub fn has_package_hints(&self) -> bool {
+        !self.package_refs.is_empty() || !self.packages.is_empty()
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -315,12 +405,7 @@ impl CommandBank {
         if self.kind != BANK_KIND {
             return Err(format!("beklenen kind={BANK_KIND}, gelen={}", self.kind));
         }
-        if self.schema_version != 1 {
-            return Err(format!(
-                "beklenen schema_version=1, gelen={}",
-                self.schema_version
-            ));
-        }
+        validate_bank_schema_version(self.schema_version)?;
         Ok(())
     }
 
