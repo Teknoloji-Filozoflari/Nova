@@ -1,8 +1,45 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 155,
+  "entry_count": 175,
   "entries": [
+    {
+      "type": "command",
+      "id": "apk",
+      "name": "apk",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "alpine"
+      ],
+      "summary": {
+        "tr": "Alpine Linux paket yöneticisi (apk).",
+        "en": "Alpine Linux package manager (apk)."
+      },
+      "intent": {
+        "tr": [
+          "alpine paket kur",
+          "apk add",
+          "apk güncelle"
+        ],
+        "en": [
+          "apk add",
+          "alpine install",
+          "apk upgrade"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
     {
       "type": "command",
       "id": "apt",
@@ -34,7 +71,8 @@
       },
       "concepts": [
         "packages",
-        "package-managers"
+        "package-managers",
+        "package-managers-comparison"
       ]
     },
     {
@@ -745,7 +783,8 @@
       },
       "concepts": [
         "packages",
-        "package-managers"
+        "package-managers",
+        "package-managers-comparison"
       ]
     },
     {
@@ -846,7 +885,8 @@
       },
       "concepts": [
         "packages",
-        "package-managers"
+        "package-managers",
+        "package-managers-comparison"
       ]
     },
     {
@@ -921,6 +961,45 @@
     },
     {
       "type": "command",
+      "id": "emerge",
+      "name": "emerge",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "gentoo",
+        "portage"
+      ],
+      "summary": {
+        "tr": "Gentoo Portage paket kurucu (emerge).",
+        "en": "Gentoo Portage package tool (emerge)."
+      },
+      "intent": {
+        "tr": [
+          "gentoo emerge",
+          "portage kur",
+          "emerge world"
+        ],
+        "en": [
+          "emerge install",
+          "gentoo upgrade",
+          "portage sync"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison",
+        "nix-guix"
+      ]
+    },
+    {
+      "type": "command",
       "id": "env",
       "name": "env",
       "category": "shell",
@@ -954,6 +1033,41 @@
         "shell-builtin",
         "terminal-basics",
         "path"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "eopkg",
+      "name": "eopkg",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "solus"
+      ],
+      "summary": {
+        "tr": "Solus paket yöneticisi (eopkg).",
+        "en": "Solus package manager (eopkg)."
+      },
+      "intent": {
+        "tr": [
+          "solus kur",
+          "eopkg yükselt"
+        ],
+        "en": [
+          "eopkg install",
+          "solus upgrade"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
       ]
     },
     {
@@ -1165,7 +1279,9 @@
       },
       "concepts": [
         "packages",
-        "package-managers"
+        "package-managers",
+        "package-managers-comparison",
+        "nix-guix"
       ]
     },
     {
@@ -1451,6 +1567,45 @@
     },
     {
       "type": "command",
+      "id": "guix",
+      "name": "guix",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "guix",
+        "declarative"
+      ],
+      "summary": {
+        "tr": "GNU Guix paket ve sistem yöneticisi.",
+        "en": "GNU Guix package and system manager."
+      },
+      "intent": {
+        "tr": [
+          "guix kur",
+          "guix shell",
+          "guix pull"
+        ],
+        "en": [
+          "guix install",
+          "guix shell",
+          "guix pull"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison",
+        "nix-guix"
+      ]
+    },
+    {
+      "type": "command",
       "id": "gzip",
       "name": "gzip",
       "category": "archives",
@@ -1728,6 +1883,41 @@
       },
       "concepts": [
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "installpkg",
+      "name": "installpkg",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "slackware"
+      ],
+      "summary": {
+        "tr": "Slackware düşük seviye paket kurucu.",
+        "en": "Slackware low-level package installer."
+      },
+      "intent": {
+        "tr": [
+          "installpkg",
+          "slackware txz kur"
+        ],
+        "en": [
+          "installpkg",
+          "slackware install txz"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
       ]
     },
     {
@@ -2763,6 +2953,197 @@
     },
     {
       "type": "command",
+      "id": "nix",
+      "name": "nix",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "nix",
+        "nixos",
+        "declarative"
+      ],
+      "summary": {
+        "tr": "Nix paket yöneticisi (modern CLI).",
+        "en": "Nix package manager (modern CLI)."
+      },
+      "intent": {
+        "tr": [
+          "nix kur",
+          "nix flake",
+          "nix search"
+        ],
+        "en": [
+          "nix profile install",
+          "nix flake",
+          "nix search"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison",
+        "nix-guix"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nix-collect-garbage",
+      "name": "nix-collect-garbage",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "nix"
+      ],
+      "summary": {
+        "tr": "Nix store çöp toplama.",
+        "en": "Nix store garbage collection."
+      },
+      "intent": {
+        "tr": [
+          "nix çöp",
+          "nix store temizle"
+        ],
+        "en": [
+          "nix-collect-garbage",
+          "nix gc"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison",
+        "nix-guix"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nix-env",
+      "name": "nix-env",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "nix",
+        "legacy"
+      ],
+      "summary": {
+        "tr": "Eski Nix profil aracı (geçiş / miras).",
+        "en": "Legacy Nix profile tool (transition / heritage)."
+      },
+      "intent": {
+        "tr": [
+          "nix-env",
+          "eski nix profil"
+        ],
+        "en": [
+          "nix-env",
+          "legacy nix profile"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison",
+        "nix-guix"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nix-shell",
+      "name": "nix-shell",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "nix",
+        "legacy"
+      ],
+      "summary": {
+        "tr": "Klasik Nix geçici kabuk (eski yol).",
+        "en": "Classic Nix ephemeral shell (legacy path)."
+      },
+      "intent": {
+        "tr": [
+          "nix-shell",
+          "geçici nix kabuğu"
+        ],
+        "en": [
+          "nix-shell",
+          "temporary nix shell"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison",
+        "nix-guix"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nixos-rebuild",
+      "name": "nixos-rebuild",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "nixos",
+        "declarative"
+      ],
+      "summary": {
+        "tr": "NixOS sistem yapılandırmasını uygula.",
+        "en": "Apply NixOS system configuration."
+      },
+      "intent": {
+        "tr": [
+          "nixos-rebuild",
+          "nixos switch"
+        ],
+        "en": [
+          "nixos-rebuild switch",
+          "nixos rebuild"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison",
+        "nix-guix"
+      ]
+    },
+    {
+      "type": "command",
       "id": "nmcli",
       "name": "nmcli",
       "category": "network",
@@ -2836,6 +3217,42 @@
     },
     {
       "type": "command",
+      "id": "opkg",
+      "name": "opkg",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "openwrt",
+        "embedded"
+      ],
+      "summary": {
+        "tr": "OpenWrt paket yöneticisi (opkg).",
+        "en": "OpenWrt package manager (opkg)."
+      },
+      "intent": {
+        "tr": [
+          "openwrt paket",
+          "opkg kur"
+        ],
+        "en": [
+          "opkg install",
+          "openwrt package"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
       "id": "pacman",
       "name": "pacman",
       "category": "packages",
@@ -2866,7 +3283,9 @@
       "concepts": [
         "packages",
         "arch",
-        "package-managers"
+        "package-managers",
+        "package-managers-comparison",
+        "nix-guix"
       ]
     },
     {
@@ -3296,6 +3715,41 @@
     },
     {
       "type": "command",
+      "id": "removepkg",
+      "name": "removepkg",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "slackware"
+      ],
+      "summary": {
+        "tr": "Slackware düşük seviye paket kaldırıcı.",
+        "en": "Slackware low-level package remover."
+      },
+      "intent": {
+        "tr": [
+          "removepkg",
+          "slackware paket sil"
+        ],
+        "en": [
+          "removepkg",
+          "slackware remove package"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
       "id": "renice",
       "name": "renice",
       "category": "processes",
@@ -3472,7 +3926,48 @@
       },
       "concepts": [
         "packages",
-        "package-managers"
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "rpm-ostree",
+      "name": "rpm-ostree",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "fedora",
+        "ostree",
+        "immutable"
+      ],
+      "summary": {
+        "tr": "rpm-ostree atomik/ostree sistem yönetimi.",
+        "en": "rpm-ostree atomic/ostree system management."
+      },
+      "intent": {
+        "tr": [
+          "silverblue yükselt",
+          "rpm-ostree kur",
+          "ostree durum"
+        ],
+        "en": [
+          "rpm-ostree upgrade",
+          "silverblue install",
+          "ostree status"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison",
+        "nix-guix"
       ]
     },
     {
@@ -3621,6 +4116,41 @@
       "concepts": [
         "ssh",
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "slackpkg",
+      "name": "slackpkg",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "slackware"
+      ],
+      "summary": {
+        "tr": "Slackware resmi paket aracı.",
+        "en": "Slackware official package tool."
+      },
+      "intent": {
+        "tr": [
+          "slackware kur",
+          "slackpkg güncelle"
+        ],
+        "en": [
+          "slackpkg install",
+          "slackware upgrade"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
       ]
     },
     {
@@ -4544,6 +5074,41 @@
     },
     {
       "type": "command",
+      "id": "upgradepkg",
+      "name": "upgradepkg",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "slackware"
+      ],
+      "summary": {
+        "tr": "Slackware düşük seviye paket yükseltme.",
+        "en": "Slackware low-level package upgrade."
+      },
+      "intent": {
+        "tr": [
+          "upgradepkg",
+          "slackware yükselt"
+        ],
+        "en": [
+          "upgradepkg",
+          "slackware upgrade package"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
       "id": "uptime",
       "name": "uptime",
       "category": "system",
@@ -4991,6 +5556,116 @@
     },
     {
       "type": "command",
+      "id": "xbps-install",
+      "name": "xbps-install",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "void",
+        "xbps"
+      ],
+      "summary": {
+        "tr": "Void Linux XBPS kurulum aracı.",
+        "en": "Void Linux XBPS install tool."
+      },
+      "intent": {
+        "tr": [
+          "void kur",
+          "xbps-install",
+          "void güncelle"
+        ],
+        "en": [
+          "xbps-install",
+          "void upgrade",
+          "void install"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "xbps-query",
+      "name": "xbps-query",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "safe",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "void",
+        "xbps"
+      ],
+      "summary": {
+        "tr": "Void Linux XBPS sorgu aracı.",
+        "en": "Void Linux XBPS query tool."
+      },
+      "intent": {
+        "tr": [
+          "xbps sorgu",
+          "void paket ara"
+        ],
+        "en": [
+          "xbps-query",
+          "void search package"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "xbps-remove",
+      "name": "xbps-remove",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "void",
+        "xbps"
+      ],
+      "summary": {
+        "tr": "Void Linux XBPS kaldırma aracı.",
+        "en": "Void Linux XBPS remove tool."
+      },
+      "intent": {
+        "tr": [
+          "xbps kaldır",
+          "void paket sil"
+        ],
+        "en": [
+          "xbps-remove",
+          "void remove package"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
       "id": "xz",
       "name": "xz",
       "category": "archives",
@@ -5055,6 +5730,45 @@
       },
       "concepts": [
         "files"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "zypper",
+      "name": "zypper",
+      "category": "packages",
+      "kind": "package_manager",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "packages",
+        "opensuse",
+        "suse",
+        "rpm"
+      ],
+      "summary": {
+        "tr": "openSUSE/SUSE paket yöneticisi.",
+        "en": "openSUSE/SUSE package manager."
+      },
+      "intent": {
+        "tr": [
+          "zypper kur",
+          "opensuse güncelle",
+          "zypper ara"
+        ],
+        "en": [
+          "zypper install",
+          "opensuse update",
+          "zypper search"
+        ]
+      },
+      "concepts": [
+        "packages",
+        "package-managers",
+        "package-managers-comparison"
       ]
     },
     {
@@ -5171,21 +5885,54 @@
     },
     {
       "type": "concept",
+      "id": "nix-guix",
+      "difficulty": "intermediate",
+      "tags": [
+        "packages",
+        "nix",
+        "guix",
+        "nixos",
+        "declarative"
+      ],
+      "title": {
+        "tr": "Nix ve GNU Guix",
+        "en": "Nix and GNU Guix"
+      },
+      "summary": {
+        "tr": "Deklaratif paket/store modeli; modern Nix CLI vs eski nix-env; Guix profilleri.",
+        "en": "Declarative package/store model; modern Nix CLI vs legacy nix-env; Guix profiles."
+      },
+      "related_commands": [
+        "nix",
+        "nix-shell",
+        "nix-env",
+        "nixos-rebuild",
+        "nix-collect-garbage",
+        "guix",
+        "pacman",
+        "emerge",
+        "rpm-ostree"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "package-managers",
       "difficulty": "beginner",
       "tags": [
         "packages",
         "pacman",
         "apt",
-        "dnf"
+        "dnf",
+        "nix",
+        "guix"
       ],
       "title": {
         "tr": "Paket yöneticileri",
         "en": "Package managers"
       },
       "summary": {
-        "tr": "pacman, apt, dnf ve paket ↔ komut ilişkisi (Arch öncelikli notlar).",
-        "en": "pacman, apt, dnf, and package ↔ command mapping (Arch-first notes)."
+        "tr": "Linux sistem PM’leri (pacman önce), Nix/Guix ve atomik ostree notları.",
+        "en": "Linux system PMs (pacman first), Nix/Guix, and atomic ostree notes."
       },
       "related_commands": [
         "pacman",
@@ -5194,7 +5941,17 @@
         "dpkg",
         "rpm",
         "flatpak",
-        "paru"
+        "paru",
+        "zypper",
+        "apk",
+        "emerge",
+        "xbps-install",
+        "eopkg",
+        "slackpkg",
+        "nix",
+        "guix",
+        "opkg",
+        "rpm-ostree"
       ]
     },
     {
@@ -5206,15 +5963,17 @@
         "pacman",
         "apt",
         "dnf",
-        "comparison"
+        "comparison",
+        "nix",
+        "guix"
       ],
       "title": {
         "tr": "Paket yöneticisi karşılaştırma tabloları",
         "en": "Package manager comparison tables"
       },
       "summary": {
-        "tr": "pacman / apt / dnf / rpm-dpkg / flatpak için yan yana sık işlemler.",
-        "en": "Side-by-side common operations for pacman / apt / dnf / rpm-dpkg / flatpak."
+        "tr": "pacman / apt / dnf / zypper / apk / xbps / emerge / Nix / Guix / ostree yan yana.",
+        "en": "Side-by-side pacman / apt / dnf / zypper / apk / xbps / emerge / Nix / Guix / ostree."
       },
       "related_commands": [
         "pacman",
@@ -5223,7 +5982,19 @@
         "dpkg",
         "rpm",
         "flatpak",
-        "paru"
+        "paru",
+        "zypper",
+        "apk",
+        "emerge",
+        "xbps-install",
+        "xbps-query",
+        "xbps-remove",
+        "eopkg",
+        "slackpkg",
+        "nix",
+        "guix",
+        "opkg",
+        "rpm-ostree"
       ]
     },
     {
@@ -5401,6 +6172,6 @@
       ]
     }
   ],
-  "content_sha256": "8e96bcdb478208734bf30ddc1ecfa95fca585a5809819dc4d14f8f6b82471418",
-  "generated_at": "2026-11-04T18:56:43Z"
+  "content_sha256": "f57c17a45da45ab0d41100c6a855705a808f971b7673b8a88beadff0d701ff1f",
+  "generated_at": "2026-11-04T19:11:41Z"
 }
