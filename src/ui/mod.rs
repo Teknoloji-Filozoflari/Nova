@@ -48,16 +48,38 @@ pub const CONTENT_MIN_HEIGHT: u16 = 5;
 pub const HELP_HELP_MAX_HEIGHT: u16 = 10;
 /// Sol panelin (sekme listesi) genişliği.
 pub const CATEGORY_PANEL_WIDTH: u16 = 26;
-/// Mağaza kategori panelinin genişliği (üç/dört sütunlu mağaza görünümünde).
-/// Başlık sığacak kadar; liste `Min` ile sıkışır, detay geniş kalır.
-pub const STORE_CATEGORY_PANEL_WIDTH: u16 = 22;
-/// Mağaza sağ detay panelinin genişliği (geniş terminalde).
+/// Paylaşılan ikincil sütun varsayılanı (Mağaza kategorileri, Komut Rehberi
+/// kaynak/banka kategori, Ayarlar yan paneli). Kullanıcı `state.toml`
+/// `prefs.pane_secondary_width` ile ve `[` / `]` tuşlarıyla ayarlar.
+pub const SECONDARY_PANEL_WIDTH_DEFAULT: u16 = 28;
+/// İkincil sütun alt sınırı.
+pub const SECONDARY_PANEL_WIDTH_MIN: u16 = 16;
+/// İkincil sütun üst sınırı.
+pub const SECONDARY_PANEL_WIDTH_MAX: u16 = 48;
+/// Geriye dönük ad: ikincil sütun varsayılanı (`SECONDARY_PANEL_WIDTH_DEFAULT`).
+pub const STORE_CATEGORY_PANEL_WIDTH: u16 = SECONDARY_PANEL_WIDTH_DEFAULT;
+/// Liste sütunu tercih edilen genişlik (yan detaylı Mağaza / Komut Rehberi).
+/// Fazla terminal genişliği detaya gider; kullanıcı `prefs.pane_list_width`
+/// ve `-` / `=` tuşlarıyla ayarlar.
+pub const LIST_PANEL_WIDTH_DEFAULT: u16 = 32;
+/// Liste sütunu üst sınırı (tercih).
+pub const LIST_PANEL_WIDTH_MAX: u16 = 64;
+/// Mağaza sağ detay panelinin en az genişliği (geniş terminalde).
 ///
 /// Kurulu araç detayıyla aynı cömert ölçü: açıklama / kurulum / güven
-/// satırları okunaklı kalır; uygulama listesi `Min` ile sıkışır.
+/// satırları okunaklı kalır. Liste sabit tercih genişliğinde kalır; artan
+/// alan detaya (`Min`) gider.
 pub const STORE_DETAIL_PANEL_WIDTH: u16 = 72;
-/// Dört sütunlu mağaza (sekme + kategori + uygulama + sağ detay) için en az genişlik.
-pub const STORE_DETAIL_SIDE_MIN_WIDTH: u16 = 134;
+/// Uygulama / araç listesinin dört sütunlu düzende bırakacağı en az genişlik.
+pub const LIST_PANEL_MIN_WIDTH: u16 = 14;
+/// Liste sütunu alt sınırı (= [`LIST_PANEL_MIN_WIDTH`]).
+pub const LIST_PANEL_WIDTH_MIN: u16 = LIST_PANEL_MIN_WIDTH;
+/// Tek ikincil sütunlu yan-detay düzeni (Mağaza / yerel Komut) için en az
+/// genişlik — varsayılan ikincil genişlikle.
+pub const STORE_DETAIL_SIDE_MIN_WIDTH: u16 = CATEGORY_PANEL_WIDTH
+    + SECONDARY_PANEL_WIDTH_DEFAULT
+    + LIST_PANEL_MIN_WIDTH
+    + STORE_DETAIL_PANEL_WIDTH;
 /// Araç detay panelinin satır sayısı (üst kenarlık dâhil).
 pub const DETAIL_ROWS: u16 = 10;
 /// AI seçiliyken liste ile Detay arasındaki yatay aksiyon şeridi yüksekliği.
@@ -73,8 +95,73 @@ pub const TOOL_DETAIL_SIDE_MIN_WIDTH: u16 = 112;
 /// Geniş terminalde detay sağ panele taşınır; bu yükseklik yalnızca
 /// dar/orta düzende alt şerit için kullanılır.
 pub const STORE_DETAIL_ROWS: u16 = 16;
-/// Uygulama / araç listesinin dört sütunlu düzende bırakacağı en az genişlik.
-pub const LIST_PANEL_MIN_WIDTH: u16 = 14;
+
+/// Mağaza / Komut Rehberi / Ayarlar yan paneli için çözülmüş sütun genişlikleri.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PaneWidths {
+    /// İkincil sütun (kategori / kaynak).
+    pub secondary: u16,
+    /// Liste sütunu tercihi (yan detayda Length; fazla alan detaya).
+    pub list: u16,
+}
+
+impl Default for PaneWidths {
+    fn default() -> Self {
+        Self {
+            secondary: SECONDARY_PANEL_WIDTH_DEFAULT,
+            list: LIST_PANEL_WIDTH_DEFAULT,
+        }
+    }
+}
+
+impl PaneWidths {
+    /// `state.toml` tercihlerinden kırpılmış genişlikler.
+    pub fn from_prefs(prefs: &crate::config::state::Prefs) -> Self {
+        Self {
+            secondary: clamp_secondary_width(
+                prefs
+                    .pane_secondary_width
+                    .unwrap_or(SECONDARY_PANEL_WIDTH_DEFAULT),
+            ),
+            list: clamp_list_width(prefs.pane_list_width.unwrap_or(LIST_PANEL_WIDTH_DEFAULT)),
+        }
+    }
+}
+
+/// İkincil sütun genişliğini min/max aralığına kırpar.
+pub fn clamp_secondary_width(w: u16) -> u16 {
+    w.clamp(SECONDARY_PANEL_WIDTH_MIN, SECONDARY_PANEL_WIDTH_MAX)
+}
+
+/// Liste sütunu tercih genişliğini min/max aralığına kırpar.
+pub fn clamp_list_width(w: u16) -> u16 {
+    w.clamp(LIST_PANEL_WIDTH_MIN, LIST_PANEL_WIDTH_MAX)
+}
+
+/// Yan detay düzeninin açılabileceği en az terminal genişliği.
+///
+/// `secondary_cols`: Mağaza / yerel Komut = 1; banka Komut Rehberi = 2
+/// (kaynak + banka kategori).
+pub fn detail_side_min_width(secondary: u16, secondary_cols: u16) -> u16 {
+    CATEGORY_PANEL_WIDTH
+        .saturating_add(secondary.saturating_mul(secondary_cols))
+        .saturating_add(LIST_PANEL_MIN_WIDTH)
+        .saturating_add(STORE_DETAIL_PANEL_WIDTH)
+}
+
+/// Liste + detaya kalan alandan etkin liste genişliğini seçer.
+///
+/// Tercih edilen liste genişliği kullanılır; detay için en az
+/// [`STORE_DETAIL_PANEL_WIDTH`] bırakılır.
+pub fn fit_list_width(available_for_list_and_detail: u16, list_pref: u16) -> u16 {
+    let max_list = available_for_list_and_detail.saturating_sub(STORE_DETAIL_PANEL_WIDTH);
+    if max_list == 0 {
+        return LIST_PANEL_MIN_WIDTH;
+    }
+    clamp_list_width(list_pref)
+        .min(max_list)
+        .max(LIST_PANEL_MIN_WIDTH.min(max_list))
+}
 
 /// Liste panellerindeki `Borders::ALL` üst/alt kenarlık kalınlığı (satır).
 pub const LIST_BORDER: u16 = 1;
@@ -91,6 +178,10 @@ pub struct ClickAreas {
     pub wide: bool,
     /// Kategori panelinin bitiş sütunu (hariç); dar modda tüm genişlik.
     pub category_end_x: u16,
+    /// Paylaşılan ikincil sütun genişliği (Mağaza kategori / Komut kaynak…).
+    pub secondary_width: u16,
+    /// Liste sütunu etkin/tercih genişliği (yan detay hesaplarında).
+    pub list_width: u16,
     /// Mağaza kategori panelinin bitiş sütunu (hariç). Yalnızca mağaza
     /// sekmesinde ve geniş modda anlamlıdır.
     pub store_category_end_x: u16,
@@ -183,6 +274,27 @@ pub fn action_index_at_x(app: &App, x: u16, strip: Rect) -> Option<usize> {
     Some(entry.actions.len().saturating_sub(1))
 }
 
+/// `click_areas_ex` girdi parametreleri (clippy `too_many_arguments` kaçınır).
+#[derive(Debug, Clone, Copy)]
+pub struct ClickAreasInput {
+    /// Terminal boyutu `(genişlik, yükseklik)`.
+    pub size: (u16, u16),
+    /// Yardım paneli açık mı?
+    pub show_help: bool,
+    /// Mağaza sekmesi mi?
+    pub store_tab: bool,
+    /// Komut Rehberi sekmesi mi?
+    pub commands_tab: bool,
+    /// Eski AI sağ-detay (artık her zaman false).
+    pub tool_detail_side: bool,
+    /// AI aksiyon şeridi yüksekliği hesaba katılsın mı?
+    pub has_ai_actions: bool,
+    /// Çözülmüş sütun genişlikleri.
+    pub panes: PaneWidths,
+    /// Yan-detay eşiği için ikincil sütun sayısı (Mağaza/yerel=1, banka=2).
+    pub secondary_cols: u16,
+}
+
 /// Terminal boyutuna göre fare tıklama alanlarını hesaplar.
 ///
 /// `has_ai_actions`: seçili araçta AI aksiyon şeridi gösterilecek mi?
@@ -192,22 +304,36 @@ pub fn click_areas(
     store_tab: bool,
     tool_detail_side: bool,
 ) -> ClickAreas {
-    click_areas_ex(size, show_help, store_tab, false, tool_detail_side, false)
+    click_areas_ex(ClickAreasInput {
+        size,
+        show_help,
+        store_tab,
+        commands_tab: false,
+        tool_detail_side,
+        has_ai_actions: false,
+        panes: PaneWidths::default(),
+        secondary_cols: 1,
+    })
 }
 
-/// `has_ai_actions` ile aksiyon şeridi yüksekliğini hesaba katar.
-pub fn click_areas_ex(
-    size: (u16, u16),
-    show_help: bool,
-    store_tab: bool,
-    commands_tab: bool,
-    tool_detail_side: bool,
-    has_ai_actions: bool,
-) -> ClickAreas {
+/// Genişletilmiş tıklama alanı hesabı (Mağaza / Komut / AI şeridi / sütun prefs).
+pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
+    let ClickAreasInput {
+        size,
+        show_help,
+        store_tab,
+        commands_tab,
+        tool_detail_side,
+        has_ai_actions,
+        panes,
+        secondary_cols,
+    } = input;
     let (w, h) = size;
     let wide = w >= WIDE_MIN_WIDTH;
-    let store_detail_side = store_tab && wide && w >= STORE_DETAIL_SIDE_MIN_WIDTH;
-    let commands_detail_side = commands_tab && wide && w >= STORE_DETAIL_SIDE_MIN_WIDTH;
+    let secondary_cols = secondary_cols.max(1);
+    let store_detail_side = store_tab && wide && w >= detail_side_min_width(panes.secondary, 1);
+    let commands_detail_side =
+        commands_tab && wide && w >= detail_side_min_width(panes.secondary, secondary_cols);
     let show_detail = w >= MEDIUM_MIN_WIDTH && h >= 10;
     let tall = h >= TALL_MIN_HEIGHT;
     let actions_h = if show_detail && !store_tab && !commands_tab && has_ai_actions {
@@ -259,14 +385,34 @@ pub fn click_areas_ex(
         u16::MAX
     };
     let category_end_x = if wide { CATEGORY_PANEL_WIDTH } else { w };
-    let store_category_end_x = CATEGORY_PANEL_WIDTH + STORE_CATEGORY_PANEL_WIDTH;
+    let store_category_end_x = CATEGORY_PANEL_WIDTH.saturating_add(panes.secondary);
+    let store_list_w = if store_detail_side {
+        fit_list_width(
+            w.saturating_sub(CATEGORY_PANEL_WIDTH)
+                .saturating_sub(panes.secondary),
+            panes.list,
+        )
+    } else {
+        panes.list
+    };
     let store_apps_end_x = if store_detail_side {
-        w.saturating_sub(STORE_DETAIL_PANEL_WIDTH)
+        store_category_end_x.saturating_add(store_list_w)
     } else {
         w
     };
+    let commands_list_w = if commands_detail_side {
+        fit_list_width(
+            w.saturating_sub(CATEGORY_PANEL_WIDTH)
+                .saturating_sub(panes.secondary.saturating_mul(secondary_cols)),
+            panes.list,
+        )
+    } else {
+        panes.list
+    };
     let commands_list_end_x = if commands_detail_side {
-        w.saturating_sub(STORE_DETAIL_PANEL_WIDTH)
+        CATEGORY_PANEL_WIDTH
+            .saturating_add(panes.secondary.saturating_mul(secondary_cols))
+            .saturating_add(commands_list_w)
     } else {
         w
     };
@@ -285,6 +431,14 @@ pub fn click_areas_ex(
         content_height,
         wide,
         category_end_x,
+        secondary_width: panes.secondary,
+        list_width: if store_detail_side {
+            store_list_w
+        } else if commands_detail_side {
+            commands_list_w
+        } else {
+            panes.list
+        },
         store_category_end_x,
         store_apps_end_x,
         tools_end_x,
@@ -350,12 +504,15 @@ const _: () = assert!(
 );
 const _: () = assert!(
     STORE_DETAIL_SIDE_MIN_WIDTH
-        >= CATEGORY_PANEL_WIDTH
-            + STORE_CATEGORY_PANEL_WIDTH
+        == CATEGORY_PANEL_WIDTH
+            + SECONDARY_PANEL_WIDTH_DEFAULT
             + LIST_PANEL_MIN_WIDTH
             + STORE_DETAIL_PANEL_WIDTH
 );
+const _: () = assert!(STORE_CATEGORY_PANEL_WIDTH == SECONDARY_PANEL_WIDTH_DEFAULT);
 const _: () = assert!(STORE_DETAIL_PANEL_WIDTH == TOOL_DETAIL_PANEL_WIDTH);
+const _: () = assert!(SECONDARY_PANEL_WIDTH_DEFAULT > SECONDARY_PANEL_WIDTH_MIN);
+const _: () = assert!(LIST_PANEL_WIDTH_DEFAULT >= LIST_PANEL_WIDTH_MIN);
 
 /// Metni en fazla `max` karakter olacak şekilde keser (UTF-8 güvenli).
 pub fn truncate(text: &str, max: usize) -> String {
@@ -502,9 +659,12 @@ pub fn draw(f: &mut Frame, app: &App) {
     }
 
     let wide = area.width >= WIDE_MIN_WIDTH;
-    let store_detail_side = app.store_tab && wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH;
-    let commands_detail_side =
-        app.commands_tab && wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH;
+    let panes = app.pane_widths();
+    let store_detail_side =
+        app.store_tab && wide && area.width >= detail_side_min_width(panes.secondary, 1);
+    let commands_detail_side = app.commands_tab
+        && wide
+        && area.width >= detail_side_min_width(panes.secondary, app.pane_secondary_cols());
     let show_detail = area.width >= MEDIUM_MIN_WIDTH && area.height >= 10;
     let tall = area.height >= TALL_MIN_HEIGHT;
     let show_actions = show_detail
@@ -643,10 +803,11 @@ fn draw_search(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
+    let panes = app.pane_widths();
     if app.commands_tab {
-        draw_commands_content(f, app, area, wide);
+        draw_commands_content(f, app, area, wide, panes);
     } else if app.store_tab {
-        draw_store_content(f, app, area, wide);
+        draw_store_content(f, app, area, wide, panes);
     } else if app.settings_tab {
         if wide {
             if app.settings_side_picker_open() {
@@ -654,7 +815,7 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
                     .direction(Direction::Horizontal)
                     .constraints([
                         Constraint::Length(CATEGORY_PANEL_WIDTH),
-                        Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
+                        Constraint::Length(panes.secondary),
                         Constraint::Min(20),
                     ])
                     .split(area);
@@ -712,21 +873,29 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
 ///
 /// Dual-concept: kaynak paneli **Bilgi Bankası** ile **Sistemimde Bulunan**
 /// arasında seçim yapar; listeler birleştirilmez. Mağaza bu sekmede yok.
-fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
+/// Sütun genişlikleri Mağaza ile paylaşılan [`PaneWidths`] tercihleridir.
+fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes: PaneWidths) {
     use crate::commands::CommandsSource;
 
-    let side = wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH;
+    let secondary = panes.secondary;
+    let cols = app.pane_secondary_cols();
+    let side = wide && area.width >= detail_side_min_width(secondary, cols);
     if wide {
         if app.commands_source == CommandsSource::Bank {
             if side {
+                let after_fixed = area
+                    .width
+                    .saturating_sub(CATEGORY_PANEL_WIDTH)
+                    .saturating_sub(secondary.saturating_mul(2));
+                let list_w = fit_list_width(after_fixed, panes.list);
                 let panels = Layout::default()
                     .direction(Direction::Horizontal)
                     .constraints([
                         Constraint::Length(CATEGORY_PANEL_WIDTH),
-                        Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
-                        Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
-                        Constraint::Min(LIST_PANEL_MIN_WIDTH),
-                        Constraint::Length(STORE_DETAIL_PANEL_WIDTH),
+                        Constraint::Length(secondary),
+                        Constraint::Length(secondary),
+                        Constraint::Length(list_w),
+                        Constraint::Min(STORE_DETAIL_PANEL_WIDTH),
                     ])
                     .split(area);
                 draw_categories(f, app, panels[0]);
@@ -739,8 +908,8 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
                     .direction(Direction::Horizontal)
                     .constraints([
                         Constraint::Length(CATEGORY_PANEL_WIDTH),
-                        Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
-                        Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
+                        Constraint::Length(secondary),
+                        Constraint::Length(secondary),
                         Constraint::Min(LIST_PANEL_MIN_WIDTH),
                     ])
                     .split(area);
@@ -750,13 +919,18 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
                 draw_commands_list(f, app, panels[3]);
             }
         } else if side {
+            let after_fixed = area
+                .width
+                .saturating_sub(CATEGORY_PANEL_WIDTH)
+                .saturating_sub(secondary);
+            let list_w = fit_list_width(after_fixed, panes.list);
             let panels = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([
                     Constraint::Length(CATEGORY_PANEL_WIDTH),
-                    Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
-                    Constraint::Min(LIST_PANEL_MIN_WIDTH),
-                    Constraint::Length(STORE_DETAIL_PANEL_WIDTH),
+                    Constraint::Length(secondary),
+                    Constraint::Length(list_w),
+                    Constraint::Min(STORE_DETAIL_PANEL_WIDTH),
                 ])
                 .split(area);
             draw_categories(f, app, panels[0]);
@@ -768,7 +942,7 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
                 .direction(Direction::Horizontal)
                 .constraints([
                     Constraint::Length(CATEGORY_PANEL_WIDTH),
-                    Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
+                    Constraint::Length(secondary),
                     Constraint::Min(LIST_PANEL_MIN_WIDTH),
                 ])
                 .split(area);
@@ -1072,16 +1246,25 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
 /// kategorileri, uygulamalar ve sağda zengin detay. Daha dar geniş
 /// modda üç sütun (detay alt şeritte kalır). Dar terminalde yatay
 /// sütunlar sığmaz; kategoriler üste, uygulamalar alta yerleşir.
-fn draw_store_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
-    if wide && area.width >= STORE_DETAIL_SIDE_MIN_WIDTH {
-        // Liste dar, detay geniş: açıklama / güven / kaynak okunaklı kalsın.
+///
+/// İkincil (kategori) ve liste genişlikleri [`PaneWidths`] ile kullanıcı
+/// tarafından ayarlanır; yan detayda fazla alan detaya gider.
+fn draw_store_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes: PaneWidths) {
+    let secondary = panes.secondary;
+    if wide && area.width >= detail_side_min_width(secondary, 1) {
+        // Liste tercih genişliğinde; artan alan detaya (`Min`) gider.
+        let after_fixed = area
+            .width
+            .saturating_sub(CATEGORY_PANEL_WIDTH)
+            .saturating_sub(secondary);
+        let list_w = fit_list_width(after_fixed, panes.list);
         let panels = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
                 Constraint::Length(CATEGORY_PANEL_WIDTH),
-                Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
-                Constraint::Min(LIST_PANEL_MIN_WIDTH),
-                Constraint::Length(STORE_DETAIL_PANEL_WIDTH),
+                Constraint::Length(secondary),
+                Constraint::Length(list_w),
+                Constraint::Min(STORE_DETAIL_PANEL_WIDTH),
             ])
             .split(area);
         draw_categories(f, app, panels[0]);
@@ -1093,7 +1276,7 @@ fn draw_store_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
             .direction(Direction::Horizontal)
             .constraints([
                 Constraint::Length(CATEGORY_PANEL_WIDTH),
-                Constraint::Length(STORE_CATEGORY_PANEL_WIDTH),
+                Constraint::Length(secondary),
                 Constraint::Min(LIST_PANEL_MIN_WIDTH),
             ])
             .split(area);
@@ -2559,31 +2742,31 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
         }
     } else if app.commands_tab {
         if tight {
-            "↑↓ · / · F · ?"
+            "↑↓ · [] -= · ?"
         } else {
-            "↑↓ kaynak/liste   ←→ panel   / ara   F banka favori   C süz   Enter bilgi"
+            "↑↓ kaynak/liste   ←→ panel   [] ikincil   -= liste   / ara   F favori   ?"
         }
     } else if app.store_tab {
         match app.focus {
             PanelFocus::Category => {
                 if tight {
-                    "↑↓ · / · ?"
+                    "↑↓ · [] · ?"
                 } else {
-                    "↑↓ sekme   →/l mağaza   / ara   ? yardım"
+                    "↑↓ sekme   →/l mağaza   [] ikincil   -= liste   / ara   ?"
                 }
             }
             PanelFocus::StoreCategory => {
                 if tight {
-                    "↑↓ · / · ?"
+                    "↑↓ · [] · ?"
                 } else {
-                    "↑↓ kategori   →/l uygulamalar   / ara   ? yardım"
+                    "↑↓ kategori   →/l uygulamalar   [] ikincil   -= liste   / ara   ?"
                 }
             }
             _ => {
                 if tight {
                     "↑↓ · Enter · ?"
                 } else {
-                    "↑↓ uygulama   ←/h kategori   Enter Install   U denetle   ? yardım"
+                    "↑↓ uygulama   ←/h kategori   Enter Install   [] -= sütun   U · ?"
                 }
             }
         }
@@ -2696,6 +2879,8 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
             ("U", lang.t(Msg::HelpUpdateCheck)),
             ("O", lang.t(Msg::HelpFilePicker)),
             ("A", lang.t(Msg::HelpDefaultAi)),
+            ("[]", "ikincil"),
+            ("-=", "liste"),
         ]),
         help_line(&[
             ("Q", lang.t(Msg::HelpQuit)),
@@ -2858,8 +3043,26 @@ mod tests {
             TOOL_DETAIL_SIDE_MIN_WIDTH,
             true
         ));
-        let plain = click_areas_ex((120, 30), false, false, false, false, false);
-        let with_actions = click_areas_ex((120, 30), false, false, false, false, true);
+        let plain = click_areas_ex(ClickAreasInput {
+            size: (120, 30),
+            show_help: false,
+            store_tab: false,
+            commands_tab: false,
+            tool_detail_side: false,
+            has_ai_actions: false,
+            panes: PaneWidths::default(),
+            secondary_cols: 1,
+        });
+        let with_actions = click_areas_ex(ClickAreasInput {
+            size: (120, 30),
+            show_help: false,
+            store_tab: false,
+            commands_tab: false,
+            tool_detail_side: false,
+            has_ai_actions: true,
+            panes: PaneWidths::default(),
+            secondary_cols: 1,
+        });
         assert!(!plain.tool_detail_side);
         assert!(!with_actions.tool_detail_side);
         assert_eq!(plain.actions_height, 0);
@@ -2867,6 +3070,26 @@ mod tests {
         assert!(with_actions.content_height < plain.content_height);
         assert_eq!(with_actions.tools_end_x, 120);
         assert_eq!(STORE_DETAIL_PANEL_WIDTH, TOOL_DETAIL_PANEL_WIDTH);
+    }
+
+    #[test]
+    fn pane_widths_defaults_widen_secondary_and_cap_list() {
+        let p = PaneWidths::default();
+        assert_eq!(p.secondary, 28);
+        assert_eq!(p.list, 32);
+        assert!(p.secondary > 22, "eski 22'den daha geniş kategori");
+        // Yan detayda fazla alan detaya: list Length, detail Min.
+        let avail = 200u16 - CATEGORY_PANEL_WIDTH - p.secondary;
+        let list_w = fit_list_width(avail, p.list);
+        assert_eq!(list_w, 32);
+        assert!(avail - list_w >= STORE_DETAIL_PANEL_WIDTH);
+        assert_eq!(clamp_secondary_width(3), SECONDARY_PANEL_WIDTH_MIN);
+        assert_eq!(clamp_list_width(200), LIST_PANEL_WIDTH_MAX);
+        assert_eq!(
+            detail_side_min_width(p.secondary, 1),
+            STORE_DETAIL_SIDE_MIN_WIDTH
+        );
+        assert!(detail_side_min_width(p.secondary, 2) > STORE_DETAIL_SIDE_MIN_WIDTH);
     }
 
     #[test]
