@@ -160,7 +160,7 @@ Düzen terminal boyutuna göre üç genişlik moduna ve bir yükseklik eşiğine
 
 | Bölge | Eşik | Davranış |
 |-------|------|----------|
-| Geniş | ≥ `WIDE_MIN_WIDTH` (70) | Kategori solda; araç listesi, detay sağda. **Mağaza / Komut Rehberi:** sekme (26) + ikincil sütun (varsayılan 28, `prefs.pane_secondary_width` / `[` `]`) + liste (varsayılan 32, `prefs.pane_list_width` / `-` `=`); yan detayda fazla genişlik detaya gider |
+| Geniş | ≥ `WIDE_MIN_WIDTH` (70) | **Kurulu / Ayarlar:** sol sütun `prefs.pane_secondary_width` (varsayılan 28, `[` `]`). **Mağaza / Komut Rehberi:** sekme (26) + ikincil sütun (aynı pref) + liste (`prefs.pane_list_width`, varsayılan 32, `-` `=`); yan detayda fazla genişlik detaya gider. Sütun tuşları her sekmede çalışır |
 | Orta | 45–69 | Tek sütun; kategori adı araç paneli başlığında; detay görünür. Mağaza sekmesinde kategoriler üstte, uygulamalar altta |
 | Dar | < 45 (`MEDIUM_MIN_WIDTH`) | Yalnızca araç listesi; detay gizli; durum satırında yol gösterilmez |
 | Sıkı ipucu | < 52 (`TIGHT_HINT_WIDTH`) | Arama/yardım/durum metinleri kısa biçime düşer |
