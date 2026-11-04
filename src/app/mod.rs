@@ -86,21 +86,36 @@ enum FormOutcome {
     Review(modal::Modal),
 }
 
-/// Arka planda süren mağaza kurulum işi.
+/// Arka plan iş sonucu (mağaza veya Nova self-update).
+#[derive(Debug)]
+pub enum JobResult {
+    /// Mağaza kurulum / güncelleme / kaldırma.
+    Store(Result<crate::store::install::InstallOutcome, String>),
+    /// Nova Releases veya `cargo install --git`.
+    Nova(Result<crate::update::UpdateOutcome, String>),
+}
+
+/// Arka planda süren kurulum / güncelleme işi.
 ///
-/// İndirme ve doğrulama ağ üzerinden yapıldığı için ana döngüyü
-/// kilitlememek adına ayrı bir iş parçacığında yürütülür. Sonuç kanaldan
-/// alınır ([`App::poll_install`]).
+/// Ağ ve derleme ana döngüyü kilitlememek için ayrı iş parçacığında yürür.
+/// Canlı satırlar [`crate::progress::ProgressEvent`] ile TUI modalına akar;
+/// sonuç [`App::poll_install`] ile alınır.
 #[derive(Debug)]
 pub struct InstallJob {
-    /// Kurulan uygulamanın kimliği.
+    /// İş türü (ilerleme modalı / sonuç yolu).
+    pub kind: crate::progress::JobKind,
+    /// Kurulan uygulamanın kimliği (Nova için `"nova"`).
     pub app_id: String,
     /// Kurulan uygulamanın adı.
     pub app_name: String,
+    /// Çalışan komutun gösterim metni.
+    pub command: String,
     /// Kaldırma işi mi? (sonuç işleme yolu değişir).
     pub is_uninstall: bool,
     /// İşin sonucunu taşıyan kanal.
-    receiver: Receiver<Result<crate::store::install::InstallOutcome, String>>,
+    receiver: Receiver<JobResult>,
+    /// Canlı ilerleme olayları.
+    progress_rx: Receiver<crate::progress::ProgressEvent>,
 }
 
 /// sudo parola isteyen apt/dnf planı — ana döngüde TUI askıya alınarak çalışır.
@@ -473,17 +488,21 @@ impl App {
             Some(s) => s,
             None => return Ok(()),
         };
-        let tool_detail_side = false;
+        let tools_tab = !self.store_tab && !self.settings_tab && !self.commands_tab;
+        let has_ai_actions = tools_tab && self.selected_tool_has_ai_actions();
+        let tool_detail_side = tools_tab
+            && crate::ui::tool_detail_side_layout(
+                size.0 >= crate::ui::WIDE_MIN_WIDTH,
+                size.0,
+                has_ai_actions,
+            );
         let areas = crate::ui::click_areas_ex(crate::ui::ClickAreasInput {
             size,
             show_help: self.show_help,
             store_tab: self.store_tab,
             commands_tab: self.commands_tab,
             tool_detail_side,
-            has_ai_actions: !self.store_tab
-                && !self.settings_tab
-                && !self.commands_tab
-                && self.selected_tool_has_ai_actions(),
+            has_ai_actions,
             panes: self.pane_widths(),
             secondary_cols: self.pane_secondary_cols(),
         });
@@ -2673,6 +2692,45 @@ impl App {
         &self.hidden
     }
 
+    /// İlerleme modalını açar ve arka plan işi kaydını hazırlar.
+    fn begin_job(
+        &mut self,
+        kind: crate::progress::JobKind,
+        title: String,
+        command: String,
+        app_id: String,
+        app_name: String,
+        is_uninstall: bool,
+    ) -> (
+        mpsc::Sender<JobResult>,
+        mpsc::Sender<crate::progress::ProgressEvent>,
+    ) {
+        let (result_tx, result_rx) = mpsc::channel();
+        let (progress_tx, progress_rx) = crate::progress::progress_channel();
+        self.modal = modal::Modal::JobProgress {
+            kind,
+            title: title.clone(),
+            command: command.clone(),
+            phase: "Başlıyor".into(),
+            status_line: "hazırlanıyor…".into(),
+            log: vec![format!("$ {command}")],
+            log_scroll: 0,
+            spinner: 0,
+            done: None,
+        };
+        self.status_message = format!("{title}…");
+        self.install_job = Some(InstallJob {
+            kind,
+            app_id,
+            app_name,
+            command,
+            is_uninstall,
+            receiver: result_rx,
+            progress_rx,
+        });
+        (result_tx, progress_tx)
+    }
+
     /// Mağazadaki bir uygulamanın kurulumunu başlatır.
     ///
     /// Kurulum arka planda yürütülür: indirme, SHA-256 doğrulama ve arşiv
@@ -2712,7 +2770,6 @@ impl App {
             }
         }
 
-        let (tx, rx) = mpsc::channel();
         let app_name = entry.name.clone();
 
         if entry.install_method.is_package_manager() {
@@ -2735,23 +2792,29 @@ impl App {
                 return;
             }
             let plan_bg = plan.clone();
+            let (tx, progress_tx) = self.begin_job(
+                crate::progress::JobKind::StoreInstall,
+                format!("'{app_name}' kuruluyor"),
+                cmd,
+                id.to_string(),
+                app_name,
+                false,
+            );
             std::thread::spawn(move || {
-                let result = crate::store::install::run_package_manager_argv(
+                let _ = progress_tx.send(crate::progress::ProgressEvent::Phase(format!(
+                    "{method_label} çalışıyor"
+                )));
+                let mut on_line = |line: &str| crate::progress::emit_line(&progress_tx, line);
+                let result = crate::store::install::run_package_manager_argv_with_progress(
                     &entry,
                     &plan_bg,
                     crate::store::install::PmOperation::Install,
                     crate::store::install::PmIoMode::Captured,
+                    &mut on_line,
                 )
                 .map_err(|e| e.to_string());
-                let _ = tx.send(result);
+                let _ = tx.send(JobResult::Store(result));
             });
-            self.install_job = Some(InstallJob {
-                app_id: id.to_string(),
-                app_name: app_name.clone(),
-                is_uninstall: false,
-                receiver: rx,
-            });
-            self.status_message = format!("'{app_name}' kuruluyor ({method_label}): {cmd}...");
             return;
         }
 
@@ -2760,20 +2823,24 @@ impl App {
             return;
         };
 
+        let (tx, progress_tx) = self.begin_job(
+            crate::progress::JobKind::StoreInstall,
+            format!("'{app_name}' kuruluyor"),
+            format!("archive → {}", dest_dir.display()),
+            id.to_string(),
+            app_name,
+            false,
+        );
         std::thread::spawn(move || {
+            let _ = progress_tx.send(crate::progress::ProgressEvent::Phase("İndiriliyor".into()));
+            let _ = progress_tx.send(crate::progress::ProgressEvent::Status(
+                "SHA-256 doğrulamasıyla arşiv kurulumu…".into(),
+            ));
             let downloader = crate::store::http::HttpDownloader::new();
             let result = crate::store::install::install_app(&entry, &dest_dir, &downloader)
                 .map_err(|e| e.to_string());
-            let _ = tx.send(result);
+            let _ = tx.send(JobResult::Store(result));
         });
-
-        self.install_job = Some(InstallJob {
-            app_id: id.to_string(),
-            app_name: app_name.clone(),
-            is_uninstall: false,
-            receiver: rx,
-        });
-        self.status_message = format!("'{}' indiriliyor ve SHA-256 ile doğrulanıyor...", app_name);
     }
 
     /// Mağazadaki bir uygulamanın **yeni sürümle** güncellenmesini başlatır.
@@ -2793,7 +2860,6 @@ impl App {
         };
 
         if let Some(pm) = self.store_pm_updates.get(id).cloned() {
-            let (tx, rx) = mpsc::channel();
             let app_name = entry.name.clone();
             let cmd = pm.rendered();
             let method_label = pm.method.short_label().to_string();
@@ -2808,23 +2874,29 @@ impl App {
                     format!("'{app_name}' güncelleniyor ({method_label}, sudo TTY): {cmd}...");
                 return;
             }
+            let (tx, progress_tx) = self.begin_job(
+                crate::progress::JobKind::StoreUpdate,
+                format!("'{app_name}' güncelleniyor"),
+                cmd,
+                id.to_string(),
+                app_name,
+                false,
+            );
             std::thread::spawn(move || {
-                let result = crate::store::install::run_package_manager_argv(
+                let _ = progress_tx.send(crate::progress::ProgressEvent::Phase(format!(
+                    "{method_label} güncellemesi"
+                )));
+                let mut on_line = |line: &str| crate::progress::emit_line(&progress_tx, line);
+                let result = crate::store::install::run_package_manager_argv_with_progress(
                     &entry,
                     &plan,
                     crate::store::install::PmOperation::Upgrade,
                     crate::store::install::PmIoMode::Captured,
+                    &mut on_line,
                 )
                 .map_err(|e| e.to_string());
-                let _ = tx.send(result);
+                let _ = tx.send(JobResult::Store(result));
             });
-            self.install_job = Some(InstallJob {
-                app_id: id.to_string(),
-                app_name: app_name.clone(),
-                is_uninstall: false,
-                receiver: rx,
-            });
-            self.status_message = format!("'{app_name}' güncelleniyor ({method_label}): {cmd}...");
             return;
         }
 
@@ -2840,27 +2912,27 @@ impl App {
             return;
         };
 
-        let (tx, rx) = mpsc::channel();
         let app_name = entry.name.clone();
         let version = release.version.clone();
+        let (tx, progress_tx) = self.begin_job(
+            crate::progress::JobKind::StoreUpdate,
+            format!("'{app_name}' → {version}"),
+            format!("release → {}", dest_dir.display()),
+            id.to_string(),
+            app_name,
+            false,
+        );
         std::thread::spawn(move || {
+            let _ = progress_tx.send(crate::progress::ProgressEvent::Phase("İndiriliyor".into()));
+            let _ = progress_tx.send(crate::progress::ProgressEvent::Status(format!(
+                "{version} sürümü SHA-256 ile kuruluyor…"
+            )));
             let downloader = crate::store::http::HttpDownloader::new();
             let result =
                 crate::store::install::install_release(&entry, &dest_dir, &release, &downloader)
                     .map_err(|e| e.to_string());
-            let _ = tx.send(result);
+            let _ = tx.send(JobResult::Store(result));
         });
-
-        self.install_job = Some(InstallJob {
-            app_id: id.to_string(),
-            app_name: app_name.clone(),
-            is_uninstall: false,
-            receiver: rx,
-        });
-        self.status_message = format!(
-            "'{}' {} sürümüne güncelleniyor (SHA-256 doğrulamasıyla)...",
-            app_name, version
-        );
     }
 
     /// Arka plandaki kurulum işinin durumunu kontrol eder.
@@ -2871,23 +2943,122 @@ impl App {
         let Some(job) = self.install_job.take() else {
             return;
         };
+
+        // Canlı ilerleme olaylarını modağa aktar.
+        while let Ok(ev) = job.progress_rx.try_recv() {
+            if let modal::Modal::JobProgress {
+                phase,
+                status_line,
+                log,
+                spinner,
+                ..
+            } = &mut self.modal
+            {
+                match ev {
+                    crate::progress::ProgressEvent::Phase(p) => *phase = p,
+                    crate::progress::ProgressEvent::Status(s) => *status_line = s,
+                    crate::progress::ProgressEvent::Log(line) => {
+                        log.push(line);
+                        if log.len() > crate::progress::JOB_LOG_CAP {
+                            let drop_n = log.len() - crate::progress::JOB_LOG_CAP;
+                            log.drain(0..drop_n);
+                        }
+                    }
+                }
+                *spinner = spinner.wrapping_add(1);
+            }
+        }
+
+        // Spinner tick (olay olmasa da).
+        if let modal::Modal::JobProgress {
+            spinner,
+            done: None,
+            ..
+        } = &mut self.modal
+        {
+            *spinner = spinner.wrapping_add(1);
+        }
+
         match job.receiver.try_recv() {
-            Ok(Ok(outcome)) => {
+            Ok(JobResult::Store(Ok(outcome))) => {
+                let summary = outcome.summary.clone();
                 if job.is_uninstall {
                     self.apply_uninstall_outcome(outcome);
                 } else {
                     self.apply_install_outcome(outcome);
                 }
+                if let modal::Modal::JobProgress {
+                    phase,
+                    status_line,
+                    done,
+                    ..
+                } = &mut self.modal
+                {
+                    *phase = "Tamamlandı".into();
+                    *status_line = summary.clone();
+                    *done = Some(Ok(summary));
+                }
             }
-            Ok(Err(message)) => {
+            Ok(JobResult::Store(Err(message))) => {
                 self.status_message = format!("Hata: {message}");
+                if let modal::Modal::JobProgress {
+                    phase,
+                    status_line,
+                    done,
+                    ..
+                } = &mut self.modal
+                {
+                    *phase = "Hata".into();
+                    *status_line = message.clone();
+                    *done = Some(Err(message));
+                }
+            }
+            Ok(JobResult::Nova(Ok(outcome))) => {
+                crate::store::path::ensure_local_bin_on_process_path();
+                self.status_message = format!("✓ {}", outcome.summary);
+                if let modal::Modal::JobProgress {
+                    phase,
+                    status_line,
+                    done,
+                    ..
+                } = &mut self.modal
+                {
+                    *phase = "Tamamlandı".into();
+                    *status_line = outcome.summary.clone();
+                    *done = Some(Ok(outcome.summary));
+                }
+            }
+            Ok(JobResult::Nova(Err(message))) => {
+                self.status_message = format!("Hata: {message}");
+                if let modal::Modal::JobProgress {
+                    phase,
+                    status_line,
+                    done,
+                    ..
+                } = &mut self.modal
+                {
+                    *phase = "Hata".into();
+                    *status_line = message.clone();
+                    *done = Some(Err(message));
+                }
             }
             Err(TryRecvError::Empty) => {
                 // İş hâlâ sürüyor.
-                self.install_job = Some(job);
+                self.install_job.replace(job);
             }
             Err(TryRecvError::Disconnected) => {
                 self.status_message = "Hata: kurulum işi beklenmedik şekilde sonlandı.".into();
+                if let modal::Modal::JobProgress {
+                    phase,
+                    status_line,
+                    done,
+                    ..
+                } = &mut self.modal
+                {
+                    *phase = "Hata".into();
+                    *status_line = "iş beklenmedik şekilde sonlandı".into();
+                    *done = Some(Err("iş beklenmedik şekilde sonlandı".into()));
+                }
             }
         }
     }
@@ -2905,19 +3076,21 @@ impl App {
         let app_name = entry.name.clone();
 
         if entry.install_method.is_archive() {
-            let (tx, rx) = mpsc::channel();
+            let (tx, progress_tx) = self.begin_job(
+                crate::progress::JobKind::StoreUninstall,
+                format!("'{app_name}' kaldırılıyor"),
+                format!("archive uninstall → {id}"),
+                id.to_string(),
+                app_name.clone(),
+                true,
+            );
             std::thread::spawn(move || {
+                let _ =
+                    progress_tx.send(crate::progress::ProgressEvent::Phase("Kaldırılıyor".into()));
                 let result =
                     crate::store::install::uninstall_archive_app(&entry).map_err(|e| e.to_string());
-                let _ = tx.send(result);
+                let _ = tx.send(JobResult::Store(result));
             });
-            self.install_job = Some(InstallJob {
-                app_id: id.to_string(),
-                app_name: app_name.clone(),
-                is_uninstall: true,
-                receiver: rx,
-            });
-            self.status_message = format!("'{app_name}' kaldırılıyor...");
             return;
         }
 
@@ -2943,25 +3116,30 @@ impl App {
                     format!("'{app_name}' kaldırılıyor ({method_label}, sudo TTY): {cmd}...");
                 return;
             }
-            let (tx, rx) = mpsc::channel();
             let plan_bg = plan.clone();
+            let (tx, progress_tx) = self.begin_job(
+                crate::progress::JobKind::StoreUninstall,
+                format!("'{app_name}' kaldırılıyor"),
+                cmd.clone(),
+                id.to_string(),
+                app_name,
+                true,
+            );
             std::thread::spawn(move || {
-                let result = crate::store::install::run_package_manager_argv(
+                let _ = progress_tx.send(crate::progress::ProgressEvent::Phase(format!(
+                    "{method_label} kaldırma"
+                )));
+                let mut on_line = |line: &str| crate::progress::emit_line(&progress_tx, line);
+                let result = crate::store::install::run_package_manager_argv_with_progress(
                     &entry,
                     &plan_bg,
                     crate::store::install::PmOperation::Uninstall,
                     crate::store::install::PmIoMode::Captured,
+                    &mut on_line,
                 )
                 .map_err(|e| e.to_string());
-                let _ = tx.send(result);
+                let _ = tx.send(JobResult::Store(result));
             });
-            self.install_job = Some(InstallJob {
-                app_id: id.to_string(),
-                app_name: app_name.clone(),
-                is_uninstall: true,
-                receiver: rx,
-            });
-            self.status_message = format!("'{app_name}' kaldırılıyor ({method_label}): {cmd}...");
             return;
         }
 
@@ -3476,7 +3654,12 @@ impl App {
                 KeyCode::Enter => {
                     let action = action.clone();
                     self.confirm_action(action);
-                    take(modal::Modal::None);
+                    // `begin_job` ilerleme modalını `self.modal`e yazar; onu koru.
+                    if matches!(self.modal, modal::Modal::JobProgress { .. }) {
+                        take(std::mem::replace(&mut self.modal, modal::Modal::None));
+                    } else {
+                        take(modal::Modal::None);
+                    }
                 }
                 KeyCode::Esc | KeyCode::Char('n') | KeyCode::Char('N') => {
                     self.status_message = "İşlem iptal edildi.".into();
@@ -3792,6 +3975,36 @@ impl App {
                         take(modal::Modal::None);
                         self.check_store_updates();
                     }
+                }
+                _ => {}
+            },
+            modal::Modal::JobProgress {
+                log_scroll,
+                done,
+                log,
+                ..
+            } => match code {
+                KeyCode::Esc | KeyCode::Enter if done.is_some() => {
+                    take(modal::Modal::None);
+                }
+                KeyCode::Esc if done.is_none() => {
+                    // İş sürerken Esc paneli gizlemez; durum satırında sürer.
+                    self.status_message =
+                        "Güncelleme arka planda sürüyor — bitince durum satırına yazar.".into();
+                }
+                KeyCode::Up | KeyCode::Char('k') => {
+                    let max = log.len().saturating_sub(1) as u16;
+                    *log_scroll = (*log_scroll + 1).min(max);
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    *log_scroll = log_scroll.saturating_sub(1);
+                }
+                KeyCode::PageUp => {
+                    let max = log.len().saturating_sub(1) as u16;
+                    *log_scroll = (*log_scroll + 8).min(max);
+                }
+                KeyCode::PageDown => {
+                    *log_scroll = log_scroll.saturating_sub(8);
                 }
                 _ => {}
             },
@@ -4159,39 +4372,63 @@ impl App {
                     release.asset_name.as_deref(),
                 ) {
                     (Some(url), Some(asset)) => {
-                        match crate::update::install_nova_from_url(&release.version, url, asset) {
-                            Ok(outcome) => {
-                                crate::store::path::ensure_local_bin_on_process_path();
-                                self.status_message = format!("✓ {}", outcome.summary);
-                            }
-                            Err(e) => {
-                                self.status_message =
-                                    format!("Hata: Nova v{version} kurulamadı: {e}");
-                            }
+                        if self.install_job.is_some() || self.pending_tty_pm.is_some() {
+                            self.status_message =
+                                "Zaten süren bir kurulum var; önce onun bitmesini bekle.".into();
+                            return;
                         }
+                        let ver = release.version.clone();
+                        let url = url.to_string();
+                        let asset = asset.to_string();
+                        let (tx, progress_tx) = self.begin_job(
+                            crate::progress::JobKind::NovaRelease,
+                            format!("Nova v{version} kuruluyor"),
+                            format!("download {asset}"),
+                            "nova".into(),
+                            "Nova".into(),
+                            false,
+                        );
+                        std::thread::spawn(move || {
+                            let _ = progress_tx
+                                .send(crate::progress::ProgressEvent::Phase("İndiriliyor".into()));
+                            let _ = progress_tx.send(crate::progress::ProgressEvent::Log(format!(
+                                "İndiriliyor: {url}"
+                            )));
+                            let result = crate::update::install_nova_from_url(&ver, &url, &asset);
+                            let _ = tx.send(JobResult::Nova(result));
+                        });
                     }
                     _ => {
                         self.status_message = format!(
-                            "Hata: Nova v{version} yayında indirilebilir Linux ikilisi yok. \
-                             G ile repo main’den cargo install deneyin."
+                            "Hata: Nova v{version} yayında indirilebilir Linux ikilisi yok.                              G ile repo main’den cargo install deneyin."
                         );
                     }
                 }
             }
             modal::ConfirmAction::InstallRepoUpdate { plan } => {
-                self.status_message = format!(
-                    "Nova kaynak güncellemesi sürüyor (ağ + derleme): {} …",
-                    plan.command_display
-                );
-                match crate::update::install_nova_from_git(&plan) {
-                    Ok(outcome) => {
-                        crate::store::path::ensure_local_bin_on_process_path();
-                        self.status_message = format!("✓ {}", outcome.summary);
-                    }
-                    Err(e) => {
-                        self.status_message = format!("Hata: kaynak güncellemesi başarısız: {e}");
-                    }
+                if self.install_job.is_some() || self.pending_tty_pm.is_some() {
+                    self.status_message =
+                        "Zaten süren bir kurulum var; önce onun bitmesini bekle.".into();
+                    return;
                 }
+                let cmd = plan.command_display.clone();
+                let (tx, progress_tx) = self.begin_job(
+                    crate::progress::JobKind::NovaRepo,
+                    "Nova kaynak güncellemesi".into(),
+                    cmd,
+                    "nova".into(),
+                    "Nova".into(),
+                    false,
+                );
+                std::thread::spawn(move || {
+                    let _ = progress_tx.send(crate::progress::ProgressEvent::Phase(
+                        "Kaynak alınıyor".into(),
+                    ));
+                    let mut on_line = |line: &str| crate::progress::emit_line(&progress_tx, line);
+                    let result =
+                        crate::update::install_nova_from_git_with_progress(&plan, &mut on_line);
+                    let _ = tx.send(JobResult::Nova(result));
+                });
             }
         }
     }

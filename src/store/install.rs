@@ -845,6 +845,18 @@ pub fn run_package_manager_argv(
     op: PmOperation,
     io: PmIoMode,
 ) -> Result<InstallOutcome, InstallError> {
+    run_package_manager_argv_with_progress(entry, plan, op, io, &mut |_| {})
+}
+
+/// [`run_package_manager_argv`] + yakalanan her çıktı satırı için geri çağırım
+/// (TUI ilerleme günlüğü). `Inherited` (sudo TTY) modunda satır yayılmaz.
+pub fn run_package_manager_argv_with_progress(
+    entry: &StoreEntry,
+    plan: &InstallPlan,
+    op: PmOperation,
+    io: PmIoMode,
+    on_line: &mut dyn FnMut(&str),
+) -> Result<InstallOutcome, InstallError> {
     let argv = &plan.argv;
     match op {
         PmOperation::Upgrade => {
@@ -897,36 +909,29 @@ pub fn run_package_manager_argv(
         cmd.env("npm_config_ignore_scripts", "false");
     }
 
-    let status = match io {
+    match io {
         PmIoMode::Captured => {
-            // `output()` stdout/stderr’i yakalar; parola istenen sudo için uygun değil.
-            let output = cmd
-                .stdin(Stdio::null())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .output()
-                .map_err(|e| InstallError::Internal(format!("'{rendered}' başlatılamadı: {e}")))?;
-            if !output.status.success() {
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                let detail = if !stderr.trim().is_empty() {
-                    stderr.trim().to_string()
-                } else if !stdout.trim().is_empty() {
-                    stdout.trim().to_string()
-                } else {
-                    format!("çıkış kodu {:?}", output.status.code())
-                };
-                let hint = if plan.method.needs_elevated_tty() || plan.uses_sudo() {
-                    " (sudo parola veya TTY gerekebilir; Nova onayda TUI’yi bırakır — \
-                      gerekirse komutu ayrı bir terminalde deneyin)"
-                } else {
-                    ""
-                };
-                return Err(InstallError::Internal(format!(
-                    "'{rendered}' başarısız{hint}: {detail}"
-                )));
+            // stdout/stderr yakalanır ve satır satır ilerleme kanalına gider;
+            // ham cargo/PM spam’i TUI alternate screen’e dökülmez.
+            let args: Vec<String> = args.to_vec();
+            let mut envs: Vec<(&str, &str)> = Vec::new();
+            if plan.method == InstallMethod::Npm
+                && matches!(op, PmOperation::Install | PmOperation::Upgrade)
+            {
+                envs.push(("npm_config_optional", "true"));
+                envs.push(("npm_config_ignore_scripts", "false"));
             }
-            output.status
+            crate::progress::run_command_streaming(program, &args, &envs, on_line).map_err(
+                |detail| {
+                    let hint = if plan.method.needs_elevated_tty() || plan.uses_sudo() {
+                        " (sudo parola veya TTY gerekebilir; Nova onayda TUI’yi bırakır — \
+                          gerekirse komutu ayrı bir terminalde deneyin)"
+                    } else {
+                        ""
+                    };
+                    InstallError::Internal(format!("'{rendered}' başarısız{hint}: {detail}"))
+                },
+            )?;
         }
         PmIoMode::Inherited => {
             // `status()` stdio’yu korur; parola istemi /dev/tty veya inherit ile çalışır.
@@ -945,10 +950,8 @@ pub fn run_package_manager_argv(
                     status.code()
                 )));
             }
-            status
         }
     };
-    let _ = status;
 
     let install_dir = crate::store::store_app_dir(&entry.id).unwrap_or_else(|| PathBuf::from("."));
     let mut executable_path = crate::detection::resolve(&entry.executable)

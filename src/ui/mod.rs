@@ -2,9 +2,10 @@
 //! Ratatui tabanlı terminal arayüzünün çizim işlevlerini içerir.
 //!
 //! Düzen terminal boyutuna göre üç kademede uyarlanır:
-//! - **Geniş (≥ 70 sütun):** kategori paneli solda, araç listesi sağda.
-//!   AI aracı seçiliyken liste ile Detay arasında yatay **aksiyon şeridi**
-//!   vardır (adın altına gömülmez; uzak sütun da değil).
+//! - **Geniş (≥ 70 sütun):** kategori paneli solda, araç listesi ortada.
+//!   Yeterince genişken (`≥ TOOL_DETAIL_SIDE_MIN_WIDTH`) Detay sağda —
+//!   Mağaza yan-detay düzeniyle aynı. AI aracı seçiliyken içerik satırının
+//!   altında yatay **aksiyon şeridi** vardır.
 //! - **Orta (45–69 sütun):** tek sütun; kategori başlık satırında gösterilir,
 //!   araç listesi, aksiyon şeridi (AI) ve alt detay alanı görünür.
 //! - **Dar (< 45 sütun):** yalnızca araç listesi; detay ve büyük yardım
@@ -86,10 +87,13 @@ pub const DETAIL_ROWS: u16 = 10;
 ///
 /// Kenarlık + tek satır etiketler; etiketler kısaltılmadan yatay dizilir.
 pub const ACTIONS_STRIP_ROWS: u16 = 3;
-/// Araç detay paneli genişliği (mağaza detayıyla aynı; yan sütun artık yok).
+/// Araç detay paneli genişliği (mağaza detayıyla aynı).
 pub const TOOL_DETAIL_PANEL_WIDTH: u16 = 72;
-/// Eski sağ-detay eşiği (API uyumu). AI düzeni artık alt şerit kullanır.
-pub const TOOL_DETAIL_SIDE_MIN_WIDTH: u16 = 112;
+/// Kurulu araçlar: sekme | liste | yan detay için en az genişlik
+/// (`CATEGORY` + `LIST_MIN` + `TOOL_DETAIL` = Mağaza yan-detay eşiğiyle aynı
+/// detay cömertliği; ikincil kategori sütunu yok).
+pub const TOOL_DETAIL_SIDE_MIN_WIDTH: u16 =
+    CATEGORY_PANEL_WIDTH + LIST_PANEL_MIN_WIDTH + TOOL_DETAIL_PANEL_WIDTH;
 /// Mağaza detay panelinin satır sayısı (üst kenarlık dâhil; dar/orta düzen).
 ///
 /// Geniş terminalde detay sağ panele taşınır; bu yükseklik yalnızca
@@ -200,7 +204,7 @@ pub struct ClickAreas {
     pub commands_detail_side: bool,
     /// Komut listesinin bitiş sütunu (hariç); yan detay açıkken daralır.
     pub commands_list_end_x: u16,
-    /// Geniş araç sekmesinde AI detay sağda mı? (artık her zaman false).
+    /// Geniş Kurulu sekmesinde detay sağda mı? (Mağaza yan-detay düzeni).
     pub tool_detail_side: bool,
     /// AI aksiyon şeridinin üst satırı (yoksa `u16::MAX`).
     pub actions_top: u16,
@@ -208,11 +212,13 @@ pub struct ClickAreas {
     pub actions_height: u16,
 }
 
-/// Eski sağ-panel düzeni kaldırıldı: AI aksiyonları yatay şeritte, detay altta.
+/// Kurulu araçlarda Mağaza ile aynı yan-detay düzeni açılsın mı?
 ///
-/// Geriye dönük test / API uyumu için her zaman `false` döner.
-pub fn tool_detail_side_layout(_wide: bool, _width: u16, _has_ai_actions: bool) -> bool {
-    false
+/// Geniş terminalde (`≥ TOOL_DETAIL_SIDE_MIN_WIDTH`) detay sağ sütunda;
+/// AI aksiyonları yine yatay şeritte kalır (detayın altında değil, içerik
+/// satırının altında). Dar/orta düzende detay alt şeritte kalır.
+pub fn tool_detail_side_layout(wide: bool, width: u16, _has_ai_actions: bool) -> bool {
+    wide && width >= TOOL_DETAIL_SIDE_MIN_WIDTH
 }
 
 /// Kurulu araç listesinde görünen satır (yalnızca araç; aksiyonlar şeritte).
@@ -285,7 +291,7 @@ pub struct ClickAreasInput {
     pub store_tab: bool,
     /// Komut Rehberi sekmesi mi?
     pub commands_tab: bool,
-    /// Eski AI sağ-detay (artık her zaman false).
+    /// Kurulu yan-detay düzeni (geniş terminal).
     pub tool_detail_side: bool,
     /// AI aksiyon şeridi yüksekliği hesaba katılsın mı?
     pub has_ai_actions: bool,
@@ -416,8 +422,13 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
     } else {
         w
     };
+    let tools_list_w = if tool_detail_side {
+        fit_list_width(w.saturating_sub(CATEGORY_PANEL_WIDTH), panes.list)
+    } else {
+        panes.list
+    };
     let tools_end_x = if tool_detail_side {
-        w.saturating_sub(TOOL_DETAIL_PANEL_WIDTH)
+        CATEGORY_PANEL_WIDTH.saturating_add(tools_list_w)
     } else {
         w
     };
@@ -436,6 +447,8 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
             store_list_w
         } else if commands_detail_side {
             commands_list_w
+        } else if tool_detail_side {
+            tools_list_w
         } else {
             panes.list
         },
@@ -665,16 +678,15 @@ pub fn draw(f: &mut Frame, app: &App) {
     let commands_detail_side = app.commands_tab
         && wide
         && area.width >= detail_side_min_width(panes.secondary, app.pane_secondary_cols());
+    let tools_tab = !app.store_tab && !app.settings_tab && !app.commands_tab;
+    let tool_detail_side =
+        tools_tab && tool_detail_side_layout(wide, area.width, app.selected_tool_has_ai_actions());
     let show_detail = area.width >= MEDIUM_MIN_WIDTH && area.height >= 10;
     let tall = area.height >= TALL_MIN_HEIGHT;
-    let show_actions = show_detail
-        && !app.store_tab
-        && !app.settings_tab
-        && !app.commands_tab
-        && app.selected_tool_has_ai_actions();
+    let show_actions = show_detail && tools_tab && app.selected_tool_has_ai_actions();
     let actions_h = if show_actions { ACTIONS_STRIP_ROWS } else { 0 };
 
-    // Detay: geniş mağaza / Komut Rehberi sağ sütun; araçta alt şerit.
+    // Detay: geniş mağaza / Komut Rehberi / Kurulu sağ sütun; dar/orta alt şerit.
     let detail_h = if show_detail {
         if app.store_tab {
             if store_detail_side {
@@ -694,7 +706,7 @@ pub fn draw(f: &mut Frame, app: &App) {
                         .saturating_sub(CONTENT_MIN_HEIGHT + 3 + actions_h),
                 )
             }
-        } else if app.settings_tab {
+        } else if app.settings_tab || tool_detail_side {
             0
         } else {
             DETAIL_ROWS
@@ -709,7 +721,7 @@ pub fn draw(f: &mut Frame, app: &App) {
     // satırlar kırpılır (bkz. `draw_help`).
     let help_height = if app.show_help {
         let reserved = 1 + 1 + CONTENT_MIN_HEIGHT + if show_detail { 2 } else { 0 } + 1;
-        let reserved = if app.store_tab || actions_h > 0 {
+        let reserved = if app.store_tab || app.commands_tab || tool_detail_side || actions_h > 0 {
             1 + 1 + CONTENT_MIN_HEIGHT + actions_h + detail_h + 1
         } else {
             reserved
@@ -853,16 +865,34 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
             draw_settings_panel(f, app, area);
         }
     } else if wide {
-        // Sekme | liste; AI aksiyonları alt şeritte, detay onun altında.
-        let panels = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([
-                Constraint::Length(CATEGORY_PANEL_WIDTH),
-                Constraint::Min(20),
-            ])
-            .split(area);
-        draw_categories(f, app, panels[0]);
-        draw_tools(f, app, panels[1]);
+        // Mağaza ile aynı yan-detay: sekme | liste | detay (geniş).
+        // AI aksiyonları içerik satırının altındaki yatay şeritte kalır.
+        let panes = app.pane_widths();
+        if tool_detail_side_layout(true, area.width, app.selected_tool_has_ai_actions()) {
+            let list_w =
+                fit_list_width(area.width.saturating_sub(CATEGORY_PANEL_WIDTH), panes.list);
+            let panels = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([
+                    Constraint::Length(CATEGORY_PANEL_WIDTH),
+                    Constraint::Length(list_w),
+                    Constraint::Min(TOOL_DETAIL_PANEL_WIDTH),
+                ])
+                .split(area);
+            draw_categories(f, app, panels[0]);
+            draw_tools(f, app, panels[1]);
+            draw_tool_detail_info(f, app, panels[2], true);
+        } else {
+            let panels = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([
+                    Constraint::Length(CATEGORY_PANEL_WIDTH),
+                    Constraint::Min(20),
+                ])
+                .split(area);
+            draw_categories(f, app, panels[0]);
+            draw_tools(f, app, panels[1]);
+        }
     } else {
         // Tek sütun: kategori seçimi başlıkta özetlenir.
         draw_tools(f, app, area);
@@ -3035,12 +3065,17 @@ mod tests {
     }
 
     #[test]
-    fn ai_actions_use_horizontal_strip_not_side_panel() {
-        // Sağ aksiyon/detay sütunu yok; şerit + alt Detay.
-        assert!(!tool_detail_side_layout(true, 200, true));
-        assert!(!tool_detail_side_layout(
+    fn installed_detail_uses_side_panel_like_store_when_wide() {
+        // Geniş Kurulu: yan detay; AI aksiyonları yatay şeritte kalır.
+        assert!(tool_detail_side_layout(true, 200, true));
+        assert!(tool_detail_side_layout(
             true,
             TOOL_DETAIL_SIDE_MIN_WIDTH,
+            false
+        ));
+        assert!(!tool_detail_side_layout(
+            true,
+            TOOL_DETAIL_SIDE_MIN_WIDTH.saturating_sub(1),
             true
         ));
         let plain = click_areas_ex(ClickAreasInput {
@@ -3048,7 +3083,7 @@ mod tests {
             show_help: false,
             store_tab: false,
             commands_tab: false,
-            tool_detail_side: false,
+            tool_detail_side: true,
             has_ai_actions: false,
             panes: PaneWidths::default(),
             secondary_cols: 1,
@@ -3058,18 +3093,27 @@ mod tests {
             show_help: false,
             store_tab: false,
             commands_tab: false,
-            tool_detail_side: false,
+            tool_detail_side: true,
             has_ai_actions: true,
             panes: PaneWidths::default(),
             secondary_cols: 1,
         });
-        assert!(!plain.tool_detail_side);
-        assert!(!with_actions.tool_detail_side);
+        assert!(plain.tool_detail_side);
+        assert!(with_actions.tool_detail_side);
         assert_eq!(plain.actions_height, 0);
         assert_eq!(with_actions.actions_height, ACTIONS_STRIP_ROWS);
         assert!(with_actions.content_height < plain.content_height);
-        assert_eq!(with_actions.tools_end_x, 120);
+        assert!(plain.tools_end_x < 120);
+        assert_eq!(
+            plain.tools_end_x,
+            CATEGORY_PANEL_WIDTH
+                + fit_list_width(120 - CATEGORY_PANEL_WIDTH, PaneWidths::default().list)
+        );
         assert_eq!(STORE_DETAIL_PANEL_WIDTH, TOOL_DETAIL_PANEL_WIDTH);
+        assert_eq!(
+            TOOL_DETAIL_SIDE_MIN_WIDTH,
+            CATEGORY_PANEL_WIDTH + LIST_PANEL_MIN_WIDTH + TOOL_DETAIL_PANEL_WIDTH
+        );
     }
 
     #[test]

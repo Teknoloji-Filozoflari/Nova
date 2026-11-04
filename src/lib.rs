@@ -23,6 +23,7 @@ pub mod file_picker;
 pub mod i18n;
 pub mod launcher;
 pub mod media_launcher;
+pub mod progress;
 pub mod store;
 pub mod terminal_guard;
 pub mod ui;

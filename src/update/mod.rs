@@ -206,27 +206,30 @@ impl RepoUpdatePlan {
 
 /// `cargo install --git` ile Nova’yı main (veya seçili dal) üzerinden kurar.
 ///
-/// Kullanıcı onayı alınmış olmalıdır. `sudo` kullanılmaz.
+/// Kullanıcı onayı alınmış olmalıdır. `sudo` kullanılmaz. stdout/stderr
+/// yakalanır — ham derleme çıktısı TUI’ye dökülmez.
 pub fn install_nova_from_git(plan: &RepoUpdatePlan) -> Result<UpdateOutcome, String> {
+    install_nova_from_git_with_progress(plan, &mut |_| {})
+}
+
+/// [`install_nova_from_git`] + her çıktı satırı için geri çağırım (TUI günlüğü).
+pub fn install_nova_from_git_with_progress(
+    plan: &RepoUpdatePlan,
+    on_line: &mut dyn FnMut(&str),
+) -> Result<UpdateOutcome, String> {
     which_cargo()?;
-    let status = std::process::Command::new("cargo")
-        .args([
-            "install",
-            "--git",
-            &plan.git_url,
-            "--branch",
-            &plan.branch,
-            "--force",
-            "--locked",
-        ])
-        .status()
-        .map_err(|e| format!("cargo başlatılamadı: {e}"))?;
-    if !status.success() {
-        return Err(format!(
-            "cargo install başarısız (çıkış {:?}). Ağ / toolchain / derleme hatası olabilir.",
-            status.code()
-        ));
-    }
+    let args = vec![
+        "install".into(),
+        "--git".into(),
+        plan.git_url.clone(),
+        "--branch".into(),
+        plan.branch.clone(),
+        "--force".into(),
+        "--locked".into(),
+    ];
+    on_line(&format!("$ {}", plan.command_display));
+    crate::progress::run_command_streaming("cargo", &args, &[], on_line)
+        .map_err(|e| format!("{e}. Ağ / toolchain / derleme hatası olabilir."))?;
     let version = Version::parse(env!("CARGO_PKG_VERSION")).unwrap_or_default();
     let bin_dir = crate::store::path::user_local_bin_dir()
         .or_else(|| {

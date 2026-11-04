@@ -8,6 +8,7 @@
 
 use super::form::{ToolForm, ValidTool};
 use crate::file_picker::FilePickerState;
+use crate::progress::JobKind;
 use crate::update::{GitHubRelease, UpdateCheck, Version};
 use std::path::PathBuf;
 
@@ -131,6 +132,27 @@ pub enum Modal {
         name: String,
         /// Seçili satır: 0 = Kaldır, 1 = Güncelleme denetle.
         index: usize,
+    },
+    /// Arka plan kurulum / güncelleme ilerlemesi (cargo spam yok; TUI içinde).
+    JobProgress {
+        /// İş türü.
+        kind: JobKind,
+        /// Modal başlığı.
+        title: String,
+        /// Çalışan komut (gösterim).
+        command: String,
+        /// Faz etiketi (Derleniyor / İndiriliyor…).
+        phase: String,
+        /// Kısa durum satırı.
+        status_line: String,
+        /// Kaydırılabilir iş günlüğü.
+        log: Vec<String>,
+        /// Günlük kaydırma (alttan yukarı satır sayısı).
+        log_scroll: u16,
+        /// Spinner karesi.
+        spinner: u8,
+        /// Bittiğinde `Ok(özet)` / `Err(mesaj)`; `None` = sürüyor.
+        done: Option<Result<String, String>>,
     },
 }
 
