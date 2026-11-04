@@ -125,6 +125,47 @@ pub fn catalog_matches_store(catalog_id: &str, catalog_exe: &str, store: &StoreE
     catalog_id == store.id || (!store.executable.is_empty() && catalog_exe == store.executable)
 }
 
+/// Kurulu araç için Mağaza kataloğu eşleşmesi (`id`, yoksa `executable`).
+///
+/// Önce kimlik, sonra ikili adı. Özel argv’li katalog sarmalayıcıları
+/// (`cloudflare-speed-test` → `curl` gibi) ikili eşleşmesine girmez; böylece
+/// Mağaza’daki asıl uygulamanın açıklaması yanlışlıkla gösterilmez.
+pub fn find_store_for_catalog_tool<'a>(
+    store_entries: &'a [StoreEntry],
+    catalog_id: &str,
+    catalog_exe: &str,
+    catalog_args: &[String],
+) -> Option<&'a StoreEntry> {
+    if let Some(by_id) = store_entries.iter().find(|e| e.id == catalog_id) {
+        return Some(by_id);
+    }
+    if !catalog_args.is_empty() {
+        return None;
+    }
+    let exe = catalog_exe.trim();
+    if exe.is_empty() {
+        return None;
+    }
+    store_entries
+        .iter()
+        .find(|e| !e.executable.is_empty() && e.executable == exe)
+}
+
+/// Kurulu detayda gösterilecek açıklama: Mağaza eşleşmesi varsa onun metni,
+/// yoksa katalog açıklaması. Boş Mağaza metninde kataloğa düşülür; uydurma yok.
+pub fn detail_description_for_tool<'a>(
+    catalog_description: &'a str,
+    store: Option<&'a StoreEntry>,
+) -> &'a str {
+    match store
+        .map(|e| e.description.trim())
+        .filter(|d| !d.is_empty())
+    {
+        Some(desc) => desc,
+        None => catalog_description,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -184,5 +225,48 @@ mod tests {
         assert!(catalog_matches_store("other-id", "qwen", &store));
         assert!(!catalog_matches_store("other", "other-exe", &store));
         assert!(catalog_matches_store("qwen-code", "anything", &store));
+    }
+
+    #[test]
+    fn find_store_prefers_id_then_executable() {
+        let entries = vec![
+            sample("bottom", "Sistem", "btm"),
+            sample("curl", "Ağ", "curl"),
+        ];
+        let by_id = find_store_for_catalog_tool(&entries, "bottom", "btm", &[]).unwrap();
+        assert_eq!(by_id.id, "bottom");
+
+        let by_exe = find_store_for_catalog_tool(&entries, "btm", "btm", &[]).unwrap();
+        assert_eq!(by_exe.id, "bottom");
+        assert_eq!(by_exe.executable, "btm");
+    }
+
+    #[test]
+    fn find_store_skips_executable_match_when_catalog_has_args() {
+        let entries = vec![sample("curl", "Ağ", "curl")];
+        let args = vec!["-fsSL".into(), "https://example.com".into()];
+        assert!(
+            find_store_for_catalog_tool(&entries, "cloudflare-speed-test", "curl", &args).is_none(),
+            "özel argv’li sarmalayıcı curl Mağaza kaydına bağlanmamalı"
+        );
+    }
+
+    #[test]
+    fn detail_description_uses_store_when_present() {
+        let mut entry = sample("fzf", "Dosya", "fzf");
+        entry.description = "Mağaza uzun açıklaması.".into();
+        assert_eq!(
+            detail_description_for_tool("katalog kısa", Some(&entry)),
+            "Mağaza uzun açıklaması."
+        );
+        assert_eq!(
+            detail_description_for_tool("katalog kısa", None),
+            "katalog kısa"
+        );
+        entry.description = "   ".into();
+        assert_eq!(
+            detail_description_for_tool("katalog kısa", Some(&entry)),
+            "katalog kısa"
+        );
     }
 }
