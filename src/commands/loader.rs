@@ -208,11 +208,11 @@ mod tests {
             bank.command_count.unwrap_or(bank.commands.len()),
             bank.commands.len()
         );
-        // Canlı banka schema v2 + beklenen digest (Nova-Commands #16).
+        // Canlı banka schema v2 + beklenen digest (Nova-Commands #17 / Faz 4).
         assert_eq!(bank.schema_version, 2);
         assert_eq!(
             man.content_sha256,
-            "8e96bcdb478208734bf30ddc1ecfa95fca585a5809819dc4d14f8f6b82471418"
+            "f57c17a45da45ab0d41100c6a855705a808f971b7673b8a88beadff0d701ff1f"
         );
         let with_refs = bank
             .commands
@@ -220,11 +220,16 @@ mod tests {
             .filter(|c| !c.package_refs.is_empty())
             .count();
         assert!(with_refs > 0, "package_refs beklenirdi");
+        // Prefer a multi-distro sample (e.g. git); apk-only rows also carry package_refs.
         let sample = bank
             .commands
             .iter()
-            .find(|c| !c.package_refs.is_empty())
-            .expect("ref");
+            .find(|c| {
+                c.package_refs
+                    .iter()
+                    .any(|r| matches!(r.manager.as_str(), "pacman" | "apt" | "dnf"))
+            })
+            .expect("pacman/apt/dnf ref");
         let pairs = sample.package_labeled_pairs(true);
         assert!(!pairs.is_empty());
         assert!(

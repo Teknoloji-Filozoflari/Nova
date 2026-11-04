@@ -1,11 +1,187 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-04T18:56:43Z",
-  "content_sha256": "8e96bcdb478208734bf30ddc1ecfa95fca585a5809819dc4d14f8f6b82471418",
-  "command_count": 143,
-  "concept_count": 12,
+  "generated_at": "2026-11-04T19:11:41Z",
+  "content_sha256": "f57c17a45da45ab0d41100c6a855705a808f971b7673b8a88beadff0d701ff1f",
+  "command_count": 162,
+  "concept_count": 13,
   "commands": [
+    {
+      "schema_version": 2,
+      "id": "apk",
+      "name": "apk",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Alpine Linux paket yöneticisi (apk).",
+        "en": "Alpine Linux package manager (apk)."
+      },
+      "description": {
+        "tr": "apk (Alpine Package Keeper) Alpine Linux’un sistem paket yöneticisidir. Hafif konteyner imajlarında da yaygındır. Android APK dosya formatı ile karıştırılmamalıdır.",
+        "en": "apk (Alpine Package Keeper) is Alpine Linux’s system package manager. It is also common in minimal container images. Do not confuse it with Android APK application packages."
+      },
+      "tags": [
+        "packages",
+        "alpine"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "apk",
+          "package": "apk-tools",
+          "distributions": [
+            "alpine"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Alpine tabanında gelir. Arch host’ta sistem PM değildir; Arch için pacman kullanın.",
+        "en": "Ships with Alpine. Not a system PM on Arch hosts; use pacman there."
+      },
+      "flags": [
+        {
+          "flag": "update",
+          "meaning": {
+            "tr": "İndeks yenile.",
+            "en": "Refresh package indexes."
+          },
+          "verified": false
+        },
+        {
+          "flag": "upgrade",
+          "meaning": {
+            "tr": "Kurulu paketleri yükselt.",
+            "en": "Upgrade installed packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "add",
+          "meaning": {
+            "tr": "Paket kur.",
+            "en": "Install packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "del",
+          "meaning": {
+            "tr": "Paket kaldır.",
+            "en": "Remove packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "Ara.",
+            "en": "Search packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "info",
+          "meaning": {
+            "tr": "Paket bilgisi.",
+            "en": "Show package information."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Güncelle + yükselt",
+            "en": "Update + upgrade"
+          },
+          "command": "sudo apk update && sudo apk upgrade",
+          "explanation": {
+            "tr": "İndeksleri yeniler ve paketleri yükseltir.",
+            "en": "Refreshes indexes and upgrades packages."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Kur",
+            "en": "Install"
+          },
+          "command": "sudo apk add curl",
+          "explanation": {
+            "tr": "curl kurar.",
+            "en": "Installs curl."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "apk search ripgrep",
+          "explanation": {
+            "tr": "Depoda ara.",
+            "en": "Search repositories."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Bilgi",
+            "en": "Info"
+          },
+          "command": "apk info -e curl",
+          "explanation": {
+            "tr": "curl kurulu mu kontrol eder.",
+            "en": "Checks whether curl is installed."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "pacman",
+        "apt",
+        "opkg"
+      ],
+      "intent": {
+        "tr": [
+          "alpine paket kur",
+          "apk add",
+          "apk güncelle"
+        ],
+        "en": [
+          "apk add",
+          "alpine install",
+          "apk upgrade"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper",
+          "https://docs.alpinelinux.org/user-handbook/0.1a/Working/apk.html"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
     {
       "schema_version": 2,
       "id": "apt",
@@ -113,10 +289,12 @@
         }
       ],
       "related": [
-        "apt-get",
         "dpkg",
         "pacman",
-        "dnf"
+        "dnf",
+        "zypper",
+        "apk",
+        "opkg"
       ],
       "intent": {
         "tr": [
@@ -139,7 +317,8 @@
       "nova": {
         "concepts": [
           "packages",
-          "package-managers"
+          "package-managers",
+          "package-managers-comparison"
         ]
       }
     },
@@ -2775,10 +2954,11 @@
         }
       ],
       "related": [
-        "yum",
         "rpm",
         "pacman",
-        "apt"
+        "apt",
+        "zypper",
+        "rpm-ostree"
       ],
       "intent": {
         "tr": [
@@ -2801,7 +2981,8 @@
       "nova": {
         "concepts": [
           "packages",
-          "package-managers"
+          "package-managers",
+          "package-managers-comparison"
         ]
       }
     },
@@ -3216,9 +3397,9 @@
       ],
       "related": [
         "apt",
-        "apt-get",
         "rpm",
-        "pacman"
+        "pacman",
+        "apk"
       ],
       "intent": {
         "tr": [
@@ -3241,7 +3422,8 @@
       "nova": {
         "concepts": [
           "packages",
-          "package-managers"
+          "package-managers",
+          "package-managers-comparison"
         ]
       }
     },
@@ -3502,6 +3684,186 @@
     },
     {
       "schema_version": 2,
+      "id": "emerge",
+      "name": "emerge",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Gentoo Portage paket kurucu (emerge).",
+        "en": "Gentoo Portage package tool (emerge)."
+      },
+      "description": {
+        "tr": "emerge, Gentoo’nun Portage sisteminin birincil CLI aracıdır. Kaynak tabanlı derleme, USE bayrakları ve `@world` güncellemeleri önemlidir. `ebuild` düşük seviye yardımcıdır; günlük işlerde emerge kullanılır.",
+        "en": "emerge is the primary CLI for Gentoo’s Portage system. Source builds, USE flags, and `@world` updates matter. `ebuild` is a lower-level helper; everyday work uses emerge."
+      },
+      "tags": [
+        "packages",
+        "gentoo",
+        "portage"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "portage",
+          "package": "portage",
+          "distributions": [
+            "gentoo"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Gentoo tabanında Portage/emerge gelir. Arch host’ta sistem PM değildir; Arch için pacman.",
+        "en": "Gentoo ships Portage/emerge. Not a system PM on Arch; use pacman."
+      },
+      "flags": [
+        {
+          "flag": "--sync",
+          "meaning": {
+            "tr": "ebuild ağacını senkronize et.",
+            "en": "Sync the ebuild tree."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--ask / -a",
+          "meaning": {
+            "tr": "Onay sor.",
+            "en": "Ask before performing actions."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--verbose / -v",
+          "meaning": {
+            "tr": "Ayrıntılı çıktı.",
+            "en": "Verbose output."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--search / -s",
+          "meaning": {
+            "tr": "Paket ara.",
+            "en": "Search packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--unmerge / -C",
+          "meaning": {
+            "tr": "Kaldır (dikkat).",
+            "en": "Unmerge/remove (careful)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-uDN @world",
+          "meaning": {
+            "tr": "Dünya setini yükselt (sık birleşim).",
+            "en": "Upgrade @world (common combo)."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Senkron",
+            "en": "Sync tree"
+          },
+          "command": "sudo emerge --sync",
+          "explanation": {
+            "tr": "Portage ağacını günceller.",
+            "en": "Updates the Portage tree."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Kur (sorarak)",
+            "en": "Install (ask)"
+          },
+          "command": "sudo emerge --ask curl",
+          "explanation": {
+            "tr": "curl’ü derleyip kurmadan önce onay ister.",
+            "en": "Asks before compiling/installing curl."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Dünya yükselt",
+            "en": "Upgrade world"
+          },
+          "command": "sudo emerge --ask -uDN @world",
+          "explanation": {
+            "tr": "Kurulu dünya setini yükseltir — uzun sürebilir.",
+            "en": "Upgrades the installed @world set — can take long."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "emerge --search ripgrep",
+          "explanation": {
+            "tr": "Paket adına göre arar.",
+            "en": "Searches by package name."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "pacman",
+        "xbps-install",
+        "nix",
+        "guix"
+      ],
+      "intent": {
+        "tr": [
+          "gentoo emerge",
+          "portage kur",
+          "emerge world"
+        ],
+        "en": [
+          "emerge install",
+          "gentoo upgrade",
+          "portage sync"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://wiki.gentoo.org/wiki/Portage",
+          "https://wiki.gentoo.org/wiki/Emerge",
+          "https://devmanual.gentoo.org/"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison",
+          "nix-guix"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "env",
       "name": "env",
       "kind": "executable",
@@ -3602,6 +3964,159 @@
           "path"
         ],
         "favorite_eligible": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "eopkg",
+      "name": "eopkg",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Solus paket yöneticisi (eopkg).",
+        "en": "Solus package manager (eopkg)."
+      },
+      "description": {
+        "tr": "eopkg, Solus dağıtımının paket yöneticisidir. Kurulum, yükseltme, arama ve kaldırma işlemlerini yönetir.",
+        "en": "eopkg is Solus’s package manager. It handles install, upgrade, search, and remove operations."
+      },
+      "tags": [
+        "packages",
+        "solus"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "eopkg",
+          "package": "eopkg",
+          "distributions": [
+            "solus"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Solus tabanında gelir. Arch için pacman kullanın.",
+        "en": "Ships on Solus. On Arch use pacman."
+      },
+      "flags": [
+        {
+          "flag": "upgrade",
+          "meaning": {
+            "tr": "Sistem paketlerini yükselt.",
+            "en": "Upgrade system packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "Paket kur.",
+            "en": "Install packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "remove",
+          "meaning": {
+            "tr": "Paket kaldır.",
+            "en": "Remove packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "Ara.",
+            "en": "Search packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "info",
+          "meaning": {
+            "tr": "Paket bilgisi.",
+            "en": "Show package info."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yükselt",
+            "en": "Upgrade"
+          },
+          "command": "sudo eopkg upgrade",
+          "explanation": {
+            "tr": "Sistem paketlerini yükseltir.",
+            "en": "Upgrades system packages."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Kur",
+            "en": "Install"
+          },
+          "command": "sudo eopkg install curl",
+          "explanation": {
+            "tr": "curl kurar.",
+            "en": "Installs curl."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "eopkg search ripgrep",
+          "explanation": {
+            "tr": "Depoda ara.",
+            "en": "Search repositories."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "pacman",
+        "apt",
+        "dnf",
+        "zypper"
+      ],
+      "intent": {
+        "tr": [
+          "solus kur",
+          "eopkg yükselt"
+        ],
+        "en": [
+          "eopkg install",
+          "solus upgrade"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://help.getsol.us/docs/user/software/package-management/eopkg"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
       }
     },
     {
@@ -4420,7 +4935,8 @@
         "pacman",
         "apt",
         "dnf",
-        "snap"
+        "rpm-ostree",
+        "nix"
       ],
       "intent": {
         "tr": [
@@ -4444,7 +4960,9 @@
       "nova": {
         "concepts": [
           "packages",
-          "package-managers"
+          "package-managers",
+          "package-managers-comparison",
+          "nix-guix"
         ]
       }
     },
@@ -5532,6 +6050,204 @@
     },
     {
       "schema_version": 2,
+      "id": "guix",
+      "name": "guix",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "GNU Guix paket ve sistem yöneticisi.",
+        "en": "GNU Guix package and system manager."
+      },
+      "description": {
+        "tr": "GNU Guix, Nix’ten esinlenen ama GNU ekosistemine özgü deklaratif paket yöneticisidir. Kullanıcı profilleri (`guix package` / `guix install`), `guix shell`, `guix pull`, `guix time-machine` ve Guix System için `guix system` aynı CLI altındadır.",
+        "en": "GNU Guix is a declarative package manager inspired by Nix but rooted in the GNU ecosystem. User profiles (`guix package` / `guix install`), `guix shell`, `guix pull`, `guix time-machine`, and `guix system` for Guix System share one CLI."
+      },
+      "tags": [
+        "packages",
+        "guix",
+        "declarative"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "guix",
+          "package": "guix",
+          "distributions": [
+            "guix-system"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Guix System’de tabandır; diğer Linux’lara da kurulabilir. Arch host’ta sistem PM pacman’dır; Guix yan yana olabilir.",
+        "en": "Base on Guix System; also installable on other Linux. On Arch hosts pacman is the system PM; Guix may coexist."
+      },
+      "flags": [
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "Paketi kullanıcı profiline kur.",
+            "en": "Install into user profile."
+          },
+          "verified": false
+        },
+        {
+          "flag": "remove",
+          "meaning": {
+            "tr": "Profilinden kaldır.",
+            "en": "Remove from profile."
+          },
+          "verified": false
+        },
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "Paket ara.",
+            "en": "Search packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "shell",
+          "meaning": {
+            "tr": "Geçici ortam.",
+            "en": "Ephemeral environment."
+          },
+          "verified": false
+        },
+        {
+          "flag": "pull",
+          "meaning": {
+            "tr": "Kanalları güncelle.",
+            "en": "Update channels."
+          },
+          "verified": false
+        },
+        {
+          "flag": "system",
+          "meaning": {
+            "tr": "Guix System işlemleri.",
+            "en": "Guix System operations."
+          },
+          "verified": false
+        },
+        {
+          "flag": "time-machine",
+          "meaning": {
+            "tr": "Geçmiş kanal durumuna git.",
+            "en": "Travel to past channel state."
+          },
+          "verified": false
+        },
+        {
+          "flag": "package",
+          "meaning": {
+            "tr": "Klasik profil yönetimi.",
+            "en": "Classic profile management."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kur",
+            "en": "Install"
+          },
+          "command": "guix install curl",
+          "explanation": {
+            "tr": "Kullanıcı profiline curl ekler.",
+            "en": "Adds curl to the user profile."
+          },
+          "risk": "caution",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "guix search ripgrep",
+          "explanation": {
+            "tr": "Paket arar.",
+            "en": "Searches packages."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Kabuk",
+            "en": "Shell"
+          },
+          "command": "guix shell python",
+          "explanation": {
+            "tr": "Geçici ortam açar.",
+            "en": "Opens an ephemeral environment."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Kanal çek",
+            "en": "Pull channels"
+          },
+          "command": "guix pull",
+          "explanation": {
+            "tr": "Guix kanallarını günceller.",
+            "en": "Updates Guix channels."
+          },
+          "risk": "caution",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "nix",
+        "nixos-rebuild",
+        "pacman",
+        "emerge"
+      ],
+      "intent": {
+        "tr": [
+          "guix kur",
+          "guix shell",
+          "guix pull"
+        ],
+        "en": [
+          "guix install",
+          "guix shell",
+          "guix pull"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://guix.gnu.org/manual/en/html_node/",
+          "https://guix.gnu.org/manual/en/html_node/Package-Management.html",
+          "https://guix.gnu.org/manual/en/html_node/Invoking-guix-shell.html"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison",
+          "nix-guix"
+        ],
+        "ui_priority": 65,
+        "favorite_eligible": true
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "gzip",
       "name": "gzip",
       "kind": "executable",
@@ -6413,6 +7129,109 @@
           "permissions"
         ],
         "favorite_eligible": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "installpkg",
+      "name": "installpkg",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Slackware düşük seviye paket kurucu.",
+        "en": "Slackware low-level package installer."
+      },
+      "description": {
+        "tr": "installpkg yerel .tgz/.txz paket dosyasını kurar. Bağımlılık çözümlemez; günlük işlerde slackpkg tercih edilir.",
+        "en": "installpkg installs a local .tgz/.txz package file. It does not resolve dependencies; prefer slackpkg for everyday work."
+      },
+      "tags": [
+        "packages",
+        "slackware"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "slackpkg",
+          "package": "pkgtools",
+          "distributions": [
+            "slackware"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Slackware pkgtools parçasıdır.",
+        "en": "Part of Slackware pkgtools."
+      },
+      "flags": [
+        {
+          "flag": "--warn",
+          "meaning": {
+            "tr": "Çakışmaları uyar, yazma.",
+            "en": "Warn on conflicts; do not write."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--root",
+          "meaning": {
+            "tr": "Alternatif kök dizin.",
+            "en": "Alternate root directory."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yerel paket kur",
+            "en": "Install local package"
+          },
+          "command": "sudo installpkg package-name.txz",
+          "explanation": {
+            "tr": "Yerel Slackware paketini kurar.",
+            "en": "Installs a local Slackware package."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "slackpkg",
+        "removepkg",
+        "upgradepkg"
+      ],
+      "intent": {
+        "tr": [
+          "installpkg",
+          "slackware txz kur"
+        ],
+        "en": [
+          "installpkg",
+          "slackware install txz"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "http://www.slackware.com/config/packages.php",
+          "https://manpages.org/installpkg"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
       }
     },
     {
@@ -10602,6 +11421,698 @@
     },
     {
       "schema_version": 2,
+      "id": "nix",
+      "name": "nix",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Nix paket yöneticisi (modern CLI).",
+        "en": "Nix package manager (modern CLI)."
+      },
+      "description": {
+        "tr": "Nix, NixOS’a özgü olmayan, Linux ve macOS’ta da çalışan deklaratif paket yöneticisidir. Güncel iş akışları `nix profile`, `nix develop`, `nix run`, `nix build`, `nix flake` ve `nix shell` üzerinedir. Eski `nix-env` / klasik `nix-shell` yollarını modern CLI ile karıştırmayın.",
+        "en": "Nix is a declarative package manager usable beyond NixOS — including other Linux distros and macOS. Modern workflows center on `nix profile`, `nix develop`, `nix run`, `nix build`, `nix flake`, and `nix shell`. Do not mix legacy `nix-env` / classic `nix-shell` with the modern CLI."
+      },
+      "tags": [
+        "packages",
+        "nix",
+        "nixos",
+        "declarative"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos"
+      ],
+      "package_refs": [
+        {
+          "manager": "nix",
+          "package": "nix",
+          "distributions": [
+            "nixos"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "NixOS’ta tabandır. Diğer Linux/macOS için resmi kurulum belgelerini izleyin. Arch host’ta sistem PM olarak pacman önceliklidir; Nix yan yana kullanılabilir.",
+        "en": "Base on NixOS. On other Linux/macOS follow official install docs. On Arch hosts pacman remains the system PM; Nix can coexist."
+      },
+      "flags": [
+        {
+          "flag": "profile",
+          "meaning": {
+            "tr": "Kullanıcı profili yönetimi.",
+            "en": "User profile management."
+          },
+          "verified": false
+        },
+        {
+          "flag": "develop",
+          "meaning": {
+            "tr": "Geliştirme kabuğu (flake).",
+            "en": "Dev shell (flake)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "run",
+          "meaning": {
+            "tr": "Paketi çalıştır (kurmadan).",
+            "en": "Run a package without lasting install."
+          },
+          "verified": false
+        },
+        {
+          "flag": "build",
+          "meaning": {
+            "tr": "Türev derle.",
+            "en": "Build a derivation."
+          },
+          "verified": false
+        },
+        {
+          "flag": "flake",
+          "meaning": {
+            "tr": "Flake alt komutları.",
+            "en": "Flake subcommands."
+          },
+          "verified": false
+        },
+        {
+          "flag": "shell",
+          "meaning": {
+            "tr": "Geçici ortam kabuğu.",
+            "en": "Temporary environment shell."
+          },
+          "verified": false
+        },
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "Paket ara.",
+            "en": "Search packages."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "nix search nixpkgs ripgrep",
+          "explanation": {
+            "tr": "nixpkgs içinde ripgrep arar.",
+            "en": "Searches nixpkgs for ripgrep."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Çalıştır",
+            "en": "Run"
+          },
+          "command": "nix run nixpkgs#hello",
+          "explanation": {
+            "tr": "Paketi kalıcı kurmadan çalıştırır.",
+            "en": "Runs a package without a lasting install."
+          },
+          "risk": "caution",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Profil kur",
+            "en": "Profile install"
+          },
+          "command": "nix profile install nixpkgs#curl",
+          "explanation": {
+            "tr": "Kullanıcı profiline curl ekler (modern yol).",
+            "en": "Adds curl to the user profile (modern path)."
+          },
+          "risk": "caution",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Geliştirme kabuğu",
+            "en": "Dev shell"
+          },
+          "command": "nix develop",
+          "explanation": {
+            "tr": "Flake tabanlı geliştirme ortamı açar.",
+            "en": "Opens a flake-based development environment."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "nix-shell",
+        "nix-env",
+        "nixos-rebuild",
+        "nix-collect-garbage",
+        "guix",
+        "pacman"
+      ],
+      "intent": {
+        "tr": [
+          "nix kur",
+          "nix flake",
+          "nix search"
+        ],
+        "en": [
+          "nix profile install",
+          "nix flake",
+          "nix search"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://nixos.org/manual/nix/stable/",
+          "https://nix.dev/manual/nix/stable/",
+          "https://nixos.org/guides/how-nix-works/"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison",
+          "nix-guix"
+        ],
+        "ui_priority": 70,
+        "favorite_eligible": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "nix-collect-garbage",
+      "name": "nix-collect-garbage",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Nix store çöp toplama.",
+        "en": "Nix store garbage collection."
+      },
+      "description": {
+        "tr": "nix-collect-garbage ulaşılmaz Nix store yollarını temizler. `-d` eski nesilleri de siler; geri alınması zor alan açar.",
+        "en": "nix-collect-garbage deletes unreachable Nix store paths. `-d` also deletes old generations; frees space that is hard to undo."
+      },
+      "tags": [
+        "packages",
+        "nix"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos"
+      ],
+      "package_refs": [
+        {
+          "manager": "nix",
+          "package": "nix",
+          "distributions": [
+            "nixos"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Nix kurulumuyla gelir.",
+        "en": "Ships with Nix."
+      },
+      "flags": [
+        {
+          "flag": "-d",
+          "meaning": {
+            "tr": "Eski nesilleri de sil.",
+            "en": "Also delete old generations."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--delete-older-than",
+          "meaning": {
+            "tr": "Belirli yaştan eskiyi sil.",
+            "en": "Delete older than duration."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Çöp topla",
+            "en": "Collect garbage"
+          },
+          "command": "nix-collect-garbage",
+          "explanation": {
+            "tr": "Ulaşılmaz store yollarını temizler.",
+            "en": "Deletes unreachable store paths."
+          },
+          "risk": "caution",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Nesillerle temizle",
+            "en": "Delete old generations"
+          },
+          "command": "sudo nix-collect-garbage -d",
+          "explanation": {
+            "tr": "Eski nesilleri de siler — geri alma seçenekleri azalır.",
+            "en": "Also deletes old generations — fewer rollback options."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "nix",
+        "nix-env",
+        "nixos-rebuild"
+      ],
+      "intent": {
+        "tr": [
+          "nix çöp",
+          "nix store temizle"
+        ],
+        "en": [
+          "nix-collect-garbage",
+          "nix gc"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://nixos.org/manual/nix/stable/command-ref/nix-collect-garbage.html"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison",
+          "nix-guix"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "nix-env",
+      "name": "nix-env",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Eski Nix profil aracı (geçiş / miras).",
+        "en": "Legacy Nix profile tool (transition / heritage)."
+      },
+      "description": {
+        "tr": "nix-env kullanıcı profillerine paket ekler/kaldırır. Güncel Nix’te `nix profile` tercih edilir; yeni dokümantasyonda birincil yol olarak sunulmaz. Eski rehberlerle modern CLI’yi karıştırmayın.",
+        "en": "nix-env adds/removes packages in user profiles. Prefer `nix profile` on modern Nix; it is not the primary path in current docs. Do not mix old guides with the modern CLI."
+      },
+      "tags": [
+        "packages",
+        "nix",
+        "legacy"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos"
+      ],
+      "package_refs": [
+        {
+          "manager": "nix",
+          "package": "nix",
+          "distributions": [
+            "nixos"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Nix ile gelir. Yeni kurulumlar için `nix profile` kullanın.",
+        "en": "Ships with Nix. Prefer `nix profile` for new installs."
+      },
+      "flags": [
+        {
+          "flag": "-iA",
+          "meaning": {
+            "tr": "Öznitelik yoluyla kur (eski).",
+            "en": "Install by attribute (legacy)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-e",
+          "meaning": {
+            "tr": "Paketi kaldır.",
+            "en": "Uninstall package."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-q",
+          "meaning": {
+            "tr": "Kurulu paketleri sorgu.",
+            "en": "Query installed packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-u",
+          "meaning": {
+            "tr": "Yükselt.",
+            "en": "Upgrade."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Öznitelik kur (eski)",
+            "en": "Install by attr (legacy)"
+          },
+          "command": "nix-env -iA nixpkgs.curl",
+          "explanation": {
+            "tr": "Eski profil yolu — mümkünse `nix profile install` kullanın.",
+            "en": "Legacy profile path — prefer `nix profile install` when possible."
+          },
+          "risk": "caution",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "nix",
+        "nix-shell",
+        "nix-collect-garbage"
+      ],
+      "intent": {
+        "tr": [
+          "nix-env",
+          "eski nix profil"
+        ],
+        "en": [
+          "nix-env",
+          "legacy nix profile"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://nixos.org/manual/nix/stable/command-ref/nix-env.html",
+          "https://nix.dev/manual/nix/stable/command-ref/nix-env.html"
+        ],
+        "notes": "Legacy tooling; modern workflow is `nix profile`. Kept separate per master brief. Draft."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison",
+          "nix-guix"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "nix-shell",
+      "name": "nix-shell",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Klasik Nix geçici kabuk (eski yol).",
+        "en": "Classic Nix ephemeral shell (legacy path)."
+      },
+      "description": {
+        "tr": "nix-shell geçici Nix ortamları açar. Yeni iş akışlarında `nix shell` / `nix develop` tercih edilir; bu kayıt klasik komutu ayırır.",
+        "en": "nix-shell opens ephemeral Nix environments. Prefer `nix shell` / `nix develop` for new workflows; this record isolates the classic command."
+      },
+      "tags": [
+        "packages",
+        "nix",
+        "legacy"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos"
+      ],
+      "package_refs": [
+        {
+          "manager": "nix",
+          "package": "nix",
+          "distributions": [
+            "nixos"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Nix kurulumuyla gelir. Modern alternatif: `nix shell` / `nix develop`.",
+        "en": "Ships with Nix. Modern alternatives: `nix shell` / `nix develop`."
+      },
+      "flags": [
+        {
+          "flag": "-p",
+          "meaning": {
+            "tr": "Paketlerle kabuk aç.",
+            "en": "Open shell with packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--pure",
+          "meaning": {
+            "tr": "Saf ortam (daha az sızıntı).",
+            "en": "More pure environment."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--run",
+          "meaning": {
+            "tr": "Komutu kabukta çalıştır.",
+            "en": "Run command inside the shell."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Paketlerle kabuk",
+            "en": "Shell with packages"
+          },
+          "command": "nix-shell -p python3",
+          "explanation": {
+            "tr": "python3 içeren geçici kabuk (klasik).",
+            "en": "Ephemeral shell with python3 (classic)."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "nix",
+        "nix-env",
+        "guix"
+      ],
+      "intent": {
+        "tr": [
+          "nix-shell",
+          "geçici nix kabuğu"
+        ],
+        "en": [
+          "nix-shell",
+          "temporary nix shell"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://nixos.org/manual/nix/stable/command-ref/nix-shell.html"
+        ],
+        "notes": "Legacy/classic Nix CLI; prefer modern `nix shell`/`nix develop`. Draft — not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison",
+          "nix-guix"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "nixos-rebuild",
+      "name": "nixos-rebuild",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "NixOS sistem yapılandırmasını uygula.",
+        "en": "Apply NixOS system configuration."
+      },
+      "description": {
+        "tr": "nixos-rebuild, NixOS’ta deklaratif sistem yapılandırmasını derleyip boot/switch/test ile uygular. Yalnızca NixOS host’larda birincil sistem aracıdır.",
+        "en": "nixos-rebuild builds and applies declarative NixOS system configuration via boot/switch/test. It is the primary system tool on NixOS hosts only."
+      },
+      "tags": [
+        "packages",
+        "nixos",
+        "declarative"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "nix",
+          "package": "nixos-rebuild",
+          "distributions": [
+            "nixos"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "NixOS tabanında gelir. Diğer dağıtımlarda sistem PM değildir.",
+        "en": "Ships on NixOS. Not a system PM on other distros."
+      },
+      "flags": [
+        {
+          "flag": "switch",
+          "meaning": {
+            "tr": "Hemen uygula ve boot girdilerini güncelle.",
+            "en": "Apply now and update boot entries."
+          },
+          "verified": false
+        },
+        {
+          "flag": "boot",
+          "meaning": {
+            "tr": "Sonraki boot için hazırla.",
+            "en": "Prepare for next boot."
+          },
+          "verified": false
+        },
+        {
+          "flag": "test",
+          "meaning": {
+            "tr": "Geçici uygula (kalıcı boot yok).",
+            "en": "Temporary apply (no lasting boot entry)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "build",
+          "meaning": {
+            "tr": "Yalnız derle.",
+            "en": "Build only."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--flake",
+          "meaning": {
+            "tr": "Flake tabanlı yapılandırma.",
+            "en": "Flake-based configuration."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Switch",
+            "en": "Switch"
+          },
+          "command": "sudo nixos-rebuild switch",
+          "explanation": {
+            "tr": "Yapılandırmayı uygular — sistemi etkiler.",
+            "en": "Applies configuration — affects the running system."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Flake switch",
+            "en": "Flake switch"
+          },
+          "command": "sudo nixos-rebuild switch --flake .#hostname",
+          "explanation": {
+            "tr": "Flake çıktısından sistem uygular.",
+            "en": "Applies system from a flake output."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "nix",
+        "nix-collect-garbage",
+        "guix"
+      ],
+      "intent": {
+        "tr": [
+          "nixos-rebuild",
+          "nixos switch"
+        ],
+        "en": [
+          "nixos-rebuild switch",
+          "nixos rebuild"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://nixos.org/manual/nixos/stable/",
+          "https://nixos.org/manual/nixos/stable/index.html#sec-changing-config"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison",
+          "nix-guix"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "nmcli",
       "name": "nmcli",
       "kind": "executable",
@@ -10924,6 +12435,160 @@
     },
     {
       "schema_version": 2,
+      "id": "opkg",
+      "name": "opkg",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "OpenWrt paket yöneticisi (opkg).",
+        "en": "OpenWrt package manager (opkg)."
+      },
+      "description": {
+        "tr": "opkg, OpenWrt yönlendirici/firmware ortamlarında ipk paketlerini yönetir. Masaüstü dağıtım apt/pacman karşılığı değildir; flash alanı ve mimari kısıtlarına dikkat edin.",
+        "en": "opkg manages ipk packages on OpenWrt router/firmware environments. It is not a desktop apt/pacman equivalent; watch flash space and architecture constraints."
+      },
+      "tags": [
+        "packages",
+        "openwrt",
+        "embedded"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "opkg",
+          "package": "opkg",
+          "distributions": [
+            "openwrt"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "OpenWrt görüntülerinde gelir. Arch masaüstü için pacman kullanın.",
+        "en": "Ships in OpenWrt images. On Arch desktops use pacman."
+      },
+      "flags": [
+        {
+          "flag": "update",
+          "meaning": {
+            "tr": "Paket listesini yenile.",
+            "en": "Refresh package lists."
+          },
+          "verified": false
+        },
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "Paket kur.",
+            "en": "Install packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "remove",
+          "meaning": {
+            "tr": "Paket kaldır.",
+            "en": "Remove packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "list",
+          "meaning": {
+            "tr": "Paketleri listele.",
+            "en": "List packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "find",
+          "meaning": {
+            "tr": "Ara.",
+            "en": "Find/search packages."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Liste yenile",
+            "en": "Update lists"
+          },
+          "command": "opkg update",
+          "explanation": {
+            "tr": "Depo indekslerini yeniler (cihazda root gerekebilir).",
+            "en": "Refreshes repo indexes (may need root on device)."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Kur",
+            "en": "Install"
+          },
+          "command": "opkg install luci",
+          "explanation": {
+            "tr": "Örnek paket kurar — flash alanını kontrol edin.",
+            "en": "Installs an example package — check flash space."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Find"
+          },
+          "command": "opkg find '*wireguard*'",
+          "explanation": {
+            "tr": "İsim kalıbıyla arar.",
+            "en": "Searches by name pattern."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "apk",
+        "apt",
+        "pacman"
+      ],
+      "intent": {
+        "tr": [
+          "openwrt paket",
+          "opkg kur"
+        ],
+        "en": [
+          "opkg install",
+          "openwrt package"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://openwrt.org/docs/guide-user/additional-software/opkg",
+          "https://openwrt.org/docs/guide-user/additional-software/opkg-package-manager"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "pacman",
       "name": "pacman",
       "kind": "package_manager",
@@ -11062,9 +12727,14 @@
       ],
       "related": [
         "paru",
-        "yay",
         "apt",
-        "dnf"
+        "dnf",
+        "zypper",
+        "apk",
+        "xbps-install",
+        "nix",
+        "guix",
+        "emerge"
       ],
       "intent": {
         "tr": [
@@ -11091,7 +12761,9 @@
         "concepts": [
           "packages",
           "arch",
-          "package-managers"
+          "package-managers",
+          "package-managers-comparison",
+          "nix-guix"
         ]
       }
     },
@@ -12765,6 +14437,109 @@
     },
     {
       "schema_version": 2,
+      "id": "removepkg",
+      "name": "removepkg",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Slackware düşük seviye paket kaldırıcı.",
+        "en": "Slackware low-level package remover."
+      },
+      "description": {
+        "tr": "removepkg kurulu bir Slackware paketini kaldırır. Bağımlılık analizi yapmaz; dikkatli kullanın.",
+        "en": "removepkg removes an installed Slackware package. It does not analyze dependencies; use carefully."
+      },
+      "tags": [
+        "packages",
+        "slackware"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "slackpkg",
+          "package": "pkgtools",
+          "distributions": [
+            "slackware"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Slackware pkgtools parçasıdır.",
+        "en": "Part of Slackware pkgtools."
+      },
+      "flags": [
+        {
+          "flag": "-warn",
+          "meaning": {
+            "tr": "Uyarı modu.",
+            "en": "Warn mode."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-preserve",
+          "meaning": {
+            "tr": "Korunan dosyaları tut.",
+            "en": "Preserve protected files."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kaldır",
+            "en": "Remove"
+          },
+          "command": "sudo removepkg package-name",
+          "explanation": {
+            "tr": "Kurulu paketi kaldırır.",
+            "en": "Removes an installed package."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "slackpkg",
+        "installpkg",
+        "upgradepkg"
+      ],
+      "intent": {
+        "tr": [
+          "removepkg",
+          "slackware paket sil"
+        ],
+        "en": [
+          "removepkg",
+          "slackware remove package"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "http://www.slackware.com/config/packages.php",
+          "https://manpages.org/removepkg"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "renice",
       "name": "renice",
       "kind": "executable",
@@ -13556,7 +15331,9 @@
       "related": [
         "dnf",
         "dpkg",
-        "pacman"
+        "pacman",
+        "zypper",
+        "rpm-ostree"
       ],
       "intent": {
         "tr": [
@@ -13579,7 +15356,170 @@
       "nova": {
         "concepts": [
           "packages",
-          "package-managers"
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "rpm-ostree",
+      "name": "rpm-ostree",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "rpm-ostree atomik/ostree sistem yönetimi.",
+        "en": "rpm-ostree atomic/ostree system management."
+      },
+      "description": {
+        "tr": "rpm-ostree, Fedora Silverblue/Kinoite/IoT gibi ostree tabanlı değişmez sistemlerde paket katmanı ve yükseltmeleri yönetir. Klasik `dnf install` ile aynı model değildir; değişiklikler genelde yeniden boot ister.",
+        "en": "rpm-ostree manages package layers and upgrades on ostree-based immutable systems such as Fedora Silverblue/Kinoite/IoT. It is not the same model as classic `dnf install`; changes often need a reboot."
+      },
+      "tags": [
+        "packages",
+        "fedora",
+        "ostree",
+        "immutable"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "rpm-ostree",
+          "package": "rpm-ostree",
+          "distributions": [
+            "fedora-silverblue",
+            "fedora-kinoite",
+            "fedora-iot"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Silverblue/Kinoite/IoT tabanında gelir. Klasik Fedora Workstation için dnf kullanın. Arch için pacman.",
+        "en": "Ships on Silverblue/Kinoite/IoT. Use dnf on classic Fedora Workstation. On Arch use pacman."
+      },
+      "flags": [
+        {
+          "flag": "status",
+          "meaning": {
+            "tr": "Dağıtım/katman durumunu göster.",
+            "en": "Show deployment/layer status."
+          },
+          "verified": false
+        },
+        {
+          "flag": "upgrade",
+          "meaning": {
+            "tr": "Sistem görüntüsünü yükselt.",
+            "en": "Upgrade the system image."
+          },
+          "verified": false
+        },
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "Katman olarak paket ekle.",
+            "en": "Layer packages onto the image."
+          },
+          "verified": false
+        },
+        {
+          "flag": "uninstall",
+          "meaning": {
+            "tr": "Katman paketini kaldır.",
+            "en": "Remove a layered package."
+          },
+          "verified": false
+        },
+        {
+          "flag": "rebase",
+          "meaning": {
+            "tr": "Başka bir görüntü/ref’e geç.",
+            "en": "Rebase to another image/ref."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Durum",
+            "en": "Status"
+          },
+          "command": "rpm-ostree status",
+          "explanation": {
+            "tr": "Aktif/pending dağıtımları gösterir.",
+            "en": "Shows active/pending deployments."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Yükselt",
+            "en": "Upgrade"
+          },
+          "command": "rpm-ostree upgrade",
+          "explanation": {
+            "tr": "Yeni görüntü indirir; genelde reboot gerekir.",
+            "en": "Downloads a new image; reboot usually required."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Katman kur",
+            "en": "Layer install"
+          },
+          "command": "rpm-ostree install vim",
+          "explanation": {
+            "tr": "Paketi sistem katmanına ekler — reboot planlayın.",
+            "en": "Layers a package onto the system — plan a reboot."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "dnf",
+        "rpm",
+        "nixos-rebuild",
+        "flatpak"
+      ],
+      "intent": {
+        "tr": [
+          "silverblue yükselt",
+          "rpm-ostree kur",
+          "ostree durum"
+        ],
+        "en": [
+          "rpm-ostree upgrade",
+          "silverblue install",
+          "ostree status"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://coreos.github.io/rpm-ostree/",
+          "https://docs.fedoraproject.org/en-US/fedora-silverblue/troubleshooting/",
+          "https://docs.fedoraproject.org/en-US/fedora-silverblue/getting-started/"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison",
+          "nix-guix"
         ]
       }
     },
@@ -14213,6 +16153,160 @@
         "concepts": [
           "ssh",
           "permissions"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "slackpkg",
+      "name": "slackpkg",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Slackware resmi paket aracı.",
+        "en": "Slackware official package tool."
+      },
+      "description": {
+        "tr": "slackpkg, Slackware resmi depolarından paket indirme/kurma/güncelleme için yüksek seviye araçtır. Düşük seviye installpkg/removepkg/upgradepkg ile birlikte çalışır.",
+        "en": "slackpkg is the high-level tool for fetching/installing/upgrading from official Slackware repos. It works alongside low-level installpkg/removepkg/upgradepkg."
+      },
+      "tags": [
+        "packages",
+        "slackware"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "slackpkg",
+          "package": "slackpkg",
+          "distributions": [
+            "slackware"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Slackware’de resmi araçtır. Arch için pacman kullanın.",
+        "en": "Official on Slackware. On Arch use pacman."
+      },
+      "flags": [
+        {
+          "flag": "update",
+          "meaning": {
+            "tr": "Paket listesini yenile.",
+            "en": "Refresh package lists."
+          },
+          "verified": false
+        },
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "Paket kur.",
+            "en": "Install packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "upgrade-all",
+          "meaning": {
+            "tr": "Tüm yükseltmeleri uygula.",
+            "en": "Apply all upgrades."
+          },
+          "verified": false
+        },
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "Ara.",
+            "en": "Search packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "remove",
+          "meaning": {
+            "tr": "Kaldır.",
+            "en": "Remove packages."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Liste yenile",
+            "en": "Update lists"
+          },
+          "command": "sudo slackpkg update",
+          "explanation": {
+            "tr": "Resmi depo listesini yeniler.",
+            "en": "Refreshes official package lists."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Kur",
+            "en": "Install"
+          },
+          "command": "sudo slackpkg install curl",
+          "explanation": {
+            "tr": "curl kurar (isim eşlemesine dikkat).",
+            "en": "Installs curl (mind name matching)."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Tümünü yükselt",
+            "en": "Upgrade all"
+          },
+          "command": "sudo slackpkg upgrade-all",
+          "explanation": {
+            "tr": "Mevcut yükseltmeleri uygular — dikkatli onaylayın.",
+            "en": "Applies pending upgrades — confirm carefully."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "installpkg",
+        "removepkg",
+        "upgradepkg",
+        "pacman"
+      ],
+      "intent": {
+        "tr": [
+          "slackware kur",
+          "slackpkg güncelle"
+        ],
+        "en": [
+          "slackpkg install",
+          "slackware upgrade"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "http://www.slackware.com/config/packages.php",
+          "https://docs.slackware.com/slackware:beginners_guide"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
         ]
       }
     },
@@ -17785,6 +19879,109 @@
     },
     {
       "schema_version": 2,
+      "id": "upgradepkg",
+      "name": "upgradepkg",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Slackware düşük seviye paket yükseltme.",
+        "en": "Slackware low-level package upgrade."
+      },
+      "description": {
+        "tr": "upgradepkg yerel paket dosyasıyla kurulu paketi yükseltir/değiştirir. Resmi depo akışı için slackpkg tercih edilir.",
+        "en": "upgradepkg upgrades/replaces an installed package from a local package file. Prefer slackpkg for official repo workflows."
+      },
+      "tags": [
+        "packages",
+        "slackware"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "slackpkg",
+          "package": "pkgtools",
+          "distributions": [
+            "slackware"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Slackware pkgtools parçasıdır.",
+        "en": "Part of Slackware pkgtools."
+      },
+      "flags": [
+        {
+          "flag": "--install-new",
+          "meaning": {
+            "tr": "Yeni paketi kur (yoksa).",
+            "en": "Install if not present."
+          },
+          "verified": false
+        },
+        {
+          "flag": "--reinstall",
+          "meaning": {
+            "tr": "Aynı sürümü yeniden kur.",
+            "en": "Reinstall same version."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Yükselt",
+            "en": "Upgrade"
+          },
+          "command": "sudo upgradepkg package-name.txz",
+          "explanation": {
+            "tr": "Yerel paket dosyasıyla yükseltir.",
+            "en": "Upgrades using a local package file."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "slackpkg",
+        "installpkg",
+        "removepkg"
+      ],
+      "intent": {
+        "tr": [
+          "upgradepkg",
+          "slackware yükselt"
+        ],
+        "en": [
+          "upgradepkg",
+          "slackware upgrade package"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "http://www.slackware.com/config/packages.php",
+          "https://manpages.org/upgradepkg"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "uptime",
       "name": "uptime",
       "kind": "executable",
@@ -19446,6 +21643,409 @@
     },
     {
       "schema_version": 2,
+      "id": "xbps-install",
+      "name": "xbps-install",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Void Linux XBPS kurulum aracı.",
+        "en": "Void Linux XBPS install tool."
+      },
+      "description": {
+        "tr": "xbps-install, Void Linux XBPS paket sisteminde kurulum ve güncelleme yapar. Sorgu için xbps-query, kaldırma için xbps-remove kullanılır.",
+        "en": "xbps-install installs and upgrades packages in Void Linux’s XBPS system. Use xbps-query for queries and xbps-remove for removal."
+      },
+      "tags": [
+        "packages",
+        "void",
+        "xbps"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "xbps",
+          "package": "xbps",
+          "distributions": [
+            "void"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Void tabanında gelir. Arch için pacman kullanın.",
+        "en": "Ships on Void. On Arch use pacman."
+      },
+      "flags": [
+        {
+          "flag": "-S",
+          "meaning": {
+            "tr": "Depo indeksini senkronize et.",
+            "en": "Sync repository index."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-u",
+          "meaning": {
+            "tr": "Paketleri güncelle / yükselt.",
+            "en": "Update/upgrade packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-y",
+          "meaning": {
+            "tr": "Onayları otomatik kabul et.",
+            "en": "Assume yes."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "Kuru çalıştırma.",
+            "en": "Dry run."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Senkron + yükselt",
+            "en": "Sync + upgrade"
+          },
+          "command": "sudo xbps-install -Su",
+          "explanation": {
+            "tr": "İndeksi yeniler ve sistemi yükseltir.",
+            "en": "Refreshes the index and upgrades the system."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Kur",
+            "en": "Install"
+          },
+          "command": "sudo xbps-install curl",
+          "explanation": {
+            "tr": "curl kurar.",
+            "en": "Installs curl."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "xbps-query",
+        "xbps-remove",
+        "pacman",
+        "apk"
+      ],
+      "intent": {
+        "tr": [
+          "void kur",
+          "xbps-install",
+          "void güncelle"
+        ],
+        "en": [
+          "xbps-install",
+          "void upgrade",
+          "void install"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.voidlinux.org/xbps/",
+          "https://man.voidlinux.org/xbps-install.1"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "xbps-query",
+      "name": "xbps-query",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Void Linux XBPS sorgu aracı.",
+        "en": "Void Linux XBPS query tool."
+      },
+      "description": {
+        "tr": "xbps-query yerel ve uzak XBPS paket veritabanını sorgular. Kurulum yapmaz; salt okuma işlemleri için güvenlidir.",
+        "en": "xbps-query inspects local and remote XBPS package databases. It does not install packages; read-only queries are safe."
+      },
+      "tags": [
+        "packages",
+        "void",
+        "xbps"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "xbps",
+          "package": "xbps",
+          "distributions": [
+            "void"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Void tabanında xbps ile gelir.",
+        "en": "Ships with xbps on Void."
+      },
+      "flags": [
+        {
+          "flag": "-l",
+          "meaning": {
+            "tr": "Kurulu paketleri listele.",
+            "en": "List installed packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-Rs",
+          "meaning": {
+            "tr": "Depoda ara.",
+            "en": "Search repositories."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-f",
+          "meaning": {
+            "tr": "Paketin dosyalarını listele.",
+            "en": "List files in a package."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-o",
+          "meaning": {
+            "tr": "Dosya sahibi paketi bul.",
+            "en": "Find package owning a file."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-S",
+          "meaning": {
+            "tr": "Paket özeti göster.",
+            "en": "Show package summary."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "xbps-query -Rs ripgrep",
+          "explanation": {
+            "tr": "Depoda ripgrep arar.",
+            "en": "Searches repos for ripgrep."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Dosya sahibi",
+            "en": "File owner"
+          },
+          "command": "xbps-query -o /usr/bin/ls",
+          "explanation": {
+            "tr": "Dosyayı sağlayan paketi bulur.",
+            "en": "Finds the package owning a file."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "xbps-install",
+        "xbps-remove",
+        "pacman",
+        "dpkg"
+      ],
+      "intent": {
+        "tr": [
+          "xbps sorgu",
+          "void paket ara"
+        ],
+        "en": [
+          "xbps-query",
+          "void search package"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.voidlinux.org/xbps/",
+          "https://man.voidlinux.org/xbps-query.1"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "xbps-remove",
+      "name": "xbps-remove",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "Void Linux XBPS kaldırma aracı.",
+        "en": "Void Linux XBPS remove tool."
+      },
+      "description": {
+        "tr": "xbps-remove paketleri ve isteğe bağlı olarak bağımlılıkları / yetimleri kaldırır. Yıkıcı olabilir; `-o` ile yetim temizliği dikkat ister.",
+        "en": "xbps-remove removes packages and optionally dependencies/orphans. It can be destructive; orphan cleanup with `-o` needs care."
+      },
+      "tags": [
+        "packages",
+        "void",
+        "xbps"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "xbps",
+          "package": "xbps",
+          "distributions": [
+            "void"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Void tabanında xbps ile gelir.",
+        "en": "Ships with xbps on Void."
+      },
+      "flags": [
+        {
+          "flag": "-R",
+          "meaning": {
+            "tr": "Özyinelemeli bağımlılıkları kaldır.",
+            "en": "Recursively remove dependencies."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-o",
+          "meaning": {
+            "tr": "Yetim paketleri kaldır.",
+            "en": "Remove orphaned packages."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-y",
+          "meaning": {
+            "tr": "Onayları kabul et.",
+            "en": "Assume yes."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Kaldır",
+            "en": "Remove"
+          },
+          "command": "sudo xbps-remove curl",
+          "explanation": {
+            "tr": "curl paketini kaldırır.",
+            "en": "Removes the curl package."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Yetimleri temizle",
+            "en": "Remove orphans"
+          },
+          "command": "sudo xbps-remove -o",
+          "explanation": {
+            "tr": "Kullanılmayan bağımlılıkları temizler — listeyi kontrol edin.",
+            "en": "Removes unused deps — review the list."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "xbps-install",
+        "xbps-query",
+        "pacman"
+      ],
+      "intent": {
+        "tr": [
+          "xbps kaldır",
+          "void paket sil"
+        ],
+        "en": [
+          "xbps-remove",
+          "void remove package"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.voidlinux.org/xbps/",
+          "https://man.voidlinux.org/xbps-remove.1"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "xz",
       "name": "xz",
       "kind": "executable",
@@ -19693,6 +22293,200 @@
           "files"
         ]
       }
+    },
+    {
+      "schema_version": 2,
+      "id": "zypper",
+      "name": "zypper",
+      "kind": "package_manager",
+      "category": "packages",
+      "summary": {
+        "tr": "openSUSE/SUSE paket yöneticisi.",
+        "en": "openSUSE/SUSE package manager."
+      },
+      "description": {
+        "tr": "Zypper, openSUSE Leap/Tumbleweed ve SLES üzerinde RPM tabanlı yüksek seviye paket yöneticisidir. Günlük kurulum/güncelleme için kullanılır; düşük seviye sorgularda rpm de geçerlidir. Tumbleweed’de dağıtım yükseltmesi için `dup` yolu Leap’teki `update` ile karıştırılmamalıdır.",
+        "en": "Zypper is the high-level RPM package manager on openSUSE Leap/Tumbleweed and SLES. Use it for everyday install/upgrade; rpm remains useful for low-level queries. On Tumbleweed, distribution upgrades use `dup` — do not confuse with Leap’s `update` path."
+      },
+      "tags": [
+        "packages",
+        "opensuse",
+        "suse",
+        "rpm"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "zypper",
+          "package": "zypper",
+          "distributions": [
+            "opensuse-leap",
+            "opensuse-tumbleweed",
+            "sles"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "openSUSE/SLES tabanında gelir. Arch host’ta sistem paketi olarak kullanılmaz; Arch için pacman tercih edin.",
+        "en": "Ships on openSUSE/SLES. Not a system PM on Arch hosts; prefer pacman there."
+      },
+      "flags": [
+        {
+          "flag": "refresh",
+          "meaning": {
+            "tr": "Depo indekslerini yenile.",
+            "en": "Refresh repository indexes."
+          },
+          "verified": false
+        },
+        {
+          "flag": "install",
+          "meaning": {
+            "tr": "Paket kur (alt komut).",
+            "en": "Install packages (subcommand)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "update",
+          "meaning": {
+            "tr": "Güvenlik/kararlı güncelleme (Leap).",
+            "en": "Patch/update packages (Leap)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "dup",
+          "meaning": {
+            "tr": "Dağıtım yükseltmesi (Tumbleweed).",
+            "en": "Distro upgrade (Tumbleweed)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "search",
+          "meaning": {
+            "tr": "Depolarda ara.",
+            "en": "Search repositories."
+          },
+          "verified": false
+        },
+        {
+          "flag": "remove",
+          "meaning": {
+            "tr": "Paket kaldır.",
+            "en": "Remove packages."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "İndeks yenile",
+            "en": "Refresh repos"
+          },
+          "command": "sudo zypper refresh",
+          "explanation": {
+            "tr": "Depo metadata’sını yeniler.",
+            "en": "Refreshes repository metadata."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Kur",
+            "en": "Install"
+          },
+          "command": "sudo zypper install curl",
+          "explanation": {
+            "tr": "curl paketini kurar.",
+            "en": "Installs the curl package."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Leap güncelle",
+            "en": "Leap update"
+          },
+          "command": "sudo zypper update",
+          "explanation": {
+            "tr": "Leap’te paket güncellemesi (dup değil).",
+            "en": "Package updates on Leap (not dup)."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Tumbleweed dup",
+            "en": "Tumbleweed dup"
+          },
+          "command": "sudo zypper dup",
+          "explanation": {
+            "tr": "Tumbleweed dağıtım yükseltmesi — dikkatli kullanın.",
+            "en": "Tumbleweed distribution upgrade — use carefully."
+          },
+          "risk": "dangerous",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "zypper search ripgrep",
+          "explanation": {
+            "tr": "Depoda ripgrep arar.",
+            "en": "Searches repos for ripgrep."
+          },
+          "risk": "safe",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "rpm",
+        "dnf",
+        "pacman",
+        "apt"
+      ],
+      "intent": {
+        "tr": [
+          "zypper kur",
+          "opensuse güncelle",
+          "zypper ara"
+        ],
+        "en": [
+          "zypper install",
+          "opensuse update",
+          "zypper search"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://en.opensuse.org/SDB:Zypper_manual",
+          "https://doc.opensuse.org/documentation/leap/reference/html/book-reference/cha-sw-cl.html"
+        ],
+        "notes": "Agent-authored Faz 4 draft from official docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "packages",
+          "package-managers",
+          "package-managers-comparison"
+        ]
+      }
     }
   ],
   "concepts": [
@@ -19902,6 +22696,63 @@
       }
     },
     {
+      "id": "nix-guix",
+      "kind": "nova-commands-concept",
+      "title": {
+        "tr": "Nix ve GNU Guix",
+        "en": "Nix and GNU Guix"
+      },
+      "summary": {
+        "tr": "Deklaratif paket/store modeli; modern Nix CLI vs eski nix-env; Guix profilleri.",
+        "en": "Declarative package/store model; modern Nix CLI vs legacy nix-env; Guix profiles."
+      },
+      "difficulty": "intermediate",
+      "tags": [
+        "packages",
+        "nix",
+        "guix",
+        "nixos",
+        "declarative"
+      ],
+      "related_commands": [
+        "nix",
+        "nix-shell",
+        "nix-env",
+        "nixos-rebuild",
+        "nix-collect-garbage",
+        "guix",
+        "pacman",
+        "emerge",
+        "rpm-ostree"
+      ],
+      "related_concepts": [
+        "package-managers",
+        "package-managers-comparison",
+        "packages"
+      ],
+      "see_also": [
+        "https://nixos.org/manual/nix/stable/",
+        "https://nixos.org/guides/how-nix-works/",
+        "https://guix.gnu.org/manual/en/html_node/",
+        "docs/package-managers-comparison.md"
+      ],
+      "body": {
+        "tr": "**Nix** yalnızca NixOS değildir: paket yöneticisi Linux ve macOS’ta da kurulabilir.\n**NixOS** ayrıca deklaratif *sistem* yapılandırması (`nixos-rebuild`) sunar.\n**GNU Guix** benzer store/profil modelini GNU ekosisteminde uygular; Guix System\nile kullanıcı profilleri aynı `guix` CLI altında buluşur.\n\n### Modern Nix (tercih edilen)\n\n- Arama: `nix search nixpkgs …`\n- Profil: `nix profile install nixpkgs#paket`\n- Geçici: `nix shell` · geliştirme: `nix develop`\n- Çalıştır: `nix run nixpkgs#paket`\n- Flake: `nix flake …` / `nix build`\n- NixOS sistem: `sudo nixos-rebuild switch` (gerekirse `--flake`)\n- Temizlik: `nix-collect-garbage` (`-d` nesilleri de siler)\n\n### Eski / geçiş Nix (ayrı kayıtlar)\n\n- `nix-env` — eski profil aracı; yeni işlerde `nix profile` kullanın.\n- Klasik `nix-shell` — yeni işlerde `nix shell` / `nix develop`.\nBu bankada eski ve modern yollar **ayrı komut id’leri** ile tutulur; bayrakları\nbirbirine karıştırmayın.\n\n### Guix\n\n- `guix install` / `guix remove` / `guix search`\n- `guix shell` — geçici ortam\n- `guix pull` — kanalları güncelle\n- `guix time-machine` — geçmiş kanal durumuna git\n- `guix system` — Guix System yönetimi\n- `guix package` — klasik profil yönetimi\n\n### Klasik PM’lerle fark\n\npacman/apt/dnf sistem köküne yazar. Nix/Guix çoğunlukla **store + profil**\nmodeliyle çalışır; Arch host’ta sistem PM hâlâ **pacman** önceliklidir — Nix/Guix\nyan yana kurulabilir. `rpm-ostree` de atomik görüntü modelidir; klasik dnf değildir.\n\nBu makale draft’tır; kaynaklar resmi manuel sayfalarına dayanır.\n",
+        "en": "**Nix** is not only NixOS: the package manager also installs on other Linux and\nmacOS. **NixOS** additionally provides declarative *system* configuration\n(`nixos-rebuild`). **GNU Guix** applies a related store/profile model in the GNU\necosystem; Guix System and user profiles share the `guix` CLI.\n\n### Modern Nix (preferred)\n\n- Search: `nix search nixpkgs …`\n- Profile: `nix profile install nixpkgs#pkg`\n- Ephemeral: `nix shell` · development: `nix develop`\n- Run: `nix run nixpkgs#pkg`\n- Flakes: `nix flake …` / `nix build`\n- NixOS system: `sudo nixos-rebuild switch` (optionally `--flake`)\n- Cleanup: `nix-collect-garbage` (`-d` also drops generations)\n\n### Legacy / transition Nix (separate records)\n\n- `nix-env` — legacy profile tool; prefer `nix profile` for new work.\n- Classic `nix-shell` — prefer `nix shell` / `nix develop`.\nThis bank keeps legacy and modern paths as **separate command ids**; do not mix\ntheir flags.\n\n### Guix\n\n- `guix install` / `guix remove` / `guix search`\n- `guix shell` — ephemeral environment\n- `guix pull` — update channels\n- `guix time-machine` — pin past channel state\n- `guix system` — Guix System management\n- `guix package` — classic profile management\n\n### Versus classic PMs\n\npacman/apt/dnf write into the system root. Nix/Guix mostly use a **store +\nprofile** model; on Arch hosts the system PM remains **pacman-first** — Nix/Guix\ncan coexist. `rpm-ostree` is also an atomic image model, not classic dnf.\n\nThis article is draft; sources are official manuals.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://nixos.org/manual/nix/stable/",
+          "https://nixos.org/guides/how-nix-works/",
+          "https://nixos.org/manual/nixos/stable/",
+          "https://guix.gnu.org/manual/en/html_node/",
+          "https://guix.gnu.org/manual/en/html_node/Package-Management.html"
+        ],
+        "notes": "Faz 4 teaching article; draft until human review."
+      }
+    },
+    {
       "id": "package-managers",
       "kind": "nova-commands-concept",
       "title": {
@@ -19909,15 +22760,17 @@
         "en": "Package managers"
       },
       "summary": {
-        "tr": "pacman, apt, dnf ve paket ↔ komut ilişkisi (Arch öncelikli notlar).",
-        "en": "pacman, apt, dnf, and package ↔ command mapping (Arch-first notes)."
+        "tr": "Linux sistem PM’leri (pacman önce), Nix/Guix ve atomik ostree notları.",
+        "en": "Linux system PMs (pacman first), Nix/Guix, and atomic ostree notes."
       },
       "difficulty": "beginner",
       "tags": [
         "packages",
         "pacman",
         "apt",
-        "dnf"
+        "dnf",
+        "nix",
+        "guix"
       ],
       "related_commands": [
         "pacman",
@@ -19926,31 +22779,51 @@
         "dpkg",
         "rpm",
         "flatpak",
-        "paru"
+        "paru",
+        "zypper",
+        "apk",
+        "emerge",
+        "xbps-install",
+        "eopkg",
+        "slackpkg",
+        "nix",
+        "guix",
+        "opkg",
+        "rpm-ostree"
       ],
       "related_concepts": [
         "packages",
         "arch",
         "path",
-        "package-managers-comparison"
+        "package-managers-comparison",
+        "nix-guix"
       ],
       "see_also": [
         "Arch Wiki: pacman",
         "man apt / man dnf",
         "docs/package-managers-comparison.md",
-        "concepts/package-managers-comparison.yaml"
+        "concepts/package-managers-comparison.yaml",
+        "concepts/nix-guix.yaml"
       ],
       "body": {
-        "tr": "Dağıtımlar yazılıımı *paket* olarak kurar. Aynı komut farklı paket adında olabilir;\nbilinmeyen ad **uydurulmaz** (omit / `draft`).\n\n**Birinci sınıf yöneticiler (bu banka):**\n- **Arch — pacman:** `pacman -Syu` sistem güncellemesi; `pacman -S paket` kurulum;\n  `pacman -Ss anahtar` arama; `pacman -Ql paket` dosya listesi.\n  AUR yardımcıları (ör. `paru`) resmi depoda olmayabilir — ayrı not/draft.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; düşük seviye\n  `dpkg -i` / `dpkg -l`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` sorguları.\n\n**Flatpak:** Dağıtımdan bağımsız uygulama sandboxes; `flatpak install` / `flatpak run`.\n\n**Nova tercihi:** Arch host’ta kurulum ipuçlarında **pacman / `packages.arch` önce**.\n`install_notes` içinde Arch satırı üstte tutulur.\n\n**Komut ≠ paket:** `which` ile bulunan ikili, paket adını kanıtlamaz; doğrulama için\ndistro paket veritabanı / man sayfası kullanılır. CI yıkıcı kurulum çalıştırmaz.\n",
-        "en": "Distros install software as *packages*. The same command may live in differently\nnamed packages; unknown names are **not invented** (omit / `draft`).\n\n**First-class managers in this bank:**\n- **Arch — pacman:** `pacman -Syu` full upgrade; `pacman -S pkg` install;\n  `pacman -Ss keyword` search; `pacman -Ql pkg` file list.\n  AUR helpers (e.g. `paru`) may be unofficial — document carefully / draft.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; lower-level\n  `dpkg -i` / `dpkg -l`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` queries.\n\n**Flatpak:** Distro-agnostic sandboxed apps; `flatpak install` / `flatpak run`.\n\n**Nova preference:** On Arch hosts, prefer **pacman / `packages.arch` first** in\ninstall hints; keep Arch lines at the top of `install_notes`.\n\n**Command ≠ package:** A PATH hit does not prove the package name; confirm via\ndistro package DB / man pages. CI does not run destructive installs to “test”.\n"
+        "tr": "Dağıtımlar yazılıımı *paket* olarak kurar. Aynı komut farklı paket adında olabilir;\nbilinmeyen ad **uydurulmaz** (omit / `draft`).\n\n**Birinci sınıf yöneticiler (çekirdek):**\n- **Arch — pacman:** `pacman -Syu` sistem güncellemesi; `pacman -S paket` kurulum;\n  `pacman -Ss anahtar` arama. AUR yardımcıları (ör. `paru`) resmi depoda olmayabilir.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; düşük seviye `dpkg`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` sorguları.\n\n**Genişleyen Linux PM’ler (Faz 4, çoğu draft):**\n- **openSUSE/SUSE — zypper** (Leap `update` ≠ Tumbleweed `dup`)\n- **Alpine — apk** (Android APK ile karıştırma)\n- **Gentoo — emerge / Portage** (kaynak derleme, USE / `@world`)\n- **Void — xbps-install / query / remove**\n- **Solus — eopkg** · **Slackware — slackpkg** (+ installpkg/removepkg/upgradepkg)\n- **OpenWrt — opkg** (gömülü; flash alanı)\n- **Atomik Fedora — rpm-ostree** (klasik dnf modeli değil; genelde reboot)\n\n**Deklaratif ekosistemler:** Nix (NixOS + diğer Linux/macOS) ve GNU Guix —\nayrı makale: `concepts/nix-guix.yaml`. Eski `nix-env` ile modern `nix profile`\nkarıştırılmaz.\n\n**Flatpak:** Dağıtımdan bağımsız uygulama sandboxes; çekirdek toolchain yerine geçmez.\n\n**Nova tercihi:** Arch host’ta kurulum ipuçlarında **pacman / `packages.arch` önce**.\nCI yıkıcı kurulum çalıştırmaz. `verification: verified` yalnızca insan incelemesi sonrası.\n",
+        "en": "Distros install software as *packages*. The same command may live in differently\nnamed packages; unknown names are **not invented** (omit / `draft`).\n\n**First-class managers (core):**\n- **Arch — pacman:** `pacman -Syu` full upgrade; `pacman -S pkg` install;\n  `pacman -Ss keyword` search. AUR helpers (e.g. `paru`) may be unofficial.\n- **Debian/Ubuntu — apt (+ dpkg):** `apt update` / `apt install`; lower-level `dpkg`.\n- **Fedora/RHEL — dnf (+ rpm):** `dnf install` / `dnf upgrade`; `rpm -q` queries.\n\n**Broader Linux PMs (Faz 4, mostly draft):**\n- **openSUSE/SUSE — zypper** (Leap `update` ≠ Tumbleweed `dup`)\n- **Alpine — apk** (not Android APK)\n- **Gentoo — emerge / Portage** (source builds, USE / `@world`)\n- **Void — xbps-install / query / remove**\n- **Solus — eopkg** · **Slackware — slackpkg** (+ installpkg/removepkg/upgradepkg)\n- **OpenWrt — opkg** (embedded; watch flash space)\n- **Atomic Fedora — rpm-ostree** (not classic dnf; reboot often required)\n\n**Declarative ecosystems:** Nix (NixOS + other Linux/macOS) and GNU Guix —\nsee `concepts/nix-guix.yaml`. Do not mix legacy `nix-env` with modern `nix profile`.\n\n**Flatpak:** Distro-agnostic sandboxed apps; does not replace the base toolchain.\n\n**Nova preference:** On Arch hosts prefer **pacman / `packages.arch` first**.\nCI does not run destructive installs. `verification: verified` only after human review.\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "https://wiki.archlinux.org/title/Pacman",
-          "man pacman / man apt / man dnf"
+          "https://wiki.archlinux.org/title/Pacman/Rosetta",
+          "https://en.opensuse.org/SDB:Zypper_manual",
+          "https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper",
+          "https://wiki.gentoo.org/wiki/Portage",
+          "https://docs.voidlinux.org/xbps/",
+          "https://nixos.org/manual/nix/stable/",
+          "https://guix.gnu.org/manual/en/html_node/",
+          "https://coreos.github.io/rpm-ostree/",
+          "https://openwrt.org/docs/guide-user/additional-software/opkg"
         ],
-        "notes": "Agent-authored teaching article; Arch-first per project preferences."
+        "notes": "Faz 4 expansion; demoted to draft pending human review of new PM coverage."
       }
     },
     {
@@ -19961,8 +22834,8 @@
         "en": "Package manager comparison tables"
       },
       "summary": {
-        "tr": "pacman / apt / dnf / rpm-dpkg / flatpak için yan yana sık işlemler.",
-        "en": "Side-by-side common operations for pacman / apt / dnf / rpm-dpkg / flatpak."
+        "tr": "pacman / apt / dnf / zypper / apk / xbps / emerge / Nix / Guix / ostree yan yana.",
+        "en": "Side-by-side pacman / apt / dnf / zypper / apk / xbps / emerge / Nix / Guix / ostree."
       },
       "difficulty": "beginner",
       "tags": [
@@ -19970,7 +22843,9 @@
         "pacman",
         "apt",
         "dnf",
-        "comparison"
+        "comparison",
+        "nix",
+        "guix"
       ],
       "related_commands": [
         "pacman",
@@ -19979,30 +22854,50 @@
         "dpkg",
         "rpm",
         "flatpak",
-        "paru"
+        "paru",
+        "zypper",
+        "apk",
+        "emerge",
+        "xbps-install",
+        "xbps-query",
+        "xbps-remove",
+        "eopkg",
+        "slackpkg",
+        "nix",
+        "guix",
+        "opkg",
+        "rpm-ostree"
       ],
       "related_concepts": [
         "package-managers",
         "packages",
         "arch",
-        "path"
+        "path",
+        "nix-guix"
       ],
       "see_also": [
         "docs/package-managers-comparison.md",
         "Arch Wiki: pacman/Rosetta",
-        "https://wiki.archlinux.org/title/Pacman/Rosetta"
+        "https://wiki.archlinux.org/title/Pacman/Rosetta",
+        "concepts/nix-guix.yaml"
       ],
       "body": {
-        "tr": "Aynı iş farklı dağıtımlarda farklı komutlarla yapılır. Aşağıdaki tablolar **sık\nokuma/kurulum** yollarını özetler; bayrak uydurma yok. Ayrıntılı Markdown:\n`docs/package-managers-comparison.md`. Arch satırları Nova tercihine göre önde.\n\n### Sistem güncelle / senkron\n\n| Amaç | Arch (pacman) | Debian/Ubuntu (apt) | Fedora/RHEL (dnf) |\n|------|---------------|---------------------|-------------------|\n| DB yenile + yükselt | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` |\n| Yalnız indeks | (Syu içinde) | `apt update` | `dnf check-update` |\n| Paket kur | `pacman -S ad` | `apt install ad` | `dnf install ad` |\n| Kaldır (+deps sık) | `pacman -Rns ad` | `apt purge ad` | `dnf remove ad` |\n| Ara | `pacman -Ss q` | `apt search q` | `dnf search q` |\n\n### Sorgulama (yerel)\n\n| Amaç | pacman | dpkg/apt | rpm/dnf |\n|------|--------|----------|---------|\n| Kurulu mu? | `pacman -Q ad` | `dpkg -l ad` | `rpm -q ad` |\n| Dosya → paket | `pacman -Qo yol` | `dpkg -S yol` | `rpm -qf yol` |\n| Paket → dosyalar | `pacman -Ql ad` | `dpkg -L ad` | `rpm -ql ad` |\n\n### Katmanlar\n\n- **pacman** — Arch resmi depolar; AUR ayrı (`paru` vb., draft/dikkat).\n- **apt + dpkg** — yüksek seviye apt, düşük seviye dpkg.\n- **dnf + rpm** — yüksek seviye dnf, düşük seviye rpm.\n- **flatpak** — dağıtımdan bağımsız sandbox uygulamalar (`flatpak install` / `run`).\n\n**Kural:** Bilinmeyen paket adı **uydurulmaz**; `packages.*` alanı omit/`draft`.\nCI yıkıcı kurulum çalıştırmaz. Nova Arch host’ta `packages.arch` / pacman notunu önce tutar.\n",
-        "en": "The same job uses different commands per distro. Tables below summarize **common\nupdate/install/query** paths — no invented flags. Longer Markdown:\n`docs/package-managers-comparison.md`. Arch rows first per Nova preference.\n\n### System update / sync\n\n| Goal | Arch (pacman) | Debian/Ubuntu (apt) | Fedora/RHEL (dnf) |\n|------|---------------|---------------------|-------------------|\n| Refresh + upgrade | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` |\n| Index only | (inside Syu) | `apt update` | `dnf check-update` |\n| Install | `pacman -S name` | `apt install name` | `dnf install name` |\n| Remove (+deps common) | `pacman -Rns name` | `apt purge name` | `dnf remove name` |\n| Search | `pacman -Ss q` | `apt search q` | `dnf search q` |\n\n### Local queries\n\n| Goal | pacman | dpkg/apt | rpm/dnf |\n|------|--------|----------|---------|\n| Installed? | `pacman -Q name` | `dpkg -l name` | `rpm -q name` |\n| File → package | `pacman -Qo path` | `dpkg -S path` | `rpm -qf path` |\n| Package → files | `pacman -Ql name` | `dpkg -L name` | `rpm -ql name` |\n\n### Layers\n\n- **pacman** — official Arch repos; AUR is separate (`paru`, etc., draft/care).\n- **apt + dpkg** — high-level apt, low-level dpkg.\n- **dnf + rpm** — high-level dnf, low-level rpm.\n- **flatpak** — distro-agnostic sandboxed apps (`flatpak install` / `run`).\n\n**Rule:** unknown package names are **not invented**; omit `packages.*` or use\n`draft`. CI does not run destructive installs. On Arch hosts Nova keeps\n`packages.arch` / pacman notes first.\n"
+        "tr": "Aynı iş farklı dağıtımlarda farklı komutlarla yapılır. Aşağıdaki tablolar **sık\nokuma/kurulum** yollarını özetler; bayrak uydurma yok. Ayrıntılı Markdown:\n`docs/package-managers-comparison.md`. Arch satırları Nova tercihine göre önde.\n\n### Sistem güncelle / kur / ara (çekirdek + genişleme)\n\n| Amaç | Arch (pacman) | Debian (apt) | Fedora (dnf) | openSUSE (zypper) | Alpine (apk) | Void (xbps) |\n|------|---------------|--------------|--------------|-------------------|--------------|-------------|\n| Yenile + yükselt | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` | Leap: `zypper update` / TW: `zypper dup` | `apk update && apk upgrade` | `xbps-install -Su` |\n| Kur | `pacman -S ad` | `apt install ad` | `dnf install ad` | `zypper install ad` | `apk add ad` | `xbps-install ad` |\n| Kaldır | `pacman -Rns ad` | `apt purge ad` | `dnf remove ad` | `zypper remove ad` | `apk del ad` | `xbps-remove ad` |\n| Ara | `pacman -Ss q` | `apt search q` | `dnf search q` | `zypper search q` | `apk search q` | `xbps-query -Rs q` |\n\nGentoo: `emerge --sync` + `emerge -uDN @world` / `emerge --ask ad`.  \nSolus: `eopkg upgrade` / `eopkg install`. Slackware: `slackpkg update` / `install`.  \nOpenWrt: `opkg update` / `opkg install` (flash alanı!).  \nAtomik Fedora: `rpm-ostree upgrade` / `rpm-ostree install` (reboot).\n\n### Sorgulama (yerel)\n\n| Amaç | pacman | dpkg/apt | rpm/dnf | xbps | apk |\n|------|--------|----------|---------|------|-----|\n| Kurulu mu? | `pacman -Q ad` | `dpkg -l ad` | `rpm -q ad` | `xbps-query ad` | `apk info -e ad` |\n| Dosya → paket | `pacman -Qo yol` | `dpkg -S yol` | `rpm -qf yol` | `xbps-query -o yol` | `apk info -W yol` |\n\n### Deklaratif / profil\n\n| Amaç | Nix (modern) | Guix |\n|------|--------------|------|\n| Ara | `nix search nixpkgs q` | `guix search q` |\n| Profil kur | `nix profile install nixpkgs#ad` | `guix install ad` |\n| Geçici kabuk | `nix shell` / `nix develop` | `guix shell` |\n| Sistem uygula | `nixos-rebuild switch` (NixOS) | `guix system …` (Guix System) |\n\nEski `nix-env` / klasik `nix-shell` modern CLI ile **karıştırılmaz** — bkz. `nix-guix`.\n\n**Kural:** Bilinmeyen paket adı **uydurulmaz**. Yeni PM kayıtları çoğunlukla `draft`.\nNova Arch host’ta pacman notunu önce tutar.\n",
+        "en": "The same job uses different commands per distro. Tables below summarize **common\nupdate/install/query** paths — no invented flags. Longer Markdown:\n`docs/package-managers-comparison.md`. Arch rows first per Nova preference.\n\n### System update / install / search (core + expansion)\n\n| Goal | Arch (pacman) | Debian (apt) | Fedora (dnf) | openSUSE (zypper) | Alpine (apk) | Void (xbps) |\n|------|---------------|--------------|--------------|-------------------|--------------|-------------|\n| Refresh + upgrade | `pacman -Syu` | `apt update && apt upgrade` | `dnf upgrade` | Leap: `zypper update` / TW: `zypper dup` | `apk update && apk upgrade` | `xbps-install -Su` |\n| Install | `pacman -S name` | `apt install name` | `dnf install name` | `zypper install name` | `apk add name` | `xbps-install name` |\n| Remove | `pacman -Rns name` | `apt purge name` | `dnf remove name` | `zypper remove name` | `apk del name` | `xbps-remove name` |\n| Search | `pacman -Ss q` | `apt search q` | `dnf search q` | `zypper search q` | `apk search q` | `xbps-query -Rs q` |\n\nGentoo: `emerge --sync` + `emerge -uDN @world` / `emerge --ask name`.  \nSolus: `eopkg upgrade` / `eopkg install`. Slackware: `slackpkg update` / `install`.  \nOpenWrt: `opkg update` / `opkg install` (watch flash!).  \nAtomic Fedora: `rpm-ostree upgrade` / `rpm-ostree install` (reboot).\n\n### Local queries\n\n| Goal | pacman | dpkg/apt | rpm/dnf | xbps | apk |\n|------|--------|----------|---------|------|-----|\n| Installed? | `pacman -Q name` | `dpkg -l name` | `rpm -q name` | `xbps-query name` | `apk info -e name` |\n| File → package | `pacman -Qo path` | `dpkg -S path` | `rpm -qf path` | `xbps-query -o path` | `apk info -W path` |\n\n### Declarative / profiles\n\n| Goal | Nix (modern) | Guix |\n|------|--------------|------|\n| Search | `nix search nixpkgs q` | `guix search q` |\n| Profile install | `nix profile install nixpkgs#name` | `guix install name` |\n| Ephemeral shell | `nix shell` / `nix develop` | `guix shell` |\n| Apply system | `nixos-rebuild switch` (NixOS) | `guix system …` (Guix System) |\n\nDo **not** mix legacy `nix-env` / classic `nix-shell` with the modern CLI —\nsee `nix-guix`.\n\n**Rule:** unknown package names are **not invented**. New PM records are mostly\n`draft`. On Arch hosts Nova keeps pacman notes first.\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "https://wiki.archlinux.org/title/Pacman/Rosetta",
-          "man pacman / man apt / man dnf"
+          "https://en.opensuse.org/SDB:Zypper_manual",
+          "https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper",
+          "https://docs.voidlinux.org/xbps/",
+          "https://wiki.gentoo.org/wiki/Emerge",
+          "https://nixos.org/manual/nix/stable/",
+          "https://guix.gnu.org/manual/en/html_node/",
+          "https://coreos.github.io/rpm-ostree/"
         ],
-        "notes": "Comparison tables agent-authored from Rosetta + man; not verified."
+        "notes": "Faz 4 comparison expansion; draft pending human review."
       }
     },
     {
