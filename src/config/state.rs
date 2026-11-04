@@ -126,6 +126,14 @@ pub struct Prefs {
     /// Arayüz dili (`tr`, `en`, `ru`, `az`, `uz`, `kk`). `None` → Türkçe.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub language: Option<String>,
+    /// Paylaşılan ikincil sütun genişliği (Mağaza kategorileri, Komut Rehberi
+    /// kaynak/kategori, Ayarlar yan paneli). `None` → UI varsayılanı.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pane_secondary_width: Option<u16>,
+    /// Paylaşılan liste sütunu tercih genişliği (Mağaza uygulamaları / Komut
+    /// listesi). Yan detay düzeninde fazla alan detaya gider. `None` → UI varsayılanı.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pane_list_width: Option<u16>,
 }
 
 impl StateFile {
@@ -423,5 +431,18 @@ mod tests {
         assert_eq!(p.recent_limit(), RECENT_LIMIT_MAX);
         let p: Prefs = toml::from_str("recent_limit = 5\n").unwrap();
         assert_eq!(p.recent_limit(), 5);
+    }
+
+    #[test]
+    fn pane_widths_round_trip_in_toml() {
+        let p: Prefs =
+            toml::from_str("pane_secondary_width = 30\npane_list_width = 40\nlanguage = \"en\"\n")
+                .unwrap();
+        assert_eq!(p.pane_secondary_width, Some(30));
+        assert_eq!(p.pane_list_width, Some(40));
+        assert_eq!(p.language.as_deref(), Some("en"));
+        let old: Prefs = toml::from_str("language = \"tr\"\n").unwrap();
+        assert!(old.pane_secondary_width.is_none());
+        assert!(old.pane_list_width.is_none());
     }
 }

@@ -38,7 +38,7 @@ değiştirmez; onları bir araya getirir.
 | **Nova self-update** | **GitHub Releases** ikilisi *ve* repo **`main`** üzerinden `cargo install --git` (ağ + derleme). İkisi birbirinin yerine geçmez |
 | **AI aksiyonları** | Seçili AI aracında detay yanında Aç / Devam / Çıkış / Yardım |
 | **Tema + dil** | Dokuz tema; `tr` varsayılan — en / ru / az / uz / kk / tk |
-| **Klavye + fare** | Liste tıklama/kaydırma; dar terminale uyumlu düzen |
+| **Klavye + fare** | Liste tıklama/kaydırma; Mağaza/Komut sütunları `[]` / `-=` ile ayarlanır (`state.toml`) |
 
 <p align="center">
   <img alt="Nova Mağaza" src="docs/screenshots/store.png" width="820">
@@ -100,6 +100,8 @@ tmux, …). Emülatör yokken arayüz gezilebilir; başlatma backend bulamazsa h
 | `a` | Varsayılan AI CLI |
 | `n` / `d` | Özel araç ekle / sil |
 | `?` | Yardım |
+| `[` / `]` | İkincil sütun daralt / genişlet (Mağaza, Komut Rehberi, Ayarlar) |
+| `-` / `=` | Liste sütunu daralt / genişlet (Mağaza, Komut Rehberi); `state.toml` |
 | `Esc` / `q` | Geri / çık |
 
 Onay pencerelerinde `Enter` onaylar, `Esc` vazgeçer.

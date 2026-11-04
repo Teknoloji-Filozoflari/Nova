@@ -89,8 +89,8 @@ fn commands_tab_local_source_uses_local_kind_not_bank() {
 fn commands_detail_shows_examples_risk_and_packages() {
     let mut app = app();
     app.select_commands_tab();
-    // Geniş: sağ detay paneli.
-    app.terminal_size = Some((160, 42));
+    // Geniş: sağ detay paneli (banka: 2 ikincil sütun → ~168+ sütun gerekir).
+    app.terminal_size = Some((180, 42));
     app.narrow_mode = false;
     // İlk kategoride örnekleri/paketi olan bir komut seç.
     let cmds = app.filtered_bank_commands();
@@ -99,7 +99,7 @@ fn commands_detail_shows_examples_risk_and_packages() {
     if let Some(idx) = cmds.iter().position(|c| !c.examples.is_empty()) {
         app.commands_entry_index = idx;
     }
-    let text = all_text(&render(&app, 160, 42));
+    let text = all_text(&render(&app, 180, 42));
     assert!(
         text.contains("risk")
             || text.contains("Risk")

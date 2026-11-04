@@ -474,17 +474,19 @@ impl App {
             None => return Ok(()),
         };
         let tool_detail_side = false;
-        let areas = crate::ui::click_areas_ex(
+        let areas = crate::ui::click_areas_ex(crate::ui::ClickAreasInput {
             size,
-            self.show_help,
-            self.store_tab,
-            self.commands_tab,
+            show_help: self.show_help,
+            store_tab: self.store_tab,
+            commands_tab: self.commands_tab,
             tool_detail_side,
-            !self.store_tab
+            has_ai_actions: !self.store_tab
                 && !self.settings_tab
                 && !self.commands_tab
                 && self.selected_tool_has_ai_actions(),
-        );
+            panes: self.pane_widths(),
+            secondary_cols: self.pane_secondary_cols(),
+        });
 
         match mouse.kind {
             MouseEventKind::Down(MouseButton::Left) => {
@@ -588,8 +590,8 @@ impl App {
         let panel_h = areas.content_height;
         // Geniş: sekmeler | kaynak | (bank kategori) | liste [| yan detay]
         if areas.wide {
-            let source_end = areas.category_end_x + crate::ui::STORE_CATEGORY_PANEL_WIDTH;
-            let bank_cat_end = source_end + crate::ui::STORE_CATEGORY_PANEL_WIDTH;
+            let source_end = areas.category_end_x.saturating_add(areas.secondary_width);
+            let bank_cat_end = source_end.saturating_add(areas.secondary_width);
             let list_end = if areas.commands_detail_side {
                 areas.commands_list_end_x
             } else {
@@ -738,9 +740,7 @@ impl App {
         const SETTINGS_ACTIONS: usize = 6;
 
         if self.settings_side_picker_open() && areas.wide {
-            let side_start = areas
-                .category_end_x
-                .saturating_add(crate::ui::STORE_CATEGORY_PANEL_WIDTH);
+            let side_start = areas.category_end_x.saturating_add(areas.secondary_width);
             if x >= side_start {
                 if self.language_picker_open {
                     let langs = crate::i18n::Language::all().len();
@@ -1055,6 +1055,19 @@ impl App {
                         self.status_message = "Tüm araçlar gösteriliyor.".into();
                     }
                 }
+            }
+            // Paylaşılan sütun genişlikleri (Mağaza + Komut Rehberi + Ayarlar yan).
+            KeyCode::Char('[') if self.store_tab || self.commands_tab || self.settings_tab => {
+                self.nudge_pane_secondary(-1);
+            }
+            KeyCode::Char(']') if self.store_tab || self.commands_tab || self.settings_tab => {
+                self.nudge_pane_secondary(1);
+            }
+            KeyCode::Char('-') if self.store_tab || self.commands_tab => {
+                self.nudge_pane_list(-1);
+            }
+            KeyCode::Char('=') | KeyCode::Char('+') if self.store_tab || self.commands_tab => {
+                self.nudge_pane_list(1);
             }
             _ => {}
         }
@@ -1642,9 +1655,60 @@ impl App {
         let Some((w, _)) = self.terminal_size else {
             return false;
         };
+        let panes = self.pane_widths();
         self.commands_tab
             && w >= crate::ui::WIDE_MIN_WIDTH
-            && w >= crate::ui::STORE_DETAIL_SIDE_MIN_WIDTH
+            && w >= crate::ui::detail_side_min_width(panes.secondary, self.pane_secondary_cols())
+    }
+
+    /// Paylaşılan sütun genişlikleri (`state.toml` prefs → kırpılmış).
+    pub fn pane_widths(&self) -> crate::ui::PaneWidths {
+        crate::ui::PaneWidths::from_prefs(&self.state.file.prefs)
+    }
+
+    /// Yan-detay eşiği için ikincil sütun sayısı (banka Komut=2, diğer=1).
+    pub fn pane_secondary_cols(&self) -> u16 {
+        if self.commands_tab && self.commands_source == CommandsSource::Bank {
+            2
+        } else {
+            1
+        }
+    }
+
+    /// İkincil sütunu (`[` / `]`) bir adım kaydırır ve kalıcı yazar.
+    fn nudge_pane_secondary(&mut self, delta: i16) {
+        let cur = self.pane_widths().secondary as i16;
+        let next = crate::ui::clamp_secondary_width((cur + delta).clamp(0, i16::MAX) as u16);
+        self.state.file.prefs.pane_secondary_width = Some(next);
+        match self.persist_state() {
+            Ok(()) => {
+                self.status_message = format!(
+                    "İkincil sütun: {next}  (liste {})  — state.toml",
+                    self.pane_widths().list
+                );
+            }
+            Err(e) => {
+                self.status_message = format!("Sütun genişliği kaydedilemedi: {e}");
+            }
+        }
+    }
+
+    /// Liste sütununu (`-` / `=`) bir adım kaydırır ve kalıcı yazar.
+    fn nudge_pane_list(&mut self, delta: i16) {
+        let cur = self.pane_widths().list as i16;
+        let next = crate::ui::clamp_list_width((cur + delta).clamp(0, i16::MAX) as u16);
+        self.state.file.prefs.pane_list_width = Some(next);
+        match self.persist_state() {
+            Ok(()) => {
+                self.status_message = format!(
+                    "Liste sütunu: {next}  (ikincil {})  — state.toml",
+                    self.pane_widths().secondary
+                );
+            }
+            Err(e) => {
+                self.status_message = format!("Sütun genişliği kaydedilemedi: {e}");
+            }
+        }
     }
 
     /// Etkin odak zinciri (soldan sağa).
@@ -1743,9 +1807,10 @@ impl App {
         let Some((w, _)) = self.terminal_size else {
             return false;
         };
+        let panes = self.pane_widths();
         self.store_tab
             && w >= crate::ui::WIDE_MIN_WIDTH
-            && w >= crate::ui::STORE_DETAIL_SIDE_MIN_WIDTH
+            && w >= crate::ui::detail_side_min_width(panes.secondary, 1)
     }
 
     /// Seçili mağaza detay bağlantısını sistem tarayıcısında açar (`xdg-open`).
@@ -4890,6 +4955,46 @@ mod tests {
         app.open_theme_picker();
         assert!(app.theme_picker_open);
         assert!(!app.language_picker_open);
+    }
+
+    #[test]
+    fn pane_width_keys_nudge_shared_prefs_on_store_and_commands() {
+        let mut app = sample_app();
+        assert_eq!(
+            app.pane_widths().secondary,
+            crate::ui::SECONDARY_PANEL_WIDTH_DEFAULT
+        );
+        assert_eq!(app.pane_widths().list, crate::ui::LIST_PANEL_WIDTH_DEFAULT);
+        app.select_store_tab();
+        app.handle_key(typed(']')).unwrap();
+        assert_eq!(
+            app.state.file.prefs.pane_secondary_width,
+            Some(crate::ui::SECONDARY_PANEL_WIDTH_DEFAULT + 1)
+        );
+        app.handle_key(typed('=')).unwrap();
+        assert_eq!(
+            app.state.file.prefs.pane_list_width,
+            Some(crate::ui::LIST_PANEL_WIDTH_DEFAULT + 1)
+        );
+        app.select_commands_tab();
+        app.handle_key(typed('[')).unwrap();
+        assert_eq!(
+            app.state.file.prefs.pane_secondary_width,
+            Some(crate::ui::SECONDARY_PANEL_WIDTH_DEFAULT)
+        );
+        app.handle_key(typed('-')).unwrap();
+        assert_eq!(
+            app.state.file.prefs.pane_list_width,
+            Some(crate::ui::LIST_PANEL_WIDTH_DEFAULT)
+        );
+        // Araç sekmesinde sütun tuşları yoksayılır.
+        app.set_tab_index(0);
+        let before = app.state.file.prefs.clone();
+        app.handle_key(typed(']')).unwrap();
+        assert_eq!(
+            app.state.file.prefs.pane_secondary_width,
+            before.pane_secondary_width
+        );
     }
 
     #[test]
