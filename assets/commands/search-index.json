@@ -1,8 +1,46 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 246,
+  "entry_count": 276,
   "entries": [
+    {
+      "type": "command",
+      "id": "ansible",
+      "name": "ansible",
+      "category": "devops",
+      "kind": "remote_cli",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "ansible",
+        "automation",
+        "devops",
+        "iac"
+      ],
+      "summary": {
+        "tr": "Ansible otomasyon motoru.",
+        "en": "Ansible automation engine."
+      },
+      "intent": {
+        "tr": [
+          "ansible",
+          "playbook",
+          "otomasyon"
+        ],
+        "en": [
+          "ansible",
+          "playbook",
+          "automation"
+        ]
+      },
+      "concepts": [
+        "infrastructure-as-code"
+      ]
+    },
     {
       "type": "command",
       "id": "apk",
@@ -112,6 +150,82 @@
     },
     {
       "type": "command",
+      "id": "aws",
+      "name": "aws",
+      "category": "cloud",
+      "kind": "remote_cli",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "cloud",
+        "aws",
+        "devops"
+      ],
+      "summary": {
+        "tr": "AWS Command Line Interface.",
+        "en": "AWS Command Line Interface."
+      },
+      "intent": {
+        "tr": [
+          "aws cli",
+          "aws kimlik",
+          "sts"
+        ],
+        "en": [
+          "aws cli",
+          "aws identity",
+          "sts"
+        ]
+      },
+      "concepts": [
+        "cloud",
+        "infrastructure-as-code"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "az",
+      "name": "az",
+      "category": "cloud",
+      "kind": "remote_cli",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "cloud",
+        "azure",
+        "devops"
+      ],
+      "summary": {
+        "tr": "Azure CLI.",
+        "en": "Azure CLI."
+      },
+      "intent": {
+        "tr": [
+          "azure cli",
+          "az account"
+        ],
+        "en": [
+          "azure cli",
+          "az account"
+        ]
+      },
+      "concepts": [
+        "cloud",
+        "infrastructure-as-code"
+      ]
+    },
+    {
+      "type": "command",
       "id": "bcdedit",
       "name": "bcdedit",
       "category": "system",
@@ -213,6 +327,43 @@
     },
     {
       "type": "command",
+      "id": "borg",
+      "name": "borg",
+      "category": "backup",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "backup",
+        "borg",
+        "server"
+      ],
+      "summary": {
+        "tr": "BorgBackup dedupe yedekleme.",
+        "en": "BorgBackup deduplicating backups."
+      },
+      "intent": {
+        "tr": [
+          "borg yedek",
+          "borgbackup"
+        ],
+        "en": [
+          "borg backup",
+          "borgbackup"
+        ]
+      },
+      "concepts": [
+        "backup",
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
       "id": "brew",
       "name": "brew",
       "category": "packages",
@@ -247,6 +398,46 @@
         "packages",
         "package-managers",
         "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "caddy",
+      "name": "caddy",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "web",
+        "proxy",
+        "tls",
+        "server"
+      ],
+      "summary": {
+        "tr": "Otomatik TLS’li web sunucu.",
+        "en": "Web server with automatic TLS."
+      },
+      "intent": {
+        "tr": [
+          "caddy",
+          "otomatik https",
+          "web sunucu"
+        ],
+        "en": [
+          "caddy",
+          "automatic https",
+          "web server"
+        ]
+      },
+      "concepts": [
+        "reverse-proxy",
+        "networking"
       ]
     },
     {
@@ -566,6 +757,42 @@
       "concepts": [
         "files",
         "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "crictl",
+      "name": "crictl",
+      "category": "containers",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "containers",
+        "kubernetes",
+        "cri",
+        "devops"
+      ],
+      "summary": {
+        "tr": "CRI runtime hata ayıklama CLI.",
+        "en": "CRI runtime debugging CLI."
+      },
+      "intent": {
+        "tr": [
+          "crictl",
+          "cri teşhis"
+        ],
+        "en": [
+          "crictl",
+          "cri debug"
+        ]
+      },
+      "concepts": [
+        "containers",
+        "kubernetes"
       ]
     },
     {
@@ -1377,6 +1604,43 @@
     },
     {
       "type": "command",
+      "id": "ethtool",
+      "name": "ethtool",
+      "category": "network",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "hardware",
+        "linux",
+        "server"
+      ],
+      "summary": {
+        "tr": "NIC bağlantı/ayar sorgusu.",
+        "en": "NIC link/settings query."
+      },
+      "intent": {
+        "tr": [
+          "nic durumu",
+          "ethtool",
+          "link hızı"
+        ],
+        "en": [
+          "nic status",
+          "ethtool",
+          "link speed"
+        ]
+      },
+      "concepts": [
+        "networking"
+      ]
+    },
+    {
+      "type": "command",
       "id": "export",
       "name": "export",
       "category": "shell",
@@ -1729,6 +1993,45 @@
       },
       "concepts": [
         "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "gcloud",
+      "name": "gcloud",
+      "category": "cloud",
+      "kind": "remote_cli",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "cloud",
+        "gcp",
+        "devops"
+      ],
+      "summary": {
+        "tr": "Google Cloud CLI.",
+        "en": "Google Cloud CLI."
+      },
+      "intent": {
+        "tr": [
+          "gcloud",
+          "gcp cli",
+          "google cloud"
+        ],
+        "en": [
+          "gcloud",
+          "gcp cli",
+          "google cloud"
+        ]
+      },
+      "concepts": [
+        "cloud",
+        "infrastructure-as-code"
       ]
     },
     {
@@ -2296,6 +2599,45 @@
     },
     {
       "type": "command",
+      "id": "gh",
+      "name": "gh",
+      "category": "devops",
+      "kind": "remote_cli",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "github",
+        "cicd",
+        "devops",
+        "git"
+      ],
+      "summary": {
+        "tr": "GitHub resmi CLI.",
+        "en": "Official GitHub CLI."
+      },
+      "intent": {
+        "tr": [
+          "gh",
+          "github cli",
+          "pr oluştur"
+        ],
+        "en": [
+          "gh",
+          "github cli",
+          "create pr"
+        ]
+      },
+      "concepts": [
+        "infrastructure-as-code"
+      ]
+    },
+    {
+      "type": "command",
       "id": "git",
       "name": "git",
       "category": "development",
@@ -2542,6 +2884,47 @@
       "concepts": [
         "files",
         "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "helm",
+      "name": "helm",
+      "category": "containers",
+      "kind": "remote_cli",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "kubernetes",
+        "helm",
+        "devops",
+        "packages"
+      ],
+      "summary": {
+        "tr": "Kubernetes paket yöneticisi.",
+        "en": "Kubernetes package manager."
+      },
+      "intent": {
+        "tr": [
+          "helm",
+          "chart kur",
+          "kubernetes paket"
+        ],
+        "en": [
+          "helm",
+          "install chart",
+          "kubernetes package"
+        ]
+      },
+      "concepts": [
+        "containers",
+        "kubernetes",
+        "infrastructure-as-code"
       ]
     },
     {
@@ -3212,6 +3595,46 @@
       },
       "concepts": [
         "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "kubectl",
+      "name": "kubectl",
+      "category": "containers",
+      "kind": "remote_cli",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "kubernetes",
+        "containers",
+        "devops",
+        "orchestration"
+      ],
+      "summary": {
+        "tr": "Kubernetes küme CLI.",
+        "en": "Kubernetes cluster CLI."
+      },
+      "intent": {
+        "tr": [
+          "kubectl",
+          "kubernetes pod listele",
+          "k8s"
+        ],
+        "en": [
+          "kubectl",
+          "list kubernetes pods",
+          "k8s"
+        ]
+      },
+      "concepts": [
+        "containers",
+        "kubernetes"
       ]
     },
     {
@@ -3927,6 +4350,45 @@
     },
     {
       "type": "command",
+      "id": "mtr",
+      "name": "mtr",
+      "category": "network",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "diagnostics",
+        "latency"
+      ],
+      "summary": {
+        "tr": "Birleşik traceroute + ping.",
+        "en": "Combined traceroute + ping."
+      },
+      "intent": {
+        "tr": [
+          "yol izle",
+          "mtr",
+          "gecikme"
+        ],
+        "en": [
+          "trace path",
+          "mtr",
+          "latency"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
       "id": "mv",
       "name": "mv",
       "category": "filesystem",
@@ -3964,6 +4426,43 @@
     },
     {
       "type": "command",
+      "id": "mysql",
+      "name": "mysql",
+      "category": "databases",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "database",
+        "mysql",
+        "mariadb",
+        "server"
+      ],
+      "summary": {
+        "tr": "MySQL/MariaDB istemci CLI.",
+        "en": "MySQL/MariaDB client CLI."
+      },
+      "intent": {
+        "tr": [
+          "mysql istemci",
+          "mariadb bağlan"
+        ],
+        "en": [
+          "mysql client",
+          "connect mariadb"
+        ]
+      },
+      "concepts": [
+        "databases"
+      ]
+    },
+    {
+      "type": "command",
       "id": "nc",
       "name": "nc",
       "category": "network",
@@ -3996,6 +4495,41 @@
       "concepts": [
         "networking",
         "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nerdctl",
+      "name": "nerdctl",
+      "category": "containers",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "containers",
+        "containerd",
+        "devops"
+      ],
+      "summary": {
+        "tr": "containerd için Docker uyumlu CLI.",
+        "en": "Docker-compatible CLI for containerd."
+      },
+      "intent": {
+        "tr": [
+          "nerdctl",
+          "containerd konteyner"
+        ],
+        "en": [
+          "nerdctl",
+          "containerd containers"
+        ]
+      },
+      "concepts": [
+        "containers",
+        "kubernetes"
       ]
     },
     {
@@ -4205,6 +4739,46 @@
         "firewalls",
         "networking",
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nginx",
+      "name": "nginx",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "web",
+        "proxy",
+        "server",
+        "http"
+      ],
+      "summary": {
+        "tr": "HTTP reverse proxy / web sunucu.",
+        "en": "HTTP reverse proxy / web server."
+      },
+      "intent": {
+        "tr": [
+          "nginx",
+          "reverse proxy",
+          "web sunucu"
+        ],
+        "en": [
+          "nginx",
+          "reverse proxy",
+          "web server"
+        ]
+      },
+      "concepts": [
+        "reverse-proxy",
+        "networking"
       ]
     },
     {
@@ -4430,6 +5004,48 @@
         "package-managers",
         "package-managers-comparison",
         "nix-guix"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nmap",
+      "name": "nmap",
+      "category": "network",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "security",
+        "scanning",
+        "server"
+      ],
+      "summary": {
+        "tr": "Ağ keşfi ve port tarama.",
+        "en": "Network discovery and port scanning."
+      },
+      "intent": {
+        "tr": [
+          "port tara",
+          "nmap",
+          "açık port"
+        ],
+        "en": [
+          "scan ports",
+          "nmap",
+          "open ports"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics",
+        "firewalls"
       ]
     },
     {
@@ -5373,6 +5989,44 @@
     },
     {
       "type": "command",
+      "id": "qemu-img",
+      "name": "qemu-img",
+      "category": "virtualization",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "virtualization",
+        "qemu",
+        "storage"
+      ],
+      "summary": {
+        "tr": "QEMU disk imajı aracı.",
+        "en": "QEMU disk image utility."
+      },
+      "intent": {
+        "tr": [
+          "qemu-img",
+          "qcow2 bilgi",
+          "disk imajı"
+        ],
+        "en": [
+          "qemu-img",
+          "qcow2 info",
+          "disk image"
+        ]
+      },
+      "concepts": [
+        "virtualization",
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
       "id": "rcctl",
       "name": "rcctl",
       "category": "system",
@@ -5407,6 +6061,83 @@
       },
       "concepts": [
         "systemd"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "rclone",
+      "name": "rclone",
+      "category": "backup",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "backup",
+        "cloud",
+        "sync",
+        "storage"
+      ],
+      "summary": {
+        "tr": "Bulut depolama senkron aracı.",
+        "en": "Cloud storage sync tool."
+      },
+      "intent": {
+        "tr": [
+          "rclone",
+          "bulut senkron",
+          "s3 kopyala"
+        ],
+        "en": [
+          "rclone",
+          "cloud sync",
+          "copy s3"
+        ]
+      },
+      "concepts": [
+        "backup",
+        "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "redis-cli",
+      "name": "redis-cli",
+      "category": "databases",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "database",
+        "redis",
+        "cache",
+        "server"
+      ],
+      "summary": {
+        "tr": "Redis komut satırı istemcisi.",
+        "en": "Redis command-line client."
+      },
+      "intent": {
+        "tr": [
+          "redis-cli",
+          "redis ping"
+        ],
+        "en": [
+          "redis-cli",
+          "redis ping"
+        ]
+      },
+      "concepts": [
+        "databases"
       ]
     },
     {
@@ -5550,6 +6281,44 @@
       },
       "concepts": [
         "systemd"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "restic",
+      "name": "restic",
+      "category": "backup",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "backup",
+        "encryption",
+        "server"
+      ],
+      "summary": {
+        "tr": "Şifreli artımlı yedekleme.",
+        "en": "Encrypted incremental backups."
+      },
+      "intent": {
+        "tr": [
+          "restic yedek",
+          "şifreli yedek"
+        ],
+        "en": [
+          "restic backup",
+          "encrypted backup"
+        ]
+      },
+      "concepts": [
+        "backup",
+        "storage"
       ]
     },
     {
@@ -6925,6 +7694,46 @@
     },
     {
       "type": "command",
+      "id": "tcpdump",
+      "name": "tcpdump",
+      "category": "network",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "network",
+        "pcap",
+        "diagnostics",
+        "server"
+      ],
+      "summary": {
+        "tr": "Paket yakalama (pcap).",
+        "en": "Packet capture (pcap)."
+      },
+      "intent": {
+        "tr": [
+          "paket yakala",
+          "tcpdump",
+          "pcap"
+        ],
+        "en": [
+          "capture packets",
+          "tcpdump",
+          "pcap"
+        ]
+      },
+      "concepts": [
+        "networking",
+        "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
       "id": "tee",
       "name": "tee",
       "category": "text",
@@ -6957,6 +7766,46 @@
       "concepts": [
         "files",
         "shell-pipes-redirection"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "terraform",
+      "name": "terraform",
+      "category": "devops",
+      "kind": "remote_cli",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "iac",
+        "terraform",
+        "devops",
+        "cloud"
+      ],
+      "summary": {
+        "tr": "HashiCorp Terraform (IaC).",
+        "en": "HashiCorp Terraform (IaC)."
+      },
+      "intent": {
+        "tr": [
+          "terraform",
+          "altyapı kodu",
+          "iac"
+        ],
+        "en": [
+          "terraform",
+          "infrastructure as code",
+          "iac"
+        ]
+      },
+      "concepts": [
+        "infrastructure-as-code",
+        "cloud"
       ]
     },
     {
@@ -7477,6 +8326,43 @@
       },
       "concepts": [
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "virsh",
+      "name": "virsh",
+      "category": "virtualization",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "virtualization",
+        "kvm",
+        "libvirt",
+        "server"
+      ],
+      "summary": {
+        "tr": "libvirt yönetim kabuğu.",
+        "en": "libvirt management shell."
+      },
+      "intent": {
+        "tr": [
+          "virsh",
+          "sanal makine listele",
+          "kvm"
+        ],
+        "en": [
+          "virsh",
+          "list vms",
+          "kvm"
+        ]
+      },
+      "concepts": [
+        "virtualization"
       ]
     },
     {
@@ -8221,6 +9107,83 @@
     },
     {
       "type": "concept",
+      "id": "backup",
+      "difficulty": "intermediate",
+      "tags": [
+        "backup",
+        "restic",
+        "borg",
+        "rclone"
+      ],
+      "title": {
+        "tr": "Yedekleme araçları",
+        "en": "Backup tools"
+      },
+      "summary": {
+        "tr": "restic, Borg ve rclone — şifre/kimlik bilgisi kuralları ve risk.",
+        "en": "restic, Borg, and rclone — credential rules and risk."
+      },
+      "related_commands": [
+        "restic",
+        "borg",
+        "rclone",
+        "rsync",
+        "tar"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "cloud",
+      "difficulty": "intermediate",
+      "tags": [
+        "cloud",
+        "aws",
+        "azure",
+        "gcp"
+      ],
+      "title": {
+        "tr": "Bulut sağlayıcı CLI’leri",
+        "en": "Cloud provider CLIs"
+      },
+      "summary": {
+        "tr": "aws, az, gcloud — kontrol düzlemi araçları; gerçek API anahtarı yok.",
+        "en": "aws, az, gcloud — control-plane tools; no real API keys."
+      },
+      "related_commands": [
+        "aws",
+        "az",
+        "gcloud",
+        "terraform",
+        "rclone"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "databases",
+      "difficulty": "beginner",
+      "tags": [
+        "database",
+        "mysql",
+        "redis",
+        "postgres"
+      ],
+      "title": {
+        "tr": "Veritabanı istemci CLI’leri",
+        "en": "Database client CLIs"
+      },
+      "summary": {
+        "tr": "mysql, redis-cli, psql — sunucu kurulumu değil; parola argv’de olmaz.",
+        "en": "mysql, redis-cli, psql — clients not server installs; no passwords on argv."
+      },
+      "related_commands": [
+        "mysql",
+        "redis-cli",
+        "psql",
+        "sqlite3"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "debugging",
       "difficulty": "intermediate",
       "tags": [
@@ -8277,6 +9240,35 @@
     },
     {
       "type": "concept",
+      "id": "infrastructure-as-code",
+      "difficulty": "intermediate",
+      "tags": [
+        "iac",
+        "terraform",
+        "ansible",
+        "devops",
+        "cloud"
+      ],
+      "title": {
+        "tr": "Altyapı kodu (IaC) ve otomasyon",
+        "en": "Infrastructure as code (IaC) and automation"
+      },
+      "summary": {
+        "tr": "Terraform ve Ansible farkı; bulut CLI’ler ve gizli kimlik kuralları.",
+        "en": "Terraform vs Ansible; cloud CLIs and secret-handling rules."
+      },
+      "related_commands": [
+        "terraform",
+        "ansible",
+        "aws",
+        "az",
+        "gcloud",
+        "kubectl",
+        "gh"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "json-data",
       "difficulty": "beginner",
       "tags": [
@@ -8299,6 +9291,33 @@
         "curl",
         "python3",
         "psql"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "kubernetes",
+      "difficulty": "intermediate",
+      "tags": [
+        "kubernetes",
+        "containers",
+        "devops",
+        "orchestration"
+      ],
+      "title": {
+        "tr": "Kubernetes ve konteyner orkestrasyon",
+        "en": "Kubernetes and container orchestration"
+      },
+      "summary": {
+        "tr": "kubectl/Helm/CRI araçları — Docker Engine ile karıştırılmayan küme modeli.",
+        "en": "kubectl/Helm/CRI tools — cluster model distinct from Docker Engine alone."
+      },
+      "related_commands": [
+        "kubectl",
+        "helm",
+        "crictl",
+        "nerdctl",
+        "docker",
+        "podman"
       ]
     },
     {
@@ -8329,7 +9348,11 @@
         "resolvectl",
         "nmcli",
         "traceroute",
-        "nc"
+        "nc",
+        "tcpdump",
+        "nmap",
+        "mtr",
+        "ethtool"
       ]
     },
     {
@@ -8520,6 +9543,34 @@
     },
     {
       "type": "concept",
+      "id": "reverse-proxy",
+      "difficulty": "intermediate",
+      "tags": [
+        "nginx",
+        "caddy",
+        "proxy",
+        "http",
+        "tls"
+      ],
+      "title": {
+        "tr": "Reverse proxy ve web sunucular",
+        "en": "Reverse proxies and web servers"
+      },
+      "summary": {
+        "tr": "nginx ve Caddy rolleri; TLS ve config test alışkanlıkları.",
+        "en": "Roles of nginx and Caddy; TLS and config-test habits."
+      },
+      "related_commands": [
+        "nginx",
+        "caddy",
+        "curl",
+        "openssl",
+        "ss",
+        "systemctl"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "shell-pipes-redirection",
       "difficulty": "beginner",
       "tags": [
@@ -8639,8 +9690,33 @@
         "echo",
         "history"
       ]
+    },
+    {
+      "type": "concept",
+      "id": "virtualization",
+      "difficulty": "intermediate",
+      "tags": [
+        "virtualization",
+        "kvm",
+        "qemu",
+        "libvirt"
+      ],
+      "title": {
+        "tr": "Sanallaştırma (KVM / libvirt / QEMU)",
+        "en": "Virtualization (KVM / libvirt / QEMU)"
+      },
+      "summary": {
+        "tr": "Hipervizör katmanları ve virsh/qemu-img — konteyner orkestrasyonu değil.",
+        "en": "Hypervisor layers and virsh/qemu-img — not container orchestration."
+      },
+      "related_commands": [
+        "virsh",
+        "qemu-img",
+        "systemctl",
+        "lsblk"
+      ]
     }
   ],
-  "content_sha256": "798249613e74b7e1c930204cbff62d23b5430c1147b3ae9c20c9d5fa81554204",
-  "generated_at": "2026-11-04T20:11:29Z"
+  "content_sha256": "cca5bd35662ba1c69d521669367942de222e2b9a9630bb0f3dc85f6ac5156ce5",
+  "generated_at": "2026-11-04T20:33:14Z"
 }

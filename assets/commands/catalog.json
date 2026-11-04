@@ -1,11 +1,131 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-04T20:11:29Z",
-  "content_sha256": "798249613e74b7e1c930204cbff62d23b5430c1147b3ae9c20c9d5fa81554204",
-  "command_count": 233,
-  "concept_count": 13,
+  "generated_at": "2026-11-04T20:33:14Z",
+  "content_sha256": "cca5bd35662ba1c69d521669367942de222e2b9a9630bb0f3dc85f6ac5156ce5",
+  "command_count": 256,
+  "concept_count": 20,
   "commands": [
+    {
+      "schema_version": 2,
+      "id": "ansible",
+      "name": "ansible",
+      "kind": "remote_cli",
+      "category": "devops",
+      "summary": {
+        "tr": "Ansible otomasyon motoru.",
+        "en": "Ansible automation engine."
+      },
+      "description": {
+        "tr": "SSH/WinRM üzerinden yapılandırma otomasyonu. Playbook çalıştırmak uzak sistemleri değiştirir — örnekler sürüm/inventory odaklı. `ansible-playbook` ayrı binary olabilir.",
+        "en": "Configuration automation over SSH/WinRM. Running playbooks mutates remote systems — examples focus on version/inventory. `ansible-playbook` may be a separate binary."
+      },
+      "tags": [
+        "ansible",
+        "automation",
+        "devops",
+        "iac"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "ansible --version",
+          "explanation": {
+            "tr": "Ansible sürüm ve yollar.",
+            "en": "Ansible version and paths."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Inventory list",
+            "en": "Inventory list"
+          },
+          "command": "ansible-inventory --list",
+          "explanation": {
+            "tr": "Yapılandırılmış envanteri JSON olarak listeler.",
+            "en": "Lists configured inventory as JSON."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "ansible",
+          "playbook",
+          "otomasyon"
+        ],
+        "en": [
+          "ansible",
+          "playbook",
+          "automation"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.ansible.com/",
+          "https://docs.ansible.com/ansible/latest/command_guide/index.html"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "terraform",
+        "ssh",
+        "systemctl"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "ansible",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "ansible",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "ansible",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "ansible",
+        "debian": "ansible",
+        "ubuntu": "ansible",
+        "fedora": "ansible"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "infrastructure-as-code"
+        ]
+      }
+    },
     {
       "schema_version": 2,
       "id": "apk",
@@ -465,6 +585,198 @@
     },
     {
       "schema_version": 2,
+      "id": "aws",
+      "name": "aws",
+      "kind": "remote_cli",
+      "category": "cloud",
+      "summary": {
+        "tr": "AWS Command Line Interface.",
+        "en": "AWS Command Line Interface."
+      },
+      "description": {
+        "tr": "Amazon Web Services API istemcisi. Örneklerde gerçek access key / secret / session token kullanılmaz. Kimlik `aws configure` veya ortam değişkenleri ile.",
+        "en": "Amazon Web Services API client. Examples never include real access keys, secrets, or session tokens. Auth via `aws configure` or env vars."
+      },
+      "tags": [
+        "cloud",
+        "aws",
+        "devops"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "aws --version",
+          "explanation": {
+            "tr": "AWS CLI sürümü.",
+            "en": "AWS CLI version."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Kimlik (okuma)",
+            "en": "Caller identity"
+          },
+          "command": "aws sts get-caller-identity",
+          "explanation": {
+            "tr": "Yapılandırılmış kimliğin ARN/Account bilgisini gösterir (secret yazdırmaz).",
+            "en": "Shows ARN/Account for configured identity (does not print secrets)."
+          },
+          "risk": "caution"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "aws cli",
+          "aws kimlik",
+          "sts"
+        ],
+        "en": [
+          "aws cli",
+          "aws identity",
+          "sts"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.aws.amazon.com/cli/",
+          "https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "az",
+        "gcloud",
+        "terraform",
+        "rclone"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "aws-cli",
+          "distributions": [
+            "arch"
+          ]
+        }
+      ],
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "cloud",
+          "infrastructure-as-code"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "az",
+      "name": "az",
+      "kind": "remote_cli",
+      "category": "cloud",
+      "summary": {
+        "tr": "Azure CLI.",
+        "en": "Azure CLI."
+      },
+      "description": {
+        "tr": "Microsoft Azure yönetim CLI. Gerçek tenant/abonelik gizli bilgisi örneklerde yok.",
+        "en": "Microsoft Azure management CLI. No real tenant/subscription secrets in examples."
+      },
+      "tags": [
+        "cloud",
+        "azure",
+        "devops"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "az version",
+          "explanation": {
+            "tr": "Azure CLI sürüm JSON’u.",
+            "en": "Azure CLI version JSON."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Hesap göster",
+            "en": "Show account"
+          },
+          "command": "az account show",
+          "explanation": {
+            "tr": "Aktif abonelik özeti (oturum açıkken).",
+            "en": "Active subscription summary (when logged in)."
+          },
+          "risk": "caution"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "azure cli",
+          "az account"
+        ],
+        "en": [
+          "azure cli",
+          "az account"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://learn.microsoft.com/cli/azure/",
+          "https://learn.microsoft.com/cli/azure/get-started-with-azure-cli"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "aws",
+        "gcloud",
+        "terraform"
+      ],
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "cloud",
+          "infrastructure-as-code"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "bcdedit",
       "name": "bcdedit",
       "kind": "administrative_tool",
@@ -821,6 +1133,125 @@
     },
     {
       "schema_version": 2,
+      "id": "borg",
+      "name": "borg",
+      "kind": "executable",
+      "category": "backup",
+      "summary": {
+        "tr": "BorgBackup dedupe yedekleme.",
+        "en": "BorgBackup deduplicating backups."
+      },
+      "description": {
+        "tr": "Borg, sıkıştırılmış/dedupe arşivler oluşturur. `borg create` veri yazar; örnekler info/list odaklı.",
+        "en": "Borg creates compressed/deduplicated archives. `borg create` writes data; examples focus on info/list."
+      },
+      "tags": [
+        "backup",
+        "borg",
+        "server"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "borg --version",
+          "explanation": {
+            "tr": "Borg sürümü.",
+            "en": "Borg version."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Yardım",
+            "en": "Help"
+          },
+          "command": "borg help",
+          "explanation": {
+            "tr": "Alt komut yardımı.",
+            "en": "Subcommand help."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "borg yedek",
+          "borgbackup"
+        ],
+        "en": [
+          "borg backup",
+          "borgbackup"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://borgbackup.readthedocs.io/",
+          "https://borgbackup.readthedocs.io/en/stable/usage/general.html"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "restic",
+        "rclone",
+        "rsync"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "borg",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "borgbackup",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "borgbackup",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "borg",
+        "debian": "borgbackup",
+        "ubuntu": "borgbackup",
+        "fedora": "borgbackup"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "backup",
+          "storage"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "brew",
       "name": "brew",
       "kind": "package_manager",
@@ -987,6 +1418,111 @@
           "packages",
           "package-managers",
           "package-managers-comparison"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "caddy",
+      "name": "caddy",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "Otomatik TLS’li web sunucu.",
+        "en": "Web server with automatic TLS."
+      },
+      "description": {
+        "tr": "Caddy, ACME ile otomatik HTTPS sunabilen web sunucu/proxy. Üretimde Caddyfile değişiklikleri dikkat ister.",
+        "en": "Caddy is a web server/proxy that can obtain HTTPS via ACME. Production Caddyfile changes need care."
+      },
+      "tags": [
+        "web",
+        "proxy",
+        "tls",
+        "server"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "caddy version",
+          "explanation": {
+            "tr": "Caddy sürümü.",
+            "en": "Caddy version."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Config validate",
+            "en": "Validate config"
+          },
+          "command": "caddy validate --config Caddyfile",
+          "explanation": {
+            "tr": "Caddyfile’ı doğrular (servisi değiştirmez).",
+            "en": "Validates a Caddyfile (does not change the service)."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "caddy",
+          "otomatik https",
+          "web sunucu"
+        ],
+        "en": [
+          "caddy",
+          "automatic https",
+          "web server"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://caddyserver.com/docs/",
+          "https://caddyserver.com/docs/command-line"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "nginx",
+        "openssl",
+        "curl"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "caddy",
+          "distributions": [
+            "arch"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "caddy"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "reverse-proxy",
+          "networking"
         ]
       }
     },
@@ -2120,6 +2656,93 @@
         "concepts": [
           "files",
           "terminal-basics"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "crictl",
+      "name": "crictl",
+      "kind": "executable",
+      "category": "containers",
+      "summary": {
+        "tr": "CRI runtime hata ayıklama CLI.",
+        "en": "CRI runtime debugging CLI."
+      },
+      "description": {
+        "tr": "Kubernetes CRI (containerd/CRI-O) için düşük seviye teşhis aracı. Günlük pod yönetimi için kubectl tercih edilir.",
+        "en": "Low-level diagnostics for Kubernetes CRI (containerd/CRI-O). Prefer kubectl for day-to-day pod management."
+      },
+      "tags": [
+        "containers",
+        "kubernetes",
+        "cri",
+        "devops"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Pod’lar",
+            "en": "Pods"
+          },
+          "command": "crictl pods",
+          "explanation": {
+            "tr": "CRI pod’larını listeler (kubelet/runtime erişimi gerekir).",
+            "en": "Lists CRI pods (needs kubelet/runtime access)."
+          },
+          "risk": "caution"
+        },
+        {
+          "title": {
+            "tr": "Konteynerler",
+            "en": "Containers"
+          },
+          "command": "crictl ps",
+          "explanation": {
+            "tr": "Çalışan CRI konteynerleri.",
+            "en": "Running CRI containers."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "crictl",
+          "cri teşhis"
+        ],
+        "en": [
+          "crictl",
+          "cri debug"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://github.com/kubernetes-sigs/cri-tools",
+          "https://kubernetes.io/docs/tasks/debug/debug-cluster/crictl/"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "kubectl",
+        "nerdctl",
+        "docker"
+      ],
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "containers",
+          "kubernetes"
         ]
       }
     },
@@ -4968,6 +5591,113 @@
     },
     {
       "schema_version": 2,
+      "id": "ethtool",
+      "name": "ethtool",
+      "kind": "executable",
+      "category": "network",
+      "summary": {
+        "tr": "NIC bağlantı/ayar sorgusu.",
+        "en": "NIC link/settings query."
+      },
+      "description": {
+        "tr": "Linux ağ kartı hız/duplex/offload bilgisi. Çoğu yazma işlemi elevated ister; örnekler salt okuma.",
+        "en": "Linux NIC speed/duplex/offload info. Most write ops need elevated; examples are read-only."
+      },
+      "tags": [
+        "network",
+        "hardware",
+        "linux",
+        "server"
+      ],
+      "risk": "caution",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Link durumu",
+            "en": "Link status"
+          },
+          "command": "ethtool eth0",
+          "explanation": {
+            "tr": "eth0 için link hızı/duplex (arayüz adı sisteme göre değişir).",
+            "en": "Link speed/duplex for eth0 (iface name varies)."
+          },
+          "risk": "safe",
+          "requires_elevated": true
+        }
+      ],
+      "intent": {
+        "tr": [
+          "nic durumu",
+          "ethtool",
+          "link hızı"
+        ],
+        "en": [
+          "nic status",
+          "ethtool",
+          "link speed"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://www.kernel.org/pub/software/network/ethtool/",
+          "https://man7.org/linux/man-pages/man8/ethtool.8.html"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "ip",
+        "ss",
+        "nmcli"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "ethtool",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "ethtool",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "ethtool",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "ethtool",
+        "debian": "ethtool",
+        "ubuntu": "ethtool",
+        "fedora": "ethtool"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "networking"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "export",
       "name": "export",
       "kind": "shell_builtin",
@@ -6348,6 +7078,98 @@
           "terminal-basics"
         ],
         "ui_priority": 75
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "gcloud",
+      "name": "gcloud",
+      "kind": "remote_cli",
+      "category": "cloud",
+      "summary": {
+        "tr": "Google Cloud CLI.",
+        "en": "Google Cloud CLI."
+      },
+      "description": {
+        "tr": "Google Cloud SDK komut satırı. API anahtarı/service-account JSON örneklerde yok.",
+        "en": "Google Cloud SDK command line. No API keys or service-account JSON in examples."
+      },
+      "tags": [
+        "cloud",
+        "gcp",
+        "devops"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "gcloud version",
+          "explanation": {
+            "tr": "gcloud bileşen sürümleri.",
+            "en": "gcloud component versions."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Config list",
+            "en": "Config list"
+          },
+          "command": "gcloud config list",
+          "explanation": {
+            "tr": "Aktif proje/bölge ayarları (secret değil).",
+            "en": "Active project/region settings (not secrets)."
+          },
+          "risk": "caution"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "gcloud",
+          "gcp cli",
+          "google cloud"
+        ],
+        "en": [
+          "gcloud",
+          "gcp cli",
+          "google cloud"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://cloud.google.com/sdk/docs",
+          "https://cloud.google.com/sdk/gcloud/reference"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "aws",
+        "az",
+        "terraform"
+      ],
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "cloud",
+          "infrastructure-as-code"
+        ]
       }
     },
     {
@@ -7957,6 +8779,128 @@
     },
     {
       "schema_version": 2,
+      "id": "gh",
+      "name": "gh",
+      "kind": "remote_cli",
+      "category": "devops",
+      "summary": {
+        "tr": "GitHub resmi CLI.",
+        "en": "Official GitHub CLI."
+      },
+      "description": {
+        "tr": "Issue/PR/Actions işlemleri. `gh auth` token’ları güvenli depolar; örneklerde gerçek token yok.",
+        "en": "Issue/PR/Actions operations. `gh auth` stores tokens securely; examples never include real tokens."
+      },
+      "tags": [
+        "github",
+        "cicd",
+        "devops",
+        "git"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "gh --version",
+          "explanation": {
+            "tr": "gh sürümü.",
+            "en": "gh version."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Auth durumu",
+            "en": "Auth status"
+          },
+          "command": "gh auth status",
+          "explanation": {
+            "tr": "Oturum durumunu gösterir (token’ı yazdırmaz).",
+            "en": "Shows login status (does not print the token)."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "gh",
+          "github cli",
+          "pr oluştur"
+        ],
+        "en": [
+          "gh",
+          "github cli",
+          "create pr"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://cli.github.com/manual/",
+          "https://docs.github.com/en/github-cli"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "git",
+        "ansible",
+        "terraform"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "github-cli",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "gh",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "gh",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "github-cli",
+        "debian": "gh",
+        "ubuntu": "gh",
+        "fedora": "gh"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "infrastructure-as-code"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "git",
       "name": "git",
       "kind": "executable",
@@ -8912,6 +9856,111 @@
           "shell-pipes-redirection"
         ],
         "favorite_eligible": true
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "helm",
+      "name": "helm",
+      "kind": "remote_cli",
+      "category": "containers",
+      "summary": {
+        "tr": "Kubernetes paket yöneticisi.",
+        "en": "Kubernetes package manager."
+      },
+      "description": {
+        "tr": "Chart’larla Kubernetes uygulamalarını paketler/kurar. Küme yazma işlemleri caution/dangerous; örnekler sürüm ve liste odaklı.",
+        "en": "Packages/installs Kubernetes apps via charts. Cluster-mutating ops are caution/dangerous; examples focus on version/list."
+      },
+      "tags": [
+        "kubernetes",
+        "helm",
+        "devops",
+        "packages"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "helm version",
+          "explanation": {
+            "tr": "Helm istemci sürümü.",
+            "en": "Helm client version."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Release listesi",
+            "en": "List releases"
+          },
+          "command": "helm list -A",
+          "explanation": {
+            "tr": "Tüm namespace release’leri (küme erişimi).",
+            "en": "Releases across namespaces (needs cluster access)."
+          },
+          "risk": "caution"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "helm",
+          "chart kur",
+          "kubernetes paket"
+        ],
+        "en": [
+          "helm",
+          "install chart",
+          "kubernetes package"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://helm.sh/docs/",
+          "https://helm.sh/docs/helm/helm/"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "kubectl",
+        "terraform"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "helm",
+          "distributions": [
+            "arch"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "helm"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "containers",
+          "kubernetes",
+          "infrastructure-as-code"
+        ]
       }
     },
     {
@@ -11161,6 +12210,149 @@
       "nova": {
         "concepts": [
           "terminal-basics"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "kubectl",
+      "name": "kubectl",
+      "kind": "remote_cli",
+      "category": "containers",
+      "summary": {
+        "tr": "Kubernetes küme CLI.",
+        "en": "Kubernetes cluster CLI."
+      },
+      "description": {
+        "tr": "Kubernetes API ile kaynak yönetir. kubeconfig bağlamına bağlıdır; yanlış bağlam üretim kümesini etkileyebilir. Örnekler salt okuma odaklı.",
+        "en": "Manages resources via the Kubernetes API. Depends on kubeconfig context; wrong context can affect production. Examples favor read-only ops."
+      },
+      "tags": [
+        "kubernetes",
+        "containers",
+        "devops",
+        "orchestration"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [
+        {
+          "flag": "get",
+          "meaning": {
+            "tr": "Kaynak listele.",
+            "en": "List resources."
+          },
+          "verified": false
+        },
+        {
+          "flag": "describe",
+          "meaning": {
+            "tr": "Ayrıntılı durum.",
+            "en": "Detailed status."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "Namespace.",
+            "en": "Namespace."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "kubectl version --client",
+          "explanation": {
+            "tr": "İstemci sürümü (küme gerekmez).",
+            "en": "Client version (no cluster required)."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Pod’lar",
+            "en": "Pods"
+          },
+          "command": "kubectl get pods -A",
+          "explanation": {
+            "tr": "Tüm namespace’lerde pod’lar (küme erişimi gerekir).",
+            "en": "Pods across namespaces (needs cluster access)."
+          },
+          "risk": "caution"
+        },
+        {
+          "title": {
+            "tr": "Bağlamlar",
+            "en": "Contexts"
+          },
+          "command": "kubectl config get-contexts",
+          "explanation": {
+            "tr": "kubeconfig bağlamlarını listeler.",
+            "en": "Lists kubeconfig contexts."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "kubectl",
+          "kubernetes pod listele",
+          "k8s"
+        ],
+        "en": [
+          "kubectl",
+          "list kubernetes pods",
+          "k8s"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://kubernetes.io/docs/reference/kubectl/",
+          "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "helm",
+        "crictl",
+        "nerdctl",
+        "docker"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "kubectl",
+          "distributions": [
+            "arch"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "kubectl"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "containers",
+          "kubernetes"
         ]
       }
     },
@@ -13902,6 +15094,140 @@
     },
     {
       "schema_version": 2,
+      "id": "mtr",
+      "name": "mtr",
+      "kind": "executable",
+      "category": "network",
+      "summary": {
+        "tr": "Birleşik traceroute + ping.",
+        "en": "Combined traceroute + ping."
+      },
+      "description": {
+        "tr": "Yol üzerindeki kayıp/gecikmeyi sürekli günceller. traceroute + ping birleşimi.",
+        "en": "Continuously updates loss/latency along a path. Combines traceroute and ping."
+      },
+      "tags": [
+        "network",
+        "diagnostics",
+        "latency"
+      ],
+      "risk": "safe",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos"
+      ],
+      "flags": [
+        {
+          "flag": "-r",
+          "meaning": {
+            "tr": "Rapor modu (bir kez).",
+            "en": "Report mode (one shot)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-c",
+          "meaning": {
+            "tr": "Döngü sayısı.",
+            "en": "Cycle count."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "DNS çözme.",
+            "en": "No DNS resolution."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Rapor",
+            "en": "Report"
+          },
+          "command": "mtr -rn -c 5 example.com",
+          "explanation": {
+            "tr": "5 döngülük metin raporu (DNS çözmez).",
+            "en": "5-cycle text report (no DNS)."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "yol izle",
+          "mtr",
+          "gecikme"
+        ],
+        "en": [
+          "trace path",
+          "mtr",
+          "latency"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://www.bitwizard.nl/mtr/",
+          "https://github.com/traviscross/mtr"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "traceroute",
+        "ping",
+        "dig"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "mtr",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "mtr",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "mtr",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "mtr",
+        "debian": "mtr",
+        "ubuntu": "mtr",
+        "fedora": "mtr"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "networking",
+          "networking-basics"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "mv",
       "name": "mv",
       "kind": "executable",
@@ -14050,6 +15376,120 @@
         "concepts": [
           "files",
           "terminal-basics"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "mysql",
+      "name": "mysql",
+      "kind": "executable",
+      "category": "databases",
+      "summary": {
+        "tr": "MySQL/MariaDB istemci CLI.",
+        "en": "MySQL/MariaDB client CLI."
+      },
+      "description": {
+        "tr": "MySQL protokolü istemcisi (MariaDB `mariadb` istemcisiyle çoğu kullanımda uyumlu). Parola komut satırına yazılmaz — etkileşimli veya config kullanın.",
+        "en": "MySQL protocol client (often compatible with MariaDB `mariadb` client). Do not put passwords on the argv — use interactive or config files."
+      },
+      "tags": [
+        "database",
+        "mysql",
+        "mariadb",
+        "server"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "mysql --version",
+          "explanation": {
+            "tr": "İstemci sürümü.",
+            "en": "Client version."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Yardım",
+            "en": "Help"
+          },
+          "command": "mysql --help",
+          "explanation": {
+            "tr": "Bayrak özeti (bağlantı açmaz).",
+            "en": "Flag summary (does not open a connection)."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "mysql istemci",
+          "mariadb bağlan"
+        ],
+        "en": [
+          "mysql client",
+          "connect mariadb"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://dev.mysql.com/doc/refman/8.4/en/mysql.html",
+          "https://mariadb.com/kb/en/mysql-command-line-client/"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "psql",
+        "redis-cli",
+        "sqlite3"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "mariadb-clients",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "mariadb-client",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "mariadb",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "databases"
         ]
       }
     },
@@ -14204,6 +15644,109 @@
         "concepts": [
           "networking",
           "networking-basics"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "nerdctl",
+      "name": "nerdctl",
+      "kind": "executable",
+      "category": "containers",
+      "summary": {
+        "tr": "containerd için Docker uyumlu CLI.",
+        "en": "Docker-compatible CLI for containerd."
+      },
+      "description": {
+        "tr": "nerdctl, containerd üzerinde Docker-benzeri komutlar sunar. Docker Engine ile aynı daemon değildir; Kubernetes node’larında sık görülür.",
+        "en": "nerdctl provides Docker-like commands on containerd. Not the same daemon as Docker Engine; common on Kubernetes nodes."
+      },
+      "tags": [
+        "containers",
+        "containerd",
+        "devops"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Çalışanlar",
+            "en": "Running"
+          },
+          "command": "nerdctl ps",
+          "explanation": {
+            "tr": "containerd üzerinden çalışan konteynerler.",
+            "en": "Running containers via containerd."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "İmajlar",
+            "en": "Images"
+          },
+          "command": "nerdctl images",
+          "explanation": {
+            "tr": "Yerel imaj listesi.",
+            "en": "Local image list."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "nerdctl",
+          "containerd konteyner"
+        ],
+        "en": [
+          "nerdctl",
+          "containerd containers"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://github.com/containerd/nerdctl",
+          "https://github.com/containerd/nerdctl/blob/main/docs/command-reference.md"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "docker",
+        "podman",
+        "crictl",
+        "kubectl"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "nerdctl",
+          "distributions": [
+            "arch"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "nerdctl"
+      },
+      "install_notes": {
+        "tr": "Arch: pacman -S nerdctl. Diğer dağıtımlarda paket adı/kurulum yolu değişebilir.",
+        "en": "Arch: pacman -S nerdctl. Other distros may use different package names/paths."
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "containers",
+          "kubernetes"
         ]
       }
     },
@@ -14858,6 +16401,156 @@
           "firewalls",
           "networking",
           "permissions"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "nginx",
+      "name": "nginx",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "HTTP reverse proxy / web sunucu.",
+        "en": "HTTP reverse proxy / web server."
+      },
+      "description": {
+        "tr": "Yüksek performanslı web sunucu ve reverse proxy. Yapılandırma testi (-t) güvenli; reload servis yöneticisi üzerinden yapılır.",
+        "en": "High-performance web server and reverse proxy. Config test (-t) is safe; reload via the service manager."
+      },
+      "tags": [
+        "web",
+        "proxy",
+        "server",
+        "http"
+      ],
+      "risk": "caution",
+      "requires_elevated": true,
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "freebsd"
+      ],
+      "flags": [
+        {
+          "flag": "-t",
+          "meaning": {
+            "tr": "Yapılandırmayı test et.",
+            "en": "Test configuration."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-T",
+          "meaning": {
+            "tr": "Test + dump config.",
+            "en": "Test and dump config."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-s",
+          "meaning": {
+            "tr": "Sinyal (reload/stop).",
+            "en": "Signal (reload/stop)."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Config test",
+            "en": "Config test"
+          },
+          "command": "nginx -t",
+          "explanation": {
+            "tr": "Yapılandırma sözdizimini test eder (yazmaz).",
+            "en": "Tests config syntax (does not write)."
+          },
+          "risk": "safe",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "nginx -v",
+          "explanation": {
+            "tr": "nginx sürümü.",
+            "en": "nginx version."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "nginx",
+          "reverse proxy",
+          "web sunucu"
+        ],
+        "en": [
+          "nginx",
+          "reverse proxy",
+          "web server"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://nginx.org/en/docs/",
+          "https://nginx.org/en/docs/switches.html"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "caddy",
+        "systemctl",
+        "curl",
+        "ss"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "nginx",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "nginx",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "nginx",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "nginx",
+        "debian": "nginx",
+        "ubuntu": "nginx",
+        "fedora": "nginx"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "reverse-proxy",
+          "networking"
         ]
       }
     },
@@ -15676,6 +17369,157 @@
           "package-managers",
           "package-managers-comparison",
           "nix-guix"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "nmap",
+      "name": "nmap",
+      "kind": "executable",
+      "category": "network",
+      "summary": {
+        "tr": "Ağ keşfi ve port tarama.",
+        "en": "Network discovery and port scanning."
+      },
+      "description": {
+        "tr": "Host/port keşfi ve servis parmak izi. Yalnızca yetkili hedeflerde kullanın; yetkisiz tarama yasal sorun yaratabilir. Örnekler TEST-NET / localhost ile sınırlı.",
+        "en": "Host/port discovery and service fingerprinting. Use only on authorized targets; unauthorized scanning can be illegal. Examples limited to TEST-NET / localhost."
+      },
+      "tags": [
+        "network",
+        "security",
+        "scanning",
+        "server"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [
+        {
+          "flag": "-sn",
+          "meaning": {
+            "tr": "Ping taraması (port yok).",
+            "en": "Ping scan (no port scan)."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-sV",
+          "meaning": {
+            "tr": "Servis/sürüm tespiti.",
+            "en": "Service/version detection."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-p",
+          "meaning": {
+            "tr": "Port aralığı.",
+            "en": "Port range."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "nmap -V",
+          "explanation": {
+            "tr": "Nmap sürümünü gösterir (ağ taraması yok).",
+            "en": "Shows Nmap version (no network scan)."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Yerel portlar",
+            "en": "Localhost ports"
+          },
+          "command": "nmap -p 22,80,443 127.0.0.1",
+          "explanation": {
+            "tr": "Yalnızca localhost üzerinde seçili portları tarar.",
+            "en": "Scans selected ports on localhost only."
+          },
+          "risk": "caution"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "port tara",
+          "nmap",
+          "açık port"
+        ],
+        "en": [
+          "scan ports",
+          "nmap",
+          "open ports"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://nmap.org/book/man.html",
+          "https://nmap.org/"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "ss",
+        "tcpdump",
+        "nc",
+        "ping"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "nmap",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "nmap",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "nmap",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "nmap",
+        "debian": "nmap",
+        "ubuntu": "nmap",
+        "fedora": "nmap"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "networking",
+          "networking-basics",
+          "firewalls"
         ]
       }
     },
@@ -19123,6 +20967,120 @@
     },
     {
       "schema_version": 2,
+      "id": "qemu-img",
+      "name": "qemu-img",
+      "kind": "executable",
+      "category": "virtualization",
+      "summary": {
+        "tr": "QEMU disk imajı aracı.",
+        "en": "QEMU disk image utility."
+      },
+      "description": {
+        "tr": "qcow2/raw vb. disk imajlarını oluşturur/dönüştürür/sorgular. Yanlış convert veri kaybına yol açabilir — örnekler info odaklı.",
+        "en": "Creates/converts/queries qcow2/raw disk images. Bad convert can lose data — examples focus on info."
+      },
+      "tags": [
+        "virtualization",
+        "qemu",
+        "storage"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "İmaj bilgisi",
+            "en": "Image info"
+          },
+          "command": "qemu-img info disk.qcow2",
+          "explanation": {
+            "tr": "Mevcut imajın format/boyut bilgisini gösterir.",
+            "en": "Shows format/size info for an existing image."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Yardım",
+            "en": "Help"
+          },
+          "command": "qemu-img --help",
+          "explanation": {
+            "tr": "Alt komut özeti.",
+            "en": "Subcommand summary."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "qemu-img",
+          "qcow2 bilgi",
+          "disk imajı"
+        ],
+        "en": [
+          "qemu-img",
+          "qcow2 info",
+          "disk image"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://www.qemu.org/docs/master/tools/qemu-img.html",
+          "https://www.qemu.org/docs/master/"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "virsh",
+        "dd",
+        "lsblk"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "qemu-img",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "qemu-utils",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "qemu-img",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "virtualization",
+          "storage"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "rcctl",
       "name": "rcctl",
       "kind": "administrative_tool",
@@ -19249,6 +21207,244 @@
       "nova": {
         "concepts": [
           "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "rclone",
+      "name": "rclone",
+      "kind": "executable",
+      "category": "backup",
+      "summary": {
+        "tr": "Bulut depolama senkron aracı.",
+        "en": "Cloud storage sync tool."
+      },
+      "description": {
+        "tr": "S3/Drive/SFTP vb. uzak depolara kopyalar/senkronlar. Kimlik bilgileri rclone.conf’tadır — örneklerde gerçek key yok.",
+        "en": "Copies/syncs to remote storage (S3/Drive/SFTP/…). Credentials live in rclone.conf — no real keys in examples."
+      },
+      "tags": [
+        "backup",
+        "cloud",
+        "sync",
+        "storage"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "rclone version",
+          "explanation": {
+            "tr": "rclone sürümü.",
+            "en": "rclone version."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Uzak listesi",
+            "en": "List remotes"
+          },
+          "command": "rclone listremotes",
+          "explanation": {
+            "tr": "Yapılandırılmış uzak adları (içerik/secret göstermez).",
+            "en": "Configured remote names (does not show secrets)."
+          },
+          "risk": "safe"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "rclone",
+          "bulut senkron",
+          "s3 kopyala"
+        ],
+        "en": [
+          "rclone",
+          "cloud sync",
+          "copy s3"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://rclone.org/docs/",
+          "https://rclone.org/commands/"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "restic",
+        "borg",
+        "rsync",
+        "aws"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "rclone",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "rclone",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "rclone",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "rclone",
+        "debian": "rclone",
+        "ubuntu": "rclone",
+        "fedora": "rclone"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "backup",
+          "storage"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "redis-cli",
+      "name": "redis-cli",
+      "kind": "executable",
+      "category": "databases",
+      "summary": {
+        "tr": "Redis komut satırı istemcisi.",
+        "en": "Redis command-line client."
+      },
+      "description": {
+        "tr": "Redis sunucusuna komut gönderir. AUTH/parola örneklerinde gerçek sır kullanmayın.",
+        "en": "Sends commands to a Redis server. Never put real secrets in AUTH examples."
+      },
+      "tags": [
+        "database",
+        "redis",
+        "cache",
+        "server"
+      ],
+      "risk": "caution",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Ping",
+            "en": "Ping"
+          },
+          "command": "redis-cli PING",
+          "explanation": {
+            "tr": "Yerel Redis’e PING (çalışıyorsa PONG).",
+            "en": "PING local Redis (PONG if running)."
+          },
+          "risk": "caution"
+        },
+        {
+          "title": {
+            "tr": "Bilgi",
+            "en": "Info"
+          },
+          "command": "redis-cli INFO server",
+          "explanation": {
+            "tr": "Sunucu INFO bölümü (bağlantı gerekir).",
+            "en": "Server INFO section (needs connection)."
+          },
+          "risk": "caution"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "redis-cli",
+          "redis ping"
+        ],
+        "en": [
+          "redis-cli",
+          "redis ping"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://redis.io/docs/latest/develop/tools/cli/",
+          "https://redis.io/docs/latest/commands/"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "mysql",
+        "psql",
+        "sqlite3"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "redis",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "redis-tools",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "redis",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "databases"
         ]
       }
     },
@@ -19753,6 +21949,127 @@
       "nova": {
         "concepts": [
           "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "restic",
+      "name": "restic",
+      "kind": "executable",
+      "category": "backup",
+      "summary": {
+        "tr": "Şifreli artımlı yedekleme.",
+        "en": "Encrypted incremental backups."
+      },
+      "description": {
+        "tr": "Deduplicate/şifreli yedekler. Repo parolası ve backend kimlik bilgileri gizli tutulmalı; örneklerde gerçek secret yok.",
+        "en": "Deduplicated encrypted backups. Keep repo password and backend credentials secret; examples contain no real secrets."
+      },
+      "tags": [
+        "backup",
+        "encryption",
+        "server"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows",
+        "bsd"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "restic version",
+          "explanation": {
+            "tr": "restic sürümü.",
+            "en": "restic version."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Snapshots (placeholder)",
+            "en": "Snapshots (placeholder)"
+          },
+          "command": "restic -r /path/to/repo snapshots",
+          "explanation": {
+            "tr": "Repo snapshot listesi (RESTIC_PASSWORD gerekir; yol yer tutucu).",
+            "en": "Lists repo snapshots (needs RESTIC_PASSWORD; path is placeholder)."
+          },
+          "risk": "caution"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "restic yedek",
+          "şifreli yedek"
+        ],
+        "en": [
+          "restic backup",
+          "encrypted backup"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://restic.readthedocs.io/",
+          "https://restic.readthedocs.io/en/stable/010_introduction.html"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "borg",
+        "rclone",
+        "rsync"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "restic",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "restic",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "restic",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "restic",
+        "debian": "restic",
+        "ubuntu": "restic",
+        "fedora": "restic"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "backup",
+          "storage"
         ]
       }
     },
@@ -24722,6 +27039,158 @@
     },
     {
       "schema_version": 2,
+      "id": "tcpdump",
+      "name": "tcpdump",
+      "kind": "executable",
+      "category": "network",
+      "summary": {
+        "tr": "Paket yakalama (pcap).",
+        "en": "Packet capture (pcap)."
+      },
+      "description": {
+        "tr": "Ağ arayüzünde paketleri yakalar/filtreler. Çoğu yararlı kullanım root ister. Üretimde hassas trafik içerebilir — çıktıyı dikkatli saklayın.",
+        "en": "Captures/filters packets on an interface. Most useful use needs root. May contain sensitive traffic — store output carefully."
+      },
+      "tags": [
+        "network",
+        "pcap",
+        "diagnostics",
+        "server"
+      ],
+      "risk": "caution",
+      "requires_elevated": true,
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "freebsd",
+        "openbsd",
+        "netbsd"
+      ],
+      "flags": [
+        {
+          "flag": "-i",
+          "meaning": {
+            "tr": "Arayüz seç.",
+            "en": "Select interface."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-n",
+          "meaning": {
+            "tr": "DNS çözümleme yapma.",
+            "en": "Do not resolve hostnames."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-c",
+          "meaning": {
+            "tr": "Paket sayısı sınırı.",
+            "en": "Packet count limit."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Arayüzler",
+            "en": "List interfaces"
+          },
+          "command": "tcpdump -D",
+          "explanation": {
+            "tr": "Yakalama için kullanılabilir arayüzleri listeler.",
+            "en": "Lists interfaces available for capture."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Kısa yakalama",
+            "en": "Short capture"
+          },
+          "command": "tcpdump -i any -n -c 20",
+          "explanation": {
+            "tr": "any arayüzünde 20 paket (elevated). Hassas veri içerebilir.",
+            "en": "20 packets on any interface (elevated). May include sensitive data."
+          },
+          "risk": "caution",
+          "requires_elevated": true
+        }
+      ],
+      "intent": {
+        "tr": [
+          "paket yakala",
+          "tcpdump",
+          "pcap"
+        ],
+        "en": [
+          "capture packets",
+          "tcpdump",
+          "pcap"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://www.tcpdump.org/manpages/tcpdump.1.html",
+          "https://www.tcpdump.org/"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "ss",
+        "nmap",
+        "mtr",
+        "ip"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "tcpdump",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "tcpdump",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "tcpdump",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "tcpdump",
+        "debian": "tcpdump",
+        "ubuntu": "tcpdump",
+        "fedora": "tcpdump"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "networking",
+          "networking-basics"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "tee",
       "name": "tee",
       "kind": "executable",
@@ -24832,6 +27301,125 @@
         "concepts": [
           "files",
           "shell-pipes-redirection"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "terraform",
+      "name": "terraform",
+      "kind": "remote_cli",
+      "category": "devops",
+      "summary": {
+        "tr": "HashiCorp Terraform (IaC).",
+        "en": "HashiCorp Terraform (IaC)."
+      },
+      "description": {
+        "tr": "Altyapıyı deklaratif kodla yönetir. `apply`/`destroy` yıkıcı olabilir; OpenTofu ayrı bir araçtır (henüz ayrı kayıt yok). Provider credential örneklerinde gerçek secret yok.",
+        "en": "Manages infrastructure as declarative code. `apply`/`destroy` can be destructive; OpenTofu is a separate tool (no separate record yet). Provider credential examples never include real secrets."
+      },
+      "tags": [
+        "iac",
+        "terraform",
+        "devops",
+        "cloud"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": false,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "terraform version",
+          "explanation": {
+            "tr": "Terraform sürümü.",
+            "en": "Terraform version."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Validate",
+            "en": "Validate"
+          },
+          "command": "terraform validate",
+          "explanation": {
+            "tr": "Çalışma dizinindeki yapılandırmayı doğrular (uygulamaz).",
+            "en": "Validates config in the working directory (does not apply)."
+          },
+          "risk": "safe"
+        },
+        {
+          "title": {
+            "tr": "Plan",
+            "en": "Plan"
+          },
+          "command": "terraform plan",
+          "explanation": {
+            "tr": "Değişiklik planı (uygulamaz). Provider kimliği gerekir.",
+            "en": "Change plan (does not apply). Needs provider credentials."
+          },
+          "risk": "caution"
+        }
+      ],
+      "intent": {
+        "tr": [
+          "terraform",
+          "altyapı kodu",
+          "iac"
+        ],
+        "en": [
+          "terraform",
+          "infrastructure as code",
+          "iac"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://developer.hashicorp.com/terraform/cli",
+          "https://developer.hashicorp.com/terraform/cli/commands"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "ansible",
+        "aws",
+        "az",
+        "gcloud",
+        "kubectl"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "terraform",
+          "distributions": [
+            "arch"
+          ]
+        }
+      ],
+      "packages": {
+        "arch": "terraform"
+      },
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "infrastructure-as-code",
+          "cloud"
         ]
       }
     },
@@ -26777,6 +29365,119 @@
       "nova": {
         "concepts": [
           "permissions"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "virsh",
+      "name": "virsh",
+      "kind": "administrative_tool",
+      "category": "virtualization",
+      "summary": {
+        "tr": "libvirt yönetim kabuğu.",
+        "en": "libvirt management shell."
+      },
+      "description": {
+        "tr": "KVM/QEMU ve diğer libvirt hipervizörlerini yönetir. Domain oluşturma/silme yıkıcı olabilir; örnekler liste/durum odaklı.",
+        "en": "Manages KVM/QEMU and other libvirt hypervisors. Create/destroy can be destructive; examples focus on list/status."
+      },
+      "tags": [
+        "virtualization",
+        "kvm",
+        "libvirt",
+        "server"
+      ],
+      "risk": "dangerous",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "flags": [],
+      "examples": [
+        {
+          "title": {
+            "tr": "Domain listesi",
+            "en": "List domains"
+          },
+          "command": "virsh list --all",
+          "explanation": {
+            "tr": "Tüm sanal makineleri listeler (libvirt erişimi).",
+            "en": "Lists all VMs (needs libvirt access)."
+          },
+          "risk": "safe",
+          "requires_elevated": true
+        },
+        {
+          "title": {
+            "tr": "Node bilgisi",
+            "en": "Node info"
+          },
+          "command": "virsh nodeinfo",
+          "explanation": {
+            "tr": "Hipervizör düğüm özeti.",
+            "en": "Hypervisor node summary."
+          },
+          "risk": "safe",
+          "requires_elevated": true
+        }
+      ],
+      "intent": {
+        "tr": [
+          "virsh",
+          "sanal makine listele",
+          "kvm"
+        ],
+        "en": [
+          "virsh",
+          "list vms",
+          "kvm"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://libvirt.org/manpages/virsh.html",
+          "https://libvirt.org/docs.html"
+        ],
+        "notes": "Agent-authored Faz 7 draft from official docs; not human-verified."
+      },
+      "related": [
+        "qemu-img",
+        "systemctl"
+      ],
+      "package_refs": [
+        {
+          "manager": "pacman",
+          "package": "libvirt",
+          "distributions": [
+            "arch"
+          ]
+        },
+        {
+          "manager": "apt",
+          "package": "libvirt-clients",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "libvirt-client",
+          "distributions": [
+            "fedora"
+          ]
+        }
+      ],
+      "nova": {
+        "favorite_eligible": true,
+        "ui_priority": 60,
+        "concepts": [
+          "virtualization"
         ]
       }
     },
@@ -29364,6 +32065,150 @@
   ],
   "concepts": [
     {
+      "id": "backup",
+      "kind": "nova-commands-concept",
+      "title": {
+        "tr": "Yedekleme araçları",
+        "en": "Backup tools"
+      },
+      "summary": {
+        "tr": "restic, Borg ve rclone — şifre/kimlik bilgisi kuralları ve risk.",
+        "en": "restic, Borg, and rclone — credential rules and risk."
+      },
+      "difficulty": "intermediate",
+      "tags": [
+        "backup",
+        "restic",
+        "borg",
+        "rclone"
+      ],
+      "related_commands": [
+        "restic",
+        "borg",
+        "rclone",
+        "rsync",
+        "tar"
+      ],
+      "related_concepts": [
+        "storage",
+        "permissions"
+      ],
+      "see_also": [
+        "https://restic.readthedocs.io/",
+        "https://borgbackup.readthedocs.io/",
+        "https://rclone.org/docs/"
+      ],
+      "body": {
+        "tr": "Sunucu yedekleri genelde **artımlı + doğrulanabilir** olmalıdır.\n\n**restic** — şifreli, dedupe repo; parola ve backend secret’ları gizli.\n**BorgBackup** — dedupe arşivler; `create` veri yazar.\n**rclone** — bulut/uzak depolara kopyalama/senkron; config’te credential.\n\n**rsync** klasik dosya senkronudur; tek başına şifreli yedek çözümü değildir.\nBanka örneklerinde gerçek parola, API anahtarı veya `rclone.conf` içeriği\nyoktur. `forget`/`prune`/`sync --delete` yıkıcı olabilir — risk etiketlerine\nbakın. Hepsi `draft`.\n",
+        "en": "Server backups should usually be **incremental and verifiable**.\n\n**restic** — encrypted, deduplicated repos; keep passwords and backend\nsecrets private.\n**BorgBackup** — deduplicated archives; `create` writes data.\n**rclone** — copy/sync to cloud/remote storage; credentials live in config.\n\n**rsync** is classic file sync — not by itself an encrypted backup solution.\nCatalog examples never embed real passwords, API keys, or `rclone.conf`\nbodies. `forget`/`prune`/`sync --delete` can be destructive — respect risk\nlabels. All stay `draft`.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://restic.readthedocs.io/",
+          "https://borgbackup.readthedocs.io/",
+          "https://rclone.org/docs/"
+        ],
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
+      }
+    },
+    {
+      "id": "cloud",
+      "kind": "nova-commands-concept",
+      "title": {
+        "tr": "Bulut sağlayıcı CLI’leri",
+        "en": "Cloud provider CLIs"
+      },
+      "summary": {
+        "tr": "aws, az, gcloud — kontrol düzlemi araçları; gerçek API anahtarı yok.",
+        "en": "aws, az, gcloud — control-plane tools; no real API keys."
+      },
+      "difficulty": "intermediate",
+      "tags": [
+        "cloud",
+        "aws",
+        "azure",
+        "gcp"
+      ],
+      "related_commands": [
+        "aws",
+        "az",
+        "gcloud",
+        "terraform",
+        "rclone"
+      ],
+      "related_concepts": [
+        "infrastructure-as-code",
+        "kubernetes",
+        "backup"
+      ],
+      "see_also": [
+        "https://docs.aws.amazon.com/cli/",
+        "https://learn.microsoft.com/cli/azure/",
+        "https://cloud.google.com/sdk/docs"
+      ],
+      "body": {
+        "tr": "Bulut CLI’leri (`aws`, `az`, `gcloud`) sağlayıcı **kontrol düzlemine**\nkonuşur. Yerel `ip`/`systemctl` ile aynı şey değildirler.\n\n**Kimlik:** Profil/ortam değişkeni/managed identity kullanın. Banka\nörneklerinde access key, secret, session token veya service-account JSON\n**yoktur**.\n\n**IaC ilişkisi:** Terraform gibi araçlar aynı API’leri kod ile yönetir;\nCLI ad-hoc işlem ve teşhis içindir. Maliyet/yetki riski yüksektir —\nyanlış bölge veya hesap pahalı kaynak yaratabilir. Kayıtlar `draft`.\n",
+        "en": "Cloud CLIs (`aws`, `az`, `gcloud`) talk to provider **control planes**.\nThey are not the same as local `ip`/`systemctl`.\n\n**Identity:** Use profiles/env vars/managed identity. Catalog examples\nnever include access keys, secrets, session tokens, or service-account JSON.\n\n**IaC link:** Tools like Terraform manage the same APIs as code; CLIs are\nfor ad-hoc ops and diagnostics. Cost/permission risk is high — a wrong\nregion or account can create expensive resources. Records stay `draft`.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.aws.amazon.com/cli/",
+          "https://learn.microsoft.com/cli/azure/",
+          "https://cloud.google.com/sdk/docs"
+        ],
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
+      }
+    },
+    {
+      "id": "databases",
+      "kind": "nova-commands-concept",
+      "title": {
+        "tr": "Veritabanı istemci CLI’leri",
+        "en": "Database client CLIs"
+      },
+      "summary": {
+        "tr": "mysql, redis-cli, psql — sunucu kurulumu değil; parola argv’de olmaz.",
+        "en": "mysql, redis-cli, psql — clients not server installs; no passwords on argv."
+      },
+      "difficulty": "beginner",
+      "tags": [
+        "database",
+        "mysql",
+        "redis",
+        "postgres"
+      ],
+      "related_commands": [
+        "mysql",
+        "redis-cli",
+        "psql",
+        "sqlite3"
+      ],
+      "related_concepts": [
+        "json-data",
+        "networking",
+        "permissions"
+      ],
+      "see_also": [
+        "https://dev.mysql.com/doc/refman/8.4/en/mysql.html",
+        "https://redis.io/docs/latest/develop/tools/cli/",
+        "https://www.postgresql.org/docs/current/app-psql.html"
+      ],
+      "body": {
+        "tr": "Bu bankadaki veritabanı kayıtları **istemci CLI** odaklıdır; MySQL/Redis\nsunucusunu kuran paket scriptleri değildir.\n\n**Alışkanlıklar:**\n- Parolayı komut satırına (`-pSECRET`) yazmayın — history ve `ps` sızdırır.\n- Önce `--version` / `--help` ile aracı doğrulayın.\n- Üretimde salt okuma sorguları bile veri sızdırabilir (`caution`).\n\n**psql** (PostgreSQL) ve **sqlite3** zaten development kategorisinde;\n**mysql** / **redis-cli** Faz 7’de `databases/` altına eklendi. Hepsi `draft`\nbaşlar; `verified` insan incelemesi ister.\n",
+        "en": "Database records in this bank are **client CLIs**, not package scripts that\ninstall MySQL/Redis servers.\n\n**Habits:**\n- Do not put passwords on argv (`-pSECRET`) — history and `ps` leak them.\n- Confirm the tool with `--version` / `--help` first.\n- Even read-only queries can leak data in production (`caution`).\n\n**psql** (PostgreSQL) and **sqlite3** already live under development;\n**mysql** / **redis-cli** were added under `databases/` in Faz 7. All start\nas `draft`; `verified` needs human review.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://dev.mysql.com/doc/refman/8.4/en/mysql.html",
+          "https://redis.io/docs/latest/develop/tools/cli/"
+        ],
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
+      }
+    },
+    {
       "id": "debugging",
       "kind": "nova-commands-concept",
       "title": {
@@ -29468,6 +32313,57 @@
       }
     },
     {
+      "id": "infrastructure-as-code",
+      "kind": "nova-commands-concept",
+      "title": {
+        "tr": "Altyapı kodu (IaC) ve otomasyon",
+        "en": "Infrastructure as code (IaC) and automation"
+      },
+      "summary": {
+        "tr": "Terraform ve Ansible farkı; bulut CLI’ler ve gizli kimlik kuralları.",
+        "en": "Terraform vs Ansible; cloud CLIs and secret-handling rules."
+      },
+      "difficulty": "intermediate",
+      "tags": [
+        "iac",
+        "terraform",
+        "ansible",
+        "devops",
+        "cloud"
+      ],
+      "related_commands": [
+        "terraform",
+        "ansible",
+        "aws",
+        "az",
+        "gcloud",
+        "kubectl",
+        "gh"
+      ],
+      "related_concepts": [
+        "cloud",
+        "kubernetes",
+        "containers"
+      ],
+      "see_also": [
+        "https://developer.hashicorp.com/terraform/intro",
+        "https://docs.ansible.com/"
+      ],
+      "body": {
+        "tr": "**IaC** altyapıyı tekrarlanabilir kod olarak tanımlar.\n\n**Kaba ayrım:**\n- **Terraform** — sağlayıcı API’leriyle kaynak oluşturma/plan/apply\n  (OpenTofu ayrı bir araçtır; bu fazda ayrı kayıt yok).\n- **Ansible** — yapılandırma/otomasyon (çoğunlukla SSH); state modeli farklıdır.\n- **aws / az / gcloud** — bulut kontrol düzlemi CLI’leri; Terraform’un yerine\n  geçmezler, onu tamamlarlar.\n\n**Gizli bilgi:** Access key, session token, service-account JSON veya\n`gh` PAT örnek YAML’lara **yazılmaz**. `version`, `plan`/`validate`,\n`auth status` gibi güvenli okumalar tercih edilir.\n\n`apply` / `destroy` / playbook koşuları uzak sistemleri değiştirir —\nrisk `dangerous` olabilir. Kayıtlar `draft`.\n",
+        "en": "**IaC** defines infrastructure as repeatable code.\n\n**Rough split:**\n- **Terraform** — create/plan/apply resources via provider APIs\n  (OpenTofu is a separate tool; no separate record in this phase).\n- **Ansible** — configuration/automation (often over SSH); different state model.\n- **aws / az / gcloud** — cloud control-plane CLIs; they complement Terraform,\n  they do not replace it.\n\n**Secrets:** Never put access keys, session tokens, service-account JSON, or\n`gh` PATs in example YAML. Prefer safe reads like `version`, `plan`/`validate`,\nand `auth status`.\n\n`apply` / `destroy` / playbook runs mutate remote systems — risk may be\n`dangerous`. Records stay `draft`.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://developer.hashicorp.com/terraform/intro",
+          "https://docs.ansible.com/",
+          "https://docs.aws.amazon.com/cli/"
+        ],
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
+      }
+    },
+    {
       "id": "json-data",
       "kind": "nova-commands-concept",
       "title": {
@@ -29515,6 +32411,54 @@
       }
     },
     {
+      "id": "kubernetes",
+      "kind": "nova-commands-concept",
+      "title": {
+        "tr": "Kubernetes ve konteyner orkestrasyon",
+        "en": "Kubernetes and container orchestration"
+      },
+      "summary": {
+        "tr": "kubectl/Helm/CRI araçları — Docker Engine ile karıştırılmayan küme modeli.",
+        "en": "kubectl/Helm/CRI tools — cluster model distinct from Docker Engine alone."
+      },
+      "difficulty": "intermediate",
+      "tags": [
+        "kubernetes",
+        "containers",
+        "devops",
+        "orchestration"
+      ],
+      "related_commands": [
+        "kubectl",
+        "helm",
+        "crictl",
+        "nerdctl",
+        "docker",
+        "podman"
+      ],
+      "related_concepts": [
+        "containers",
+        "infrastructure-as-code",
+        "networking"
+      ],
+      "see_also": [
+        "https://kubernetes.io/docs/concepts/overview/",
+        "https://helm.sh/docs/"
+      ],
+      "body": {
+        "tr": "**Kubernetes** konteyner iş yüklerini bir küme API’si üzerinden yönetir.\nGünlük kullanıcı arayüzü çoğu zaman **kubectl**’tir; paket/uygulama dağıtımı\niçin **Helm** chart’ları kullanılır.\n\n**Katmanlar (karıştırmayın):**\n- **Docker Engine / Podman** — tek düğümde konteyner çalıştırma.\n- **containerd + nerdctl/crictl** — CRI runtime teşhisi (kubelet altı).\n- **kubectl** — küme API’si (Deployment, Service, Pod, …).\n\n**Güvenlik:** Yanlış kubeconfig bağlamı üretim kümesini etkileyebilir.\nBu bankadaki örnekler çoğunlukla `version` / `get` / `list` odaklıdır;\n`apply`/`delete` yıkıcı olabilir. Gerçek cluster credential’ları YAML’a\nyazılmaz.\n\nKayıtlar `draft` kalır; `verified` yalnız insan incelemesi sonrası.\n",
+        "en": "**Kubernetes** manages container workloads through a cluster API.\nDay-to-day UX is often **kubectl**; app packaging frequently uses **Helm**\ncharts.\n\n**Do not conflate layers:**\n- **Docker Engine / Podman** — run containers on a node.\n- **containerd + nerdctl/crictl** — CRI runtime diagnostics under kubelet.\n- **kubectl** — cluster API (Deployments, Services, Pods, …).\n\n**Safety:** A wrong kubeconfig context can hit production. Catalog examples\nfavor `version` / `get` / `list`; `apply`/`delete` can be destructive.\nReal cluster credentials never belong in YAML examples.\n\nRecords stay `draft` until human review marks `verified`.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://kubernetes.io/docs/concepts/overview/",
+          "https://helm.sh/docs/"
+        ],
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
+      }
+    },
+    {
       "id": "networking-basics",
       "kind": "nova-commands-concept",
       "title": {
@@ -29542,7 +32486,11 @@
         "resolvectl",
         "nmcli",
         "traceroute",
-        "nc"
+        "nc",
+        "tcpdump",
+        "nmap",
+        "mtr",
+        "ethtool"
       ],
       "related_concepts": [
         "dns",
@@ -29897,6 +32845,55 @@
       }
     },
     {
+      "id": "reverse-proxy",
+      "kind": "nova-commands-concept",
+      "title": {
+        "tr": "Reverse proxy ve web sunucular",
+        "en": "Reverse proxies and web servers"
+      },
+      "summary": {
+        "tr": "nginx ve Caddy rolleri; TLS ve config test alışkanlıkları.",
+        "en": "Roles of nginx and Caddy; TLS and config-test habits."
+      },
+      "difficulty": "intermediate",
+      "tags": [
+        "nginx",
+        "caddy",
+        "proxy",
+        "http",
+        "tls"
+      ],
+      "related_commands": [
+        "nginx",
+        "caddy",
+        "curl",
+        "openssl",
+        "ss",
+        "systemctl"
+      ],
+      "related_concepts": [
+        "networking",
+        "networking-basics",
+        "firewalls"
+      ],
+      "see_also": [
+        "https://nginx.org/en/docs/",
+        "https://caddyserver.com/docs/"
+      ],
+      "body": {
+        "tr": "Bir **reverse proxy**, istemci isteklerini arka uç servislere iletir\n(TLS sonlandırma, yük dengeleme, yol yönlendirme).\n\n**nginx** olgun, yapılandırma dosyası odaklı bir web sunucu/proxy’dir.\nDeğişiklikten önce `nginx -t` ile sözdizimi testi alışkanlık olmalıdır.\n\n**Caddy** otomatik ACME/HTTPS ile öne çıkar; `caddy validate` config’i\nkontrol eder. Her iki araç da yanlış config ile hizmeti düşürebilir.\n\nFirewall ve SELinux/AppArmor kuralları port 80/443 erişimini etkiler —\nproxy kaydı firewall kaydı değildir. Örnekler `draft`.\n",
+        "en": "A **reverse proxy** forwards client requests to upstream services\n(TLS termination, load balancing, path routing).\n\n**nginx** is a mature, config-file-centric web server/proxy. Habit: run\n`nginx -t` before reloading.\n\n**Caddy** emphasizes automatic ACME/HTTPS; `caddy validate` checks config.\nEither tool can take a service down with a bad config.\n\nFirewall and SELinux/AppArmor rules affect ports 80/443 — a proxy record is\nnot a firewall record. Examples stay `draft`.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://nginx.org/en/docs/",
+          "https://caddyserver.com/docs/"
+        ],
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
+      }
+    },
+    {
       "id": "shell-pipes-redirection",
       "kind": "nova-commands-concept",
       "title": {
@@ -30101,6 +33098,52 @@
           "man bash (INVOCATION, SHELL GRAMMAR)"
         ],
         "notes": "Agent-authored teaching article; needs maintainer spot-check before verified."
+      }
+    },
+    {
+      "id": "virtualization",
+      "kind": "nova-commands-concept",
+      "title": {
+        "tr": "Sanallaştırma (KVM / libvirt / QEMU)",
+        "en": "Virtualization (KVM / libvirt / QEMU)"
+      },
+      "summary": {
+        "tr": "Hipervizör katmanları ve virsh/qemu-img — konteyner orkestrasyonu değil.",
+        "en": "Hypervisor layers and virsh/qemu-img — not container orchestration."
+      },
+      "difficulty": "intermediate",
+      "tags": [
+        "virtualization",
+        "kvm",
+        "qemu",
+        "libvirt"
+      ],
+      "related_commands": [
+        "virsh",
+        "qemu-img",
+        "systemctl",
+        "lsblk"
+      ],
+      "related_concepts": [
+        "storage",
+        "containers",
+        "networking"
+      ],
+      "see_also": [
+        "https://libvirt.org/docs.html",
+        "https://www.qemu.org/docs/master/"
+      ],
+      "body": {
+        "tr": "**KVM/QEMU** donanım sanallaştırması sağlar; **libvirt** çoğu Linux\ndağıtımında yönetim API’si ve **virsh** CLI’sini sunar.\n\n**Konteyner ≠ VM:** Podman/Docker süreç yalıtımı kullanır; virsh domain’leri\ntam sanal makinelerdir. Kubernetes bir hipervizör değildir.\n\n**Disk imajları:** `qemu-img` qcow2/raw gibi formatları sorgular/dönüştürür.\nYanlış `convert` veri kaybettirebilir — banka örnekleri `info` odaklıdır.\n\nProxmox gibi ürün CLI’leri vendor-specific’tir; genel libvirt kayıtlarıyla\nkarıştırılmamalıdır. Hepsi `draft` başlar.\n",
+        "en": "**KVM/QEMU** provide hardware virtualization; **libvirt** is the common\nLinux management API with the **virsh** CLI.\n\n**Containers ≠ VMs:** Podman/Docker isolate processes; virsh domains are\nfull VMs. Kubernetes is not a hypervisor.\n\n**Disk images:** `qemu-img` queries/converts qcow2/raw formats. A bad\n`convert` can lose data — catalog examples stay `info`-focused.\n\nProduct CLIs like Proxmox are vendor-specific and must not be equated with\ngeneric libvirt records. Everything starts as `draft`.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://libvirt.org/docs.html",
+          "https://www.qemu.org/docs/master/tools/qemu-img.html"
+        ],
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
       }
     }
   ]
