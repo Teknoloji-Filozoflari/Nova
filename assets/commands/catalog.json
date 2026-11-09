@@ -1,11 +1,11 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-04T20:52:51Z",
-  "content_sha256": "f08edacc291b3d81d5d1ac24f8eead941873498c0e252e72f1ff96def4e2f6ee",
+  "generated_at": "2026-11-09T16:57:15Z",
+  "content_sha256": "ee1e5d186bdc7885cd18b945446a2d34673c7f7499d08f7da165fc011d5ae4db",
   "command_count": 256,
   "concept_count": 20,
-  "task_count": 21,
+  "task_count": 26,
   "profile_count": 13,
   "commands": [
     {
@@ -1106,8 +1106,7 @@
       ],
       "related": [
         "systemctl",
-        "systemd-analyze",
-        "efibootmgr"
+        "systemd-analyze"
       ],
       "intent": {
         "tr": [
@@ -1843,8 +1842,7 @@
         }
       ],
       "related": [
-        "pwd",
-        "pushd"
+        "pwd"
       ],
       "intent": {
         "tr": [
@@ -2631,8 +2629,7 @@
       ],
       "related": [
         "mv",
-        "rsync",
-        "install"
+        "rsync"
       ],
       "intent": {
         "tr": [
@@ -2876,8 +2873,7 @@
         }
       ],
       "related": [
-        "wget",
-        "http"
+        "wget"
       ],
       "intent": {
         "tr": [
@@ -3284,7 +3280,13 @@
             "en": "Wrong of= wipes a disk; verify with lsblk."
           },
           "risk": "destructive",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış aygıt seçimi veriyi kalıcı olarak siler; önce lsblk/diskutil ile doğrula.",
+              "en": "Wrong device permanently destroys data; verify with lsblk/diskutil first."
+            }
+          ]
         }
       ],
       "related": [
@@ -3740,7 +3742,6 @@
       ],
       "related": [
         "host",
-        "nslookup",
         "resolvectl",
         "ping"
       ],
@@ -5012,8 +5013,7 @@
         }
       ],
       "related": [
-        "df",
-        "ncdu"
+        "df"
       ],
       "intent": {
         "tr": [
@@ -5122,9 +5122,6 @@
           },
           "risk": "safe"
         }
-      ],
-      "related": [
-        "printf"
       ],
       "intent": {
         "tr": [
@@ -5408,8 +5405,7 @@
         }
       ],
       "related": [
-        "export",
-        "printenv"
+        "export"
       ],
       "intent": {
         "tr": [
@@ -5747,8 +5743,7 @@
         }
       ],
       "related": [
-        "env",
-        "set"
+        "env"
       ],
       "intent": {
         "tr": [
@@ -6022,7 +6017,6 @@
       ],
       "related": [
         "grep",
-        "fd",
         "locate"
       ],
       "intent": {
@@ -9274,8 +9268,7 @@
       ],
       "related": [
         "find",
-        "rg",
-        "ag"
+        "rg"
       ],
       "intent": {
         "tr": [
@@ -10011,9 +10004,6 @@
           "risk": "safe"
         }
       ],
-      "related": [
-        "alias"
-      ],
       "intent": {
         "tr": [
           "komut geçmişi",
@@ -10152,8 +10142,7 @@
       ],
       "related": [
         "dig",
-        "resolvectl",
-        "nslookup"
+        "resolvectl"
       ],
       "intent": {
         "tr": [
@@ -12188,7 +12177,6 @@
       ],
       "related": [
         "pkill",
-        "killall",
         "ps"
       ],
       "intent": {
@@ -12532,7 +12520,6 @@
         }
       ],
       "related": [
-        "more",
         "cat"
       ],
       "intent": {
@@ -12673,8 +12660,7 @@
         }
       ],
       "related": [
-        "cp",
-        "readlink"
+        "cp"
       ],
       "intent": {
         "tr": [
@@ -13019,9 +13005,7 @@
         }
       ],
       "related": [
-        "systemctl",
-        "who",
-        "w"
+        "systemctl"
       ],
       "intent": {
         "tr": [
@@ -13454,8 +13438,7 @@
         }
       ],
       "related": [
-        "lspci",
-        "lshw"
+        "lspci"
       ],
       "intent": {
         "tr": [
@@ -13612,7 +13595,6 @@
       ],
       "related": [
         "ss",
-        "fuser",
         "ps",
         "umount"
       ],
@@ -14083,7 +14065,6 @@
         }
       ],
       "related": [
-        "rmdir",
         "touch"
       ],
       "intent": {
@@ -14224,7 +14205,13 @@
             "en": "Placeholder device — never run on a real path as-is. Confirm the partition with `lsblk -f` / `blkid` first. Prefer `mkfs.ext4` directly.\n"
           },
           "risk": "destructive",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış aygıt seçimi veriyi kalıcı olarak siler; önce lsblk/diskutil ile doğrula.",
+              "en": "Wrong device permanently destroys data; verify with lsblk/diskutil first."
+            }
+          ]
         }
       ],
       "related": [
@@ -14394,7 +14381,13 @@
             "en": "Placeholder. Do not copy multi-device recipes blindly; verify each member with lsblk. `-f` adds overwrite risk.\n"
           },
           "risk": "destructive",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış aygıt seçimi veriyi kalıcı olarak siler; önce lsblk/diskutil ile doğrula.",
+              "en": "Wrong device permanently destroys data; verify with lsblk/diskutil first."
+            }
+          ]
         }
       ],
       "related": [
@@ -14542,7 +14535,13 @@
             "en": "`-n` prints the plan without writing. Still confirm the device with `lsblk -f`; do not run the placeholder as-is.\n"
           },
           "risk": "caution",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış aygıt seçimi veriyi kalıcı olarak siler; önce lsblk/diskutil ile doğrula.",
+              "en": "Wrong device permanently destroys data; verify with lsblk/diskutil first."
+            }
+          ]
         },
         {
           "title": {
@@ -14555,7 +14554,13 @@
             "en": "Placeholder partition path. Wrong device wipes data; confirm with lsblk/blkid, back up, then proceed deliberately.\n"
           },
           "risk": "destructive",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış aygıt seçimi veriyi kalıcı olarak siler; önce lsblk/diskutil ile doğrula.",
+              "en": "Wrong device permanently destroys data; verify with lsblk/diskutil first."
+            }
+          ]
         }
       ],
       "related": [
@@ -14725,7 +14730,13 @@
             "en": "Placeholder — double-check with lsblk, especially for USB/ESP paths. Wrong-disk mistakes are common in shared Windows/EFI setups.\n"
           },
           "risk": "destructive",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış aygıt seçimi veriyi kalıcı olarak siler; önce lsblk/diskutil ile doğrula.",
+              "en": "Wrong device permanently destroys data; verify with lsblk/diskutil first."
+            }
+          ]
         }
       ],
       "related": [
@@ -14877,7 +14888,13 @@
             "en": "Prints XFS parameters without writing; still verify the device."
           },
           "risk": "caution",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış aygıt seçimi veriyi kalıcı olarak siler; önce lsblk/diskutil ile doğrula.",
+              "en": "Wrong device permanently destroys data; verify with lsblk/diskutil first."
+            }
+          ]
         },
         {
           "title": {
@@ -14890,7 +14907,13 @@
             "en": "Placeholder. An existing FS may cause refusal; adding `-f` raises risk — only on intentional, backed-up targets.\n"
           },
           "risk": "destructive",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış aygıt seçimi veriyi kalıcı olarak siler; önce lsblk/diskutil ile doğrula.",
+              "en": "Wrong device permanently destroys data; verify with lsblk/diskutil first."
+            }
+          ]
         }
       ],
       "related": [
@@ -15353,8 +15376,7 @@
         }
       ],
       "related": [
-        "cp",
-        "rename"
+        "cp"
       ],
       "intent": {
         "tr": [
@@ -15621,8 +15643,7 @@
       "related": [
         "ss",
         "nmap",
-        "curl",
-        "telnet"
+        "curl"
       ],
       "intent": {
         "tr": [
@@ -18422,9 +18443,7 @@
         }
       ],
       "related": [
-        "pacman",
-        "yay",
-        "makepkg"
+        "pacman"
       ],
       "intent": {
         "tr": [
@@ -18585,7 +18604,6 @@
       "related": [
         "useradd",
         "usermod",
-        "chpasswd",
         "sudo"
       ],
       "intent": {
@@ -19822,8 +19840,7 @@
       ],
       "related": [
         "pgrep",
-        "kill",
-        "killall"
+        "kill"
       ],
       "intent": {
         "tr": [
@@ -22393,8 +22410,7 @@
         }
       ],
       "related": [
-        "mv",
-        "trash-put"
+        "mv"
       ],
       "intent": {
         "tr": [
@@ -25644,8 +25660,7 @@
         }
       ],
       "related": [
-        "ls",
-        "file"
+        "ls"
       ],
       "intent": {
         "tr": [
@@ -26036,7 +26051,6 @@
         }
       ],
       "related": [
-        "su",
         "doas"
       ],
       "intent": {
@@ -27559,8 +27573,7 @@
       ],
       "related": [
         "date",
-        "systemctl",
-        "hwclock"
+        "systemctl"
       ],
       "intent": {
         "tr": [
@@ -27662,8 +27675,7 @@
       ],
       "related": [
         "htop",
-        "ps",
-        "btop"
+        "ps"
       ],
       "intent": {
         "tr": [
@@ -27947,7 +27959,6 @@
       ],
       "related": [
         "ping",
-        "tracepath",
         "mtr",
         "ip"
       ],
@@ -28897,8 +28908,7 @@
         }
       ],
       "related": [
-        "top",
-        "w"
+        "top"
       ],
       "intent": {
         "tr": [
@@ -30231,9 +30241,7 @@
         }
       ],
       "related": [
-        "whereis",
-        "type",
-        "command"
+        "whereis"
       ],
       "intent": {
         "tr": [
@@ -30641,7 +30649,13 @@
             "en": "Prints signatures without wiping (no wipe flags). Still confirm the device with lsblk; do not use the placeholder as-is.\n"
           },
           "risk": "caution",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış aygıt seçimi veriyi kalıcı olarak siler; önce lsblk/diskutil ile doğrula.",
+              "en": "Wrong device permanently destroys data; verify with lsblk/diskutil first."
+            }
+          ]
         },
         {
           "title": {
@@ -30654,7 +30668,13 @@
             "en": "Shows what -a would erase without writing (-n)."
           },
           "risk": "caution",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış aygıt seçimi veriyi kalıcı olarak siler; önce lsblk/diskutil ile doğrula.",
+              "en": "Wrong device permanently destroys data; verify with lsblk/diskutil first."
+            }
+          ]
         }
       ],
       "related": [
@@ -31497,8 +31517,7 @@
       ],
       "related": [
         "tar",
-        "gzip",
-        "zstd"
+        "gzip"
       ],
       "intent": {
         "tr": [
@@ -32608,6 +32627,7 @@
         "apk",
         "emerge",
         "xbps-install",
+        "xbps-query",
         "eopkg",
         "slackpkg",
         "nix",
@@ -32813,6 +32833,8 @@
       "related_commands": [
         "id",
         "whoami",
+        "stat",
+        "groups",
         "chmod",
         "chown",
         "chgrp",
@@ -32978,7 +33000,9 @@
         "mkfs.btrfs",
         "mkfs.fat",
         "wipefs",
-        "fsck"
+        "fsck",
+        "get-volume",
+        "get-disk"
       ],
       "related_concepts": [
         "files",
@@ -33183,10 +33207,27 @@
           ],
           "examples": [
             {
+              "command": "rsync -avn ./src/ ./dst/",
+              "risk": "safe",
+              "title": {
+                "tr": "Kuru koşu",
+                "en": "Dry run"
+              },
+              "explanation": {
+                "tr": "Ne kopyalanacağını silmeden gösterir.",
+                "en": "Shows what would copy without writing."
+              },
+              "privilege": "user"
+            },
+            {
               "command": "rsync -aHAX --info=progress2 /path/to/src/ /path/to/backup/",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "user"
+              "privilege": "user",
+              "explanation": {
+                "tr": "Dizin içeriğini arşiv modunda eşitler.",
+                "en": "Syncs directory contents in archive mode."
+              }
             }
           ],
           "platforms": [
@@ -33204,6 +33245,19 @@
             "restic"
           ],
           "examples": [
+            {
+              "command": "restic version",
+              "risk": "safe",
+              "title": {
+                "tr": "Sürüm",
+                "en": "Version"
+              },
+              "explanation": {
+                "tr": "restic sürümü.",
+                "en": "restic version."
+              },
+              "privilege": "none"
+            },
             {
               "command": "restic -r /path/to/repo backup /path/to/data",
               "risk": "caution",
@@ -33232,10 +33286,27 @@
           ],
           "examples": [
             {
+              "command": "borg --version",
+              "risk": "safe",
+              "title": {
+                "tr": "Sürüm",
+                "en": "Version"
+              },
+              "explanation": {
+                "tr": "Borg sürümü.",
+                "en": "Borg version."
+              },
+              "privilege": "none"
+            },
+            {
               "command": "borg create /path/to/repo::'{hostname}-{now}' /path/to/data",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "user"
+              "privilege": "user",
+              "explanation": {
+                "tr": "Depo parolası/ortam değişkeni örneğe yazılmaz.",
+                "en": "Repo password/env vars are omitted from examples."
+              }
             }
           ],
           "platforms": [
@@ -33309,7 +33380,11 @@
               "command": "docker logs --tail 100 mycontainer",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Konteyner günlüklerini takip eder.",
+                "en": "Follows container logs."
+              }
             }
           ],
           "platforms": [
@@ -33406,7 +33481,11 @@
               "command": "df -h",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Disk doluluğu.",
+                "en": "Disk usage summary."
+              }
             }
           ],
           "platforms": [
@@ -33428,7 +33507,11 @@
               "command": "Get-Volume",
               "risk": "safe",
               "shell": "powershell",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Sürücü harfi, dosya sistemi ve boş alanı listeler.",
+                "en": "Lists drive letter, filesystem, and free space."
+              }
             }
           ],
           "operating_systems": [
@@ -33614,7 +33697,11 @@
               "command": "sudo ufw status verbose",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "elevated"
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Aktif kuralları ve varsayılanları gösterir.",
+                "en": "Shows active rules and defaults."
+              }
             }
           ],
           "platforms": [
@@ -33634,7 +33721,11 @@
               "command": "firewall-cmd --state",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Çalışıyorsa running yazar.",
+                "en": "Prints running when active."
+              }
             }
           ],
           "platforms": [
@@ -33654,7 +33745,11 @@
               "command": "sudo pfctl -s info",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "elevated"
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "PF durum özetini gösterir.",
+                "en": "Shows PF status summary."
+              }
             }
           ],
           "platforms": [
@@ -33782,7 +33877,11 @@
               "command": "curl -I -m 5 https://example.com",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yanıt başlıklarını basar.",
+                "en": "Prints response headers."
+              }
             }
           ],
           "platforms": [
@@ -33855,7 +33954,11 @@
               "command": "free -h",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "RAM/swap özeti.",
+                "en": "RAM/swap summary."
+              }
             }
           ],
           "operating_systems": [
@@ -33878,7 +33981,11 @@
               "command": "vmstat 1 3",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "2 sn arayla 5 örnek.",
+                "en": "5 samples every 2s."
+              }
             }
           ],
           "platforms": [
@@ -33901,7 +34008,11 @@
               "command": "Get-ComputerInfo | Select-Object OsTotalVisibleMemorySize, OsFreePhysicalMemory",
               "risk": "safe",
               "shell": "powershell",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Ürün adı, OS sürümü ve işlemci özetini seçer.",
+                "en": "Selects product name, OS version, and CPU summary."
+              }
             }
           ],
           "operating_systems": [
@@ -34090,6 +34201,183 @@
     {
       "schema_version": 2,
       "kind": "task",
+      "id": "clone-git-repo",
+      "name": {
+        "tr": "Git deposu klonla",
+        "en": "Clone a git repo"
+      },
+      "summary": {
+        "tr": "Uzak Git deposunu yerel dizine klonla (mevcut git örneği).",
+        "en": "Clone a remote Git repository locally (existing git example)."
+      },
+      "category": "development",
+      "intent": {
+        "tr": [
+          "git clone",
+          "repo indir",
+          "depo klonla"
+        ],
+        "en": [
+          "git clone",
+          "clone repository"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "git-clone",
+          "commands": [
+            "git"
+          ],
+          "examples": [
+            {
+              "command": "git status",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "user",
+              "title": {
+                "tr": "Durum",
+                "en": "Status"
+              },
+              "explanation": {
+                "tr": "Çalışma ağacı durumu.",
+                "en": "Working tree status."
+              }
+            },
+            {
+              "command": "git log --oneline -n 10",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "user",
+              "title": {
+                "tr": "Kısa log",
+                "en": "Oneline log"
+              },
+              "explanation": {
+                "tr": "Son 10 commit.",
+                "en": "Last 10 commits."
+              }
+            },
+            {
+              "command": "git clone https://github.com/Teknoloji-Filozoflari/Nova-Commands.git",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "user",
+              "title": {
+                "tr": "Klon",
+                "en": "Clone"
+              },
+              "explanation": {
+                "tr": "Depoyu klonlar.",
+                "en": "Clones the repository."
+              }
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd",
+            "windows"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "related_commands": [
+        "git"
+      ],
+      "tags": [
+        "development",
+        "git"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "commands/development/git.yaml"
+        ],
+        "notes": "Agent-authored IA gap fill from existing command bank; not human-verified."
+      }
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "compress-archive",
+      "name": {
+        "tr": "Arşiv oluştur",
+        "en": "Create archive"
+      },
+      "summary": {
+        "tr": "Dizinden tar.gz arşivi oluştur (mevcut tar örneği).",
+        "en": "Create a tar.gz archive from a directory (existing tar example)."
+      },
+      "category": "archives",
+      "intent": {
+        "tr": [
+          "arşiv oluştur",
+          "tar.gz yap",
+          "sıkıştır"
+        ],
+        "en": [
+          "create archive",
+          "make tar.gz",
+          "compress folder"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "tar-czf",
+          "commands": [
+            "tar"
+          ],
+          "examples": [
+            {
+              "command": "tar -czf backup.tar.gz notes/",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "user",
+              "title": {
+                "tr": "Oluştur",
+                "en": "Create"
+              },
+              "explanation": {
+                "tr": "notes/ dizininden sıkıştırılmış arşiv.",
+                "en": "Creates compressed archive from notes/."
+              }
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "related_commands": [
+        "tar",
+        "gzip"
+      ],
+      "related_tasks": [
+        "extract-archive"
+      ],
+      "tags": [
+        "archives",
+        "backup"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 tar",
+          "commands/archives/tar.yaml"
+        ],
+        "notes": "Agent-authored IA gap fill from existing command bank; not human-verified."
+      }
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
       "id": "connect-ssh",
       "name": {
         "tr": "SSH ile bağlan",
@@ -34166,6 +34454,170 @@
     {
       "schema_version": 2,
       "kind": "task",
+      "id": "extract-archive",
+      "name": {
+        "tr": "Arşiv çıkar",
+        "en": "Extract archive"
+      },
+      "summary": {
+        "tr": "tar.gz arşivini çıkar (mevcut tar örneği).",
+        "en": "Extract a tar.gz archive (existing tar example)."
+      },
+      "category": "archives",
+      "intent": {
+        "tr": [
+          "arşiv aç",
+          "tar çıkar",
+          "extract"
+        ],
+        "en": [
+          "extract archive",
+          "untar",
+          "unzip tar.gz"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "tar-xzf",
+          "commands": [
+            "tar"
+          ],
+          "examples": [
+            {
+              "command": "tar -xzf project.tar.gz",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "user",
+              "title": {
+                "tr": "Çıkar gzip",
+                "en": "Extract gzip"
+              },
+              "explanation": {
+                "tr": "tar.gz arşivini çıkarır.",
+                "en": "Extracts a tar.gz archive."
+              }
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "related_commands": [
+        "tar",
+        "gzip",
+        "unzip"
+      ],
+      "related_tasks": [
+        "compress-archive"
+      ],
+      "tags": [
+        "archives"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 tar",
+          "commands/archives/tar.yaml"
+        ],
+        "notes": "Agent-authored IA gap fill from existing command bank; not human-verified."
+      }
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
+      "id": "find-files",
+      "name": {
+        "tr": "Dosya bul",
+        "en": "Find files"
+      },
+      "summary": {
+        "tr": "İsim veya tür ile dosya/dizin ara (find salt okuma örnekleri).",
+        "en": "Search files/dirs by name or type (read-only find examples)."
+      },
+      "category": "search",
+      "intent": {
+        "tr": [
+          "dosya bul",
+          "find isim",
+          "boş dizin bul"
+        ],
+        "en": [
+          "find files",
+          "find by name",
+          "find empty dirs"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "unix-find",
+          "commands": [
+            "find"
+          ],
+          "examples": [
+            {
+              "command": "find ~ -name \"*.pdf\"",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "İsme göre ara",
+                "en": "Search by name"
+              },
+              "explanation": {
+                "tr": "Ev dizininde PDF arar.",
+                "en": "Finds PDFs under home."
+              }
+            },
+            {
+              "command": "find . -type d -empty",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "Boş dizinler",
+                "en": "Empty dirs"
+              },
+              "explanation": {
+                "tr": "Boş dizinleri listeler.",
+                "en": "Lists empty directories."
+              }
+            }
+          ],
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "related_commands": [
+        "find"
+      ],
+      "tags": [
+        "search",
+        "filesystem"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 find",
+          "commands/search/find.yaml"
+        ],
+        "notes": "Agent-authored IA gap fill from existing command bank; not human-verified."
+      }
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
       "id": "inspect-container",
       "name": {
         "tr": "Konteyneri incele",
@@ -34199,7 +34651,11 @@
               "command": "docker ps",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Çalışan konteynerler.",
+                "en": "Running containers."
+              }
             }
           ],
           "platforms": [
@@ -34221,7 +34677,11 @@
               "command": "podman ps",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Çalışan konteynerler.",
+                "en": "Running containers."
+              }
             }
           ],
           "platforms": [
@@ -34241,7 +34701,11 @@
               "command": "nerdctl ps",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "containerd üzerinden çalışan konteynerler.",
+                "en": "Running containers via containerd."
+              }
             }
           ],
           "platforms": [
@@ -34302,14 +34766,46 @@
         {
           "id": "unix-du",
           "commands": [
-            "du"
+            "du",
+            "df"
           ],
           "examples": [
+            {
+              "title": {
+                "tr": "Özet",
+                "en": "Summary"
+              },
+              "command": "df -h",
+              "explanation": {
+                "tr": "Disk doluluğu.",
+                "en": "Disk usage summary."
+              },
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none"
+            },
+            {
+              "command": "du -sh ~/Downloads",
+              "risk": "safe",
+              "title": {
+                "tr": "Dizin toplamı",
+                "en": "Dir total"
+              },
+              "explanation": {
+                "tr": "Downloads boyutunu özetler.",
+                "en": "Summarizes Downloads size."
+              },
+              "privilege": "none"
+            },
             {
               "command": "du -sh /* 2>/dev/null | sort -h",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Downloads boyutunu özetler.",
+                "en": "Summarizes Downloads size."
+              }
             }
           ],
           "platforms": [
@@ -34405,7 +34901,11 @@
               "command": "ip -br link",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Ağ arayüzlerini listeler.",
+                "en": "Lists network interfaces."
+              }
             }
           ],
           "operating_systems": [
@@ -34428,7 +34928,11 @@
               "command": "networksetup -listallhardwareports",
               "risk": "safe",
               "shell": "zsh",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Donanım portlarını listeler (salt okuma).",
+                "en": "Lists hardware ports (read-only)."
+              }
             }
           ],
           "operating_systems": [
@@ -34451,7 +34955,11 @@
               "command": "ipconfig /all",
               "risk": "safe",
               "shell": "cmd",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Tüm arabirimler için ayrıntılı IP/DNS bilgisini basar.",
+                "en": "Prints detailed IP/DNS info for all interfaces."
+              }
             }
           ],
           "operating_systems": [
@@ -34526,7 +35034,11 @@
               "command": "ip route",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yönlendirme tablosu.",
+                "en": "Routing table."
+              }
             }
           ],
           "operating_systems": [
@@ -34550,7 +35062,11 @@
               "command": "netstat -rn",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Sayısal yönlendirme tablosunu gösterir.",
+                "en": "Shows the numeric routing table."
+              }
             }
           ],
           "platforms": [
@@ -34572,7 +35088,11 @@
               "command": "route print",
               "risk": "safe",
               "shell": "cmd",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "IPv4/IPv6 yönlendirme tablosunu basar.",
+                "en": "Prints the IPv4/IPv6 routing table."
+              }
             }
           ],
           "operating_systems": [
@@ -34645,7 +35165,11 @@
               "command": "journalctl -xe --no-pager | tail -n 50",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "nginx biriminin son 50 satırı.",
+                "en": "Last 50 lines for nginx unit."
+              }
             }
           ],
           "operating_systems": [
@@ -34668,7 +35192,11 @@
               "command": "Get-WinEvent -LogName System -MaxEvents 20",
               "risk": "safe",
               "shell": "powershell",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "System kanalından son 20 olayı getirir.",
+                "en": "Fetches the latest 20 System-channel events."
+              }
             }
           ],
           "operating_systems": [
@@ -34691,7 +35219,11 @@
               "command": "log show --last 5m --style compact",
               "risk": "safe",
               "shell": "zsh",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Son 2 dakikalık kompakt günlükten kuyruk alır.",
+                "en": "Tails a compact log from the last 2 minutes."
+              }
             }
           ],
           "operating_systems": [
@@ -34714,7 +35246,11 @@
               "command": "dmesg | tail -n 40",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Son çekirdek mesajları.",
+                "en": "Recent kernel messages."
+              }
             }
           ],
           "platforms": [
@@ -34785,10 +35321,28 @@
           ],
           "examples": [
             {
+              "command": "pacman -Ss ripgrep",
+              "risk": "safe",
+              "title": {
+                "tr": "Ara",
+                "en": "Search"
+              },
+              "explanation": {
+                "tr": "Depoda ripgrep arar.",
+                "en": "Searches repos for ripgrep."
+              },
+              "privilege": "none",
+              "requires_elevated": false
+            },
+            {
               "command": "sudo pacman -S package-name",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "elevated"
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "curl paketini kurar.",
+                "en": "Installs curl."
+              }
             }
           ],
           "platforms": [
@@ -34811,7 +35365,11 @@
               "command": "sudo apt install package-name",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "elevated"
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "curl kurar.",
+                "en": "Installs curl."
+              }
             }
           ],
           "platforms": [
@@ -34835,7 +35393,11 @@
               "command": "sudo dnf install package-name",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "elevated"
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "curl kurar.",
+                "en": "Installs curl."
+              }
             }
           ],
           "platforms": [
@@ -34854,6 +35416,19 @@
             "brew"
           ],
           "examples": [
+            {
+              "command": "brew search ripgrep",
+              "risk": "safe",
+              "title": {
+                "tr": "Ara",
+                "en": "Search"
+              },
+              "explanation": {
+                "tr": "ripgrep formül/cask arar.",
+                "en": "Searches formulae/casks for ripgrep."
+              },
+              "privilege": "none"
+            },
             {
               "command": "brew install package-name",
               "risk": "caution",
@@ -34877,6 +35452,20 @@
             "winget"
           ],
           "examples": [
+            {
+              "command": "winget search vscode",
+              "risk": "safe",
+              "title": {
+                "tr": "Ara",
+                "en": "Search"
+              },
+              "explanation": {
+                "tr": "vscode ile eşleşen paketleri arar.",
+                "en": "Searches packages matching vscode."
+              },
+              "shell": "powershell",
+              "privilege": "none"
+            },
             {
               "command": "winget install --id Vendor.Package",
               "risk": "caution",
@@ -34925,6 +35514,110 @@
     {
       "schema_version": 2,
       "kind": "task",
+      "id": "list-hardware",
+      "name": {
+        "tr": "Donanımı listele",
+        "en": "List hardware"
+      },
+      "summary": {
+        "tr": "CPU / PCI / USB envanterini salt okuma komutlarla göster.",
+        "en": "Show CPU / PCI / USB inventory with read-only commands."
+      },
+      "category": "hardware",
+      "intent": {
+        "tr": [
+          "donanım listele",
+          "cpu bilgisi",
+          "pci usb"
+        ],
+        "en": [
+          "list hardware",
+          "cpu info",
+          "pci usb"
+        ]
+      },
+      "implementations": [
+        {
+          "id": "linux-hw",
+          "commands": [
+            "lscpu",
+            "lspci",
+            "lsusb"
+          ],
+          "examples": [
+            {
+              "command": "lscpu",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "CPU bilgisi",
+                "en": "CPU info"
+              },
+              "explanation": {
+                "tr": "İşlemci özeti.",
+                "en": "CPU summary."
+              }
+            },
+            {
+              "command": "lspci -nn",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "PCI listesi",
+                "en": "PCI list"
+              },
+              "explanation": {
+                "tr": "Aygıt + ID.",
+                "en": "Devices + IDs."
+              }
+            },
+            {
+              "command": "lsusb",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "title": {
+                "tr": "USB listesi",
+                "en": "USB list"
+              },
+              "explanation": {
+                "tr": "Bağlı USB aygıtlar.",
+                "en": "Connected USB devices."
+              }
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ]
+        }
+      ],
+      "related_commands": [
+        "lscpu",
+        "lspci",
+        "lsusb"
+      ],
+      "tags": [
+        "hardware",
+        "inventory"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "commands/hardware/lscpu.yaml",
+          "commands/hardware/lspci.yaml",
+          "commands/hardware/lsusb.yaml"
+        ],
+        "notes": "Agent-authored IA gap fill from existing command bank; not human-verified."
+      }
+    },
+    {
+      "schema_version": 2,
+      "kind": "task",
       "id": "list-running-processes",
       "name": {
         "tr": "Çalışan süreçleri listele",
@@ -34958,7 +35651,11 @@
               "command": "ps aux",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Geniş süreç tablosu.",
+                "en": "Wide process table."
+              }
             }
           ],
           "platforms": [
@@ -34980,7 +35677,11 @@
               "command": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 20",
               "risk": "safe",
               "shell": "powershell",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "CPU’ya göre ilk 10 süreç.",
+                "en": "Top 10 processes by CPU."
+              }
             }
           ],
           "operating_systems": [
@@ -35053,7 +35754,11 @@
               "command": "systemctl list-units --type=service --state=running",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "sshd birim durumunu gösterir (izinler dağıtıma göre).",
+                "en": "Shows sshd unit status (unit name varies)."
+              }
             }
           ],
           "operating_systems": [
@@ -35076,7 +35781,11 @@
               "command": "service -e",
               "risk": "safe",
               "shell": "bash",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "rc.conf ile etkinleştirilmiş servisleri listeler.",
+                "en": "Lists services enabled via rc.conf."
+              }
             }
           ],
           "operating_systems": [
@@ -35101,7 +35810,11 @@
               "command": "rcctl ls started",
               "risk": "safe",
               "shell": "ksh",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Başlatılmış servisleri listeler.",
+                "en": "Lists started services."
+              }
             }
           ],
           "operating_systems": [
@@ -35124,7 +35837,11 @@
               "command": "Get-Service | Where-Object Status -eq Running",
               "risk": "safe",
               "shell": "powershell",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yerel servisleri listeler.",
+                "en": "Lists local services."
+              }
             }
           ],
           "operating_systems": [
@@ -35147,7 +35864,11 @@
               "command": "launchctl list",
               "risk": "safe",
               "shell": "zsh",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "GUI etki alanı özetini basmaya çalışır (ortama göre değişir).",
+                "en": "Attempts to print GUI domain summary (varies by environment)."
+              }
             }
           ],
           "operating_systems": [
@@ -35505,7 +36226,11 @@
               "command": "scp ./report.txt user@server.example:~/inbox/",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "user"
+              "privilege": "user",
+              "explanation": {
+                "tr": "Tek dosyayı uzak /tmp’ye kopyalar.",
+                "en": "Copies one file to remote /tmp."
+              }
             }
           ],
           "platforms": [
@@ -35526,10 +36251,28 @@
           ],
           "examples": [
             {
+              "title": {
+                "tr": "Kuru koşu",
+                "en": "Dry run"
+              },
+              "command": "rsync -avn ./src/ ./dst/",
+              "explanation": {
+                "tr": "Ne kopyalanacağını silmeden gösterir.",
+                "en": "Shows what would copy without writing."
+              },
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "user"
+            },
+            {
               "command": "rsync -avz -e ssh ./dir/ user@server.example:~/dir/",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "user"
+              "privilege": "user",
+              "explanation": {
+                "tr": "Uzak yedek; --delete kullanmadan önce dry-run.",
+                "en": "Remote backup; dry-run before --delete."
+              }
             }
           ],
           "platforms": [
@@ -35602,7 +36345,11 @@
               "command": "sudo pacman -Syu",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "elevated"
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Tüm paketleri yükseltir.",
+                "en": "Upgrades all packages."
+              }
             }
           ],
           "operating_systems": [
@@ -35634,7 +36381,11 @@
               "command": "sudo apt update && sudo apt upgrade",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "elevated"
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "İndeksleri yeniler ve yükseltir.",
+                "en": "Refreshes indexes and upgrades."
+              }
             }
           ],
           "operating_systems": [
@@ -35663,7 +36414,11 @@
               "command": "sudo dnf upgrade",
               "risk": "caution",
               "shell": "bash",
-              "privilege": "elevated"
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Sistem paketlerini yükseltir.",
+                "en": "Upgrades system packages."
+              }
             }
           ],
           "operating_systems": [
@@ -35717,7 +36472,11 @@
               "command": "softwareupdate -l",
               "risk": "safe",
               "shell": "zsh",
-              "privilege": "none"
+              "privilege": "none",
+              "explanation": {
+                "tr": "Bekleyen güncellemeleri listeler (kurmaz).",
+                "en": "Lists pending updates (does not install)."
+              }
             }
           ],
           "operating_systems": [
@@ -35831,13 +36590,29 @@
         "ss",
         "nft",
         "ufw",
-        "ssh"
+        "ssh",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "wget",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli"
       ],
       "related_tasks": [
         "update-system",
         "install-package",
         "list-running-services",
-        "show-local-ip"
+        "show-local-ip",
+        "check-dns",
+        "check-internet-connectivity",
+        "show-public-ip",
+        "inspect-network-interfaces"
       ],
       "tags": [
         "server",
@@ -35922,13 +36697,29 @@
         "ufw",
         "ss",
         "ip",
-        "ssh"
+        "ssh",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "wget",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli"
       ],
       "related_tasks": [
         "update-system",
         "install-package",
         "list-running-services",
-        "check-firewall-status"
+        "check-firewall-status",
+        "check-dns",
+        "check-internet-connectivity",
+        "show-public-ip",
+        "inspect-network-interfaces"
       ],
       "tags": [
         "server",
@@ -36017,13 +36808,29 @@
         "journalctl",
         "firewall-cmd",
         "ss",
-        "ip"
+        "ip",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "wget",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli"
       ],
       "related_tasks": [
         "update-system",
         "install-package",
         "list-running-services",
-        "check-firewall-status"
+        "check-firewall-status",
+        "check-dns",
+        "check-internet-connectivity",
+        "show-public-ip",
+        "inspect-network-interfaces"
       ],
       "tags": [
         "server",
@@ -36063,13 +36870,33 @@
         "sysrc",
         "pfctl",
         "ifconfig",
-        "ssh"
+        "ssh",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "ip",
+        "networksetup",
+        "ipconfig",
+        "nmcli",
+        "route",
+        "netstat-bsd",
+        "netsh",
+        "wget"
       ],
       "related_tasks": [
         "update-system",
         "list-running-services",
         "check-firewall-status",
-        "show-local-ip"
+        "show-local-ip",
+        "check-dns",
+        "check-internet-connectivity",
+        "inspect-network-interfaces",
+        "inspect-routing-table",
+        "show-public-ip"
       ],
       "tags": [
         "server",
@@ -36112,7 +36939,27 @@
         "rsync",
         "ssh",
         "ufw",
-        "systemctl"
+        "systemctl",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "ip",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli",
+        "wget",
+        "scp",
+        "sftp",
+        "git",
+        "find",
+        "lscpu",
+        "lspci",
+        "lsusb"
       ],
       "related_tasks": [
         "inspect-container",
@@ -36120,7 +36967,15 @@
         "backup-directory",
         "connect-ssh",
         "check-firewall-status",
-        "update-system"
+        "update-system",
+        "check-dns",
+        "check-internet-connectivity",
+        "inspect-network-interfaces",
+        "show-public-ip",
+        "transfer-files-ssh",
+        "clone-git-repo",
+        "find-files",
+        "list-hardware"
       ],
       "tags": [
         "homelab",
@@ -36216,7 +37071,29 @@
         "firewall-cmd",
         "pacman",
         "apt",
-        "dnf"
+        "dnf",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli",
+        "route",
+        "netstat-bsd",
+        "netsh",
+        "wget",
+        "scp",
+        "rsync",
+        "sftp",
+        "find",
+        "lscpu",
+        "lspci",
+        "lsusb"
       ],
       "related_tasks": [
         "show-local-ip",
@@ -36228,7 +37105,15 @@
         "connect-ssh",
         "check-open-ports",
         "check-memory",
-        "list-running-processes"
+        "list-running-processes",
+        "check-dns",
+        "check-internet-connectivity",
+        "inspect-network-interfaces",
+        "inspect-routing-table",
+        "show-public-ip",
+        "transfer-files-ssh",
+        "find-files",
+        "list-hardware"
       ],
       "tags": [
         "server",
@@ -36273,13 +37158,20 @@
         "restic",
         "borg",
         "rclone",
-        "zfs"
+        "zfs",
+        "tar",
+        "gzip",
+        "unzip",
+        "find"
       ],
       "related_tasks": [
         "check-disk-space",
         "inspect-disk-usage",
         "backup-directory",
-        "connect-ssh"
+        "connect-ssh",
+        "compress-archive",
+        "extract-archive",
+        "find-files"
       ],
       "tags": [
         "nas",
@@ -36414,7 +37306,18 @@
         "winget",
         "netsh",
         "ipconfig",
-        "sc"
+        "sc",
+        "dig",
+        "host",
+        "resolvectl",
+        "ip",
+        "ifconfig",
+        "networksetup",
+        "nmcli",
+        "route",
+        "netstat-bsd",
+        "curl",
+        "wget"
       ],
       "related_tasks": [
         "show-local-ip",
@@ -36423,7 +37326,11 @@
         "list-running-services",
         "inspect-system-logs",
         "update-system",
-        "check-firewall-status"
+        "check-firewall-status",
+        "check-dns",
+        "inspect-network-interfaces",
+        "inspect-routing-table",
+        "show-public-ip"
       ],
       "tags": [
         "server",
