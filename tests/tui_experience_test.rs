@@ -324,11 +324,21 @@ fn enter_on_installed_tool_requests_tab_without_opening_konsole() {
     let idx = app
         .filtered_tools()
         .iter()
-        .position(|e| e.status == InstalledStatus::Installed)
+        .position(|e| e.status == InstalledStatus::Installed && !e.has_ai_actions())
+        .or_else(|| {
+            app.filtered_tools()
+                .iter()
+                .position(|e| e.status == InstalledStatus::Installed)
+        })
         .expect("kurulu araç seçici listede olmalı");
     app.tool_index = idx;
     app.handle_key(key(crossterm::event::KeyCode::Enter))
         .unwrap();
+    // AI aksiyonlu araçta Enter önce modal açar; birincil «Aç» için tekrar Enter.
+    if matches!(app.modal, nova::app::modal::Modal::ToolActionsMenu { .. }) {
+        app.handle_key(key(crossterm::event::KeyCode::Enter))
+            .unwrap();
+    }
     assert!(app.running, "Enter Nova'yı kapatmamalı");
     assert!(
         app.status_message
@@ -403,10 +413,18 @@ struct CatalogEntryInstalledProbe;
 
 impl CatalogEntryInstalledProbe {
     fn find(app: &App) -> Option<(String, String)> {
+        // AI aksiyonlu araçlar Enter'da modal açar; doğrudan başlatma
+        // yolu için aksiyonsuz kurulu araç tercih edilir.
         app.catalog
             .entries()
             .iter()
-            .find(|e| e.status == InstalledStatus::Installed)
+            .find(|e| e.status == InstalledStatus::Installed && !e.has_ai_actions())
+            .or_else(|| {
+                app.catalog
+                    .entries()
+                    .iter()
+                    .find(|e| e.status == InstalledStatus::Installed)
+            })
             .map(|e| (e.category.clone(), e.id.clone()))
     }
 }
@@ -466,9 +484,10 @@ fn help_screen_renders_without_panic_on_small_terminals() {
 }
 
 #[test]
-fn ai_tool_actions_sit_in_options_panel_with_side_detail() {
-    // Geniş Kurulu: sekme|liste|Detay yan yana; Aksiyonlar altta dikey
-    // seçenek listesi (Ayarlar / özel araç ekle düzeni: ▶ [etiket]).
+fn ai_tool_actions_open_in_magaza_style_modal() {
+    // Geniş Kurulu: sekme|liste|Detay yan yana; Enter → Mağaza onay
+    // boyutunda ortalanmış aksiyon modalı (alt şerit yok).
+    use nova::app::modal::Modal;
     use ratatui::{backend::TestBackend, Terminal};
 
     let mut app = app_with_sample();
@@ -482,6 +501,7 @@ fn ai_tool_actions_sit_in_options_panel_with_side_detail() {
     let action_count = app.selected_tool().map(|e| e.actions.len()).unwrap_or(0);
     assert!(action_count >= 2, "codex en az iki aksiyon taşımalı");
 
+    // Modal açılmadan ana ekranda alt Aksiyonlar paneli yok.
     let mut terminal = Terminal::new(TestBackend::new(120, 36)).unwrap();
     terminal.draw(|f| nova::ui::draw(f, &app)).unwrap();
     let buffer = terminal.backend().buffer();
@@ -496,36 +516,55 @@ fn ai_tool_actions_sit_in_options_panel_with_side_detail() {
     let text = lines.join("\n");
     assert!(text.contains("Detay"), "detay paneli yok:\n{text}");
     assert!(
+        !lines
+            .iter()
+            .any(|l| l.contains("Aksiyonlar") && l.contains('─')),
+        "aksiyonlar alt panel olmamalı:\n{text}"
+    );
+
+    app.handle_key(key(crossterm::event::KeyCode::Enter))
+        .unwrap();
+    match &app.modal {
+        Modal::ToolActionsMenu { tool_id, index, .. } => {
+            assert_eq!(tool_id, "codex");
+            assert_eq!(*index, 0);
+        }
+        other => panic!("aksiyon modalı beklenirdi: {other:?}"),
+    }
+
+    terminal.draw(|f| nova::ui::draw(f, &app)).unwrap();
+    let buffer = terminal.backend().buffer();
+    let mut lines = Vec::new();
+    for y in 0..36u16 {
+        let mut row = String::new();
+        for x in 0..120u16 {
+            row.push_str(buffer[(x, y)].symbol());
+        }
+        lines.push(row);
+    }
+    let text = lines.join("\n");
+    assert!(
         lines
             .iter()
             .any(|l| l.contains("Aksiyonlar") && l.contains('─')),
-        "aksiyonlar dikey panel başlığı olmalı:\n{text}"
+        "modal başlığı Aksiyonlar olmalı:\n{text}"
     );
-    let actions_y = lines
+    assert!(
+        text.contains("ne yapılsın?") || text.contains("Aç") || text.contains("Devam"),
+        "modal aksiyon satırları görünmeli:\n{text}"
+    );
+    // Mağaza onay modalı gibi ortalanmış: kenarlarda boşluk (Clear kutusu).
+    let title_y = lines
         .iter()
         .position(|l| l.contains("Aksiyonlar"))
-        .expect("Aksiyonlar satırı");
-    let detail_y = lines
-        .iter()
-        .position(|l| l.contains("Detay"))
-        .expect("Detay satırı");
+        .expect("Aksiyonlar");
+    let title_line = &lines[title_y];
+    let first_box = title_line.find('─').or_else(|| title_line.find('┌'));
     assert!(
-        detail_y < actions_y,
-        "yan Detay içerik satırında, Aksiyonlar altında olmalı (detail={detail_y} actions={actions_y}):\n{text}"
+        first_box.map(|i| i > 5).unwrap_or(true),
+        "modal ortalanmış olmalı (sol kenara yapışık değil):\n{title_line}"
     );
-    let panel_body: String = lines
-        .iter()
-        .skip(actions_y)
-        .take(nova::ui::actions_panel_rows(action_count) as usize)
-        .cloned()
-        .collect::<Vec<_>>()
-        .join("\n");
-    assert!(
-        panel_body.contains("[Aç]")
-            || panel_body.contains("[Devam")
-            || panel_body.contains("[Yardım]"),
-        "aksiyon etiketleri Ayarlar stili [köşeli] satırlar olmalı:\n{panel_body}"
-    );
+
     let areas = nova::ui::click_areas_ex(nova::ui::ClickAreasInput {
         size: (120, 36),
         show_help: false,
@@ -537,10 +576,7 @@ fn ai_tool_actions_sit_in_options_panel_with_side_detail() {
         secondary_cols: 1,
     });
     assert!(areas.tool_detail_side);
-    assert_eq!(
-        areas.actions_height,
-        nova::ui::actions_panel_rows(action_count)
-    );
+    assert_eq!(areas.actions_height, 0);
     assert!(areas.tools_end_x < 120);
     assert_eq!(nova::ui::TOOL_DETAIL_PANEL_WIDTH, 72);
     assert_eq!(
@@ -550,9 +586,9 @@ fn ai_tool_actions_sit_in_options_panel_with_side_detail() {
 }
 
 #[test]
-fn ai_tool_actions_are_visible_without_tab_and_focus_moves_with_arrows() {
-    // Aksiyonlar AI aracı seçilince dikey seçenek panelinde görünür;
-    // Right odak taşır, ↑↓ seçer, Left araç listesine döner.
+fn ai_tool_actions_modal_arrows_and_enter_launch() {
+    // Enter → modal; ↑↓ seçer; Enter aksiyonu başlatır; Esc kapatır.
+    use nova::app::modal::Modal;
     use std::sync::Mutex;
     static LAST: Mutex<Option<(String, Vec<String>, nova::config::LaunchKind)>> = Mutex::new(None);
 
@@ -574,7 +610,6 @@ fn ai_tool_actions_are_visible_without_tab_and_focus_moves_with_arrows() {
     let mut app = app_with_sample();
     app.set_launcher(capture);
     go_to_category(&mut app, "AI ve Kodlama");
-    // Codex'e git (aksiyon tohumu var).
     let idx = app
         .filtered_tools()
         .iter()
@@ -587,34 +622,43 @@ fn ai_tool_actions_are_visible_without_tab_and_focus_moves_with_arrows() {
     );
     assert_eq!(app.focus, PanelFocus::Tool);
 
-    // Enter listede → birincil açma (interactive, args yok).
+    // Enter listede → aksiyon modalı (hemen başlatmaz).
     *LAST.lock().unwrap() = None;
     app.handle_key(key(crossterm::event::KeyCode::Enter))
         .unwrap();
-    let primary = LAST.lock().unwrap().clone().expect("birincil açma");
-    assert_eq!(primary.0, "codex");
-    assert!(primary.1.is_empty());
-    assert_eq!(primary.2, nova::config::LaunchKind::Interactive);
+    assert!(LAST.lock().unwrap().is_none(), "modal açılınca launch yok");
+    match &app.modal {
+        Modal::ToolActionsMenu { tool_id, index, .. } => {
+            assert_eq!(tool_id, "codex");
+            assert_eq!(*index, 0);
+        }
+        other => panic!("aksiyon modalı beklenirdi: {other:?}"),
+    }
 
-    // Right → aksiyon paneli; ↓ resume'a, Enter → custom_command + resume.
-    app.handle_key(key(crossterm::event::KeyCode::Right))
-        .unwrap();
-    assert_eq!(app.focus, PanelFocus::ToolActions);
-    assert_eq!(app.tool_action_index, 0);
+    // ↓ resume'a, Enter → custom_command + resume.
     app.handle_key(key(crossterm::event::KeyCode::Down))
         .unwrap();
-    assert_eq!(app.tool_action_index, 1); // resume
+    match &app.modal {
+        Modal::ToolActionsMenu { index, .. } => assert_eq!(*index, 1),
+        other => panic!("modal açık kalmalı: {other:?}"),
+    }
     *LAST.lock().unwrap() = None;
     app.handle_key(key(crossterm::event::KeyCode::Enter))
         .unwrap();
+    assert!(matches!(app.modal, Modal::None));
     let resumed = LAST.lock().unwrap().clone().expect("resume aksiyonu");
     assert_eq!(resumed.0, "codex");
     assert_eq!(resumed.1, vec!["resume".to_string()]);
     assert_eq!(resumed.2, nova::config::LaunchKind::CustomCommand);
 
-    // Left her zaman araç listesine döner (dikey listede ←→ seçmez).
-    app.handle_key(key(crossterm::event::KeyCode::Left))
+    // Yeniden açıp Esc → kapat, launch yok.
+    *LAST.lock().unwrap() = None;
+    app.handle_key(key(crossterm::event::KeyCode::Enter))
         .unwrap();
+    assert!(matches!(app.modal, Modal::ToolActionsMenu { .. }));
+    app.handle_key(key(crossterm::event::KeyCode::Esc)).unwrap();
+    assert!(matches!(app.modal, Modal::None));
+    assert!(LAST.lock().unwrap().is_none());
     assert_eq!(app.focus, PanelFocus::Tool);
 }
 

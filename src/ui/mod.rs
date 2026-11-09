@@ -4,10 +4,10 @@
 //! Düzen terminal boyutuna göre üç kademede uyarlanır:
 //! - **Geniş (≥ 70 sütun):** kategori paneli solda, araç listesi ortada.
 //!   Yeterince genişken (`≥ TOOL_DETAIL_SIDE_MIN_WIDTH`) Detay sağda —
-//!   Mağaza yan-detay düzeniyle aynı. AI aracı seçiliyken içerik satırının
-//!   altında yatay **aksiyon şeridi** vardır.
+//!   Mağaza yan-detay düzeniyle aynı. AI aracı Enter ile Mağaza onay
+//!   modalı boyutunda ortalanmış **aksiyon popup** açar (alt şerit yok).
 //! - **Orta (45–69 sütun):** tek sütun; kategori başlık satırında gösterilir,
-//!   araç listesi, aksiyon şeridi (AI) ve alt detay alanı görünür.
+//!   araç listesi ve alt detay alanı görünür; AI aksiyonları yine modal.
 //! - **Dar (< 45 sütun):** yalnızca araç listesi; detay ve büyük yardım
 //!   paneli gizlenir, tek satırlık kısa yardım gösterilir.
 //!
@@ -327,7 +327,7 @@ pub struct ClickAreas {
 /// Kurulu araçlarda Mağaza ile aynı yan-detay düzeni açılsın mı?
 ///
 /// Geniş terminalde detay sağ sütunda; eşik canlı sol sütun (`tabs`)
-/// genişliğine bağlıdır. AI aksiyonları alt dikey seçenek panelinde.
+/// genişliğine bağlıdır. AI aksiyonları Enter ile modal popup'ta.
 /// Dar/orta düzende detay alt şeritte kalır.
 pub fn tool_detail_side_layout(wide: bool, width: u16, tabs: u16) -> bool {
     wide && width
@@ -436,20 +436,9 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
         && w >= detail_side_min_width(panes.tabs, panes.secondary, secondary_cols);
     let show_detail = w >= MEDIUM_MIN_WIDTH && h >= 10;
     let tall = h >= TALL_MIN_HEIGHT;
-    let actions_needed = if show_detail && !store_tab && !commands_tab {
-        actions_panel_rows(actions_count)
-    } else {
-        0
-    };
-    let actions_h = if actions_needed == 0 {
-        0
-    } else if panes.actions_height > 0 {
-        panes
-            .actions_height
-            .clamp(actions_needed, ACTIONS_HEIGHT_MAX)
-    } else {
-        actions_needed
-    };
+    // AI aksiyonları modal popup; alt panel yüksekliği her zaman 0.
+    let _ = (actions_count, panes.actions_height);
+    let actions_h = 0u16;
     // Geniş mağaza / Komut Rehberi: detay sağ panel; araçta alt şerit.
     let detail_h = if show_detail {
         if store_tab {
@@ -796,30 +785,9 @@ pub fn draw(f: &mut Frame, app: &App) {
     let tool_detail_side = tools_tab && tool_detail_side_layout(wide, area.width, panes.tabs);
     let show_detail = area.width >= MEDIUM_MIN_WIDTH && area.height >= 10;
     let tall = area.height >= TALL_MIN_HEIGHT;
-    let actions_count = if show_detail && tools_tab {
-        app.selected_tool()
-            .map(|e| {
-                if e.has_ai_actions() {
-                    e.actions.len()
-                } else {
-                    0
-                }
-            })
-            .unwrap_or(0)
-    } else {
-        0
-    };
-    let show_actions = actions_count > 0;
-    let actions_needed = actions_panel_rows(actions_count);
-    let actions_h = if actions_needed == 0 {
-        0
-    } else if panes.actions_height > 0 {
-        panes
-            .actions_height
-            .clamp(actions_needed, ACTIONS_HEIGHT_MAX)
-    } else {
-        actions_needed
-    };
+    // AI aksiyonları artık Mağaza onay modalı gibi ortalanmış popup'ta;
+    // alt şerit / satır içi panel yok.
+    let actions_h = 0u16;
 
     // Detay: geniş mağaza / Komut Rehberi / Kurulu sağ sütun; dar/orta alt şerit.
     let detail_h = if show_detail {
@@ -876,7 +844,7 @@ pub fn draw(f: &mut Frame, app: &App) {
             Constraint::Length(1),           // başlık
             Constraint::Length(1),           // arama satırı
             Constraint::Min(3),              // içerik (kategori | liste)
-            Constraint::Length(actions_h),   // AI aksiyon paneli (dikey seçenekler)
+            Constraint::Length(actions_h),   // (eski AI şerit yeri; artık 0)
             Constraint::Length(detail_h),    // detay
             Constraint::Length(1),           // durum
             Constraint::Length(help_height), // yardım
@@ -886,9 +854,6 @@ pub fn draw(f: &mut Frame, app: &App) {
     draw_header(f, app, chunks[0]);
     draw_search(f, app, chunks[1]);
     draw_content(f, app, chunks[2], wide);
-    if show_actions {
-        draw_tool_actions_panel(f, app, chunks[3]);
-    }
     if show_detail {
         draw_detail(f, app, chunks[4]);
     }
@@ -1014,7 +979,7 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
         }
     } else if wide {
         // Kurulu yan-detay: sekme | liste | detay. Odaklı panelde `-`/`+`.
-        // AI aksiyonları alt dikey seçenek paneli.
+        // AI aksiyonları modal; alt şerit yok.
         if tool_detail_side_layout(true, area.width, panes.tabs) {
             let list_w = fit_list_width(area.width.saturating_sub(panes.tabs), panes.list);
             let panels = Layout::default()
@@ -2152,71 +2117,6 @@ fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
     f.render_stateful_widget(list, area, &mut state);
 }
 
-/// Liste ile Detay arasındaki AI aksiyon paneli.
-///
-/// Ayarlar / «Özel araç ekle» seçenek listesiyle aynı dikey `▶ [etiket]`
-/// düzeni; yatay şerit yerine her aksiyon ayrı satır.
-fn draw_tool_actions_panel(f: &mut Frame, app: &App, area: Rect) {
-    if area.height == 0 {
-        return;
-    }
-    let Some(entry) = app.selected_tool() else {
-        return;
-    };
-    if !entry.has_ai_actions() {
-        return;
-    }
-    let pal = palette(app);
-    let lang = app.ui_lang();
-    let focused = app.focus == PanelFocus::ToolActions;
-    let border = if focused {
-        Style::default().fg(Color::Cyan)
-    } else {
-        Style::default().fg(pal.muted)
-    };
-
-    let items: Vec<ListItem> = entry
-        .actions
-        .iter()
-        .enumerate()
-        .map(|(i, action)| {
-            let selected = i == app.tool_action_index;
-            let style = if focused && selected {
-                Style::default()
-                    .fg(pal.accent_on)
-                    .bg(pal.accent)
-                    .add_modifier(Modifier::BOLD)
-            } else if selected {
-                Style::default().fg(pal.accent)
-            } else {
-                Style::default().fg(pal.text)
-            };
-            let prefix = if selected { "▶ " } else { "  " };
-            let hint = if action.args.is_empty() {
-                String::new()
-            } else {
-                format!("  {}", action.args.join(" "))
-            };
-            ListItem::new(Line::from(vec![
-                Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
-                Span::styled(format!("[{}] ", action.label), style),
-                Span::styled(hint, Style::default().fg(pal.muted)),
-            ]))
-        })
-        .collect();
-
-    let list = List::new(items)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_style(border)
-                .title(format!(" {} ", lang.t(Msg::Actions))),
-        )
-        .highlight_style(Style::default());
-    let mut state = ListState::default().with_selected(Some(app.tool_action_index));
-    f.render_stateful_widget(list, area, &mut state);
-}
-
 /// Mağaza sağ detay paneli (geniş dört sütun düzeni).
 fn draw_store_detail_panel(f: &mut Frame, app: &App, area: Rect) {
     let lang = app.ui_lang();
@@ -2283,7 +2183,7 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
         return;
     }
 
-    // AI aksiyonları üstteki yatay şeritte; burası yalnızca Detay.
+    // AI aksiyonları modal popup'ta; burası yalnızca Detay.
     draw_tool_detail_info(f, app, area, false);
 }
 
@@ -2794,9 +2694,7 @@ fn default_usage_examples(exe: &str, category: &str, name: &str) -> Vec<String> 
     let cat = category.to_lowercase();
     if cat.contains("ai") || cat.contains("kodlama") {
         rows.push(format!("{exe}   ← proje dizininde etkileşimli oturum"));
-        rows.push(
-            "İpucu: araç adının altındaki aksiyonlardan Devam et / Yardım seçilebilir.".into(),
-        );
+        rows.push("İpucu: Enter ile aksiyon modalından Devam et / Yardım seçilebilir.".into());
     } else if cat.contains("git") {
         rows.push(format!("{exe}   ← depo kökünde durum / commit TUI"));
         rows.push(format!("cd proje && {exe}   ← belirli depoda aç"));
@@ -3252,10 +3150,8 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
         "↑↓ araç   / ara   Enter   F favori   ? yardım"
     } else if app.focus == PanelFocus::Category {
         "↑↓ kategori   Tab/→ araçlar   −/+ boyut   / ara   ? yardım"
-    } else if app.focus == PanelFocus::ToolActions {
-        "↑↓ aksiyon   Tab/← araçlar   Enter çalıştır   −/+ boyut   ? yardım"
     } else if app.selected_tool_has_ai_actions() {
-        "↑↓ araç   Tab panel   Enter aç   −/+ boyut   F favori   ? yardım"
+        "↑↓ araç   Tab panel   Enter aksiyonlar   −/+ boyut   F favori   ? yardım"
     } else {
         "↑↓ araç   Tab/← kategori   Enter başlat   −/+ boyut   F favori   ? yardım"
     };
@@ -3516,7 +3412,7 @@ mod tests {
 
     #[test]
     fn installed_detail_uses_side_panel_like_store_when_wide() {
-        // Geniş Kurulu: yan detay; AI aksiyonları dikey seçenek panelinde.
+        // Geniş Kurulu: yan detay; AI aksiyonları modal (alt panel yok).
         let secondary = SECONDARY_PANEL_WIDTH_DEFAULT;
         assert!(tool_detail_side_layout(true, 200, secondary));
         assert!(tool_detail_side_layout(
@@ -3564,9 +3460,10 @@ mod tests {
         });
         assert!(plain.tool_detail_side);
         assert!(with_actions.tool_detail_side);
+        // AI aksiyonları modal; alt panel yüksekliği her zaman 0.
         assert_eq!(plain.actions_height, 0);
-        assert_eq!(with_actions.actions_height, actions_panel_rows(4));
-        assert!(with_actions.content_height < plain.content_height);
+        assert_eq!(with_actions.actions_height, 0);
+        assert_eq!(with_actions.content_height, plain.content_height);
         let panes = PaneWidths::default();
         assert!(plain.tools_end_x < 120);
         assert_eq!(

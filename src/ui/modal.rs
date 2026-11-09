@@ -88,6 +88,11 @@ pub fn draw(f: &mut Frame, app: &App) {
         Modal::StoreInstalledMenu { name, index, .. } => {
             draw_store_installed_menu(f, area, name, *index)
         }
+        Modal::ToolActionsMenu {
+            tool_id,
+            name,
+            index,
+        } => draw_tool_actions_menu(f, area, app, tool_id, name, *index),
         Modal::JobProgress {
             kind,
             title,
@@ -285,6 +290,109 @@ fn draw_store_installed_menu(f: &mut Frame, screen: Rect, name: &str, index: usi
     )));
     let area = modal_area(screen, width, lines.len() as u16);
     let inner = frame(f, area, "Kurulu uygulama");
+    f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
+}
+
+/// Kurulu AI aracı aksiyon menüsü — Mağaza kurulum onayı boyut/görsel dili.
+fn draw_tool_actions_menu(
+    f: &mut Frame,
+    screen: Rect,
+    app: &App,
+    tool_id: &str,
+    name: &str,
+    index: usize,
+) {
+    let width = 82
+        .min(screen.width.saturating_sub(MODAL_MARGIN * 2))
+        .max(48);
+    let inner_w = width.saturating_sub(4) as usize;
+    let accent = Color::Cyan;
+    let lang = app.ui_lang();
+    let title = lang.t(crate::i18n::Msg::Actions);
+
+    let actions = app
+        .catalog
+        .get_by_id(tool_id)
+        .map(|e| e.actions.as_slice())
+        .unwrap_or(&[]);
+    let index = if actions.is_empty() {
+        0
+    } else {
+        index.min(actions.len() - 1)
+    };
+
+    let mut lines: Vec<Line> = Vec::new();
+    lines.push(Line::from(Span::styled(
+        truncate(&format!("'{name}' — ne yapılsın?"), inner_w),
+        Style::default().fg(accent).add_modifier(Modifier::BOLD),
+    )));
+    lines.push(Line::from(Span::styled(
+        "─".repeat(inner_w.min(48)),
+        Style::default().fg(Color::DarkGray),
+    )));
+
+    if actions.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "Aksiyon yok.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for (i, action) in actions.iter().enumerate() {
+            let selected = i == index;
+            let mark = if selected { "▶" } else { " " };
+            let label = format!("{mark} {}", action.label);
+            let hint = if action.args.is_empty() {
+                String::new()
+            } else {
+                format!("  {}", action.args.join(" "))
+            };
+            let row_w = inner_w;
+            let label_chars = label.chars().count();
+            let hint_budget = row_w.saturating_sub(label_chars);
+            let hint = if hint_budget == 0 {
+                String::new()
+            } else {
+                truncate(&hint, hint_budget)
+            };
+            if selected {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        truncate(&label, row_w),
+                        Style::default()
+                            .fg(Color::Black)
+                            .bg(accent)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(hint, Style::default().fg(Color::DarkGray).bg(accent)),
+                ]));
+            } else {
+                lines.push(Line::from(vec![
+                    Span::styled(truncate(&label, row_w), Style::default().fg(Color::White)),
+                    Span::styled(hint, Style::default().fg(Color::DarkGray)),
+                ]));
+            }
+        }
+    }
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        "↑↓ seç    Enter onaylar    Esc vazgeçer",
+        Style::default().fg(accent).add_modifier(Modifier::BOLD),
+    )));
+
+    let max_h = screen
+        .height
+        .saturating_sub(MODAL_MARGIN * 2)
+        .saturating_sub(2);
+    let height = (lines.len() as u16).min(max_h.max(8));
+    let area = modal_area(screen, width, height);
+    f.render_widget(Clear, area);
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(accent))
+        .title(format!(" {title} "));
+    let inner = block.inner(area);
+    f.render_widget(block, area);
     f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 

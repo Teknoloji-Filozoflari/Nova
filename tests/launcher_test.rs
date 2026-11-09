@@ -396,6 +396,21 @@ fn preferred_kitty_is_accepted_as_supported() {
     assert!(!msg.contains("desteklenmiyor"), "{msg}");
 }
 
+fn enter_key() -> crossterm::event::KeyEvent {
+    crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::empty(),
+    )
+}
+
+/// Enter; AI aksiyonlu araçta Mağaza tarzı modal açılırsa birincil aksiyonu onayla.
+fn enter_to_launch(app: &mut App) {
+    app.handle_key(enter_key()).unwrap();
+    if matches!(app.modal, nova::app::modal::Modal::ToolActionsMenu { .. }) {
+        app.handle_key(enter_key()).unwrap();
+    }
+}
+
 #[test]
 fn app_survives_launcher_errors_and_shows_message() {
     fn failing_launcher(
@@ -416,11 +431,7 @@ fn app_survives_launcher_errors_and_shows_message() {
     app.focus = nova::app::PanelFocus::Tool;
     app.handle_key(k('j')).unwrap();
     let before = app.tool_index;
-    app.handle_key(crossterm::event::KeyEvent::new(
-        crossterm::event::KeyCode::Enter,
-        crossterm::event::KeyModifiers::empty(),
-    ))
-    .unwrap();
+    enter_to_launch(&mut app);
 
     assert!(app.running, "hata Nova'yı kapatmamalı");
     assert_eq!(app.tool_index, before);
@@ -449,11 +460,7 @@ fn app_reports_requested_not_opened() {
     }
     app.set_launcher(ok_launcher);
     app.focus = nova::app::PanelFocus::Tool;
-    app.handle_key(crossterm::event::KeyEvent::new(
-        crossterm::event::KeyCode::Enter,
-        crossterm::event::KeyModifiers::empty(),
-    ))
-    .unwrap();
+    enter_to_launch(&mut app);
 
     assert!(app.running);
     assert!(

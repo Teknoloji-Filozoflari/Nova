@@ -133,6 +133,16 @@ pub enum Modal {
         /// Seçili satır: 0 = Kaldır, 1 = Güncelleme denetle.
         index: usize,
     },
+    /// Kurulu AI aracı için aksiyon menüsü (Mağaza kurulu menüsü / onay
+    /// modalı boyut ve görsel dilinde ortalanmış popup).
+    ToolActionsMenu {
+        /// Katalog araç kimliği.
+        tool_id: String,
+        /// Görünen ad.
+        name: String,
+        /// Seçili aksiyon satırı.
+        index: usize,
+    },
     /// Arka plan kurulum / güncelleme ilerlemesi (cargo spam yok; TUI içinde).
     JobProgress {
         /// İş türü.

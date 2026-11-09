@@ -142,9 +142,10 @@ fn capture_ai_actions(out: &Path) {
     {
         app.tool_index = idx;
     }
-    app.focus = PanelFocus::ToolActions;
-    app.tool_action_index = 0;
-    app.status_message = "AI araçları: detay yanında Aç / Devam et / Çıkış / Yardım.".into();
+    if let Some(entry) = app.selected_tool().cloned() {
+        app.open_tool_actions_menu(&entry);
+    }
+    app.status_message = "AI araçları: Enter → Mağaza tarzı aksiyon modalı.".into();
     dump(&app, 140, 36, out.join("04-ai-actions.json"));
 }
 
