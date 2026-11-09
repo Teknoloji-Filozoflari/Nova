@@ -4,6 +4,8 @@
 //! kodlar Türkçe'ye düşer. Metinler derleme zamanı sabit tablolardan gelir;
 //! çalışma anında dosya okunmaz.
 
+mod categories;
+
 /// Desteklenen arayüz dilleri.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Language {
@@ -247,6 +249,8 @@ impl Language {
             Msg::CommandsLocalNoBank => t.commands_local_no_bank,
             Msg::HelpCommandFavorite => t.help_command_favorite,
             Msg::HelpCommandFavOnly => t.help_command_fav_only,
+            Msg::Actions => t.actions,
+            Msg::CategoryLabel => t.category_label,
         }
     }
 
@@ -382,6 +386,10 @@ pub enum Msg {
     CommandsLocalNoBank,
     HelpCommandFavorite,
     HelpCommandFavOnly,
+    /// AI araç aksiyon paneli başlığı.
+    Actions,
+    /// Detay satırı / form alanı: "Kategori".
+    CategoryLabel,
 }
 
 struct Table {
@@ -506,6 +514,8 @@ struct Table {
     commands_local_no_bank: &'static str,
     help_command_favorite: &'static str,
     help_command_fav_only: &'static str,
+    actions: &'static str,
+    category_label: &'static str,
 }
 
 const TR: Table = Table {
@@ -631,6 +641,8 @@ const TR: Table = Table {
     commands_local_no_bank: "bank eşleşmesi yok",
     help_command_favorite: "Banka favorisi",
     help_command_fav_only: "Yalnız banka favorileri",
+    actions: "Aksiyonlar",
+    category_label: "Kategori",
 };
 
 const EN: Table = Table {
@@ -756,6 +768,8 @@ const EN: Table = Table {
     commands_local_no_bank: "no bank match",
     help_command_favorite: "Bank favorite",
     help_command_fav_only: "Bank favorites only",
+    actions: "Actions",
+    category_label: "Category",
 };
 
 const RU: Table = Table {
@@ -880,6 +894,8 @@ const RU: Table = Table {
     commands_local_no_bank: "no bank match",
     help_command_favorite: "Bank favorite",
     help_command_fav_only: "Bank favorites only",
+    actions: "Действия",
+    category_label: "Категория",
 };
 
 const AZ: Table = Table {
@@ -973,7 +989,7 @@ const AZ: Table = Table {
     no_store_app: "Mağazada seçilmiş tətbiq yoxdur.",
     empty_store_category: "Bu mağaza kateqoriyasında tətbiq yoxdur.",
     commands_guide: "Komanda Bələdçisi",
-    commands_bank: "Bilgi Bankası",
+    commands_bank: "Əmr Bankı",
     commands_local: "Cihazda tapılan",
     commands_categories: "Bank kateqoriyaları",
     commands_list: "Komandalar",
@@ -1004,6 +1020,8 @@ const AZ: Table = Table {
     commands_local_no_bank: "no bank match",
     help_command_favorite: "Bank favorite",
     help_command_fav_only: "Bank favorites only",
+    actions: "Əməliyyatlar",
+    category_label: "Kateqoriya",
 };
 
 const UZ: Table = Table {
@@ -1129,6 +1147,8 @@ const UZ: Table = Table {
     commands_local_no_bank: "no bank match",
     help_command_favorite: "Bank favorite",
     help_command_fav_only: "Bank favorites only",
+    actions: "Amallar",
+    category_label: "Toifa",
 };
 
 const KK: Table = Table {
@@ -1253,6 +1273,8 @@ const KK: Table = Table {
     commands_local_no_bank: "no bank match",
     help_command_favorite: "Bank favorite",
     help_command_fav_only: "Bank favorites only",
+    actions: "Әрекеттер",
+    category_label: "Санат",
 };
 
 const TK: Table = Table {
@@ -1378,6 +1400,8 @@ const TK: Table = Table {
     commands_local_no_bank: "no bank match",
     help_command_favorite: "Bank favorite",
     help_command_fav_only: "Bank favorites only",
+    actions: "Hereketler",
+    category_label: "Kategoriýa",
 };
 
 #[cfg(test)]

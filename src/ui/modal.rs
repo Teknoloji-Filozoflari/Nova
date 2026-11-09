@@ -20,7 +20,7 @@ use ratatui::widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap};
 use ratatui::Frame;
 
 /// Modallar için en fazla kutu genişliği.
-const MODAL_MAX_WIDTH: u16 = 76;
+const MODAL_MAX_WIDTH: u16 = 84;
 /// Kutunun ekran kenarına bırakacağı en az boşluk (her yanda).
 const MODAL_MARGIN: u16 = 2;
 
@@ -45,8 +45,8 @@ pub fn draw(f: &mut Frame, app: &App) {
     match &app.modal {
         Modal::None => {}
         Modal::Confirm { question, action } => draw_confirm(f, area, question, action),
-        Modal::ToolForm(form) => draw_form(f, area, form),
-        Modal::ToolReview { valid, .. } => draw_review(f, area, valid),
+        Modal::ToolForm(form) => draw_form(f, area, form, app.ui_lang()),
+        Modal::ToolReview { valid, .. } => draw_review(f, area, valid, app.ui_lang()),
         Modal::ProjectPicker { index } => draw_picker(f, area, app, *index),
         Modal::ProjectAdd { input, error } => draw_project_add(f, area, input, error.as_deref()),
         Modal::History => draw_history(f, area, app),
@@ -662,7 +662,7 @@ fn draw_confirm(f: &mut Frame, screen: Rect, question: &str, action: &ConfirmAct
 
 /// Mağaza kurulum / güncelleme / kaldırma onayını yapılandırılmış çizer.
 fn draw_store_confirm(f: &mut Frame, screen: Rect, question: &str, action: &ConfirmAction) {
-    let width = 74
+    let width = 82
         .min(screen.width.saturating_sub(MODAL_MARGIN * 2))
         .max(48);
     let inner_w = width.saturating_sub(4) as usize;
@@ -757,7 +757,7 @@ fn draw_store_confirm(f: &mut Frame, screen: Rect, question: &str, action: &Conf
     f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
-fn draw_form(f: &mut Frame, screen: Rect, form: &ToolForm) {
+fn draw_form(f: &mut Frame, screen: Rect, form: &ToolForm, lang: crate::i18n::Language) {
     let width = 62.min(screen.width.saturating_sub(MODAL_MARGIN * 2));
     let inner_w = width.saturating_sub(2);
     let mut lines: Vec<Line> = Vec::new();
@@ -771,8 +771,9 @@ fn draw_form(f: &mut Frame, screen: Rect, form: &ToolForm) {
             Style::default().fg(Color::Gray)
         };
         let marker = if focused { "> " } else { "  " };
+        let field_label = field.label_for(lang);
         let value = match field {
-            Field::Category => format!("‹ {} ›", form.category()),
+            Field::Category => format!("‹ {} ›", lang.catalog_category(form.category())),
             Field::LaunchKind => format!("‹ {} ›", form.launch_kind.label()),
             _ => {
                 let text = match field {
@@ -791,11 +792,11 @@ fn draw_form(f: &mut Frame, screen: Rect, form: &ToolForm) {
             }
         };
         lines.push(Line::from(vec![
-            Span::styled(format!("{marker}{}: ", field.label()), label_style),
+            Span::styled(format!("{marker}{field_label}: "), label_style),
             Span::styled(
                 truncate(
                     &value,
-                    inner_w.saturating_sub(field.label().chars().count() as u16 + 4) as usize,
+                    inner_w.saturating_sub(field_label.chars().count() as u16 + 4) as usize,
                 ),
                 if focused {
                     Style::default().fg(Color::White)
@@ -834,11 +835,16 @@ fn draw_form(f: &mut Frame, screen: Rect, form: &ToolForm) {
     f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
-fn draw_review(f: &mut Frame, screen: Rect, valid: &crate::app::form::ValidTool) {
+fn draw_review(
+    f: &mut Frame,
+    screen: Rect,
+    valid: &crate::app::form::ValidTool,
+    lang: crate::i18n::Language,
+) {
     let width = 64.min(screen.width.saturating_sub(MODAL_MARGIN * 2));
     let inner_w = width.saturating_sub(2);
     let mut lines = Vec::new();
-    for (key, value) in crate::app::form::review_lines(valid) {
+    for (key, value) in crate::app::form::review_lines(valid, lang) {
         lines.push(Line::from(vec![
             Span::styled(format!("{key}: "), Style::default().fg(Color::Gray)),
             Span::styled(

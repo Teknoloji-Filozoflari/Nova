@@ -466,9 +466,9 @@ fn help_screen_renders_without_panic_on_small_terminals() {
 }
 
 #[test]
-fn ai_tool_actions_sit_in_horizontal_strip_with_side_detail() {
-    // Geniş Kurulu: sekme|liste|Detay yan yana (Mağaza gibi); Aksiyonlar
-    // içerik satırının altında yatay şerit. Adın altına gömülmez.
+fn ai_tool_actions_sit_in_options_panel_with_side_detail() {
+    // Geniş Kurulu: sekme|liste|Detay yan yana; Aksiyonlar altta dikey
+    // seçenek listesi (Ayarlar / özel araç ekle düzeni: ▶ [etiket]).
     use ratatui::{backend::TestBackend, Terminal};
 
     let mut app = app_with_sample();
@@ -479,6 +479,8 @@ fn ai_tool_actions_sit_in_horizontal_strip_with_side_detail() {
         .position(|e| e.id == "codex")
         .expect("codex AI listesinde olmalı");
     app.tool_index = idx;
+    let action_count = app.selected_tool().map(|e| e.actions.len()).unwrap_or(0);
+    assert!(action_count >= 2, "codex en az iki aksiyon taşımalı");
 
     let mut terminal = Terminal::new(TestBackend::new(120, 36)).unwrap();
     terminal.draw(|f| nova::ui::draw(f, &app)).unwrap();
@@ -497,7 +499,7 @@ fn ai_tool_actions_sit_in_horizontal_strip_with_side_detail() {
         lines
             .iter()
             .any(|l| l.contains("Aksiyonlar") && l.contains('─')),
-        "aksiyonlar yatay şerit başlığı olmalı:\n{text}"
+        "aksiyonlar dikey panel başlığı olmalı:\n{text}"
     );
     let actions_y = lines
         .iter()
@@ -511,17 +513,18 @@ fn ai_tool_actions_sit_in_horizontal_strip_with_side_detail() {
         detail_y < actions_y,
         "yan Detay içerik satırında, Aksiyonlar altında olmalı (detail={detail_y} actions={actions_y}):\n{text}"
     );
-    // Başlık satırının altındaki içerik satırında etiketler (Borders::ALL).
-    let strip_body: String = lines
+    let panel_body: String = lines
         .iter()
         .skip(actions_y)
-        .take(3)
+        .take(nova::ui::actions_panel_rows(action_count) as usize)
         .cloned()
         .collect::<Vec<_>>()
         .join("\n");
     assert!(
-        strip_body.contains("Aç") || strip_body.contains("Devam") || strip_body.contains("Yardım"),
-        "aksiyon etiketleri şeritte tam görünmeli:\n{strip_body}"
+        panel_body.contains("[Aç]")
+            || panel_body.contains("[Devam")
+            || panel_body.contains("[Yardım]"),
+        "aksiyon etiketleri Ayarlar stili [köşeli] satırlar olmalı:\n{panel_body}"
     );
     let areas = nova::ui::click_areas_ex(nova::ui::ClickAreasInput {
         size: (120, 36),
@@ -529,12 +532,15 @@ fn ai_tool_actions_sit_in_horizontal_strip_with_side_detail() {
         store_tab: false,
         commands_tab: false,
         tool_detail_side: true,
-        has_ai_actions: true,
+        actions_count: action_count,
         panes: nova::ui::PaneWidths::default(),
         secondary_cols: 1,
     });
     assert!(areas.tool_detail_side);
-    assert_eq!(areas.actions_height, nova::ui::ACTIONS_STRIP_ROWS);
+    assert_eq!(
+        areas.actions_height,
+        nova::ui::actions_panel_rows(action_count)
+    );
     assert!(areas.tools_end_x < 120);
     assert_eq!(nova::ui::TOOL_DETAIL_PANEL_WIDTH, 72);
     assert_eq!(
@@ -545,8 +551,8 @@ fn ai_tool_actions_sit_in_horizontal_strip_with_side_detail() {
 
 #[test]
 fn ai_tool_actions_are_visible_without_tab_and_focus_moves_with_arrows() {
-    // Aksiyonlar AI aracı seçilince yatay şeritte görünür (Tab/a ile açılmaz);
-    // Right odak taşır, Enter listede birincil açmayı çalıştırır.
+    // Aksiyonlar AI aracı seçilince dikey seçenek panelinde görünür;
+    // Right odak taşır, ↑↓ seçer, Left araç listesine döner.
     use std::sync::Mutex;
     static LAST: Mutex<Option<(String, Vec<String>, nova::config::LaunchKind)>> = Mutex::new(None);
 
@@ -590,12 +596,12 @@ fn ai_tool_actions_are_visible_without_tab_and_focus_moves_with_arrows() {
     assert!(primary.1.is_empty());
     assert_eq!(primary.2, nova::config::LaunchKind::Interactive);
 
-    // Right → aksiyon şeridi; →/↓ resume'a, Enter → custom_command + resume.
+    // Right → aksiyon paneli; ↓ resume'a, Enter → custom_command + resume.
     app.handle_key(key(crossterm::event::KeyCode::Right))
         .unwrap();
     assert_eq!(app.focus, PanelFocus::ToolActions);
     assert_eq!(app.tool_action_index, 0);
-    app.handle_key(key(crossterm::event::KeyCode::Right))
+    app.handle_key(key(crossterm::event::KeyCode::Down))
         .unwrap();
     assert_eq!(app.tool_action_index, 1); // resume
     *LAST.lock().unwrap() = None;
@@ -606,11 +612,7 @@ fn ai_tool_actions_are_visible_without_tab_and_focus_moves_with_arrows() {
     assert_eq!(resumed.1, vec!["resume".to_string()]);
     assert_eq!(resumed.2, nova::config::LaunchKind::CustomCommand);
 
-    // Left (index>0) önceki aksiyon; tekrar Left (index 0) araç listesine.
-    app.handle_key(key(crossterm::event::KeyCode::Left))
-        .unwrap();
-    assert_eq!(app.focus, PanelFocus::ToolActions);
-    assert_eq!(app.tool_action_index, 0);
+    // Left her zaman araç listesine döner (dikey listede ←→ seçmez).
     app.handle_key(key(crossterm::event::KeyCode::Left))
         .unwrap();
     assert_eq!(app.focus, PanelFocus::Tool);

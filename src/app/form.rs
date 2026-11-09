@@ -55,6 +55,14 @@ impl Field {
         }
     }
 
+    /// Dil bilincinde etiket (kategori alanı i18n).
+    pub fn label_for(self, lang: crate::i18n::Language) -> &'static str {
+        match self {
+            Field::Category => lang.t(crate::i18n::Msg::CategoryLabel),
+            other => other.label(),
+        }
+    }
+
     /// Seçici alanı mı (Left/Right ile değişir)?
     pub fn is_picker(self) -> bool {
         matches!(self, Field::Category | Field::LaunchKind)
@@ -281,10 +289,13 @@ impl ToolForm {
 ///
 /// Değerler kaydedilecek biçimde (tırnaksız, kabuksuz) gösterilir; kullanıcı
 /// tam olarak ne kaydedeceğini görür.
-pub fn review_lines(valid: &ValidTool) -> Vec<(String, String)> {
+pub fn review_lines(valid: &ValidTool, lang: crate::i18n::Language) -> Vec<(String, String)> {
     vec![
         ("Ad".to_string(), valid.name.clone()),
-        ("Kategori".to_string(), valid.category.clone()),
+        (
+            lang.t(crate::i18n::Msg::CategoryLabel).to_string(),
+            lang.catalog_category(&valid.category).to_string(),
+        ),
         (
             "Program".to_string(),
             if valid.args.is_empty() {
@@ -488,7 +499,7 @@ mod tests {
     fn review_shows_exact_program_and_args() {
         let mut f = valid_form();
         let valid = f.validate().unwrap();
-        let lines = review_lines(&valid);
+        let lines = review_lines(&valid, crate::i18n::Language::Tr);
         assert!(lines
             .iter()
             .any(|(k, v)| k == "Program" && v == "duf --only local"));

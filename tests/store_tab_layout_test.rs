@@ -185,7 +185,7 @@ fn installed_tools_wide_layout_puts_detail_on_the_side_like_store() {
         "kurulu yan detay kenarlıklı olmalı (Mağaza gibi):\n{text}"
     );
     assert!(
-        nova::ui::tool_detail_side_layout(true, 120, false),
+        nova::ui::tool_detail_side_layout(true, 120, nova::ui::SECONDARY_PANEL_WIDTH_DEFAULT,),
         "120 sütunda yan detay açılmalı"
     );
 }
