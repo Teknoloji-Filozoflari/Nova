@@ -720,6 +720,33 @@ pub fn store_detail_links(app: &App) -> Vec<StoreDetailLink> {
     out
 }
 
+/// Kurulu araç detayındaki tıklanabilir / Enter ile açılan bağlantılar.
+///
+/// Özel araç `project_url`/`repo_url` veya güvenilir Mağaza eşleşmesi;
+/// adres uydurulmaz.
+pub fn tool_detail_links(app: &App) -> Vec<StoreDetailLink> {
+    let Some(entry) = app.selected_tool() else {
+        return Vec::new();
+    };
+    let store = crate::store::sync::find_store_for_catalog_tool(
+        app.store.entries(),
+        &entry.id,
+        &entry.executable,
+        &entry.args,
+    );
+    crate::store::sync::tool_project_links(
+        entry.project_url.as_deref(),
+        entry.repo_url.as_deref(),
+        store,
+    )
+    .into_iter()
+    .map(|l| StoreDetailLink {
+        label: l.label,
+        url: l.url,
+    })
+    .collect()
+}
+
 /// Durum satırındaki mesajın rengi.
 ///
 /// (Genel API: entegrasyon testleri renk ayrımını doğrudan sınar.)
@@ -2520,6 +2547,9 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     };
     let mut lines: Vec<Line> = Vec::new();
     let inner_w = area.width.saturating_sub(4) as usize;
+    let link_focus = app.focus == crate::app::PanelFocus::ToolDetail;
+    let links = tool_detail_links(app);
+    let update_offer = app.selected_tool_update_offer();
 
     // Mağaza detayıyla aynı metin: eşleşen store kaydının açıklaması (id / ikili).
     let store_match = crate::store::sync::find_store_for_catalog_tool(
@@ -2531,6 +2561,7 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     let description =
         crate::store::sync::detail_description_for_tool(&entry.description, store_match);
 
+    // 1) Ad / kategori / açıklama
     lines.push(Line::from(Span::styled(
         entry.name.clone(),
         Style::default().add_modifier(Modifier::BOLD),
@@ -2547,7 +2578,6 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ),
     ]));
 
-    // Açıklama: satır kırarak tam göster (küçük şerit / `…` yok) — Mağaza ile aynı kaynak.
     let desc = description.trim();
     if desc.is_empty() {
         lines.push(Line::from(Span::styled(
@@ -2563,6 +2593,7 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         }
     }
 
+    // 2) Durum / yol (+ komut)
     let status_line = match &entry.resolved_path {
         Some(path) => format!("{} Kurulu — {}", entry.status.symbol(), path.display()),
         None => format!(
@@ -2590,7 +2621,76 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ),
     ]));
 
-    // Mağaza’daki kurulum notları (gerçek katalog metni; uydurma yok).
+    // 3) Bağlantılar (özel alan veya güvenilir Mağaza; uydurma yok)
+    if !links.is_empty() {
+        lines.push(Line::from(""));
+        for (i, link) in links.iter().enumerate() {
+            let selected = link_focus && app.tool_detail_focus_is_link(i);
+            let style = if selected {
+                Style::default()
+                    .fg(Color::Black)
+                    .bg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default()
+                    .fg(Color::Blue)
+                    .add_modifier(Modifier::UNDERLINED)
+            };
+            let mark = if selected { "▶ " } else { "  " };
+            lines.push(Line::from(vec![
+                Span::styled(mark, Style::default().add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    format!("{}: ", link.label),
+                    Style::default().fg(Color::DarkGray),
+                ),
+                Span::styled(
+                    truncate(
+                        &link.url,
+                        inner_w.saturating_sub(link.label.len() + 4).max(1),
+                    ),
+                    style,
+                ),
+            ]));
+        }
+        lines.push(Line::from(Span::styled(
+            "Bağlantı: tıkla veya detayda Enter → tarayıcı",
+            Style::default().fg(Color::DarkGray),
+        )));
+    }
+
+    // 4) Kaynak / sürüm (Mağaza eşleşmesi varsa; yoksa katalog notu)
+    if let Some(store) = store_match {
+        lines.push(Line::from(vec![
+            Span::styled("Kurulum: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                truncate(
+                    store.install_method.label(),
+                    inner_w.saturating_sub(10).max(1),
+                ),
+                Style::default().fg(Color::Yellow),
+            ),
+        ]));
+        lines.push(Line::from(vec![
+            Span::styled("Sürüm: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                store.version.as_deref().unwrap_or("belirtilmemiş"),
+                Style::default().fg(Color::White),
+            ),
+        ]));
+        if links.is_empty() {
+            let source = store.source.trim();
+            if !source.is_empty() {
+                lines.push(Line::from(vec![
+                    Span::styled("Kaynak: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled(
+                        truncate(source, inner_w.saturating_sub(10).max(1)),
+                        Style::default().fg(Color::White),
+                    ),
+                ]));
+            }
+        }
+    }
+
     if let Some(notes) = store_match
         .and_then(|e| e.install_notes.as_deref())
         .map(str::trim)
@@ -2611,6 +2711,7 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         }
     }
 
+    // 5) Örnekler
     let examples = enriched_tool_examples(entry);
     if !examples.is_empty() {
         lines.push(Line::from(""));
@@ -2643,6 +2744,35 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
                 Style::default().fg(Color::Yellow),
             )));
         }
+    }
+
+    // 6) Güncelle — yalnızca güvenilir kurulum kaynağı / yöntemi biliniyorsa
+    if let Some(offer) = update_offer.as_ref() {
+        lines.push(Line::from(""));
+        let selected = link_focus && app.tool_detail_focus_is_update();
+        let style = if selected {
+            Style::default()
+                .fg(Color::Black)
+                .bg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        };
+        let mark = if selected { "▶ " } else { "  " };
+        let label = format!(
+            "Güncelle — {}",
+            truncate(&offer.full_command(), inner_w.saturating_sub(14).max(1))
+        );
+        lines.push(Line::from(vec![
+            Span::styled(mark, Style::default().add_modifier(Modifier::BOLD)),
+            Span::styled(label, style),
+        ]));
+        lines.push(Line::from(Span::styled(
+            "Enter: onay modalı (tam komut). Sürüm probe otomatik çalışmaz.",
+            Style::default().fg(Color::DarkGray),
+        )));
     }
 
     lines

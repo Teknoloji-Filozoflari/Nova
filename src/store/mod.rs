@@ -444,6 +444,11 @@ impl Store {
         &self.entries
     }
 
+    /// Test / senkron yolları için girişlere yazılabilir erişim.
+    pub fn entries_mut(&mut self) -> &mut [StoreEntry] {
+        &mut self.entries
+    }
+
     /// Kimliğe göre giriş döner.
     pub fn get_by_id(&self, id: &str) -> Option<&StoreEntry> {
         self.entries.iter().find(|e| e.id == id)

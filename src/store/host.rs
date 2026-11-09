@@ -796,7 +796,8 @@ pub fn validate_upgrade_command(method: InstallMethod, argv: &[String]) -> Resul
     }
 }
 
-fn package_name_for_method(method: InstallMethod, argv: &[String]) -> Option<String> {
+/// Kurulum argv’sinden paket adını çıkarır (paket-kapsamlı güncelleme için).
+pub fn package_name_for_method(method: InstallMethod, argv: &[String]) -> Option<String> {
     match method {
         InstallMethod::Apt | InstallMethod::Dnf | InstallMethod::Pacman => sys_package_name(argv),
         InstallMethod::Brew => package_token(argv, "install"),
@@ -806,6 +807,32 @@ fn package_name_for_method(method: InstallMethod, argv: &[String]) -> Option<Str
         InstallMethod::Cargo => cargo_package_name(argv),
         InstallMethod::Manual | InstallMethod::DownloadArchive => None,
     }
+}
+
+/// Host’a göre paket-kapsamlı güncelleme planı (outdated probe yok).
+///
+/// Kurulu detay “Güncelle” eylemi sürüm taraması çalıştırmaz; yalnızca
+/// bilinen `install_command` / notes argv’sinden upgrade üretir.
+pub fn resolve_upgrade_plan(
+    entry: &StoreEntry,
+    host: &HostTools,
+    os: HostOs,
+) -> Option<PmUpdatePlan> {
+    if !entry.install_method.is_package_manager() {
+        return None;
+    }
+    let install = resolve_install_plan(entry, host, os)?;
+    if !host.supports(install.method) {
+        return None;
+    }
+    let pkg = package_name_for_method(install.method, &install.argv)?;
+    let argv = upgrade_argv(install.method, &install.argv)?;
+    validate_upgrade_command(install.method, &argv).ok()?;
+    Some(PmUpdatePlan {
+        method: install.method,
+        argv,
+        hint: pkg,
+    })
 }
 
 fn sys_package_name(argv: &[String]) -> Option<String> {

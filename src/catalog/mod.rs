@@ -94,6 +94,10 @@ pub struct CatalogEntry {
     pub setup_info: Option<String>,
     /// İsteğe bağlı eylem listesi (AI CLI alt komutları vb.).
     pub actions: Vec<ToolAction>,
+    /// İsteğe bağlı proje / ana sayfa URL’si (`https://`).
+    pub project_url: Option<String>,
+    /// İsteğe bağlı depo URL’si (`https://`).
+    pub repo_url: Option<String>,
     /// Favori durumu.
     pub favorite: bool,
     /// Çalıştırılabilir dosyanın PATH üzerinden bulunduğu durumda `Some(path)`.
@@ -164,6 +168,8 @@ impl CatalogEntry {
             examples: Vec::new(),
             setup_info: None,
             actions: Vec::new(),
+            project_url: None,
+            repo_url: None,
             favorite,
             status,
             resolved_path,
@@ -261,6 +267,12 @@ impl CatalogEntry {
         }
         if !user.actions.is_empty() {
             self.actions = user.actions.clone();
+        }
+        if user.project_url.is_some() {
+            self.project_url = user.project_url.clone();
+        }
+        if user.repo_url.is_some() {
+            self.repo_url = user.repo_url.clone();
         }
         self.favorite = user.favorite;
         self.refresh_status();
@@ -506,6 +518,8 @@ pub fn catalog_entry_from_tool(t: &ToolEntry) -> Result<CatalogEntry, String> {
     entry.examples = t.examples.clone();
     entry.setup_info = t.setup_info.clone();
     entry.actions = t.actions.clone();
+    entry.project_url = t.project_url.clone();
+    entry.repo_url = t.repo_url.clone();
     Ok(entry)
 }
 
