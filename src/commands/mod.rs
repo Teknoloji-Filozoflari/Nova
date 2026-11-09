@@ -8,6 +8,9 @@
 //! 3. **Sistemimde Bulunan Komutlar** — `kind: nova-local-commands`
 //!    (PATH keşfi stub'ı; bank `verified` miras almaz).
 //!
+//! Bilgi mimarisi (görev odaklı): Başlangıç → Göreve göre → Kullanım bağlamı
+//! → Tüm komutlar → Sistemde bulunanlar. Komutlar asla otomatik çalıştırılmaz.
+//!
 //! Sözleşme:
 //! <https://github.com/Teknoloji-Filozoflari/Nova-Commands/blob/main/docs/NOVA_INTEGRATION.md>
 
@@ -17,8 +20,8 @@ pub mod local;
 pub mod repo_sync;
 
 pub use bank::{
-    CommandBank, CommandEntry, ConceptEntry, LocalizedString, RiskLevel, VerificationStatus,
-    BANK_KIND,
+    CommandBank, CommandEntry, ConceptEntry, LocalizedString, ProfileEntry, RiskLevel, TaskEntry,
+    VerificationStatus, BANK_KIND,
 };
 pub use loader::{
     load_bank, load_bank_preferring_cache, load_manifest, load_search_index, CommandsManifest,
@@ -37,7 +40,7 @@ pub fn host_is_arch() -> bool {
 /// Sol paneldeki Komut Rehberi sekmesi etiketi (TR varsayılan; i18n `Msg` ile çizilir).
 pub const COMMANDS_TAB_LABEL: &str = "Komut Rehberi";
 
-/// Rehber içinde hangi kaynak listeleniyor.
+/// Rehber içinde hangi kaynak listeleniyor (PATH ≠ banka).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CommandsSource {
     /// Kürate banka (`nova-commands-bank`).
@@ -45,6 +48,67 @@ pub enum CommandsSource {
     Bank,
     /// Yerel PATH keşfi (`nova-local-commands`) — bank doğrulamasını miras almaz.
     Local,
+}
+
+/// Görev odaklı gezinme modu (Bilgi mimarisi 1–5).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum CommandsBrowseMode {
+    /// 1 · Başlangıç — öğrenme sırası, düşük risk.
+    #[default]
+    Start,
+    /// 2 · Göreve göre — katalog `tasks`, gruplu.
+    ByTask,
+    /// 3 · Kullanım bağlamı — çoklu profil seçimi.
+    Context,
+    /// 4 · Tüm komutlar — teknik kategoriler (+ arama).
+    AllCommands,
+    /// 5 · Sistemde bulunanlar — PATH stub (katalogdan ayrı).
+    SystemPath,
+}
+
+impl CommandsBrowseMode {
+    pub const ALL: [Self; 5] = [
+        Self::Start,
+        Self::ByTask,
+        Self::Context,
+        Self::AllCommands,
+        Self::SystemPath,
+    ];
+
+    pub fn index(self) -> usize {
+        match self {
+            Self::Start => 0,
+            Self::ByTask => 1,
+            Self::Context => 2,
+            Self::AllCommands => 3,
+            Self::SystemPath => 4,
+        }
+    }
+
+    pub fn from_index(i: usize) -> Self {
+        Self::ALL.get(i).copied().unwrap_or(Self::Start)
+    }
+
+    pub fn next(self) -> Self {
+        Self::from_index((self.index() + 1) % Self::ALL.len())
+    }
+
+    pub fn prev(self) -> Self {
+        Self::from_index((self.index() + Self::ALL.len() - 1) % Self::ALL.len())
+    }
+
+    /// Dual-concept kaynak: yalnız Sistemde bulunanlar → Local.
+    pub fn source(self) -> CommandsSource {
+        match self {
+            Self::SystemPath => CommandsSource::Local,
+            _ => CommandsSource::Bank,
+        }
+    }
+
+    /// İkinci ikincil sütun (grup / profil / teknik kategori) gerekir mi?
+    pub fn needs_group_column(self) -> bool {
+        matches!(self, Self::ByTask | Self::Context | Self::AllCommands)
+    }
 }
 
 impl CommandsSource {
@@ -73,4 +137,60 @@ pub fn bank_categories(bank: &CommandBank) -> Vec<&str> {
     cats.sort_unstable();
     cats.dedup();
     cats
+}
+
+/// Başlangıç öğrenme sırası: beginner konseptlerin ilgili komutları (tekil).
+///
+/// Düşük risk tercih edilir; konsept sırası sabit öğrenme yolu.
+pub fn start_learning_command_ids(bank: &CommandBank) -> Vec<String> {
+    const PATH_ORDER: &[&str] = &[
+        "terminal-basics",
+        "path",
+        "shell-pipes-redirection",
+        "permissions",
+        "networking-basics",
+        "json-data",
+        "package-managers",
+        "storage",
+        "systemd",
+        "debugging",
+    ];
+    let mut out = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
+    for cid in PATH_ORDER {
+        let Some(concept) = bank.concepts.iter().find(|c| c.id == *cid) else {
+            continue;
+        };
+        for cmd_id in &concept.related_commands {
+            if !seen.insert(cmd_id.clone()) {
+                continue;
+            }
+            let Some(cmd) = bank.find_by_id_or_name(cmd_id) else {
+                continue;
+            };
+            // Öğrenme: destructive/dangerous atlanır; safe/caution alınır.
+            if matches!(cmd.risk, RiskLevel::Destructive | RiskLevel::Dangerous) {
+                continue;
+            }
+            out.push(cmd.id.clone());
+        }
+    }
+    // Konseptte eksik kalan safe komutları doldurma (kısa kuyruk).
+    if out.len() < 12 {
+        let mut extras: Vec<_> = bank
+            .commands
+            .iter()
+            .filter(|c| c.risk == RiskLevel::Safe && !seen.contains(&c.id))
+            .collect();
+        extras.sort_by_key(|c| {
+            (
+                std::cmp::Reverse(c.nova.ui_priority.unwrap_or(0)),
+                c.name.as_str(),
+            )
+        });
+        for c in extras.into_iter().take(12usize.saturating_sub(out.len())) {
+            out.push(c.id.clone());
+        }
+    }
+    out
 }

@@ -4,7 +4,8 @@
 
 use crate::catalog::{Catalog, CATEGORIES};
 use crate::commands::{
-    self, bank_categories, CommandBank, CommandsSource, LocalCommandsSnapshot, SearchIndex,
+    self, bank_categories, CommandBank, CommandsBrowseMode, CommandsSource, LocalCommandsSnapshot,
+    SearchIndex,
 };
 use crate::error::NovaError;
 use crate::event::{Event, EventReader};
@@ -63,11 +64,11 @@ pub enum PanelFocus {
     StoreApp,
     /// Mağaza detay paneli odaklı (yan veya alt; Enter → tarayıcı).
     StoreDetail,
-    /// Komut Rehberi: Bilgi Bankası ↔ Sistemimde Bulunan kaynak seçici.
+    /// Komut Rehberi: gezinme modu (Başlangıç…Sistemde bulunanlar).
     CommandsSource,
-    /// Komut Rehberi: banka kategorileri (yalnızca bank kaynağında).
+    /// Komut Rehberi: grup sütunu (görev kat. / profil / teknik kat.).
     CommandsCategory,
-    /// Komut Rehberi: komut / yerel PATH listesi.
+    /// Komut Rehberi: görev / komut / yerel PATH listesi.
     CommandsList,
     /// Komut Rehberi detay paneli (yan veya alt şerit).
     CommandsDetail,
@@ -194,12 +195,16 @@ pub struct App {
     pub store_app_index: usize,
     /// Mağaza detayındaki seçili bağlantı indeksi ([`crate::ui::store_detail_links`]).
     pub store_detail_link_index: usize,
-    /// Komut Rehberi kaynağı: banka vs yerel PATH (dual-concept).
-    pub commands_source: CommandsSource,
-    /// Seçili banka kategorisi indeksi ([`bank_categories`]).
+    /// Komut Rehberi gezinme modu (görev odaklı IA).
+    pub commands_mode: CommandsBrowseMode,
+    /// Grup sütunu indeksi (görev kategorisi / profil / teknik kategori).
     pub commands_category_index: usize,
-    /// Seçili komut / yerel giriş indeksi (filtrelenmiş liste).
+    /// Seçili liste satırı indeksi (görev / komut / PATH).
     pub commands_entry_index: usize,
+    /// Kullanım bağlamı: çoklu seçili profil id'leri.
+    pub commands_selected_profiles: std::collections::BTreeSet<String>,
+    /// Göreve göre: seçilen görevden komutlara drill-down.
+    pub commands_task_drill: Option<String>,
     /// Gömülü Nova-Commands bankası (`nova-commands-bank`).
     pub commands_bank: CommandBank,
     /// Gömülü arama indeksi (`nova-commands-search-index`) — banka ile ayrı kind.
@@ -345,8 +350,12 @@ impl App {
                         content_sha256: None,
                         command_count: Some(0),
                         concept_count: Some(0),
+                        task_count: Some(0),
+                        profile_count: Some(0),
                         commands: Vec::new(),
                         concepts: Vec::new(),
+                        tasks: Vec::new(),
+                        profiles: Vec::new(),
                     },
                     SearchIndex {
                         schema_version: 2,
@@ -374,9 +383,11 @@ impl App {
             store_category_index: 0,
             store_app_index: 0,
             store_detail_link_index: 0,
-            commands_source: CommandsSource::Bank,
+            commands_mode: CommandsBrowseMode::Start,
             commands_category_index: 0,
             commands_entry_index: 0,
+            commands_selected_profiles: std::collections::BTreeSet::new(),
+            commands_task_drill: None,
             commands_bank,
             commands_search_index,
             commands_local: LocalCommandsSnapshot::empty_stub(),
@@ -624,16 +635,16 @@ impl App {
         }
     }
 
-    /// Komut Rehberi fare tıklaması (kaynak / kategori / liste / yan detay).
+    /// Komut Rehberi fare tıklaması (mod / grup / liste / yan detay).
     fn handle_commands_mouse_click(&mut self, x: u16, y: u16, areas: crate::ui::ClickAreas) {
         use crate::ui::list_index_at_y;
 
         let panel_top = areas.content_top;
         let panel_h = areas.content_height;
-        // Geniş: sekmeler | kaynak | (bank kategori) | liste [| yan detay]
+        // Geniş: sekmeler | mod | (grup) | liste [| yan detay]
         if areas.wide {
             let source_end = areas.category_end_x.saturating_add(areas.secondary_width);
-            let bank_cat_end = source_end.saturating_add(areas.secondary_width);
+            let group_end = source_end.saturating_add(areas.secondary_width);
             let list_end = if areas.commands_detail_side {
                 areas.commands_list_end_x
             } else {
@@ -641,36 +652,28 @@ impl App {
             };
 
             if x < source_end {
-                if let Some(row) =
-                    list_index_at_y(y, panel_top, panel_h, self.commands_source.index(), 2)
-                {
-                    self.commands_source = if row == 0 {
-                        CommandsSource::Bank
-                    } else {
-                        CommandsSource::Local
-                    };
-                    self.commands_entry_index = 0;
-                    self.commands_category_index = 0;
-                    self.focus = PanelFocus::CommandsSource;
-                }
-            } else if self.commands_source == CommandsSource::Bank && x < bank_cat_end {
-                let cats = self.commands_bank_categories();
                 if let Some(row) = list_index_at_y(
                     y,
                     panel_top,
                     panel_h,
-                    self.commands_category_index,
-                    cats.len(),
+                    self.commands_mode.index(),
+                    CommandsBrowseMode::ALL.len(),
                 ) {
+                    self.set_commands_mode(CommandsBrowseMode::from_index(row));
+                    self.focus = PanelFocus::CommandsSource;
+                }
+            } else if self.commands_mode.needs_group_column() && x < group_end {
+                let n = self.commands_group_len();
+                if let Some(row) =
+                    list_index_at_y(y, panel_top, panel_h, self.commands_category_index, n)
+                {
                     self.commands_category_index = row;
                     self.commands_entry_index = 0;
+                    self.commands_task_drill = None;
                     self.focus = PanelFocus::CommandsCategory;
                 }
             } else if x < list_end {
-                let n = match self.commands_source {
-                    CommandsSource::Bank => self.filtered_bank_commands().len(),
-                    CommandsSource::Local => self.filtered_local_commands().len(),
-                };
+                let n = self.commands_list_len();
                 if let Some(row) =
                     list_index_at_y(y, panel_top, panel_h, self.commands_entry_index, n)
                 {
@@ -681,10 +684,7 @@ impl App {
             }
             // Sağ detay tıklaması: yalnızca odak (bağlantı yok).
         } else {
-            let n = match self.commands_source {
-                CommandsSource::Bank => self.filtered_bank_commands().len(),
-                CommandsSource::Local => self.filtered_local_commands().len(),
-            };
+            let n = self.commands_list_len();
             if let Some(row) = list_index_at_y(y, panel_top, panel_h, self.commands_entry_index, n)
             {
                 self.commands_entry_index = row;
@@ -924,9 +924,17 @@ impl App {
                     self.close_language_picker();
                 } else if self.show_help {
                     self.show_help = false;
+                } else if self.commands_tab && self.commands_task_drill.is_some() {
+                    // Görev drill-down'dan komut listesine çık — çalıştırma yok.
+                    self.commands_task_drill = None;
+                    self.commands_entry_index = 0;
+                    self.status_message = "Görev listesine dönüldü (komut çalıştırılmadı).".into();
                 } else {
                     self.running = false;
                 }
+            }
+            KeyCode::Char(' ') if self.commands_tab => {
+                self.toggle_commands_profile_or_noop();
             }
             KeyCode::Char('q') => {
                 self.running = false;
@@ -996,17 +1004,21 @@ impl App {
                     self.open_selected_store_detail_link();
                 }
                 PanelFocus::CommandsSource => {
-                    self.focus = if self.commands_source == CommandsSource::Bank {
+                    self.focus = if self.commands_mode.needs_group_column() {
                         PanelFocus::CommandsCategory
                     } else {
                         PanelFocus::CommandsList
                     };
                 }
                 PanelFocus::CommandsCategory => {
-                    self.focus = PanelFocus::CommandsList;
+                    if self.commands_mode == CommandsBrowseMode::Context {
+                        self.toggle_selected_profile();
+                    } else {
+                        self.focus = PanelFocus::CommandsList;
+                    }
                 }
                 PanelFocus::CommandsList => {
-                    self.show_selected_command_info();
+                    self.activate_commands_list_item();
                 }
                 PanelFocus::CommandsDetail => {}
                 PanelFocus::ThemePicker => {
@@ -1071,9 +1083,9 @@ impl App {
                     self.status_message =
                         "Favori filtresi Mağaza'da yok — araç veya Komut Rehberi.".into();
                 } else if self.commands_tab {
-                    if self.commands_source != CommandsSource::Bank {
+                    if self.commands_mode == CommandsBrowseMode::SystemPath {
                         self.status_message =
-                            "Favori filtresi yalnız Bilgi Bankası'nda (PATH değil).".into();
+                            "Favori filtresi yalnız katalog komutlarında (PATH değil).".into();
                     } else {
                         self.command_favorite_only = !self.command_favorite_only;
                         self.commands_entry_index = 0;
@@ -1158,11 +1170,15 @@ impl App {
         self.reset_tool_action_index();
     }
 
-    /// Seçili banka komutunun favorisini değiştirir (PATH / Mağaza değil).
+    /// Seçili banka komutunun favorisini değiştirir (PATH / Mağaza / görev değil).
     fn toggle_selected_command_favorite(&mut self) {
-        if self.commands_source != CommandsSource::Bank {
+        if self.commands_mode == CommandsBrowseMode::SystemPath {
             self.status_message =
-                "Favori yalnız Bilgi Bankası komutlarında (Sistemimde Bulunan değil).".into();
+                "Favori yalnız katalog komutlarında (Sistemimde Bulunan değil).".into();
+            return;
+        }
+        if self.commands_list_shows_tasks() {
+            self.status_message = "Favori görev satırında değil; önce komuta gir (Enter).".into();
             return;
         }
         let cmds = self.filtered_bank_commands();
@@ -1301,33 +1317,22 @@ impl App {
                 self.store_detail_link_index = (self.store_detail_link_index + 1).min(n - 1);
             }
             PanelFocus::CommandsSource => {
-                self.commands_source = CommandsSource::Local;
-                self.commands_entry_index = 0;
-                self.commands_category_index = 0;
+                self.set_commands_mode(self.commands_mode.next());
             }
             PanelFocus::CommandsCategory => {
-                let max = self.commands_bank_categories().len().saturating_sub(1);
+                let max = self.commands_group_len().saturating_sub(1);
                 self.commands_category_index = (self.commands_category_index + 1).min(max);
                 self.commands_entry_index = 0;
+                self.commands_task_drill = None;
             }
-            PanelFocus::CommandsList => match self.commands_source {
-                CommandsSource::Bank => {
-                    let n = self.filtered_bank_commands().len();
-                    if n == 0 {
-                        return;
-                    }
-                    self.commands_entry_index =
-                        (self.commands_entry_index + 1).min(n.saturating_sub(1));
+            PanelFocus::CommandsList => {
+                let n = self.commands_list_len();
+                if n == 0 {
+                    return;
                 }
-                CommandsSource::Local => {
-                    let n = self.filtered_local_commands().len();
-                    if n == 0 {
-                        return;
-                    }
-                    self.commands_entry_index =
-                        (self.commands_entry_index + 1).min(n.saturating_sub(1));
-                }
-            },
+                self.commands_entry_index =
+                    (self.commands_entry_index + 1).min(n.saturating_sub(1));
+            }
             PanelFocus::ThemePicker => {
                 let max = crate::ui::UiTheme::all().len().saturating_sub(1);
                 self.theme_picker_index = (self.theme_picker_index + 1).min(max);
@@ -1375,13 +1380,12 @@ impl App {
                 self.store_detail_link_index = self.store_detail_link_index.saturating_sub(1);
             }
             PanelFocus::CommandsSource => {
-                self.commands_source = CommandsSource::Bank;
-                self.commands_entry_index = 0;
-                self.commands_category_index = 0;
+                self.set_commands_mode(self.commands_mode.prev());
             }
             PanelFocus::CommandsCategory => {
                 self.commands_category_index = self.commands_category_index.saturating_sub(1);
                 self.commands_entry_index = 0;
+                self.commands_task_drill = None;
             }
             PanelFocus::CommandsList => {
                 self.commands_entry_index = self.commands_entry_index.saturating_sub(1);
@@ -1486,21 +1490,22 @@ impl App {
 
     /// Komut Rehberi sekmesine geçer (`g` kısayolu).
     ///
-    /// Banka (kürate) ve yerel PATH stub'ı ayrı kaynaklar olarak açılır;
-    /// Mağaza kataloğu buraya karışmaz.
+    /// Görev odaklı IA: Başlangıç → görev → bağlam → tüm komutlar → PATH.
+    /// Mağaza kataloğu buraya karışmaz; komutlar otomatik çalıştırılmaz.
     pub fn select_commands_tab(&mut self) {
         self.commands_tab = true;
         self.store_tab = false;
         self.settings_tab = false;
         self.theme_picker_open = false;
         self.language_picker_open = false;
-        self.commands_source = CommandsSource::Bank;
+        self.commands_mode = CommandsBrowseMode::Start;
         self.commands_category_index = 0;
         self.commands_entry_index = 0;
+        self.commands_task_drill = None;
         self.refresh_local_commands_stub();
         self.focus = PanelFocus::CommandsList;
         self.status_message =
-            "Komut Rehberi: Bilgi Bankası (kürate) ≠ Sistemimde Bulunan (PATH). Mağaza ayrı sekme."
+            "Komut Rehberi: önce ne yapmak istediğini seç (Başlangıç). PATH ≠ katalog. Çalıştırma yok."
                 .into();
     }
 
@@ -1582,35 +1587,189 @@ impl App {
         self.commands_local = commands::local::discover_path_stub(Some(&self.commands_bank), 64);
     }
 
-    /// Banka kategorileri (sıralı, tekil).
+    /// Dual-concept kaynak (PATH stub ↔ banka).
+    pub fn commands_source(&self) -> CommandsSource {
+        self.commands_mode.source()
+    }
+
+    /// Banka kategorileri (sıralı, tekil) — Tüm komutlar modu.
     pub fn commands_bank_categories(&self) -> Vec<&str> {
         bank_categories(&self.commands_bank)
     }
 
-    /// Banka komutları: kategori + arama + isteğe bağlı favori süzgeci.
+    /// Gezinme modunu değiştirir; liste/grup seçimini sıfırlar.
+    pub fn set_commands_mode(&mut self, mode: CommandsBrowseMode) {
+        self.commands_mode = mode;
+        self.commands_category_index = 0;
+        self.commands_entry_index = 0;
+        self.commands_task_drill = None;
+        if mode == CommandsBrowseMode::SystemPath {
+            self.refresh_local_commands_stub();
+        }
+    }
+
+    /// Grup sütunu satır sayısı.
+    pub fn commands_group_len(&self) -> usize {
+        match self.commands_mode {
+            CommandsBrowseMode::ByTask => self.commands_bank.task_categories().len(),
+            CommandsBrowseMode::Context => self.commands_bank.profiles.len(),
+            CommandsBrowseMode::AllCommands => self.commands_bank_categories().len(),
+            _ => 0,
+        }
+    }
+
+    /// Liste satır sayısı (görev / komut / PATH).
+    pub fn commands_list_len(&self) -> usize {
+        if self.commands_mode == CommandsBrowseMode::SystemPath {
+            self.filtered_local_commands().len()
+        } else if self.commands_list_shows_tasks() {
+            self.filtered_tasks().len()
+        } else {
+            self.filtered_bank_commands().len()
+        }
+    }
+
+    /// Liste şu an görev satırları mı gösteriyor?
+    pub fn commands_list_shows_tasks(&self) -> bool {
+        self.commands_mode == CommandsBrowseMode::ByTask && self.commands_task_drill.is_none()
+    }
+
+    /// Banka komutları — moda göre süzülür; Local ile birleştirilmez.
     ///
-    /// Arama doluyken **tüm kategoriler** taranır (search-index alanları dahil);
-    /// boşken seçili banka kategorisi listelenir. Listeler Local ile birleştirilmez.
+    /// Arama doluyken Tüm komutlar / Başlangıç / bağlamda geniş tarama;
+    /// boşken moda özgü küme. Favori süzgeci yalnız komut listelerinde.
     pub fn filtered_bank_commands(&self) -> Vec<&commands::CommandEntry> {
         let searching = !self.search_query.is_empty();
+        let mode = self.commands_mode;
+        let start_order = if mode == CommandsBrowseMode::Start && !searching {
+            commands::start_learning_command_ids(&self.commands_bank)
+        } else {
+            Vec::new()
+        };
+        let start_ids: std::collections::BTreeSet<&str> =
+            start_order.iter().map(|s| s.as_str()).collect();
+        let profile_cmd_ids = if mode == CommandsBrowseMode::Context && !searching {
+            self.context_related_command_ids()
+        } else {
+            std::collections::BTreeSet::new()
+        };
+        let drill_ids: std::collections::BTreeSet<&str> =
+            if let Some(ref tid) = self.commands_task_drill {
+                self.commands_bank
+                    .find_task(tid)
+                    .map(|t| t.related_commands.iter().map(|s| s.as_str()).collect())
+                    .unwrap_or_default()
+            } else {
+                std::collections::BTreeSet::new()
+            };
         let cats = self.commands_bank_categories();
         let cat = cats
             .get(self.commands_category_index)
             .copied()
             .unwrap_or("");
-        self.commands_bank
+
+        let mut cmds: Vec<&commands::CommandEntry> = self
+            .commands_bank
             .commands
             .iter()
             .filter(|c| {
                 if self.command_favorite_only && !self.is_command_favorite(&c.id) {
                     return false;
                 }
-                if !searching && c.category != cat {
+                if !self.matches_command_search(c) {
                     return false;
                 }
-                self.matches_command_search(c)
+                if searching {
+                    // Arama: katalog genelinde (PATH değil).
+                    return mode != CommandsBrowseMode::SystemPath;
+                }
+                match mode {
+                    CommandsBrowseMode::Start => {
+                        start_ids.contains(c.id.as_str()) || start_ids.contains(c.name.as_str())
+                    }
+                    CommandsBrowseMode::ByTask => {
+                        !drill_ids.is_empty()
+                            && (drill_ids.contains(c.id.as_str())
+                                || drill_ids.contains(c.name.as_str()))
+                    }
+                    CommandsBrowseMode::Context => {
+                        profile_cmd_ids.contains(c.id.as_str())
+                            || profile_cmd_ids.contains(c.name.as_str())
+                    }
+                    CommandsBrowseMode::AllCommands => c.category == cat,
+                    CommandsBrowseMode::SystemPath => false,
+                }
+            })
+            .collect();
+
+        // Başlangıç: öğrenme sırasını koru.
+        if mode == CommandsBrowseMode::Start && !searching {
+            cmds.sort_by_key(|c| {
+                start_order
+                    .iter()
+                    .position(|id| id == &c.id || id == &c.name)
+                    .unwrap_or(usize::MAX)
+            });
+        }
+        cmds
+    }
+
+    /// Seçili görev kategorisindeki görevler (arama: tüm görevler).
+    pub fn filtered_tasks(&self) -> Vec<&commands::TaskEntry> {
+        let cats = self.commands_bank.task_categories();
+        let cat = cats
+            .get(self.commands_category_index)
+            .copied()
+            .unwrap_or("");
+        let searching = !self.search_query.is_empty();
+        let lang = self.ui_lang().id();
+        let q = self.search_query.to_ascii_lowercase();
+        self.commands_bank
+            .tasks
+            .iter()
+            .filter(|t| {
+                if !searching && t.category != cat {
+                    return false;
+                }
+                if !searching {
+                    return true;
+                }
+                t.id.to_ascii_lowercase().contains(&q)
+                    || t.name.pick(lang).to_ascii_lowercase().contains(&q)
+                    || t.summary.pick(lang).to_ascii_lowercase().contains(&q)
+                    || t.category.to_ascii_lowercase().contains(&q)
+                    || t.tags
+                        .iter()
+                        .any(|tag| tag.to_ascii_lowercase().contains(&q))
+                    || t.intent
+                        .all_for_lang(lang)
+                        .iter()
+                        .any(|p| p.to_ascii_lowercase().contains(&q))
+                    || self.commands_search_index.entries.iter().any(|e| {
+                        e.entry_type == "task"
+                            && e.id == t.id
+                            && (e.name.as_ref().is_some_and(|n| n.matches_query(&q, lang))
+                                || e.tags
+                                    .iter()
+                                    .any(|tag| tag.to_ascii_lowercase().contains(&q)))
+                    })
             })
             .collect()
+    }
+
+    /// Seçili profillerin birleşik ilgili komut id'leri (hiç seçili değilse tüm profiller).
+    fn context_related_command_ids(&self) -> std::collections::BTreeSet<&str> {
+        let mut ids = std::collections::BTreeSet::new();
+        let selected = &self.commands_selected_profiles;
+        for p in &self.commands_bank.profiles {
+            if !selected.is_empty() && !selected.contains(&p.id) {
+                continue;
+            }
+            for c in &p.related_commands {
+                ids.insert(c.as_str());
+            }
+        }
+        ids
     }
 
     /// Yerel PATH girişleri (arama süzgeçli) — bank verification süzgeci yok.
@@ -1699,9 +1858,11 @@ impl App {
         }
     }
 
-    /// Yan-detay eşiği için ikincil sütun sayısı (banka Komut=2, diğer=1).
+    /// Yan-detay eşiği için ikincil sütun sayısı (gruplu modlar=2, diğer=1).
+    ///
+    /// Pane-resize davranışı aynı kalır: yalnızca Commands ekranı `secondary_cols` kullanır.
     pub fn pane_secondary_cols(&self) -> u16 {
-        if self.commands_tab && self.commands_source == CommandsSource::Bank {
+        if self.commands_tab && self.commands_mode.needs_group_column() {
             2
         } else {
             1
@@ -1956,7 +2117,7 @@ impl App {
                 v.push(PanelFocus::Category);
             }
             v.push(PanelFocus::CommandsSource);
-            if self.commands_source == CommandsSource::Bank {
+            if self.commands_mode.needs_group_column() {
                 v.push(PanelFocus::CommandsCategory);
             }
             v.push(PanelFocus::CommandsList);
@@ -2095,10 +2256,7 @@ impl App {
     /// Arama sonuç sayısı (etkin panele göre).
     fn search_result_count(&self) -> usize {
         if self.commands_tab {
-            match self.commands_source {
-                CommandsSource::Bank => self.filtered_bank_commands().len(),
-                CommandsSource::Local => self.filtered_local_commands().len(),
-            }
+            self.commands_list_len()
         } else if self.store_tab {
             self.filtered_store_apps().len()
         } else {
@@ -2106,9 +2264,95 @@ impl App {
         }
     }
 
-    /// Seçili banka / yerel komut hakkında durum satırı bilgisi (çalıştırmaz).
+    /// Liste satırında Enter: görev drill veya bilgi (asla çalıştırmaz).
+    fn activate_commands_list_item(&mut self) {
+        if self.commands_list_shows_tasks() {
+            let (task_id, task_name) = {
+                let tasks = self.filtered_tasks();
+                let Some(task) = tasks
+                    .get(self.commands_entry_index.min(tasks.len().saturating_sub(1)))
+                    .copied()
+                else {
+                    self.status_message = "Seçili görev yok.".into();
+                    return;
+                };
+                let lang = self.ui_lang().id();
+                (task.id.clone(), task.name.pick(lang).to_string())
+            };
+            self.commands_task_drill = Some(task_id);
+            self.commands_entry_index = 0;
+            self.status_message =
+                format!("Görev → ilgili komutlar: {task_name} (Esc geri · çalıştırılmaz)");
+            return;
+        }
+        self.show_selected_command_info();
+    }
+
+    /// Space / Enter ile profil çoklu seçim (Kullanım bağlamı).
+    fn toggle_commands_profile_or_noop(&mut self) {
+        if self.commands_mode != CommandsBrowseMode::Context {
+            return;
+        }
+        if self.focus == PanelFocus::CommandsCategory || self.focus == PanelFocus::CommandsList {
+            // Liste odaktayken Space yine seçili profil satırını (grup) değiştirmez;
+            // grup panelindeyken profili aç/kapa.
+            if self.focus == PanelFocus::CommandsCategory {
+                self.toggle_selected_profile();
+            }
+        }
+    }
+
+    fn toggle_selected_profile(&mut self) {
+        if self.commands_mode != CommandsBrowseMode::Context {
+            return;
+        }
+        let Some(p) = self
+            .commands_bank
+            .profiles
+            .get(self.commands_category_index)
+        else {
+            return;
+        };
+        let id = p.id.clone();
+        let lang = self.ui_lang().id();
+        let name = p.name.pick(lang).to_string();
+        let draft = p.verification.status == commands::VerificationStatus::Draft;
+        if self.commands_selected_profiles.contains(&id) {
+            self.commands_selected_profiles.remove(&id);
+            self.status_message = format!("Profil kaldırıldı: {name}");
+        } else {
+            self.commands_selected_profiles.insert(id);
+            let draft_note = if draft {
+                " · draft/doğrulanmamış"
+            } else {
+                ""
+            };
+            self.status_message = format!("Profil eklendi: {name}{draft_note}");
+        }
+        self.commands_entry_index = 0;
+    }
+
+    /// Seçili banka / yerel / görev hakkında durum satırı bilgisi (çalıştırmaz).
     pub fn show_selected_command_info(&mut self) {
-        match self.commands_source {
+        if self.commands_list_shows_tasks() {
+            let tasks = self.filtered_tasks();
+            let Some(task) = tasks
+                .get(self.commands_entry_index.min(tasks.len().saturating_sub(1)))
+                .copied()
+            else {
+                self.status_message = "Seçili görev yok.".into();
+                return;
+            };
+            let lang = self.ui_lang().id();
+            self.status_message = format!(
+                "Görev [{}] {} · {} · Enter: ilgili komutlar (çalıştırılmaz)",
+                task.category,
+                task.name.pick(lang),
+                task.verification.status.as_str()
+            );
+            return;
+        }
+        match self.commands_source() {
             CommandsSource::Bank => {
                 let cmds = self.filtered_bank_commands();
                 let Some(cmd) =
@@ -5552,7 +5796,7 @@ mod tests {
                 );
             }
         }
-        app.commands_source = crate::commands::CommandsSource::Local;
+        app.set_commands_mode(crate::commands::CommandsBrowseMode::SystemPath);
         app.show_selected_command_info();
         assert!(
             app.status_message.contains("nova-local-commands")

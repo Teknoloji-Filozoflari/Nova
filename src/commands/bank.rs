@@ -243,6 +243,8 @@ pub struct NovaHints {
     #[serde(default)]
     pub favorite_eligible: Option<bool>,
     #[serde(default)]
+    pub ui_priority: Option<u32>,
+    #[serde(default)]
     pub concepts: Vec<String>,
 }
 
@@ -380,6 +382,89 @@ pub struct ConceptEntry {
     pub verification: VerificationInfo,
 }
 
+/// Görev uygulaması örneği (task → komut köprüsü).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct TaskExample {
+    pub command: String,
+    #[serde(default)]
+    pub explanation: LocalizedString,
+    #[serde(default)]
+    pub risk: RiskLevel,
+    #[serde(default)]
+    pub requires_elevated: bool,
+    #[serde(default)]
+    pub shell: Option<String>,
+    #[serde(default)]
+    pub privilege: Option<String>,
+}
+
+/// Görev içinde bir uygulama yolu (ör. rsync / restic).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct TaskImplementation {
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub commands: Vec<String>,
+    #[serde(default)]
+    pub examples: Vec<TaskExample>,
+    #[serde(default)]
+    pub platforms: Vec<String>,
+    #[serde(default)]
+    pub shells: Vec<String>,
+}
+
+/// Katalog görevi (`kind: task`) — kullanıcı niyeti.
+#[derive(Debug, Clone, Deserialize)]
+pub struct TaskEntry {
+    pub id: String,
+    #[serde(default)]
+    pub kind: Option<String>,
+    #[serde(default)]
+    pub name: LocalizedString,
+    #[serde(default)]
+    pub summary: LocalizedString,
+    #[serde(default)]
+    pub category: String,
+    #[serde(default)]
+    pub intent: IntentPhrases,
+    #[serde(default)]
+    pub implementations: Vec<TaskImplementation>,
+    #[serde(default)]
+    pub verification: VerificationInfo,
+    #[serde(default)]
+    pub tags: Vec<String>,
+    #[serde(default)]
+    pub related_commands: Vec<String>,
+    #[serde(default)]
+    pub related_tasks: Vec<String>,
+}
+
+/// Kullanım bağlamı profili (`kind: profile`).
+#[derive(Debug, Clone, Deserialize)]
+pub struct ProfileEntry {
+    pub id: String,
+    #[serde(default)]
+    pub kind: Option<String>,
+    #[serde(default)]
+    pub name: LocalizedString,
+    #[serde(default)]
+    pub summary: LocalizedString,
+    #[serde(default)]
+    pub description: LocalizedString,
+    #[serde(default)]
+    pub verification: VerificationInfo,
+    #[serde(default)]
+    pub operating_systems: Vec<String>,
+    #[serde(default)]
+    pub distributions: Vec<String>,
+    #[serde(default)]
+    pub related_commands: Vec<String>,
+    #[serde(default)]
+    pub related_tasks: Vec<String>,
+    #[serde(default)]
+    pub tags: Vec<String>,
+}
+
 /// `metadata/catalog.json` kök nesnesi.
 #[derive(Debug, Clone, Deserialize)]
 pub struct CommandBank {
@@ -394,9 +479,17 @@ pub struct CommandBank {
     #[serde(default)]
     pub concept_count: Option<usize>,
     #[serde(default)]
+    pub task_count: Option<usize>,
+    #[serde(default)]
+    pub profile_count: Option<usize>,
+    #[serde(default)]
     pub commands: Vec<CommandEntry>,
     #[serde(default)]
     pub concepts: Vec<ConceptEntry>,
+    #[serde(default)]
+    pub tasks: Vec<TaskEntry>,
+    #[serde(default)]
+    pub profiles: Vec<ProfileEntry>,
 }
 
 impl CommandBank {
@@ -420,5 +513,28 @@ impl CommandBank {
         self.commands
             .iter()
             .find(|c| c.id == name || c.name == name)
+    }
+
+    pub fn find_task(&self, id: &str) -> Option<&TaskEntry> {
+        self.tasks.iter().find(|t| t.id == id)
+    }
+
+    pub fn find_profile(&self, id: &str) -> Option<&ProfileEntry> {
+        self.profiles.iter().find(|p| p.id == id)
+    }
+
+    /// Görev kategorileri (sıralı, tekil).
+    pub fn task_categories(&self) -> Vec<&str> {
+        let mut cats: Vec<&str> = self.tasks.iter().map(|t| t.category.as_str()).collect();
+        cats.sort_unstable();
+        cats.dedup();
+        cats
+    }
+
+    pub fn tasks_in_category<'a>(&'a self, category: &str) -> Vec<&'a TaskEntry> {
+        self.tasks
+            .iter()
+            .filter(|t| t.category == category)
+            .collect()
     }
 }
