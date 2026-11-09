@@ -489,21 +489,34 @@ impl App {
             None => return Ok(()),
         };
         let tools_tab = !self.store_tab && !self.settings_tab && !self.commands_tab;
-        let has_ai_actions = tools_tab && self.selected_tool_has_ai_actions();
+        let panes = self.pane_widths();
         let tool_detail_side = tools_tab
             && crate::ui::tool_detail_side_layout(
                 size.0 >= crate::ui::WIDE_MIN_WIDTH,
                 size.0,
-                has_ai_actions,
+                panes.secondary,
             );
+        let actions_count = if tools_tab {
+            self.selected_tool()
+                .map(|e| {
+                    if e.has_ai_actions() {
+                        e.actions.len()
+                    } else {
+                        0
+                    }
+                })
+                .unwrap_or(0)
+        } else {
+            0
+        };
         let areas = crate::ui::click_areas_ex(crate::ui::ClickAreasInput {
             size,
             show_help: self.show_help,
             store_tab: self.store_tab,
             commands_tab: self.commands_tab,
             tool_detail_side,
-            has_ai_actions,
-            panes: self.pane_widths(),
+            actions_count,
+            panes,
             secondary_cols: self.pane_secondary_cols(),
         });
 
@@ -528,20 +541,20 @@ impl App {
     fn handle_mouse_click(&mut self, x: u16, y: u16, areas: crate::ui::ClickAreas) {
         use crate::ui::list_index_at_y;
 
-        // Yatay aksiyon şeridi içerik alanının altında; önce onu dene.
+        // Dikey aksiyon paneli içerik alanının altında; önce onu dene.
         if !self.store_tab
             && !self.settings_tab
             && areas.actions_height > 0
             && y >= areas.actions_top
             && y < areas.actions_top.saturating_add(areas.actions_height)
         {
-            let strip = ratatui::layout::Rect {
+            let panel = ratatui::layout::Rect {
                 x: 0,
                 y: areas.actions_top,
                 width: areas.tools_end_x.max(1),
                 height: areas.actions_height,
             };
-            if let Some(action_index) = crate::ui::action_index_at_x(self, x, strip) {
+            if let Some(action_index) = crate::ui::action_index_at_y(self, y, panel) {
                 self.tool_action_index = action_index;
                 self.focus = PanelFocus::ToolActions;
             }
@@ -936,13 +949,9 @@ impl App {
                 self.move_up();
             }
             KeyCode::Char('h') | KeyCode::Left => {
-                // Yatay aksiyon şeridinde ← önceki aksiyon; baştayken araç listesine.
+                // Dikey aksiyon panelinde ← araç listesine döner (↑↓ seçer).
                 if self.focus == PanelFocus::ToolActions {
-                    if self.tool_action_index > 0 {
-                        self.tool_action_index -= 1;
-                    } else {
-                        self.focus = PanelFocus::Tool;
-                    }
+                    self.focus = PanelFocus::Tool;
                 } else if self.narrow_mode && !self.store_tab {
                     // Dar terminalde araç kategorisi paneli gizli olduğundan odak
                     // listede kalır; yön tuşları yanıltıcı olmasın.
@@ -953,13 +962,8 @@ impl App {
                 }
             }
             KeyCode::Char('l') | KeyCode::Right => {
-                // Yatay aksiyon şeridinde → sonraki aksiyon.
-                if self.focus == PanelFocus::ToolActions {
-                    let max = self.selected_tool_actions_len().saturating_sub(1);
-                    self.tool_action_index = (self.tool_action_index + 1).min(max);
-                } else {
-                    self.focus = self.next_focus();
-                }
+                // Aksiyon paneli dikey listedir; → odak taşır (seçim ↑↓ ile).
+                self.focus = self.next_focus();
             }
             KeyCode::Tab => {
                 self.focus = self.next_focus();
@@ -1261,7 +1265,6 @@ impl App {
                 }
             }
             PanelFocus::ToolActions => {
-                // Şerit yatay; ↓ de sonraki aksiyona gider (←→ ile aynı).
                 let max = self.selected_tool_actions_len().saturating_sub(1);
                 self.tool_action_index = (self.tool_action_index + 1).min(max);
             }

@@ -20,7 +20,7 @@ pub mod theme;
 pub use theme::{ThemePalette, UiTheme};
 
 use crate::app::{App, PanelFocus};
-use crate::catalog::{short_category_name, CATEGORIES};
+use crate::catalog::CATEGORIES;
 use crate::detection::InstalledStatus;
 use crate::i18n::Msg;
 use crate::store::STORE_CATEGORIES;
@@ -88,10 +88,10 @@ pub const STORE_DETAIL_SIDE_MIN_WIDTH: u16 = CATEGORY_PANEL_WIDTH
     + STORE_DETAIL_PANEL_WIDTH;
 /// Araç detay panelinin satır sayısı (üst kenarlık dâhil).
 pub const DETAIL_ROWS: u16 = 10;
-/// AI seçiliyken liste ile Detay arasındaki yatay aksiyon şeridi yüksekliği.
-///
-/// Kenarlık + tek satır etiketler; etiketler kısaltılmadan yatay dizilir.
-pub const ACTIONS_STRIP_ROWS: u16 = 3;
+/// AI aksiyon paneli kenarlık satırları (üst+alt Borders::ALL).
+pub const ACTIONS_PANEL_BORDER_ROWS: u16 = 2;
+/// Geriye dönük ad: varsayılan 3 satırlık aksiyon paneli (1 seçenek + kenarlık).
+pub const ACTIONS_STRIP_ROWS: u16 = ACTIONS_PANEL_BORDER_ROWS + 1;
 /// Araç detay paneli genişliği (mağaza detayıyla aynı).
 pub const TOOL_DETAIL_PANEL_WIDTH: u16 = 72;
 /// Kurulu araçlar: sekme | liste | yan detay için en az genişlik
@@ -173,6 +173,27 @@ pub fn fit_list_width(available_for_list_and_detail: u16, list_pref: u16) -> u16
         .max(LIST_PANEL_MIN_WIDTH.min(max_list))
 }
 
+/// Yan detay yokken liste sütunu genişliği (`-` / `=` görünür etki).
+///
+/// Kalan alan `Min(0)` boşluğa gider; tercihin altında/üstünde kırpılır.
+pub fn fit_list_width_alone(available: u16, list_pref: u16) -> u16 {
+    if available == 0 {
+        return 0;
+    }
+    clamp_list_width(list_pref)
+        .min(available)
+        .max(LIST_PANEL_MIN_WIDTH.min(available))
+}
+
+/// AI aksiyon paneli yüksekliği (kenarlık + seçenek satırları).
+pub fn actions_panel_rows(action_count: usize) -> u16 {
+    if action_count == 0 {
+        0
+    } else {
+        ACTIONS_PANEL_BORDER_ROWS.saturating_add(action_count as u16)
+    }
+}
+
 /// Liste panellerindeki `Borders::ALL` üst/alt kenarlık kalınlığı (satır).
 pub const LIST_BORDER: u16 = 1;
 
@@ -220,11 +241,15 @@ pub struct ClickAreas {
 
 /// Kurulu araçlarda Mağaza ile aynı yan-detay düzeni açılsın mı?
 ///
-/// Geniş terminalde (`≥ TOOL_DETAIL_SIDE_MIN_WIDTH`) detay sağ sütunda;
-/// AI aksiyonları yine yatay şeritte kalır (detayın altında değil, içerik
-/// satırının altında). Dar/orta düzende detay alt şeritte kalır.
-pub fn tool_detail_side_layout(wide: bool, width: u16, _has_ai_actions: bool) -> bool {
-    wide && width >= TOOL_DETAIL_SIDE_MIN_WIDTH
+/// Geniş terminalde detay sağ sütunda; eşik canlı `secondary` genişliğine
+/// bağlıdır (`[` `]` ile değişir). AI aksiyonları alt dikey seçenek
+/// panelinde (Ayarlar / özel araç listesi gibi). Dar/orta düzende detay
+/// alt şeritte kalır.
+pub fn tool_detail_side_layout(wide: bool, width: u16, secondary: u16) -> bool {
+    wide && width
+        >= secondary
+            .saturating_add(LIST_PANEL_MIN_WIDTH)
+            .saturating_add(TOOL_DETAIL_PANEL_WIDTH)
 }
 
 /// Kurulu araç listesinde görünen satır (yalnızca araç; aksiyonlar şeritte).
@@ -250,40 +275,19 @@ pub fn tool_list_selected_visual(app: &App) -> Option<usize> {
     Some(app.tool_index.min(hits.len() - 1))
 }
 
-/// Yatay aksiyon şeridinde `x` sütununa denk gelen aksiyon indeksi.
-pub fn action_index_at_x(app: &App, x: u16, strip: Rect) -> Option<usize> {
+/// Dikey aksiyon panelinde `y` satırına denk gelen aksiyon indeksi.
+pub fn action_index_at_y(app: &App, y: u16, panel: Rect) -> Option<usize> {
     let entry = app.selected_tool()?;
-    if !entry.has_ai_actions() || strip.width <= 2 || strip.height == 0 {
+    if !entry.has_ai_actions() || panel.height == 0 {
         return None;
     }
-    let inner_x = strip.x.saturating_add(1);
-    let inner_w = strip.width.saturating_sub(2) as usize;
-    if x < inner_x || x >= inner_x.saturating_add(inner_w as u16) {
-        return None;
-    }
-    let labels: Vec<String> = entry
-        .actions
-        .iter()
-        .map(|a| format!("  {}", a.label))
-        .collect();
-    let sep = "  · ";
-    let mut cursor = 0usize;
-    let rel = (x - inner_x) as usize;
-    for (i, label) in labels.iter().enumerate() {
-        let width = label.chars().count();
-        if rel < cursor + width {
-            return Some(i);
-        }
-        cursor = cursor.saturating_add(width);
-        if i + 1 < labels.len() {
-            cursor = cursor.saturating_add(sep.chars().count());
-        }
-        if cursor > inner_w {
-            break;
-        }
-    }
-    // Taşma: son aksiyona yakın tık.
-    Some(entry.actions.len().saturating_sub(1))
+    list_index_at_y(
+        y,
+        panel.y,
+        panel.height,
+        app.tool_action_index,
+        entry.actions.len(),
+    )
 }
 
 /// `click_areas_ex` girdi parametreleri (clippy `too_many_arguments` kaçınır).
@@ -299,8 +303,8 @@ pub struct ClickAreasInput {
     pub commands_tab: bool,
     /// Kurulu yan-detay düzeni (geniş terminal).
     pub tool_detail_side: bool,
-    /// AI aksiyon şeridi yüksekliği hesaba katılsın mı?
-    pub has_ai_actions: bool,
+    /// Seçili AI aracının aksiyon sayısı (0 = panel yok).
+    pub actions_count: usize,
     /// Çözülmüş sütun genişlikleri.
     pub panes: PaneWidths,
     /// Yan-detay eşiği için ikincil sütun sayısı (Mağaza/yerel=1, banka=2).
@@ -308,8 +312,6 @@ pub struct ClickAreasInput {
 }
 
 /// Terminal boyutuna göre fare tıklama alanlarını hesaplar.
-///
-/// `has_ai_actions`: seçili araçta AI aksiyon şeridi gösterilecek mi?
 pub fn click_areas(
     size: (u16, u16),
     show_help: bool,
@@ -322,13 +324,13 @@ pub fn click_areas(
         store_tab,
         commands_tab: false,
         tool_detail_side,
-        has_ai_actions: false,
+        actions_count: 0,
         panes: PaneWidths::default(),
         secondary_cols: 1,
     })
 }
 
-/// Genişletilmiş tıklama alanı hesabı (Mağaza / Komut / AI şeridi / sütun prefs).
+/// Genişletilmiş tıklama alanı hesabı (Mağaza / Komut / AI panel / sütun prefs).
 pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
     let ClickAreasInput {
         size,
@@ -336,7 +338,7 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
         store_tab,
         commands_tab,
         tool_detail_side,
-        has_ai_actions,
+        actions_count,
         panes,
         secondary_cols,
     } = input;
@@ -348,8 +350,8 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
         commands_tab && wide && w >= detail_side_min_width(panes.secondary, secondary_cols);
     let show_detail = w >= MEDIUM_MIN_WIDTH && h >= 10;
     let tall = h >= TALL_MIN_HEIGHT;
-    let actions_h = if show_detail && !store_tab && !commands_tab && has_ai_actions {
-        ACTIONS_STRIP_ROWS
+    let actions_h = if show_detail && !store_tab && !commands_tab {
+        actions_panel_rows(actions_count)
     } else {
         0
     };
@@ -435,13 +437,16 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
     } else {
         w
     };
-    // Kurulu sol sütun ikincil pref (`tabs_w` / `panes.secondary`).
+    // Kurulu sol sütun ikincil pref (`tabs_w` / `panes.secondary`); liste
+    // tercihi yan detayda ve orta genişlikte Length ile uygulanır.
     let tools_list_w = if tool_detail_side {
         fit_list_width(w.saturating_sub(tabs_w), panes.list)
+    } else if wide && !store_tab && !commands_tab {
+        fit_list_width_alone(w.saturating_sub(tabs_w), panes.list)
     } else {
         panes.list
     };
-    let tools_end_x = if tool_detail_side {
+    let tools_end_x = if tool_detail_side || (wide && !store_tab && !commands_tab) {
         tabs_w.saturating_add(tools_list_w)
     } else {
         w
@@ -461,7 +466,7 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
             store_list_w
         } else if commands_detail_side {
             commands_list_w
-        } else if tool_detail_side {
+        } else if tool_detail_side || (wide && !store_tab && !commands_tab) {
             tools_list_w
         } else {
             panes.list
@@ -693,12 +698,24 @@ pub fn draw(f: &mut Frame, app: &App) {
         && wide
         && area.width >= detail_side_min_width(panes.secondary, app.pane_secondary_cols());
     let tools_tab = !app.store_tab && !app.settings_tab && !app.commands_tab;
-    let tool_detail_side =
-        tools_tab && tool_detail_side_layout(wide, area.width, app.selected_tool_has_ai_actions());
+    let tool_detail_side = tools_tab && tool_detail_side_layout(wide, area.width, panes.secondary);
     let show_detail = area.width >= MEDIUM_MIN_WIDTH && area.height >= 10;
     let tall = area.height >= TALL_MIN_HEIGHT;
-    let show_actions = show_detail && tools_tab && app.selected_tool_has_ai_actions();
-    let actions_h = if show_actions { ACTIONS_STRIP_ROWS } else { 0 };
+    let actions_count = if show_detail && tools_tab {
+        app.selected_tool()
+            .map(|e| {
+                if e.has_ai_actions() {
+                    e.actions.len()
+                } else {
+                    0
+                }
+            })
+            .unwrap_or(0)
+    } else {
+        0
+    };
+    let show_actions = actions_count > 0;
+    let actions_h = actions_panel_rows(actions_count);
 
     // Detay: geniş mağaza / Komut Rehberi / Kurulu sağ sütun; dar/orta alt şerit.
     let detail_h = if show_detail {
@@ -755,7 +772,7 @@ pub fn draw(f: &mut Frame, app: &App) {
             Constraint::Length(1),           // başlık
             Constraint::Length(1),           // arama satırı
             Constraint::Min(3),              // içerik (kategori | liste)
-            Constraint::Length(actions_h),   // AI aksiyon şeridi
+            Constraint::Length(actions_h),   // AI aksiyon paneli (dikey seçenekler)
             Constraint::Length(detail_h),    // detay
             Constraint::Length(1),           // durum
             Constraint::Length(help_height), // yardım
@@ -766,7 +783,7 @@ pub fn draw(f: &mut Frame, app: &App) {
     draw_search(f, app, chunks[1]);
     draw_content(f, app, chunks[2], wide);
     if show_actions {
-        draw_tool_actions_strip(f, app, chunks[3]);
+        draw_tool_actions_panel(f, app, chunks[3]);
     }
     if show_detail {
         draw_detail(f, app, chunks[4]);
@@ -837,14 +854,16 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
     } else if app.settings_tab {
         if wide {
             if app.settings_side_picker_open() {
-                // Sekme + ayar paneli ikincil pref (`[` `]`); tema/dil kalanı alır.
-                // `-` `=` liste tercihi paylaşılır (Mağaza/Komut yan-detay).
+                // Sekme + ayar paneli ikincil pref (`[` `]`); tema/dil liste pref.
+                let after_tabs = area.width.saturating_sub(panes.secondary.saturating_mul(2));
+                let list_w = fit_list_width_alone(after_tabs, panes.list);
                 let panels = Layout::default()
                     .direction(Direction::Horizontal)
                     .constraints([
                         Constraint::Length(panes.secondary),
                         Constraint::Length(panes.secondary),
-                        Constraint::Min(LIST_PANEL_MIN_WIDTH),
+                        Constraint::Length(list_w),
+                        Constraint::Min(0),
                     ])
                     .split(area);
                 draw_categories(f, app, panels[0]);
@@ -855,12 +874,15 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
                     draw_theme_picker(f, app, panels[2]);
                 }
             } else {
-                // Sol sekme ikincil pref ile; ayar içeriği kalan genişliği alır.
+                // Sol sekme ikincil; ayar paneli liste pref (`-` `=`).
+                let list_w =
+                    fit_list_width_alone(area.width.saturating_sub(panes.secondary), panes.list);
                 let panels = Layout::default()
                     .direction(Direction::Horizontal)
                     .constraints([
                         Constraint::Length(panes.secondary),
-                        Constraint::Min(LIST_PANEL_MIN_WIDTH),
+                        Constraint::Length(list_w),
+                        Constraint::Min(0),
                     ])
                     .split(area);
                 draw_categories(f, app, panels[0]);
@@ -884,8 +906,9 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
     } else if wide {
         // Kurulu yan-detay (#44): sekme | liste | detay (geniş).
         // Sol sütun `pane_secondary_width` (`[` `]`); liste `pane_list_width`
-        // (`-` `=`); fazla genişlik detaya gider. AI aksiyonları şeritte.
-        if tool_detail_side_layout(true, area.width, app.selected_tool_has_ai_actions()) {
+        // (`-` `=`); fazla genişlik detaya (veya boşluğa) gider.
+        // AI aksiyonları alt dikey seçenek paneli (Ayarlar listesi gibi).
+        if tool_detail_side_layout(true, area.width, panes.secondary) {
             let list_w = fit_list_width(area.width.saturating_sub(panes.secondary), panes.list);
             let panels = Layout::default()
                 .direction(Direction::Horizontal)
@@ -899,11 +922,14 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
             draw_tools(f, app, panels[1]);
             draw_tool_detail_info(f, app, panels[2], true);
         } else {
+            let list_w =
+                fit_list_width_alone(area.width.saturating_sub(panes.secondary), panes.list);
             let panels = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([
                     Constraint::Length(panes.secondary),
-                    Constraint::Min(LIST_PANEL_MIN_WIDTH),
+                    Constraint::Length(list_w),
+                    Constraint::Min(0),
                 ])
                 .split(area);
             draw_categories(f, app, panels[0]);
@@ -950,13 +976,19 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
                 draw_commands_list(f, app, panels[3]);
                 draw_commands_detail_panel(f, app, panels[4]);
             } else {
+                let after_fixed = area
+                    .width
+                    .saturating_sub(CATEGORY_PANEL_WIDTH)
+                    .saturating_sub(secondary.saturating_mul(2));
+                let list_w = fit_list_width_alone(after_fixed, panes.list);
                 let panels = Layout::default()
                     .direction(Direction::Horizontal)
                     .constraints([
                         Constraint::Length(CATEGORY_PANEL_WIDTH),
                         Constraint::Length(secondary),
                         Constraint::Length(secondary),
-                        Constraint::Min(LIST_PANEL_MIN_WIDTH),
+                        Constraint::Length(list_w),
+                        Constraint::Min(0),
                     ])
                     .split(area);
                 draw_categories(f, app, panels[0]);
@@ -984,12 +1016,18 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
             draw_commands_list(f, app, panels[2]);
             draw_commands_detail_panel(f, app, panels[3]);
         } else {
+            let after_fixed = area
+                .width
+                .saturating_sub(CATEGORY_PANEL_WIDTH)
+                .saturating_sub(secondary);
+            let list_w = fit_list_width_alone(after_fixed, panes.list);
             let panels = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([
                     Constraint::Length(CATEGORY_PANEL_WIDTH),
                     Constraint::Length(secondary),
-                    Constraint::Min(LIST_PANEL_MIN_WIDTH),
+                    Constraint::Length(list_w),
+                    Constraint::Min(0),
                 ])
                 .split(area);
             draw_categories(f, app, panels[0]);
@@ -1102,7 +1140,7 @@ fn draw_commands_categories(f: &mut Frame, app: &App, area: Rect) {
                 Style::default().fg(pal.text)
             };
             let label = truncate(
-                &format!("{cat} ({count})"),
+                &format!("{} ({count})", lang.bank_category(cat)),
                 area.width.saturating_sub(6) as usize,
             );
             ListItem::new(Line::from(vec![
@@ -1181,7 +1219,7 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
                         };
                         let risk = cmd.risk.marker();
                         let cat = if searching {
-                            format!(" [{}]", cmd.category)
+                            format!(" [{}]", lang.bank_category(&cmd.category))
                         } else {
                             String::new()
                         };
@@ -1318,12 +1356,18 @@ fn draw_store_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes: P
         draw_store_apps(f, app, panels[2]);
         draw_store_detail_panel(f, app, panels[3]);
     } else if wide {
+        let after_fixed = area
+            .width
+            .saturating_sub(CATEGORY_PANEL_WIDTH)
+            .saturating_sub(secondary);
+        let list_w = fit_list_width_alone(after_fixed, panes.list);
         let panels = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
                 Constraint::Length(CATEGORY_PANEL_WIDTH),
                 Constraint::Length(secondary),
-                Constraint::Min(LIST_PANEL_MIN_WIDTH),
+                Constraint::Length(list_w),
+                Constraint::Min(0),
             ])
             .split(area);
         draw_categories(f, app, panels[0]);
@@ -1377,8 +1421,9 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
                 Style::default().fg(pal.text)
             };
             let prefix = if selected { "▶ " } else { "  " };
+            let lang = app.ui_lang();
             let label = truncate(
-                &format!("{} ({count})", short_category_name(cat).unwrap_or(cat)),
+                &format!("{} ({count})", lang.catalog_short(cat)),
                 area.width.saturating_sub(6) as usize,
             );
             ListItem::new(Line::from(vec![
@@ -1691,7 +1736,7 @@ fn draw_store_categories(f: &mut Frame, app: &App, area: Rect) {
             // Panelin iç genişliği (kenarlıklar düşülmüş) ve "▶ " öneki
             // hesaba katılır; kategori adı ile sayı birlikte sığmalıdır.
             let label = truncate(
-                &format!("{cat} ({count})"),
+                &format!("{} ({count})", app.ui_lang().store_category(cat)),
                 area.width.saturating_sub(4) as usize,
             );
             ListItem::new(Line::from(vec![
@@ -1769,7 +1814,10 @@ fn draw_store_apps(f: &mut Frame, app: &App, area: Rect) {
     } else {
         format!(
             " {} ({}) ",
-            truncate(app.selected_store_category(), 20),
+            truncate(
+                app.ui_lang().store_category(app.selected_store_category()),
+                20
+            ),
             apps.len()
         )
     };
@@ -1848,7 +1896,11 @@ fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
         state.select(Some(sel));
     }
 
-    let category_label = app.selected_category().unwrap_or("");
+    let lang = app.ui_lang();
+    let category_label = app
+        .selected_category()
+        .map(|c| lang.catalog_category(c))
+        .unwrap_or("");
     let title = if !app.search_query.is_empty() {
         format!(
             " 🔍 '{}' ({}) ",
@@ -1856,7 +1908,7 @@ fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
             tools.len()
         )
     } else if app.favorite_only {
-        format!(" ★ {} ({}) ", app.ui_lang().t(Msg::Favorites), tools.len())
+        format!(" ★ {} ({}) ", lang.t(Msg::Favorites), tools.len())
     } else {
         format!(
             " {} ({}) ",
@@ -1906,8 +1958,11 @@ fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
     f.render_stateful_widget(list, area, &mut state);
 }
 
-/// Liste ile Detay arasındaki yatay aksiyon şeridi (etiketler tam görünür).
-fn draw_tool_actions_strip(f: &mut Frame, app: &App, area: Rect) {
+/// Liste ile Detay arasındaki AI aksiyon paneli.
+///
+/// Ayarlar / «Özel araç ekle» seçenek listesiyle aynı dikey `▶ [etiket]`
+/// düzeni; yatay şerit yerine her aksiyon ayrı satır.
+fn draw_tool_actions_panel(f: &mut Frame, app: &App, area: Rect) {
     if area.height == 0 {
         return;
     }
@@ -1918,6 +1973,7 @@ fn draw_tool_actions_strip(f: &mut Frame, app: &App, area: Rect) {
         return;
     }
     let pal = palette(app);
+    let lang = app.ui_lang();
     let focused = app.focus == PanelFocus::ToolActions;
     let border = if focused {
         Style::default().fg(Color::Cyan)
@@ -1925,35 +1981,46 @@ fn draw_tool_actions_strip(f: &mut Frame, app: &App, area: Rect) {
         Style::default().fg(pal.muted)
     };
 
-    let mut spans: Vec<Span> = Vec::new();
-    for (i, action) in entry.actions.iter().enumerate() {
-        if i > 0 {
-            spans.push(Span::styled("  ·  ", Style::default().fg(pal.muted)));
-        }
-        let selected = i == app.tool_action_index;
-        let style = if focused && selected {
-            Style::default()
-                .fg(pal.accent_on)
-                .bg(pal.accent)
-                .add_modifier(Modifier::BOLD)
-        } else if selected {
-            Style::default().fg(pal.accent).add_modifier(Modifier::BOLD)
-        } else {
-            Style::default().fg(pal.text)
-        };
-        let marker = if focused && selected { "▶ " } else { "  " };
-        // Etiketler kısaltılmaz — şerit tam genişliktedir.
-        spans.push(Span::styled(format!("{marker}{}", action.label), style));
-    }
+    let items: Vec<ListItem> = entry
+        .actions
+        .iter()
+        .enumerate()
+        .map(|(i, action)| {
+            let selected = i == app.tool_action_index;
+            let style = if focused && selected {
+                Style::default()
+                    .fg(pal.accent_on)
+                    .bg(pal.accent)
+                    .add_modifier(Modifier::BOLD)
+            } else if selected {
+                Style::default().fg(pal.accent)
+            } else {
+                Style::default().fg(pal.text)
+            };
+            let prefix = if selected { "▶ " } else { "  " };
+            let hint = if action.args.is_empty() {
+                String::new()
+            } else {
+                format!("  {}", action.args.join(" "))
+            };
+            ListItem::new(Line::from(vec![
+                Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
+                Span::styled(format!("[{}] ", action.label), style),
+                Span::styled(hint, Style::default().fg(pal.muted)),
+            ]))
+        })
+        .collect();
 
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_style(border)
-        .title(" Aksiyonlar ");
-    let para = Paragraph::new(Line::from(spans))
-        .block(block)
-        .alignment(Alignment::Left);
-    f.render_widget(para, area);
+    let list = List::new(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(border)
+                .title(format!(" {} ", lang.t(Msg::Actions))),
+        )
+        .highlight_style(Style::default());
+    let mut state = ListState::default().with_selected(Some(app.tool_action_index));
+    f.render_stateful_widget(list, area, &mut state);
 }
 
 /// Mağaza sağ detay paneli (geniş dört sütun düzeni).
@@ -2040,7 +2107,7 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
             )));
             lines.push(Line::from(format!(
                 "{} · {} · {} · {}",
-                cmd.category,
+                lang.bank_category(&cmd.category),
                 lang.t(Msg::CommandsRisk),
                 cmd.risk.label(lang_id),
                 cmd.verification.status.as_str()
@@ -2211,9 +2278,16 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         entry.name.clone(),
         Style::default().add_modifier(Modifier::BOLD),
     )));
+    let lang = app.ui_lang();
     lines.push(Line::from(vec![
-        Span::styled("Kategori: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(entry.category.clone(), Style::default().fg(Color::Cyan)),
+        Span::styled(
+            format!("{}: ", lang.t(Msg::CategoryLabel)),
+            Style::default().fg(Color::DarkGray),
+        ),
+        Span::styled(
+            lang.catalog_category(&entry.category).to_string(),
+            Style::default().fg(Color::Cyan),
+        ),
     ]));
 
     // Açıklama: satır kırarak tam göster (küçük şerit / `…` yok) — Mağaza ile aynı kaynak.
@@ -2415,9 +2489,16 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         entry.name.clone(),
         Style::default().add_modifier(Modifier::BOLD),
     )));
+    let lang = app.ui_lang();
     lines.push(Line::from(vec![
-        Span::styled("Kategori: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(entry.category.clone(), Style::default().fg(Color::Cyan)),
+        Span::styled(
+            format!("{}: ", lang.t(Msg::CategoryLabel)),
+            Style::default().fg(Color::DarkGray),
+        ),
+        Span::styled(
+            lang.store_category(&entry.category).to_string(),
+            Style::default().fg(Color::Cyan),
+        ),
     ]));
 
     // 2. Açıklama — satır kırarak; tek satırlık `…` şeridi yok.
@@ -2868,9 +2949,9 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
     } else if app.focus == PanelFocus::Category {
         "↑↓ kategori   →/l araçlar   [] sütun   -= liste   / ara   ? yardım"
     } else if app.focus == PanelFocus::ToolActions {
-        "←→/hl aksiyon   ↑ araçlar   Enter çalıştır   ? yardım"
+        "↑↓ aksiyon   ←/h araçlar   Enter çalıştır   ? yardım"
     } else if app.selected_tool_has_ai_actions() {
-        "↑↓ araç   →/l aksiyon şeridi   Enter aç   [] -=   F favori   ? yardım"
+        "↑↓ araç   →/l aksiyonlar   Enter aç   [] -=   F favori   ? yardım"
     } else {
         "↑↓ araç   ←/h kategori   Enter başlat   [] -= sütun   F favori   ? yardım"
     };
@@ -3127,25 +3208,39 @@ mod tests {
 
     #[test]
     fn installed_detail_uses_side_panel_like_store_when_wide() {
-        // Geniş Kurulu: yan detay; AI aksiyonları yatay şeritte kalır.
-        assert!(tool_detail_side_layout(true, 200, true));
+        // Geniş Kurulu: yan detay; AI aksiyonları dikey seçenek panelinde.
+        let secondary = SECONDARY_PANEL_WIDTH_DEFAULT;
+        assert!(tool_detail_side_layout(true, 200, secondary));
         assert!(tool_detail_side_layout(
             true,
             TOOL_DETAIL_SIDE_MIN_WIDTH,
-            false
+            secondary
         ));
         assert!(!tool_detail_side_layout(
             true,
             TOOL_DETAIL_SIDE_MIN_WIDTH.saturating_sub(1),
-            true
+            secondary
         ));
+        // Canlı secondary eşiği: daraltılmış sol sütun daha erken yan-detay açar.
+        let min_side = SECONDARY_PANEL_WIDTH_MIN + LIST_PANEL_MIN_WIDTH + TOOL_DETAIL_PANEL_WIDTH;
+        assert!(tool_detail_side_layout(
+            true,
+            min_side,
+            SECONDARY_PANEL_WIDTH_MIN
+        ));
+        assert!(!tool_detail_side_layout(
+            true,
+            min_side.saturating_sub(1),
+            SECONDARY_PANEL_WIDTH_MIN
+        ));
+        assert!(min_side < TOOL_DETAIL_SIDE_MIN_WIDTH);
         let plain = click_areas_ex(ClickAreasInput {
             size: (120, 30),
             show_help: false,
             store_tab: false,
             commands_tab: false,
             tool_detail_side: true,
-            has_ai_actions: false,
+            actions_count: 0,
             panes: PaneWidths::default(),
             secondary_cols: 1,
         });
@@ -3155,14 +3250,14 @@ mod tests {
             store_tab: false,
             commands_tab: false,
             tool_detail_side: true,
-            has_ai_actions: true,
+            actions_count: 4,
             panes: PaneWidths::default(),
             secondary_cols: 1,
         });
         assert!(plain.tool_detail_side);
         assert!(with_actions.tool_detail_side);
         assert_eq!(plain.actions_height, 0);
-        assert_eq!(with_actions.actions_height, ACTIONS_STRIP_ROWS);
+        assert_eq!(with_actions.actions_height, actions_panel_rows(4));
         assert!(with_actions.content_height < plain.content_height);
         let panes = PaneWidths::default();
         assert!(plain.tools_end_x < 120);
@@ -3177,13 +3272,28 @@ mod tests {
             TOOL_DETAIL_SIDE_MIN_WIDTH,
             SECONDARY_PANEL_WIDTH_DEFAULT + LIST_PANEL_MIN_WIDTH + TOOL_DETAIL_PANEL_WIDTH
         );
+        // Orta genişlikte (yan detay yok) liste pref Length ile uygulanır.
+        let mid = click_areas_ex(ClickAreasInput {
+            size: (100, 30),
+            show_help: false,
+            store_tab: false,
+            commands_tab: false,
+            tool_detail_side: false,
+            actions_count: 0,
+            panes: PaneWidths::default(),
+            secondary_cols: 1,
+        });
+        assert_eq!(
+            mid.tools_end_x,
+            panes.secondary + fit_list_width_alone(100 - panes.secondary, panes.list)
+        );
         let store = click_areas_ex(ClickAreasInput {
             size: (120, 30),
             show_help: false,
             store_tab: true,
             commands_tab: false,
             tool_detail_side: false,
-            has_ai_actions: false,
+            actions_count: 0,
             panes,
             secondary_cols: 1,
         });
