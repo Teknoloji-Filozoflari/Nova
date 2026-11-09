@@ -195,6 +195,8 @@ pub struct App {
     pub store_app_index: usize,
     /// Mağaza detayındaki seçili bağlantı indeksi ([`crate::ui::store_detail_links`]).
     pub store_detail_link_index: usize,
+    /// Kurulu detayındaki seçili odak: bağlantılar + isteğe bağlı Güncelle satırı.
+    pub tool_detail_link_index: usize,
     /// Komut Rehberi gezinme modu (görev odaklı IA).
     pub commands_mode: CommandsBrowseMode,
     /// Grup sütunu indeksi (görev kategorisi / profil / teknik kategori).
@@ -388,6 +390,7 @@ impl App {
             store_category_index: 0,
             store_app_index: 0,
             store_detail_link_index: 0,
+            tool_detail_link_index: 0,
             commands_mode: CommandsBrowseMode::Start,
             commands_category_index: 0,
             commands_entry_index: 0,
@@ -1029,7 +1032,7 @@ impl App {
                     self.focus = self.next_focus();
                 }
                 PanelFocus::Tool => self.select_tool(),
-                PanelFocus::ToolDetail => {}
+                PanelFocus::ToolDetail => self.activate_tool_detail_focus(),
                 PanelFocus::ToolActions => self.select_tool_action(),
                 PanelFocus::StoreCategory => {
                     self.focus = PanelFocus::StoreApp;
@@ -1325,7 +1328,8 @@ impl App {
                     self.reset_tool_action_index();
                 }
             }
-            PanelFocus::ToolDetail | PanelFocus::CommandsDetail => {}
+            PanelFocus::ToolDetail => self.move_tool_detail_focus(1),
+            PanelFocus::CommandsDetail => {}
             PanelFocus::ToolActions => {
                 let max = self.selected_tool_actions_len().saturating_sub(1);
                 self.tool_action_index = (self.tool_action_index + 1).min(max);
@@ -1395,7 +1399,8 @@ impl App {
                     self.reset_tool_action_index();
                 }
             }
-            PanelFocus::ToolDetail | PanelFocus::CommandsDetail => {}
+            PanelFocus::ToolDetail => self.move_tool_detail_focus(-1),
+            PanelFocus::CommandsDetail => {}
             PanelFocus::ToolActions => {
                 // ↑ ilk aksiyondayken araç listesine döner.
                 if self.tool_action_index == 0 {
@@ -2322,6 +2327,133 @@ impl App {
         }
     }
 
+    /// Kurulu detay odak satırı sayısı: bağlantılar + (varsa) Güncelle.
+    pub fn tool_detail_focus_len(&self) -> usize {
+        let links = crate::ui::tool_detail_links(self).len();
+        let update = usize::from(self.selected_tool_update_offer().is_some());
+        links + update
+    }
+
+    /// Odak bir bağlantı satırında mı?
+    pub fn tool_detail_focus_is_link(&self, link_index: usize) -> bool {
+        self.tool_detail_link_index == link_index
+            && link_index < crate::ui::tool_detail_links(self).len()
+    }
+
+    /// Odak Güncelle satırında mı?
+    pub fn tool_detail_focus_is_update(&self) -> bool {
+        let n_links = crate::ui::tool_detail_links(self).len();
+        self.selected_tool_update_offer().is_some() && self.tool_detail_link_index == n_links
+    }
+
+    fn move_tool_detail_focus(&mut self, delta: i32) {
+        let n = self.tool_detail_focus_len();
+        if n == 0 {
+            return;
+        }
+        if delta > 0 {
+            self.tool_detail_link_index = (self.tool_detail_link_index + 1).min(n - 1);
+        } else {
+            self.tool_detail_link_index = self.tool_detail_link_index.saturating_sub(1);
+        }
+    }
+
+    /// Kurulu detay Enter: bağlantı aç veya güncelleme onay modalı.
+    pub fn activate_tool_detail_focus(&mut self) {
+        if self.tool_detail_focus_is_update() {
+            self.confirm_selected_tool_update();
+            return;
+        }
+        self.open_selected_tool_detail_link();
+    }
+
+    /// Seçili kurulu detay bağlantısını tarayıcıda açar.
+    pub fn open_selected_tool_detail_link(&mut self) {
+        let links = crate::ui::tool_detail_links(self);
+        if links.is_empty() {
+            self.status_message = "Açılacak https proje bağlantısı yok.".into();
+            return;
+        }
+        let idx = self
+            .tool_detail_link_index
+            .min(links.len().saturating_sub(1));
+        self.tool_detail_link_index = idx;
+        let link = &links[idx];
+        match crate::browser::open_https_url(&link.url) {
+            Ok(()) => {
+                self.status_message = format!(
+                    "{} tarayıcıda açılıyor (xdg-open): {}",
+                    link.label, link.url
+                );
+            }
+            Err(e) => {
+                self.status_message = format!("Bağlantı açılamadı: {e}");
+            }
+        }
+    }
+
+    /// Seçili kurulu araç için güvenilir güncelleme teklifi (probe yok).
+    pub fn selected_tool_update_offer(&self) -> Option<crate::store::sync::ToolUpdateOffer> {
+        let entry = self.selected_tool()?;
+        let host = self
+            .store_host_tools_override
+            .unwrap_or_else(host::HostTools::detect);
+        let os = host::detect_host_os();
+        let store = crate::store::sync::find_store_for_catalog_tool(
+            self.store.entries(),
+            &entry.id,
+            &entry.executable,
+            &entry.args,
+        );
+        let managed_id = entry
+            .resolved_path
+            .as_ref()
+            .and_then(|p| crate::store::sync::nova_managed_store_id(p));
+        let store_id = managed_id
+            .as_deref()
+            .or_else(|| store.map(|s| s.id.as_str()))
+            .unwrap_or(entry.id.as_str());
+
+        crate::store::sync::tool_update_offer(
+            self.store.entries(),
+            &entry.id,
+            &entry.executable,
+            &entry.args,
+            entry.resolved_path.as_deref(),
+            self.store_updates.get(store_id),
+            self.store_pm_updates.get(store_id),
+            &host,
+            os,
+        )
+    }
+
+    /// Kurulu detay Güncelle → onay modalı (tam komut).
+    pub fn confirm_selected_tool_update(&mut self) {
+        let Some(offer) = self.selected_tool_update_offer() else {
+            self.status_message =
+                "Bu araç için güvenilir güncelleme yolu yok (kurulum kaynağı bilinmiyor).".into();
+            return;
+        };
+        // PM planını start_store_update bulabilsin diye önbelleğe koy.
+        if let crate::store::sync::ToolUpdateOffer::PackageManager { store_id, plan, .. } = &offer {
+            self.store_pm_updates.insert(store_id.clone(), plan.clone());
+        }
+        let version = match &offer {
+            crate::store::sync::ToolUpdateOffer::Archive { to_version, .. } => to_version.clone(),
+            crate::store::sync::ToolUpdateOffer::PackageManager { plan, .. } => {
+                format!("pm:{}", plan.hint)
+            }
+        };
+        self.modal = modal::Modal::Confirm {
+            question: offer.confirm_question(),
+            action: modal::ConfirmAction::UpdateStoreApp {
+                id: offer.store_id().to_string(),
+                name: offer.name().to_string(),
+                version,
+            },
+        };
+    }
+
     /// Odak zincirinde bir sonraki panele geçer (son panelde kalır; ←→ için).
     fn next_focus(&self) -> PanelFocus {
         let chain = self.focus_chain();
@@ -2607,6 +2739,7 @@ impl App {
 
     fn reset_tool_action_index(&mut self) {
         self.tool_action_index = 0;
+        self.tool_detail_link_index = 0;
         if self.focus == PanelFocus::ToolActions && !self.selected_tool_has_ai_actions() {
             self.focus = PanelFocus::Tool;
         }
@@ -3463,7 +3596,19 @@ impl App {
             return;
         };
 
-        if let Some(pm) = self.store_pm_updates.get(id).cloned() {
+        // Önce bekleyen PM planı; yoksa paket-kapsamlı upgrade argv üret
+        // (outdated probe yok — Kurulu detay / onaylı Güncelle yolu).
+        let pm = self.store_pm_updates.get(id).cloned().or_else(|| {
+            if !entry.install_method.is_package_manager() {
+                return None;
+            }
+            let host = self
+                .store_host_tools_override
+                .unwrap_or_else(host::HostTools::detect);
+            let os = host::detect_host_os();
+            host::resolve_upgrade_plan(&entry, &host, os)
+        });
+        if let Some(pm) = pm {
             let app_name = entry.name.clone();
             let cmd = pm.rendered();
             let method_label = pm.method.short_label().to_string();
@@ -3506,7 +3651,7 @@ impl App {
 
         let Some(release) = self.store_updates.get(id).cloned() else {
             self.status_message = format!(
-                "'{}' için çözülmüş bir sürüm yok; önce sürümleri denetle (U).",
+                "'{}' için çözülmüş bir sürüm yok; önce Mağaza’da U ile sürümleri denetle.",
                 entry.name
             );
             return;
@@ -6830,6 +6975,111 @@ mod tests {
             detail_description_for_tool(&speed.description, None),
             speed.description.as_str()
         );
+    }
+
+    #[test]
+    fn kurulu_update_not_offered_for_exe_only_magaza_match() {
+        let mut app = sample_app();
+        mark_all_installed(&mut app);
+        // btm → Mağaza bottom yalnızca ikili eşleşmesi; Update yok.
+        let tools = app.filtered_tools();
+        let i = tools
+            .iter()
+            .position(|e| e.id == "btm")
+            .expect("btm kurulu listede olmalı");
+        app.tool_index = i;
+        app.store_host_tools_override =
+            Some(host::HostTools::from_flags(true, true, true, true, true));
+        assert!(
+            app.selected_tool_update_offer().is_none(),
+            "yalnızca ikili Mağaza eşleşmesi Kurulu Update vermemeli"
+        );
+    }
+
+    #[test]
+    fn kurulu_update_confirm_shows_full_command_for_verified_pkg() {
+        let mut app = sample_app();
+        // Store entry’yi apt’ye zorla.
+        let Some(htop_store) = app.store.entries_mut().iter_mut().find(|e| e.id == "htop") else {
+            // Gömülü katalogda htop yoksa (şema değişti) atla.
+            return;
+        };
+        htop_store.install_method = crate::store::InstallMethod::Apt;
+        htop_store.install_command = Some(vec![
+            "sudo".into(),
+            "apt".into(),
+            "install".into(),
+            "-y".into(),
+            "htop".into(),
+        ]);
+        let htop_store = app.store.get_by_id("htop").unwrap().clone();
+        if app.catalog.get_by_id("htop").is_none() {
+            let tool = crate::store::sync::tool_entry_from_store(&htop_store);
+            let mut entry = crate::catalog::catalog_entry_from_tool(&tool).unwrap();
+            // filtered_tools yalnızca Kurulu gösterir.
+            entry.status = crate::detection::InstalledStatus::Installed;
+            entry.resolved_path = Some(PathBuf::from("/usr/bin/htop"));
+            app.catalog.entries_mut().push(entry);
+        } else if let Some(e) = app
+            .catalog
+            .entries_mut()
+            .iter_mut()
+            .find(|e| e.id == "htop")
+        {
+            e.status = crate::detection::InstalledStatus::Installed;
+            e.resolved_path = Some(PathBuf::from("/usr/bin/htop"));
+        }
+        app.store_host_tools_override = Some(host::HostTools::from_flags(
+            true, false, false, false, false,
+        ));
+        let tools = app.filtered_tools();
+        let i = tools
+            .iter()
+            .position(|e| e.id == "htop")
+            .expect("htop kurulu listede olmalı");
+        app.tool_index = i;
+        let offer = app
+            .selected_tool_update_offer()
+            .expect("htop id eşleşmesi + apt → Update");
+        assert!(offer.full_command().contains("htop"));
+        app.confirm_selected_tool_update();
+        match &app.modal {
+            modal::Modal::Confirm { question, action } => {
+                assert!(
+                    question.contains("Komut:"),
+                    "onay modalı tam komutu göstermeli: {question}"
+                );
+                assert!(matches!(
+                    action,
+                    modal::ConfirmAction::UpdateStoreApp { id, .. } if id == "htop"
+                ));
+            }
+            other => panic!("beklenen Confirm modalı, geldi: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn kurulu_project_links_from_trusted_store_match() {
+        let app = sample_app();
+        let btm = app
+            .catalog
+            .entries()
+            .iter()
+            .find(|e| e.id == "btm")
+            .expect("btm");
+        let store = crate::store::sync::find_store_for_catalog_tool(
+            app.store.entries(),
+            &btm.id,
+            &btm.executable,
+            &btm.args,
+        )
+        .expect("bottom");
+        let links = crate::store::sync::tool_project_links(None, None, Some(store));
+        assert!(
+            !links.is_empty(),
+            "Mağaza source https ise proje bağlantısı olmalı"
+        );
+        assert!(links.iter().all(|l| l.url.starts_with("https://")));
     }
 
     #[test]

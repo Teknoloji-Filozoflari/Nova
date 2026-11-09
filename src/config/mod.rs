@@ -172,6 +172,13 @@ pub struct ToolEntry {
     /// Verilmezse boş; UI yalnızca doluysa aksiyon paneli çizer.
     #[serde(default)]
     pub actions: Vec<ToolAction>,
+    /// İsteğe bağlı proje / ana sayfa URL’si (`https://` only). Eski TOML’da
+    /// yoksa boş kalır; Nova adres uydurmaz.
+    #[serde(default)]
+    pub project_url: Option<String>,
+    /// İsteğe bağlı depo URL’si (`https://` only). Eski TOML ile uyumlu.
+    #[serde(default)]
+    pub repo_url: Option<String>,
 }
 
 /// Bir katalog girişinin nereden geldiği.
@@ -332,6 +339,23 @@ mod tests {
         let err = toml::from_str::<ToolEntry>(text).unwrap_err().to_string();
         assert!(err.contains("launch_kind"), "{err}");
         assert!(err.contains("uçan"), "hata değeri anmalı: {err}");
+    }
+
+    #[test]
+    fn optional_project_link_fields_are_backward_compatible() {
+        let old = "id = \"x\"\nname = \"X\"\n";
+        let entry: ToolEntry = toml::from_str(old).unwrap();
+        assert!(entry.project_url.is_none());
+        assert!(entry.repo_url.is_none());
+
+        let with_links = r#"
+id = "y"
+project_url = "https://example.org/y"
+repo_url = "https://github.com/a/y"
+"#;
+        let entry: ToolEntry = toml::from_str(with_links).unwrap();
+        assert_eq!(entry.project_url.as_deref(), Some("https://example.org/y"));
+        assert_eq!(entry.repo_url.as_deref(), Some("https://github.com/a/y"));
     }
 
     #[test]
