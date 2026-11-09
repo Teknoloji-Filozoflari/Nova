@@ -105,7 +105,14 @@ pub fn tool_entry_from_store(entry: &StoreEntry) -> ToolEntry {
     let repo_url = entry
         .release
         .as_ref()
-        .and_then(|r| crate::browser::github_repo_https_url(&r.repo));
+        .and_then(|r| crate::browser::github_repo_https_url(&r.repo))
+        .or_else(|| {
+            entry
+                .repository_url
+                .as_deref()
+                .and_then(crate::store::stars::parse_verified_github_repo)
+                .map(|r| r.https_url())
+        });
     ToolEntry {
         id: entry.id.clone(),
         name: entry.name.clone(),
@@ -244,11 +251,10 @@ pub fn tool_project_links(
                     url,
                 });
             }
-            if let Some(release) = &entry.release {
-                if let Some(url) = crate::browser::github_repo_https_url(&release.repo) {
-                    if out.iter().all(|l| l.url != url) {
-                        out.push(ToolProjectLink { label: "Depo", url });
-                    }
+            if let Some(repo) = crate::store::stars::verified_repo_for_store_entry(entry) {
+                let url = repo.https_url();
+                if out.iter().all(|l| l.url != url) {
+                    out.push(ToolProjectLink { label: "Depo", url });
                 }
             }
         }
@@ -546,6 +552,7 @@ mod tests {
             ]),
             install_notes: None,
             release: None,
+            repository_url: None,
             signature: None,
         }
     }

@@ -1521,6 +1521,7 @@ mod tests {
             install_command: None,
             install_notes: None,
             release: None,
+            repository_url: None,
             signature: None,
         }
     }
@@ -1544,6 +1545,7 @@ mod tests {
             install_command: Some(argv.into_iter().map(str::to_string).collect()),
             install_notes: Some("not".into()),
             release: None,
+            repository_url: None,
             signature: None,
         }
     }

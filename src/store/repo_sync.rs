@@ -72,6 +72,8 @@ struct RepoApp {
     #[serde(default)]
     release: Option<crate::store::manifest::ReleaseSource>,
     #[serde(default)]
+    repository_url: Option<String>,
+    #[serde(default)]
     signature: Option<crate::store::trust::SignatureSpec>,
 }
 
@@ -135,6 +137,7 @@ fn repo_app_to_entry(app: RepoApp) -> Result<StoreEntry, String> {
         install_command: app.install_command,
         install_notes: app.install_notes,
         release: app.release,
+        repository_url: app.repository_url,
         signature: app.signature,
     })
 }

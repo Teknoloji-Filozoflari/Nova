@@ -242,7 +242,7 @@ impl ReleaseProvider for GitHubReleaseProvider {
         source: &ReleaseSource,
         etag: Option<&str>,
     ) -> Result<ConditionalRelease, String> {
-        source.validate()?;
+        source.validate_for_resolve()?;
         let (release, release_etag) = match self.latest_release_conditional(&source.repo, etag)? {
             ReleaseFetch::NotModified => return Ok(ConditionalRelease::NotModified),
             ReleaseFetch::Fresh { release, etag } => (release, etag),

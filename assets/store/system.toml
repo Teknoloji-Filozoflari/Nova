@@ -1,10 +1,115 @@
-# Nova mağaza kataloğu — system
+# Nova mağaza kataloğu — Sistem
 #
 # Kategori: "Sistem"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
+
+[[apps]]
+id = "acpi"
+name = "acpi"
+category = "Sistem"
+description = "Pil/ACPI bilgi aracı."
+source = "https://sourceforge.net/projects/acpiclient/"
+license = "GPL-2.0"
+executable = "acpi"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "acpi"]
+install_notes = """
+pacman: sudo pacman -S acpi
+apt: sudo apt install acpi
+
+"""
+
+[[apps]]
+id = "alsamixer"
+name = "alsamixer"
+category = "Sistem"
+description = "ALSA ses karıştırıcı."
+source = "https://www.alsa-project.org/"
+license = "GPL-2.0"
+executable = "alsamixer"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "alsa-utils"]
+install_notes = """
+pacman: sudo pacman -S alsa-utils
+apt: sudo apt install alsa-utils
+
+"""
+
+[[apps]]
+id = "bottom"
+name = "bottom"
+category = "Sistem"
+description = "Özelleştirilebilir grafik süreç/sistem monitörü (btm)."
+source = "https://github.com/ClementTsang/bottom"
+license = "MIT"
+executable = "btm"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "bottom"]
+install_notes = """
+cargo: cargo install bottom
+brew: brew install bottom
+Resmî: https://github.com/ClementTsang/bottom#installation
+
+"""
+
+[[apps]]
+id = "brightnessctl"
+name = "brightnessctl"
+category = "Sistem"
+description = "Ekran parlaklığı kontrolü."
+source = "https://github.com/Hummer12007/brightnessctl"
+license = "MIT"
+executable = "brightnessctl"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "brightnessctl"]
+install_notes = """
+pacman: sudo pacman -S brightnessctl
+apt: sudo apt install brightnessctl
+
+"""
+
+[[apps]]
+id = "btop"
+name = "btop"
+category = "Sistem"
+description = "CPU, bellek, disk ve ağ kullanımını grafik olarak izler."
+source = "https://github.com/aristocratos/btop"
+license = "Apache-2.0"
+executable = "btop"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "btop"]
+install_notes = """
+apt: sudo apt install btop
+brew: brew install btop
+pacman: sudo pacman -S btop
+Resmî: https://github.com/aristocratos/btop#installation
+
+"""
+
+[[apps]]
+id = "caligula"
+name = "caligula"
+category = "Sistem"
+description = "Kullanıcı dostu hafif disk kalıbı yazma TUI'si."
+source = "https://github.com/ifd3f/caligula"
+license = "GPL-3.0-only"
+executable = "caligula"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "caligula"]
+install_notes = """
+pacman: sudo pacman -S caligula
+Resmî: https://github.com/ifd3f/caligula
+
+"""
 
 [[apps]]
 id = "duf"
@@ -41,17 +146,43 @@ asset_pattern = "duf_{version}_linux_x86_64.tar.gz"
 checksum_asset_pattern = "checksums.txt"
 
 [[apps]]
-id = "btop"
-name = "btop"
+id = "fastfetch"
+name = "fastfetch"
 category = "Sistem"
-description = "CPU, bellek, disk ve ağ kullanımını grafik olarak izler."
-source = "https://github.com/aristocratos/btop"
-license = "Apache-2.0"
-executable = "btop"
+description = "Hızlı sistem bilgisi / neofetch tarzı özet."
+source = "https://github.com/fastfetch-cli/fastfetch"
+license = "MIT"
+executable = "fastfetch"
 install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "btop"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install btop\nbrew: brew install btop\npacman: sudo pacman -S btop\nResmî: https://github.com/aristocratos/btop#installation"""
+install_command = ["sudo", "apt", "install", "-y", "fastfetch"]
+install_notes = """
+apt: sudo apt install fastfetch
+brew: brew install fastfetch
+pacman: sudo pacman -S fastfetch
+Resmî: https://github.com/fastfetch-cli/fastfetch#installation
+
+"""
+
+[[apps]]
+id = "glances"
+name = "Glances"
+category = "Sistem"
+description = "Çok panelli sistem izleyici; top/htop alternatifi."
+source = "https://github.com/nicolargo/glances"
+license = "LGPL-3.0-or-later"
+executable = "glances"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "glances"]
+install_notes = """
+pipx: pipx install glances
+apt: sudo apt install glances
+brew: brew install glances
+pacman: sudo pacman -S glances
+Resmî: https://glances.readthedocs.io/en/latest/install.html
+
+"""
 
 [[apps]]
 id = "htop"
@@ -62,116 +193,16 @@ source = "https://htop.dev/"
 license = "GPL-2.0"
 executable = "htop"
 install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["sudo", "apt", "install", "-y", "htop"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install htop\nbrew: brew install htop\ndnf: sudo dnf install htop\npacman: sudo pacman -S htop\nResmî: https://htop.dev/"""
+install_notes = """
+apt: sudo apt install htop
+brew: brew install htop
+dnf: sudo dnf install htop
+pacman: sudo pacman -S htop
+Resmî: https://htop.dev/
 
-[[apps]]
-id = "bottom"
-name = "bottom"
-category = "Sistem"
-description = "Özelleştirilebilir grafik süreç/sistem monitörü (btm)."
-source = "https://github.com/ClementTsang/bottom"
-license = "MIT"
-executable = "btm"
-install_method = "cargo"
-install_command = ["cargo", "install", "bottom"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install bottom\nbrew: brew install bottom\nResmî: https://github.com/ClementTsang/bottom#installation"""
-
-[[apps]]
-id = "glances"
-name = "Glances"
-category = "Sistem"
-description = "Çok panelli sistem izleyici; top/htop alternatifi."
-source = "https://github.com/nicolargo/glances"
-license = "LGPL-3.0"
-executable = "glances"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "glances"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """pipx: pipx install glances\napt: sudo apt install glances\nbrew: brew install glances\npacman: sudo pacman -S glances\nResmî: https://glances.readthedocs.io/en/latest/install.html"""
-
-[[apps]]
-id = "procs"
-name = "procs"
-category = "Sistem"
-description = "Modern, kullanıcı dostu ps alternatifi."
-source = "https://github.com/dalance/procs"
-license = "MIT"
-executable = "procs"
-install_method = "cargo"
-install_command = ["cargo", "install", "procs"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install procs\nbrew: brew install procs\nResmî: https://github.com/dalance/procs#installation"""
-
-[[apps]]
-id = "fastfetch"
-name = "fastfetch"
-category = "Sistem"
-description = "Hızlı sistem bilgisi / neofetch tarzı özet."
-source = "https://github.com/fastfetch-cli/fastfetch"
-license = "MIT"
-executable = "fastfetch"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "fastfetch"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install fastfetch\nbrew: brew install fastfetch\npacman: sudo pacman -S fastfetch\nResmî: https://github.com/fastfetch-cli/fastfetch#installation"""
-
-[[apps]]
-id = "nvtop"
-name = "nvtop"
-category = "Sistem"
-description = "AMD, Intel ve NVIDIA GPU süreç monitörü."
-source = "https://github.com/Syllo/nvtop"
-license = "GPL-3.0"
-executable = "nvtop"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "nvtop"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install nvtop\nbrew: brew install nvtop\npacman: sudo pacman -S nvtop\nResmî: https://github.com/Syllo/nvtop#nvtop-installation"""
-
-[[apps]]
-id = "kmon"
-name = "kmon"
-category = "Sistem"
-description = "Linux çekirdek yöneticisi ve etkinlik monitörü."
-source = "https://github.com/orhun/kmon"
-license = "GPL-3.0"
-executable = "kmon"
-install_method = "cargo"
-install_command = ["cargo", "install", "kmon"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install kmon\nbrew: brew install kmon\nResmî: https://github.com/orhun/kmon#installation"""
-
-[[apps]]
-id = "sysz"
-name = "sysz"
-category = "Sistem"
-description = "systemctl için fzf tabanlı TUI."
-source = "https://github.com/joehillen/sysz"
-license = "Unlicense"
-executable = "sysz"
-install_method = "manual"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """curl: curl -fsSL https://github.com/joehillen/sysz/releases/latest/download/sysz -o ~/.local/bin/sysz && chmod +x ~/.local/bin/sysz\nResmî: https://github.com/joehillen/sysz"""
-
-[[apps]]
-id = "zenith"
-name = "zenith"
-category = "Sistem"
-description = "Grafik metriklerle terminal sistem monitörü."
-source = "https://github.com/bvaisvil/zenith"
-license = "MIT"
-executable = "zenith"
-install_method = "cargo"
-install_command = ["cargo", "install", "--locked", "zenith"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install --locked zenith\nbrew: brew install zenith\nResmî: https://github.com/bvaisvil/zenith#installation"""
-
-# ---------------------------------------------------------------------------
-# Ağ
-# ---------------------------------------------------------------------------
+"""
 
 [[apps]]
 id = "inxi"
@@ -182,9 +213,136 @@ source = "https://smxi.org/docs/inxi.htm"
 license = "GPL-3.0"
 executable = "inxi"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "inxi"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S inxi\napt: sudo apt install inxi\nResmî: https://smxi.org/docs/inxi.htm"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "inxi"]
+install_notes = """
+pacman: sudo pacman -S inxi
+apt: sudo apt install inxi
+Resmî: https://smxi.org/docs/inxi.htm
+
+"""
+
+[[apps]]
+id = "kmon"
+name = "kmon"
+category = "Sistem"
+description = "Linux çekirdek yöneticisi ve etkinlik monitörü."
+source = "https://github.com/orhun/kmon"
+license = "GPL-3.0"
+executable = "kmon"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "kmon"]
+install_notes = """
+cargo: cargo install kmon
+brew: brew install kmon
+Resmî: https://github.com/orhun/kmon#installation
+
+"""
+
+[[apps]]
+id = "lazyjournal"
+name = "lazyjournal"
+category = "Sistem"
+description = "journalctl, dosya ve konteyner günlükleri için TUI."
+source = "https://github.com/Lifailon/lazyjournal"
+license = "MIT"
+executable = "lazyjournal"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "lazyjournal"]
+install_notes = """
+brew: brew install lazyjournal
+Resmî: https://github.com/Lifailon/lazyjournal
+
+"""
+
+[[apps]]
+id = "lm_sensors"
+name = "sensors"
+category = "Sistem"
+description = "Donanım sensörleri."
+source = "https://hwmon.wiki.kernel.org/lm_sensors"
+license = "GPL-2.0"
+executable = "sensors"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "lm_sensors"]
+install_notes = """
+pacman: sudo pacman -S lm_sensors
+apt: sudo apt install lm-sensors
+
+"""
+
+[[apps]]
+id = "mac-cleanup-go"
+name = "mac-cleanup-go"
+category = "Sistem"
+description = "[macOS] Önbellek/log tarayıp Trash’e taşıyan disk temizleme TUI’si."
+source = "https://github.com/2ykwang/mac-cleanup-go"
+license = "MIT"
+executable = "mac-cleanup"
+install_method = "brew"
+supported_platforms = ["macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "mac-cleanup-go"]
+install_notes = """
+brew: brew install mac-cleanup-go
+Resmî: https://github.com/2ykwang/mac-cleanup-go
+
+"""
+
+[[apps]]
+id = "macchina"
+name = "macchina"
+category = "Sistem"
+description = "Hızlı sistem bilgisi (Rust)."
+source = "https://github.com/Macchina-CLI/macchina"
+license = "MIT"
+executable = "macchina"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "macchina"]
+install_notes = """
+pacman: sudo pacman -S macchina
+cargo: cargo install macchina
+Resmî: https://github.com/Macchina-CLI/macchina
+
+"""
+
+[[apps]]
+id = "macmon"
+name = "macmon"
+category = "Sistem"
+description = "[macOS] Apple Silicon için sudosuz gerçek zamanlı performans monitörü."
+source = "https://github.com/vladkens/macmon"
+license = "MIT"
+executable = "macmon"
+install_method = "brew"
+supported_platforms = ["macos-aarch64"]
+install_command = ["brew", "install", "macmon"]
+install_notes = """
+brew: brew install macmon
+cargo: cargo install macmon
+Resmî: https://github.com/vladkens/macmon
+
+"""
+
+[[apps]]
+id = "ncpamixer"
+name = "ncpamixer"
+category = "Sistem"
+description = "ncurses PulseAudio karıştırıcı."
+source = "https://github.com/fulhax/ncpamixer"
+license = "MIT"
+executable = "ncpamixer"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ncpamixer"]
+install_notes = """
+pacman: sudo pacman -S ncpamixer
+Resmî: https://github.com/fulhax/ncpamixer
+
+"""
 
 [[apps]]
 id = "neofetch"
@@ -195,22 +353,70 @@ source = "https://github.com/dylanaraps/neofetch"
 license = "MIT"
 executable = "neofetch"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "neofetch"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S neofetch\napt: sudo apt install neofetch\nbrew: brew install neofetch"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "neofetch"]
+install_notes = """
+pacman: sudo pacman -S neofetch
+apt: sudo apt install neofetch
+brew: brew install neofetch
+
+"""
 
 [[apps]]
-id = "screenfetch"
-name = "screenfetch"
+id = "nerdlog"
+name = "nerdlog"
 category = "Sistem"
-description = "Sistem bilgisi görüntüleyici."
-source = "https://github.com/KittyKatt/screenFetch"
-license = "GPL-3.0"
-executable = "screenfetch"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "screenfetch"]
+description = "Zaman çizelgeli, uzak öncelikli çoklu host TUI log görüntüleyici."
+source = "https://github.com/dimonomid/nerdlog"
+license = "BSD-2-Clause"
+executable = "nerdlog"
+install_method = "brew"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S screenfetch\napt: sudo apt install screenfetch"
+install_command = ["brew", "install", "nerdlog"]
+install_notes = """
+brew: brew install nerdlog
+Resmî: https://github.com/dimonomid/nerdlog
+
+"""
+
+[apps.release]
+repo = "dimonomid/nerdlog"
+
+[[apps]]
+id = "nmon"
+name = "nmon"
+category = "Sistem"
+description = "Linux performans ve kaynak izleme aracı."
+source = "https://nmon.sourceforge.io/"
+license = "GPL-3.0-only"
+executable = "nmon"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "nmon"]
+install_notes = """
+pacman: sudo pacman -S nmon
+Resmî: https://nmon.sourceforge.io/
+
+"""
+
+[[apps]]
+id = "nvtop"
+name = "nvtop"
+category = "Sistem"
+description = "AMD, Intel ve NVIDIA GPU süreç monitörü."
+source = "https://github.com/Syllo/nvtop"
+license = "GPL-3.0"
+executable = "nvtop"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "nvtop"]
+install_notes = """
+apt: sudo apt install nvtop
+brew: brew install nvtop
+pacman: sudo pacman -S nvtop
+Resmî: https://github.com/Syllo/nvtop#nvtop-installation
+
+"""
 
 [[apps]]
 id = "paleofetch"
@@ -222,98 +428,11 @@ license = "MIT"
 executable = "paleofetch"
 install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "Resmî: https://github.com/ssleert/paleofetch\nmake && sudo make install"
+install_notes = """
+Resmî: https://github.com/ssleert/paleofetch
+make && sudo make install
 
-[[apps]]
-id = "macchina"
-name = "macchina"
-category = "Sistem"
-description = "Hızlı sistem bilgisi (Rust)."
-source = "https://github.com/Macchina-CLI/macchina"
-license = "MIT"
-executable = "macchina"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "macchina"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S macchina\ncargo: cargo install macchina\nResmî: https://github.com/Macchina-CLI/macchina"
-
-[[apps]]
-id = "alsamixer"
-name = "alsamixer"
-category = "Sistem"
-description = "ALSA ses karıştırıcı."
-source = "https://www.alsa-project.org/"
-license = "GPL-2.0"
-executable = "alsamixer"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "alsa-utils"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S alsa-utils\napt: sudo apt install alsa-utils"
-
-[[apps]]
-id = "pulsemixer"
-name = "pulsemixer"
-category = "Sistem"
-description = "PulseAudio/PipeWire TUI karıştırıcı."
-source = "https://github.com/GeorgeFilipkin/pulsemixer"
-license = "MIT"
-executable = "pulsemixer"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "pulsemixer"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S pulsemixer\npipx: pipx install pulsemixer\nResmî: https://github.com/GeorgeFilipkin/pulsemixer"
-
-[[apps]]
-id = "ncpamixer"
-name = "ncpamixer"
-category = "Sistem"
-description = "ncurses PulseAudio karıştırıcı."
-source = "https://github.com/fulhax/ncpamixer"
-license = "MIT"
-executable = "ncpamixer"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "ncpamixer"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S ncpamixer\nResmî: https://github.com/fulhax/ncpamixer"
-
-[[apps]]
-id = "brightnessctl"
-name = "brightnessctl"
-category = "Sistem"
-description = "Ekran parlaklığı kontrolü."
-source = "https://github.com/Hummer12007/brightnessctl"
-license = "MIT"
-executable = "brightnessctl"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "brightnessctl"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S brightnessctl\napt: sudo apt install brightnessctl"
-
-[[apps]]
-id = "acpi"
-name = "acpi"
-category = "Sistem"
-description = "Pil/ACPI bilgi aracı."
-source = "https://sourceforge.net/projects/acpiclient/"
-license = "GPL-2.0"
-executable = "acpi"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "acpi"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S acpi\napt: sudo apt install acpi"
-
-[[apps]]
-id = "lm_sensors"
-name = "sensors"
-category = "Sistem"
-description = "Donanım sensörleri."
-source = "https://hwmon.wiki.kernel.org/lm_sensors"
-license = "GPL-2.0"
-executable = "sensors"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "lm_sensors"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S lm_sensors\napt: sudo apt install lm-sensors"
+"""
 
 [[apps]]
 id = "powertop"
@@ -324,6 +443,155 @@ source = "https://github.com/fenrus75/powertop"
 license = "GPL-2.0"
 executable = "powertop"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "powertop"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S powertop\napt: sudo apt install powertop"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "powertop"]
+install_notes = """
+pacman: sudo pacman -S powertop
+apt: sudo apt install powertop
+
+"""
+
+[[apps]]
+id = "procs"
+name = "procs"
+category = "Sistem"
+description = "Modern, kullanıcı dostu ps alternatifi."
+source = "https://github.com/dalance/procs"
+license = "MIT"
+executable = "procs"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "procs"]
+install_notes = """
+cargo: cargo install procs
+brew: brew install procs
+Resmî: https://github.com/dalance/procs#installation
+
+"""
+
+[[apps]]
+id = "pstop"
+name = "pstop"
+category = "Sistem"
+description = "[Windows] Çekirdek başına CPU çubukları ve ağaç görünümlü htop tarzı sistem monitörü."
+source = "https://github.com/psmux/pstop"
+license = "MIT"
+executable = "pstop"
+install_method = "cargo"
+supported_platforms = ["windows-x64"]
+install_command = ["cargo", "install", "pstop"]
+install_notes = """
+cargo: cargo install pstop
+winget: winget install marlocarlo.pstop
+Resmî: https://github.com/psmux/pstop
+
+"""
+
+[[apps]]
+id = "pulsemixer"
+name = "pulsemixer"
+category = "Sistem"
+description = "PulseAudio/PipeWire TUI karıştırıcı."
+source = "https://github.com/GeorgeFilipkin/pulsemixer"
+license = "MIT"
+executable = "pulsemixer"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "pulsemixer"]
+install_notes = """
+pacman: sudo pacman -S pulsemixer
+pipx: pipx install pulsemixer
+Resmî: https://github.com/GeorgeFilipkin/pulsemixer
+
+"""
+
+[[apps]]
+id = "screenfetch"
+name = "screenfetch"
+category = "Sistem"
+description = "Sistem bilgisi görüntüleyici."
+source = "https://github.com/KittyKatt/screenFetch"
+license = "GPL-3.0"
+executable = "screenfetch"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "screenfetch"]
+install_notes = """
+pacman: sudo pacman -S screenfetch
+apt: sudo apt install screenfetch
+
+"""
+
+[[apps]]
+id = "sysdig"
+name = "sysdig"
+category = "Sistem"
+description = "Sistem ve konteyner keşif / sorun giderme aracı (csysdig TUI)."
+source = "https://github.com/draios/sysdig"
+license = "Apache-2.0"
+executable = "sysdig"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "sysdig"]
+install_notes = """
+pacman: sudo pacman -S sysdig
+TUI: csysdig
+Resmî: https://github.com/draios/sysdig
+
+"""
+
+[[apps]]
+id = "systemctl-tui"
+name = "systemctl-tui"
+category = "Sistem"
+description = "systemctl-tui, systemd birimlerini ve günlüklerini yönetmek için hızlı ve sade bir TUI’dir: servis/zamanlayıcı durumu ve logları gezme, başlat/durdur, birim dosyası görüntüleme/düzenleme. --host user@host ile SSH üzerinden uzaktan yönetim (uzakta ek kurulum gerekmez). Nova servis yöneticisi değildir; systemctl-tui Lazygit tarzı bir systemd yüzeyidir."
+source = "https://github.com/rgwood/systemctl-tui"
+license = "MIT"
+executable = "systemctl-tui"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "systemctl-tui"]
+install_notes = """
+pacman: sudo pacman -S systemctl-tui
+cargo: cargo install systemctl-tui
+GitHub yayınları x64 ve ARM64 ikilileri sunar.
+Yalnızca systemd üzerinde çalışır; WSL kullanıcıları systemd etkin olmalıdır.
+Servis/zamanlayıcı başlatma, durdurma ve enable/disable işlemleri için sudo yetkisi gerekir.
+Uzak sunucu yönetimi: systemctl-tui --host user@hostname (SSH üzerinden, uzak tarafta kurulum gerekmez).
+Resmî: https://github.com/rgwood/systemctl-tui
+
+"""
+
+[[apps]]
+id = "sysz"
+name = "sysz"
+category = "Sistem"
+description = "systemctl için fzf tabanlı TUI."
+source = "https://github.com/joehillen/sysz"
+license = "Unlicense"
+executable = "sysz"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """
+curl: curl -fsSL https://github.com/joehillen/sysz/releases/latest/download/sysz -o ~/.local/bin/sysz && chmod +x ~/.local/bin/sysz
+Resmî: https://github.com/joehillen/sysz
+
+"""
+
+[[apps]]
+id = "zenith"
+name = "zenith"
+category = "Sistem"
+description = "Grafik metriklerle terminal sistem monitörü."
+source = "https://github.com/bvaisvil/zenith"
+license = "MIT"
+executable = "zenith"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "--locked", "zenith"]
+install_notes = """
+cargo: cargo install --locked zenith
+brew: brew install zenith
+Resmî: https://github.com/bvaisvil/zenith#installation
+
+"""

@@ -1,10 +1,455 @@
-# Nova mağaza kataloğu — container
+# Nova mağaza kataloğu — Konteyner
 #
 # Kategori: "Konteyner"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
+
+[[apps]]
+id = "buildah"
+name = "buildah"
+category = "Konteyner"
+description = "OCI imaj oluşturma aracı."
+source = "https://buildah.io/"
+license = "Apache-2.0"
+executable = "buildah"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "buildah"]
+install_notes = """
+pacman: sudo pacman -S buildah
+apt: sudo apt install buildah
+Resmî: https://buildah.io/
+
+"""
+
+[[apps]]
+id = "cdebug"
+name = "cdebug"
+category = "Konteyner"
+description = "Çalışan konteynerlere debug kabuğu."
+source = "https://github.com/iximiuz/cdebug"
+license = "Apache-2.0"
+executable = "cdebug"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """
+go: go install github.com/iximiuz/cdebug@latest
+Resmî: https://github.com/iximiuz/cdebug
+
+"""
+
+[[apps]]
+id = "ctop"
+name = "ctop"
+category = "Konteyner"
+description = "Konteynerler için top benzeri metrik arayüzü."
+source = "https://github.com/bcicen/ctop"
+license = "MIT"
+executable = "ctop"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "ctop"]
+install_notes = """
+brew: brew install ctop
+Resmî: https://github.com/bcicen/ctop#installation
+
+"""
+
+[[apps]]
+id = "distrobox"
+name = "distrobox"
+category = "Konteyner"
+description = "Herhangi bir Linux dağıtımını terminalde kullanmayı sağlar."
+source = "https://github.com/89luca89/distrobox"
+license = "GPL-3.0-only"
+executable = "distrobox"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "distrobox"]
+install_notes = """
+pacman: sudo pacman -S distrobox
+brew: brew install distrobox
+Resmî: https://distrobox.it/
+
+"""
+
+[apps.release]
+repo = "89luca89/distrobox"
+
+[[apps]]
+id = "dive"
+name = "dive"
+category = "Konteyner"
+description = "Konteyner imaj katmanlarını keşfeder."
+source = "https://github.com/wagoodman/dive"
+license = "MIT"
+executable = "dive"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "dive"]
+install_notes = """
+brew: brew install dive
+Resmî: https://github.com/wagoodman/dive#installation
+
+"""
+
+[[apps]]
+id = "docker-compose"
+name = "docker-compose"
+category = "Konteyner"
+description = "Docker Compose V2 eklentisi (compose)."
+source = "https://docs.docker.com/compose/"
+license = "Apache-2.0"
+executable = "docker-compose"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "docker-compose"]
+install_notes = """
+pacman: sudo pacman -S docker-compose
+apt: sudo apt install docker-compose-plugin
+Resmî: https://docs.docker.com/compose/
+
+"""
+
+[[apps]]
+id = "docker"
+name = "docker"
+category = "Konteyner"
+description = "Docker Engine CLI istemcisi."
+source = "https://www.docker.com/"
+license = "Apache-2.0"
+executable = "docker"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "docker"]
+install_notes = """
+pacman: sudo pacman -S docker
+apt: sudo apt install docker.io
+Resmî: https://docs.docker.com/engine/install/
+
+"""
+
+[[apps]]
+id = "dockly"
+name = "dockly"
+category = "Konteyner"
+description = "Docker konteyner ve servis yönetimi için immersive TUI."
+source = "https://github.com/lirantal/dockly"
+license = "MIT"
+executable = "dockly"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "dockly"]
+install_notes = """
+brew: brew install dockly
+npm: npm install -g dockly
+Resmî: https://github.com/lirantal/dockly
+
+"""
+
+[[apps]]
+id = "dry"
+name = "dry"
+category = "Konteyner"
+description = "Docker ve Docker Swarm için terminal yöneticisi."
+source = "https://github.com/moncho/dry"
+license = "MIT"
+executable = "dry"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """
+go: go install github.com/moncho/dry@latest
+Resmî: https://github.com/moncho/dry#installation
+
+"""
+
+[[apps]]
+id = "dtop"
+name = "dtop"
+category = "Konteyner"
+description = "Birden fazla host üzerinde Docker izleme terminal panosu."
+source = "https://github.com/amir20/dtop"
+license = "MIT"
+executable = "dtop"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "dtop"]
+install_notes = """
+brew: brew install dtop
+Resmî: https://github.com/amir20/dtop
+
+"""
+
+[apps.release]
+repo = "amir20/dtop"
+
+[[apps]]
+id = "ducker"
+name = "ducker"
+category = "Konteyner"
+description = "k9s tarzı Docker yönetim TUI'si."
+source = "https://github.com/robertpsoane/ducker"
+license = "MIT"
+executable = "ducker"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ducker"]
+install_notes = """
+pacman: sudo pacman -S ducker
+Resmî: https://github.com/robertpsoane/ducker
+
+"""
+
+[[apps]]
+id = "e1s"
+name = "e1s"
+category = "Konteyner"
+description = "AWS ECS yönetimi için k9s esinli TUI."
+source = "https://github.com/keidarcy/e1s"
+license = "MIT"
+executable = "e1s"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "e1s"]
+install_notes = """
+brew: brew install e1s
+Resmî: https://github.com/keidarcy/e1s
+
+"""
+
+[apps.release]
+repo = "keidarcy/e1s"
+
+[[apps]]
+id = "hadolint"
+name = "hadolint"
+category = "Konteyner"
+description = "Dockerfile linter."
+source = "https://github.com/hadolint/hadolint"
+license = "GPL-3.0"
+executable = "hadolint"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "hadolint"]
+install_notes = """
+pacman: sudo pacman -S hadolint
+brew: brew install hadolint
+Resmî: https://github.com/hadolint/hadolint
+
+"""
+
+[[apps]]
+id = "helm"
+name = "Helm"
+category = "Konteyner"
+description = "Kubernetes paket yöneticisi."
+source = "https://helm.sh/"
+license = "Apache-2.0"
+executable = "helm"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "helm"]
+install_notes = """
+brew: brew install helm
+curl: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+Resmî: https://helm.sh/docs/intro/install/
+
+"""
+
+[[apps]]
+id = "helmfile"
+name = "helmfile"
+category = "Konteyner"
+description = "Helm release bildirimsel dağıtım."
+source = "https://github.com/helmfile/helmfile"
+license = "MIT"
+executable = "helmfile"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "helmfile"]
+install_notes = """
+pacman: sudo pacman -S helmfile
+brew: brew install helmfile
+Resmî: https://github.com/helmfile/helmfile
+
+"""
+
+[[apps]]
+id = "k9s"
+name = "k9s"
+category = "Konteyner"
+description = "Kubernetes kümelerini yönetmek için terminal panosu."
+source = "https://k9scli.io/"
+license = "Apache-2.0"
+executable = "k9s"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "k9s"]
+install_notes = """
+brew: brew install k9s
+Resmî: https://k9scli.io/topics/install/
+
+"""
+
+[[apps]]
+id = "kdash"
+name = "kdash"
+category = "Konteyner"
+description = "Kubernetes için basit ve hızlı pano."
+source = "https://github.com/kdash-rs/kdash"
+license = "MIT"
+executable = "kdash"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "kdash"]
+install_notes = """
+cargo: cargo install kdash
+brew: brew install kdash
+Resmî: https://github.com/kdash-rs/kdash
+
+"""
+
+[[apps]]
+id = "kind"
+name = "kind"
+category = "Konteyner"
+description = "Docker içinde yerel Kubernetes kümeleri."
+source = "https://kind.sigs.k8s.io/"
+license = "Apache-2.0"
+executable = "kind"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "kind"]
+install_notes = """
+pacman: sudo pacman -S kind
+brew: brew install kind
+Resmî: https://kind.sigs.k8s.io/
+
+"""
+
+[[apps]]
+id = "ktop"
+name = "ktop"
+category = "Konteyner"
+description = "Kubernetes için top benzeri izleyici."
+source = "https://github.com/vladimirvivien/ktop"
+license = "Apache-2.0"
+executable = "ktop"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """
+go: go install github.com/vladimirvivien/ktop@latest
+Resmî: https://github.com/vladimirvivien/ktop
+
+"""
+
+[[apps]]
+id = "kubectl"
+name = "kubectl"
+category = "Konteyner"
+description = "Kubernetes komut satırı aracı."
+source = "https://kubernetes.io/docs/reference/kubectl/"
+license = "Apache-2.0"
+executable = "kubectl"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "kubectl"]
+install_notes = """
+brew: brew install kubectl
+Resmî: https://kubernetes.io/docs/tasks/tools/
+
+"""
+
+[[apps]]
+id = "kubectx"
+name = "kubectx"
+category = "Konteyner"
+description = "Kubernetes context/namespace değiştirici."
+source = "https://github.com/ahmetb/kubectx"
+license = "Apache-2.0"
+executable = "kubectx"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "kubectx"]
+install_notes = """
+pacman: sudo pacman -S kubectx
+brew: brew install kubectx
+Resmî: https://github.com/ahmetb/kubectx
+
+"""
+
+[[apps]]
+id = "kubens"
+name = "kubens"
+category = "Konteyner"
+description = "Kubernetes namespace değiştirici."
+source = "https://github.com/ahmetb/kubectx"
+license = "Apache-2.0"
+executable = "kubens"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "kubectx"]
+install_notes = """
+pacman: sudo pacman -S kubectx
+brew: brew install kubectx
+Resmî: https://github.com/ahmetb/kubectx
+
+"""
+
+[[apps]]
+id = "kubetui"
+name = "kubetui"
+category = "Konteyner"
+description = "Kubernetes kaynakları için TUI."
+source = "https://github.com/sarub0b0/kubetui"
+license = "MIT"
+executable = "kubetui"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "kubetui"]
+install_notes = """
+cargo: cargo install kubetui
+Resmî: https://github.com/sarub0b0/kubetui
+
+"""
+
+[[apps]]
+id = "kustomize"
+name = "kustomize"
+category = "Konteyner"
+description = "Kubernetes YAML özelleştirme."
+source = "https://kustomize.io/"
+license = "Apache-2.0"
+executable = "kustomize"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "kustomize"]
+install_notes = """
+pacman: sudo pacman -S kustomize
+brew: brew install kustomize
+Resmî: https://kustomize.io/
+
+"""
+
+[[apps]]
+id = "lazycontainer"
+name = "lazycontainer"
+category = "Konteyner"
+description = "[macOS] Apple Containers yönetimi için TUI."
+source = "https://github.com/andreybleme/lazycontainer"
+license = "MIT"
+executable = "lazycontainer"
+install_method = "brew"
+supported_platforms = ["macos-aarch64"]
+install_command = ["brew", "install", "lazycontainer"]
+install_notes = """
+brew: brew install lazycontainer
+Gereksinim: brew install container (Apple containers CLI)
+Resmî: https://github.com/andreybleme/lazycontainer
+
+"""
 
 [[apps]]
 id = "lazydocker"
@@ -41,201 +486,42 @@ asset_pattern = "lazydocker_{version}_Linux_x86_64.tar.gz"
 checksum_asset_pattern = "checksums.txt"
 
 [[apps]]
-id = "k9s"
-name = "k9s"
+id = "lfk"
+name = "lfk"
 category = "Konteyner"
-description = "Kubernetes kümelerini yönetmek için terminal panosu."
-source = "https://k9scli.io/"
+description = "Kubernetes kaynaklarını gezmek için klavye odaklı TUI."
+source = "https://github.com/janosmiko/lfk"
 license = "Apache-2.0"
-executable = "k9s"
+executable = "lfk"
 install_method = "brew"
-install_command = ["brew", "install", "k9s"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install k9s\nResmî: https://k9scli.io/topics/install/"""
+install_command = ["brew", "install", "lfk"]
+install_notes = """
+brew: brew install lfk
+Resmî: https://github.com/janosmiko/lfk
+
+"""
+
+[apps.release]
+repo = "janosmiko/lfk"
 
 [[apps]]
-id = "ctop"
-name = "ctop"
+id = "minikube"
+name = "minikube"
 category = "Konteyner"
-description = "Konteynerler için top benzeri metrik arayüzü."
-source = "https://github.com/bcicen/ctop"
-license = "MIT"
-executable = "ctop"
-install_method = "brew"
-install_command = ["brew", "install", "ctop"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install ctop\nResmî: https://github.com/bcicen/ctop#installation"""
-
-[[apps]]
-id = "dive"
-name = "dive"
-category = "Konteyner"
-description = "Konteyner imaj katmanlarını keşfeder."
-source = "https://github.com/wagoodman/dive"
-license = "MIT"
-executable = "dive"
-install_method = "brew"
-install_command = ["brew", "install", "dive"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install dive\nResmî: https://github.com/wagoodman/dive#installation"""
-
-[[apps]]
-id = "dry"
-name = "dry"
-category = "Konteyner"
-description = "Docker ve Docker Swarm için terminal yöneticisi."
-source = "https://github.com/moncho/dry"
-license = "MIT"
-executable = "dry"
-install_method = "manual"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """go: go install github.com/moncho/dry@latest\nResmî: https://github.com/moncho/dry#installation"""
-
-[[apps]]
-id = "podman-tui"
-name = "podman-tui"
-category = "Konteyner"
-description = "Podman için resmi terminal kullanıcı arayüzü."
-source = "https://github.com/containers/podman-tui"
+description = "Yerel Kubernetes kümesi."
+source = "https://minikube.sigs.k8s.io/"
 license = "Apache-2.0"
-executable = "podman-tui"
-install_method = "brew"
-install_command = ["brew", "install", "podman-tui"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install podman-tui\nResmî: https://github.com/containers/podman-tui#installation"""
-
-[[apps]]
-id = "helm"
-name = "Helm"
-category = "Konteyner"
-description = "Kubernetes paket yöneticisi."
-source = "https://helm.sh/"
-license = "Apache-2.0"
-executable = "helm"
-install_method = "brew"
-install_command = ["brew", "install", "helm"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install helm\ncurl: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash\nResmî: https://helm.sh/docs/intro/install/"""
-
-[[apps]]
-id = "kubectl"
-name = "kubectl"
-category = "Konteyner"
-description = "Kubernetes komut satırı aracı."
-source = "https://kubernetes.io/docs/reference/kubectl/"
-license = "Apache-2.0"
-executable = "kubectl"
-install_method = "brew"
-install_command = ["brew", "install", "kubectl"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install kubectl\nResmî: https://kubernetes.io/docs/tasks/tools/"""
-
-[[apps]]
-id = "oxker"
-name = "Oxker"
-category = "Konteyner"
-description = "Docker konteyner yönetimi için hafif TUI."
-source = "https://github.com/mrjackwills/oxker"
-license = "MIT"
-executable = "oxker"
-install_method = "cargo"
-install_command = ["cargo", "install", "oxker"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install oxker\nResmî: https://github.com/mrjackwills/oxker"""
-
-# ---------------------------------------------------------------------------
-# Veritabanı
-# ---------------------------------------------------------------------------
-
-[[apps]]
-id = "kdash"
-name = "kdash"
-category = "Konteyner"
-description = "Kubernetes için basit ve hızlı pano."
-source = "https://github.com/kdash-rs/kdash"
-license = "MIT"
-executable = "kdash"
-install_method = "cargo"
-install_command = ["cargo", "install", "kdash"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "cargo: cargo install kdash\nbrew: brew install kdash\nResmî: https://github.com/kdash-rs/kdash"
-
-[[apps]]
-id = "kubetui"
-name = "kubetui"
-category = "Konteyner"
-description = "Kubernetes kaynakları için TUI."
-source = "https://github.com/sarub0b0/kubetui"
-license = "MIT"
-executable = "kubetui"
-install_method = "cargo"
-install_command = ["cargo", "install", "kubetui"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "cargo: cargo install kubetui\nResmî: https://github.com/sarub0b0/kubetui"
-
-[[apps]]
-id = "ktop"
-name = "ktop"
-category = "Konteyner"
-description = "Kubernetes için top benzeri izleyici."
-source = "https://github.com/vladimirvivien/ktop"
-license = "Apache-2.0"
-executable = "ktop"
-install_method = "manual"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "go: go install github.com/vladimirvivien/ktop@latest\nResmî: https://github.com/vladimirvivien/ktop"
-
-[[apps]]
-id = "stern"
-name = "stern"
-category = "Konteyner"
-description = "Çoklu pod log kuyruğu."
-source = "https://github.com/stern/stern"
-license = "Apache-2.0"
-executable = "stern"
+executable = "minikube"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "stern"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S stern\nbrew: brew install stern\nResmî: https://github.com/stern/stern"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "minikube"]
+install_notes = """
+pacman: sudo pacman -S minikube
+brew: brew install minikube
+Resmî: https://minikube.sigs.k8s.io/
 
-[[apps]]
-id = "kubectx"
-name = "kubectx"
-category = "Konteyner"
-description = "Kubernetes context/namespace değiştirici."
-source = "https://github.com/ahmetb/kubectx"
-license = "Apache-2.0"
-executable = "kubectx"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "kubectx"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S kubectx\nbrew: brew install kubectx\nResmî: https://github.com/ahmetb/kubectx"
-
-[[apps]]
-id = "kubens"
-name = "kubens"
-category = "Konteyner"
-description = "Kubernetes namespace değiştirici."
-source = "https://github.com/ahmetb/kubectx"
-license = "Apache-2.0"
-executable = "kubens"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "kubectx"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S kubectx\nbrew: brew install kubectx\nResmî: https://github.com/ahmetb/kubectx"
-
-[[apps]]
-id = "docker-compose"
-name = "docker-compose"
-category = "Konteyner"
-description = "Docker Compose V2 eklentisi (compose)."
-source = "https://docs.docker.com/compose/"
-license = "Apache-2.0"
-executable = "docker-compose"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "docker-compose"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S docker-compose\napt: sudo apt install docker-compose-plugin\nResmî: https://docs.docker.com/compose/"
+"""
 
 [[apps]]
 id = "nerdctl"
@@ -246,35 +532,65 @@ source = "https://github.com/containerd/nerdctl"
 license = "Apache-2.0"
 executable = "nerdctl"
 install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "nerdctl"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S nerdctl\nResmî: https://github.com/containerd/nerdctl"
+install_notes = """
+pacman: sudo pacman -S nerdctl
+Resmî: https://github.com/containerd/nerdctl
+
+"""
 
 [[apps]]
-id = "buildah"
-name = "buildah"
+id = "oxker"
+name = "Oxker"
 category = "Konteyner"
-description = "OCI imaj oluşturma aracı."
-source = "https://buildah.io/"
-license = "Apache-2.0"
-executable = "buildah"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "buildah"]
+description = "Docker konteyner yönetimi için hafif TUI."
+source = "https://github.com/mrjackwills/oxker"
+license = "MIT"
+executable = "oxker"
+install_method = "cargo"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S buildah\napt: sudo apt install buildah\nResmî: https://buildah.io/"
+install_command = ["cargo", "install", "oxker"]
+install_notes = """
+cargo: cargo install oxker
+Resmî: https://github.com/mrjackwills/oxker
+
+"""
 
 [[apps]]
-id = "skopeo"
-name = "skopeo"
+id = "podman-tui"
+name = "podman-tui"
 category = "Konteyner"
-description = "Konteyner imajı inceleme/taşıma."
-source = "https://github.com/containers/skopeo"
+description = "Podman için resmi terminal kullanıcı arayüzü."
+source = "https://github.com/containers/podman-tui"
 license = "Apache-2.0"
-executable = "skopeo"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "skopeo"]
+executable = "podman-tui"
+install_method = "brew"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S skopeo\napt: sudo apt install skopeo\nResmî: https://github.com/containers/skopeo"
+install_command = ["brew", "install", "podman-tui"]
+install_notes = """
+brew: brew install podman-tui
+Resmî: https://github.com/containers/podman-tui#installation
+
+"""
+
+[[apps]]
+id = "podman"
+name = "podman"
+category = "Konteyner"
+description = "Kök gerektirmeyen konteyner motoru."
+source = "https://podman.io/"
+license = "Apache-2.0"
+executable = "podman"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "podman"]
+install_notes = """
+pacman: sudo pacman -S podman
+apt: sudo apt install podman
+Resmî: https://podman.io/
+
+"""
 
 [[apps]]
 id = "regctl"
@@ -286,107 +602,81 @@ license = "Apache-2.0"
 executable = "regctl"
 install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "Resmî: https://github.com/regclient/regclient/releases\nbrew: brew install regclient"
+install_notes = """
+Resmî: https://github.com/regclient/regclient/releases
+brew: brew install regclient
+
+"""
 
 [[apps]]
-id = "hadolint"
-name = "hadolint"
+id = "sen"
+name = "sen"
 category = "Konteyner"
-description = "Dockerfile linter."
-source = "https://github.com/hadolint/hadolint"
-license = "GPL-3.0"
-executable = "hadolint"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "hadolint"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S hadolint\nbrew: brew install hadolint\nResmî: https://github.com/hadolint/hadolint"
-
-[[apps]]
-id = "cdebug"
-name = "cdebug"
-category = "Konteyner"
-description = "Çalışan konteynerlere debug kabuğu."
-source = "https://github.com/iximiuz/cdebug"
-license = "Apache-2.0"
-executable = "cdebug"
-install_method = "manual"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "go: go install github.com/iximiuz/cdebug@latest\nResmî: https://github.com/iximiuz/cdebug"
-
-[[apps]]
-id = "docker"
-name = "docker"
-category = "Konteyner"
-description = "Docker Engine CLI istemcisi."
-source = "https://www.docker.com/"
-license = "Apache-2.0"
-executable = "docker"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "docker"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S docker\napt: sudo apt install docker.io\nResmî: https://docs.docker.com/engine/install/"
-
-[[apps]]
-id = "podman"
-name = "podman"
-category = "Konteyner"
-description = "Kök gerektirmeyen konteyner motoru."
-source = "https://podman.io/"
-license = "Apache-2.0"
-executable = "podman"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "podman"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S podman\napt: sudo apt install podman\nResmî: https://podman.io/"
-
-[[apps]]
-id = "kind"
-name = "kind"
-category = "Konteyner"
-description = "Docker içinde yerel Kubernetes kümeleri."
-source = "https://kind.sigs.k8s.io/"
-license = "Apache-2.0"
-executable = "kind"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "kind"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S kind\nbrew: brew install kind\nResmî: https://kind.sigs.k8s.io/"
-
-[[apps]]
-id = "minikube"
-name = "minikube"
-category = "Konteyner"
-description = "Yerel Kubernetes kümesi."
-source = "https://minikube.sigs.k8s.io/"
-license = "Apache-2.0"
-executable = "minikube"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "minikube"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S minikube\nbrew: brew install minikube\nResmî: https://minikube.sigs.k8s.io/"
-
-[[apps]]
-id = "helmfile"
-name = "helmfile"
-category = "Konteyner"
-description = "Helm release bildirimsel dağıtım."
-source = "https://github.com/helmfile/helmfile"
+description = "Docker engine için terminal kullanıcı arayüzü."
+source = "https://github.com/TomasTomecek/sen"
 license = "MIT"
-executable = "helmfile"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "helmfile"]
+executable = "sen"
+install_method = "pipx"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S helmfile\nbrew: brew install helmfile\nResmî: https://github.com/helmfile/helmfile"
+install_command = ["pipx", "install", "sen"]
+install_notes = """
+pipx: pipx install sen
+Resmî: https://github.com/TomasTomecek/sen
+
+"""
 
 [[apps]]
-id = "kustomize"
-name = "kustomize"
+id = "skopeo"
+name = "skopeo"
 category = "Konteyner"
-description = "Kubernetes YAML özelleştirme."
-source = "https://kustomize.io/"
+description = "Konteyner imajı inceleme/taşıma."
+source = "https://github.com/containers/skopeo"
 license = "Apache-2.0"
-executable = "kustomize"
+executable = "skopeo"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "kustomize"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S kustomize\nbrew: brew install kustomize\nResmî: https://kustomize.io/"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "skopeo"]
+install_notes = """
+pacman: sudo pacman -S skopeo
+apt: sudo apt install skopeo
+Resmî: https://github.com/containers/skopeo
+
+"""
+
+[[apps]]
+id = "stern"
+name = "stern"
+category = "Konteyner"
+description = "Çoklu pod log kuyruğu."
+source = "https://github.com/stern/stern"
+license = "Apache-2.0"
+executable = "stern"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "stern"]
+install_notes = """
+pacman: sudo pacman -S stern
+brew: brew install stern
+Resmî: https://github.com/stern/stern
+
+"""
+
+[[apps]]
+id = "wander"
+name = "wander"
+category = "Konteyner"
+description = "HashiCorp Nomad için terminal TUI."
+source = "https://github.com/robinovitch61/wander"
+license = "MIT"
+executable = "wander"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "robinovitch61/tap/wander"]
+install_notes = """
+brew: brew install robinovitch61/tap/wander
+Resmî: https://github.com/robinovitch61/wander
+
+"""
+
+[apps.release]
+repo = "robinovitch61/wander"

@@ -1,10 +1,140 @@
-# Nova mağaza kataloğu — database
+# Nova mağaza kataloğu — Veritabanı
 #
 # Kategori: "Veritabanı"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
+
+[[apps]]
+id = "chdig"
+name = "chdig"
+category = "Veritabanı"
+description = "ClickHouse için TUI keşif aracı."
+source = "https://github.com/azat/chdig"
+license = "MIT"
+executable = "chdig"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "chdig"]
+install_notes = """
+brew: brew install chdig
+Resmî: https://github.com/azat/chdig
+
+"""
+
+[apps.release]
+repo = "azat/chdig"
+
+[[apps]]
+id = "datasette"
+name = "datasette"
+category = "Veritabanı"
+description = "SQLite’ı web/API olarak yayınla."
+source = "https://datasette.io/"
+license = "Apache-2.0"
+executable = "datasette"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "datasette"]
+install_notes = """
+pipx: pipx install datasette
+uv: uv tool install datasette
+Resmî: https://datasette.io/
+
+"""
+
+[[apps]]
+id = "dblab"
+name = "dblab"
+category = "Veritabanı"
+description = "Komut satırı meraklıları için veritabanı istemcisi TUI."
+source = "https://github.com/danvergara/dblab"
+license = "MIT"
+executable = "dblab"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "dblab"]
+install_notes = """
+brew: brew install dblab
+Resmî: https://github.com/danvergara/dblab
+
+"""
+
+[[apps]]
+id = "dolphie"
+name = "dolphie"
+category = "Veritabanı"
+description = "MySQL/MariaDB için gerçek zamanlı analitik TUI."
+source = "https://github.com/charles-001/dolphie"
+license = "GPL-3.0-or-later"
+executable = "dolphie"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "dolphie"]
+install_notes = """
+brew: brew install dolphie
+uv: uv tool install dolphie
+Resmî: https://github.com/charles-001/dolphie
+
+"""
+
+[apps.release]
+repo = "charles-001/dolphie"
+
+[[apps]]
+id = "gobang"
+name = "gobang"
+category = "Veritabanı"
+description = "Çok platformlu TUI veritabanı yönetim aracı."
+source = "https://github.com/TaKO8Ki/gobang"
+license = "MIT"
+executable = "gobang"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "--locked", "gobang"]
+install_notes = """
+cargo: cargo install --locked gobang
+Resmî: https://github.com/TaKO8Ki/gobang#installation
+
+"""
+
+[[apps]]
+id = "harlequin"
+name = "Harlequin"
+category = "Veritabanı"
+description = "Terminal için SQL IDE."
+source = "https://github.com/tconbeer/harlequin"
+license = "MIT"
+executable = "harlequin"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "harlequin"]
+install_notes = """
+pipx: pipx install harlequin
+uv: uv tool install harlequin
+Resmî: https://harlequin.sh/
+
+"""
+
+[[apps]]
+id = "iredis"
+name = "iredis"
+category = "Veritabanı"
+description = "Otomatik tamamlamalı Redis terminal istemcisi."
+source = "https://github.com/laixintao/iredis"
+license = "BSD-3-Clause"
+executable = "iredis"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "iredis"]
+install_notes = """
+pipx: pipx install iredis
+uv: uv tool install iredis
+pacman: sudo pacman -S iredis / AUR
+Resmî: https://github.com/laixintao/iredis
+
+"""
 
 [[apps]]
 id = "lazysql"
@@ -16,141 +146,28 @@ license = "MIT"
 executable = "lazysql"
 install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """go: go install github.com/jorgerojas26/lazysql@latest\nResmî: https://github.com/jorgerojas26/lazysql#installation"""
+install_notes = """
+go: go install github.com/jorgerojas26/lazysql@latest
+Resmî: https://github.com/jorgerojas26/lazysql#installation
+
+"""
 
 [[apps]]
-id = "harlequin"
-name = "Harlequin"
+id = "litecli"
+name = "litecli"
 category = "Veritabanı"
-description = "Terminal için SQL IDE."
-source = "https://github.com/tconbeer/harlequin"
-license = "MIT"
-executable = "harlequin"
-install_method = "pipx"
-install_command = ["pipx", "install", "harlequin"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """pipx: pipx install harlequin\nuv: uv tool install harlequin\nResmî: https://harlequin.sh/"""
-
-[[apps]]
-id = "rainfrog"
-name = "rainfrog"
-category = "Veritabanı"
-description = "Postgres, MySQL ve SQLite için veritabanı TUI."
-source = "https://github.com/achristmascarl/rainfrog"
-license = "MIT"
-executable = "rainfrog"
-install_method = "cargo"
-install_command = ["cargo", "install", "rainfrog"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install rainfrog\nbrew: brew install rainfrog\nResmî: https://github.com/achristmascarl/rainfrog#installation"""
-
-[[apps]]
-id = "pgcli"
-name = "pgcli"
-category = "Veritabanı"
-description = "Otomatik tamamlama özellikli PostgreSQL istemcisi."
-source = "https://github.com/dbcli/pgcli"
+description = "SQLite için otomatik tamamlamalı CLI."
+source = "https://litecli.com/"
 license = "BSD-3-Clause"
-executable = "pgcli"
+executable = "litecli"
 install_method = "pipx"
-install_command = ["pipx", "install", "pgcli"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """pipx: pipx install pgcli\nbrew: brew install pgcli\nResmî: https://www.pgcli.com/"""
+install_command = ["pipx", "install", "litecli"]
+install_notes = """
+pipx: pipx install litecli
+Resmî: https://litecli.com/
 
-[[apps]]
-id = "mycli"
-name = "mycli"
-category = "Veritabanı"
-description = "Otomatik tamamlama özellikli MySQL/MariaDB istemcisi."
-source = "https://github.com/dbcli/mycli"
-license = "BSD-3-Clause"
-executable = "mycli"
-install_method = "pipx"
-install_command = ["pipx", "install", "mycli"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """pipx: pipx install mycli\nbrew: brew install mycli\nResmî: https://www.mycli.net/"""
-
-[[apps]]
-id = "sqlite3"
-name = "sqlite3"
-category = "Veritabanı"
-description = "SQLite komut satırı kabuğu."
-source = "https://www.sqlite.org/"
-license = "Public Domain"
-executable = "sqlite3"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "sqlite3"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install sqlite3\nbrew: brew install sqlite\npacman: sudo pacman -S sqlite\nResmî: https://www.sqlite.org/download.html"""
-
-[[apps]]
-id = "usql"
-name = "usql"
-category = "Veritabanı"
-description = "Çoklu veritabanı için evrensel SQL CLI."
-source = "https://github.com/xo/usql"
-license = "MIT"
-executable = "usql"
-install_method = "brew"
-install_command = ["brew", "install", "usql"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install usql\ngo: go install github.com/xo/usql@latest\nResmî: https://github.com/xo/usql#installing"""
-
-[[apps]]
-id = "gobang"
-name = "gobang"
-category = "Veritabanı"
-description = "Çok platformlu TUI veritabanı yönetim aracı."
-source = "https://github.com/TaKO8Ki/gobang"
-license = "MIT"
-executable = "gobang"
-install_method = "cargo"
-install_command = ["cargo", "install", "--locked", "gobang"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install --locked gobang\nResmî: https://github.com/TaKO8Ki/gobang#installation"""
-
-# ---------------------------------------------------------------------------
-# Güvenlik
-# ---------------------------------------------------------------------------
-
-[[apps]]
-id = "sqlite-utils"
-name = "sqlite-utils"
-category = "Veritabanı"
-description = "SQLite CLI yardımcıları."
-source = "https://sqlite-utils.datasette.io/"
-license = "Apache-2.0"
-executable = "sqlite-utils"
-install_method = "pipx"
-install_command = ["pipx", "install", "sqlite-utils"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install sqlite-utils\nuv: uv tool install sqlite-utils\nResmî: https://sqlite-utils.datasette.io/"
-
-[[apps]]
-id = "datasette"
-name = "datasette"
-category = "Veritabanı"
-description = "SQLite’ı web/API olarak yayınla."
-source = "https://datasette.io/"
-license = "Apache-2.0"
-executable = "datasette"
-install_method = "pipx"
-install_command = ["pipx", "install", "datasette"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install datasette\nuv: uv tool install datasette\nResmî: https://datasette.io/"
-
-[[apps]]
-id = "redis"
-name = "redis-cli"
-category = "Veritabanı"
-description = "Redis CLI."
-source = "https://redis.io/"
-license = "BSD"
-executable = "redis-cli"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "redis"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S redis\napt: sudo apt install redis-tools\nbrew: brew install redis"
+"""
 
 [[apps]]
 id = "mongosh"
@@ -161,9 +178,70 @@ source = "https://www.mongodb.com/docs/mongodb-shell/"
 license = "Apache-2.0"
 executable = "mongosh"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "mongosh"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S mongosh / AUR\nnpm: npm install -g mongosh\nResmî: https://www.mongodb.com/docs/mongodb-shell/"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "mongosh"]
+install_notes = """
+pacman: sudo pacman -S mongosh / AUR
+npm: npm install -g mongosh
+Resmî: https://www.mongodb.com/docs/mongodb-shell/
+
+"""
+
+[[apps]]
+id = "mycli"
+name = "mycli"
+category = "Veritabanı"
+description = "Otomatik tamamlama özellikli MySQL/MariaDB istemcisi."
+source = "https://github.com/dbcli/mycli"
+license = "BSD-3-Clause"
+executable = "mycli"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "mycli"]
+install_notes = """
+pipx: pipx install mycli
+brew: brew install mycli
+Resmî: https://www.mycli.net/
+
+"""
+
+[[apps]]
+id = "pg-activity"
+name = "pg_activity"
+category = "Veritabanı"
+description = "PostgreSQL sunucu etkinliğini izleyen etkileşimli terminal aracı (Dalibo). Çalışan, bekleyen ve bloke eden sorguları canlı listeler; CPU/bellek/IO, TPS, kilitler ve geçici dosya boyutunu gösterir. Sorguları iptal veya sonlandırabilir; CSV çıktısı, profiller (narrow/wide/minimal) ve AWS RDS seçenekleri vardır. Yerel veya uzak bağlantı; tam sistem bilgisi için postgres kullanıcısı önerilir."
+source = "https://github.com/dalibo/pg_activity"
+license = "PostgreSQL"
+executable = "pg_activity"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "pg_activity[psycopg]"]
+install_notes = """
+pipx: pipx install "pg_activity[psycopg]"
+apt: sudo apt install pg-activity
+psycopg extra'sı PostgreSQL sürücüsünü birlikte kurar; ek olarak PostgreSQL sunucusu çalışıyor olmalıdır.
+Sistem bilgisi için postgres kullanıcısıyla çalıştırın: sudo -u postgres pg_activity -U postgres
+Resmî: https://github.com/dalibo/pg_activity
+
+"""
+
+[[apps]]
+id = "pgcli"
+name = "pgcli"
+category = "Veritabanı"
+description = "Otomatik tamamlama özellikli PostgreSQL istemcisi."
+source = "https://github.com/dbcli/pgcli"
+license = "BSD-3-Clause"
+executable = "pgcli"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "pgcli"]
+install_notes = """
+pipx: pipx install pgcli
+brew: brew install pgcli
+Resmî: https://www.pgcli.com/
+
+"""
 
 [[apps]]
 id = "psql"
@@ -174,36 +252,102 @@ source = "https://www.postgresql.org/"
 license = "PostgreSQL"
 executable = "psql"
 install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "postgresql"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S postgresql\napt: sudo apt install postgresql-client\nbrew: brew install libpq"
+install_notes = """
+pacman: sudo pacman -S postgresql
+apt: sudo apt install postgresql-client
+brew: brew install libpq
+
+"""
 
 [[apps]]
-id = "litecli"
-name = "litecli"
+id = "rainfrog"
+name = "rainfrog"
 category = "Veritabanı"
-description = "SQLite için otomatik tamamlamalı CLI."
-source = "https://litecli.com/"
-license = "BSD"
-executable = "litecli"
-install_method = "pipx"
-install_command = ["pipx", "install", "litecli"]
+description = "Postgres, MySQL ve SQLite için veritabanı TUI."
+source = "https://github.com/achristmascarl/rainfrog"
+license = "MIT"
+executable = "rainfrog"
+install_method = "cargo"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install litecli\nResmî: https://litecli.com/"
+install_command = ["cargo", "install", "rainfrog"]
+install_notes = """
+cargo: cargo install rainfrog
+brew: brew install rainfrog
+Resmî: https://github.com/achristmascarl/rainfrog#installation
 
-# ---------------------------------------------------------------------------
-# Store tools batch (jless…llmfit gaps)
-# ---------------------------------------------------------------------------
+"""
 
 [[apps]]
-id = "iredis"
-name = "iredis"
+id = "redis"
+name = "redis-cli"
 category = "Veritabanı"
-description = "Otomatik tamamlamalı Redis terminal istemcisi."
-source = "https://github.com/laixintao/iredis"
+description = "Redis CLI."
+source = "https://redis.io/"
 license = "BSD-3-Clause"
-executable = "iredis"
-install_method = "pipx"
-install_command = ["pipx", "install", "iredis"]
+executable = "redis-cli"
+install_method = "pacman"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install iredis\nuv: uv tool install iredis\npacman: sudo pacman -S iredis / AUR\nResmî: https://github.com/laixintao/iredis"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "redis"]
+install_notes = """
+pacman: sudo pacman -S redis
+apt: sudo apt install redis-tools
+brew: brew install redis
+
+"""
+
+[[apps]]
+id = "sqlite-utils"
+name = "sqlite-utils"
+category = "Veritabanı"
+description = "SQLite CLI yardımcıları."
+source = "https://sqlite-utils.datasette.io/"
+license = "Apache-2.0"
+executable = "sqlite-utils"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "sqlite-utils"]
+install_notes = """
+pipx: pipx install sqlite-utils
+uv: uv tool install sqlite-utils
+Resmî: https://sqlite-utils.datasette.io/
+
+"""
+
+[[apps]]
+id = "sqlite3"
+name = "sqlite3"
+category = "Veritabanı"
+description = "SQLite komut satırı kabuğu."
+source = "https://www.sqlite.org/"
+license = "CC0-1.0"
+executable = "sqlite3"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "sqlite3"]
+install_notes = """
+apt: sudo apt install sqlite3
+brew: brew install sqlite
+pacman: sudo pacman -S sqlite
+Resmî: https://www.sqlite.org/download.html
+
+"""
+
+[[apps]]
+id = "usql"
+name = "usql"
+category = "Veritabanı"
+description = "Çoklu veritabanı için evrensel SQL CLI."
+source = "https://github.com/xo/usql"
+license = "MIT"
+executable = "usql"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "usql"]
+install_notes = """
+brew: brew install usql
+go: go install github.com/xo/usql@latest
+Resmî: https://github.com/xo/usql#installing
+
+"""

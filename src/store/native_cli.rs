@@ -357,6 +357,7 @@ mod tests {
             ]),
             install_notes: None,
             release: None,
+            repository_url: None,
             signature: None,
         }
     }

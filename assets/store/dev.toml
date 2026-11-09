@@ -1,218 +1,10 @@
-# Nova mağaza kataloğu — dev
+# Nova mağaza kataloğu — Geliştirme
 #
 # Kategori: "Geliştirme"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
-
-[[apps]]
-id = "atac"
-name = "ATAC"
-category = "Geliştirme"
-description = "Hesapsız, çevrimdışı TUI API istemcisi (Postman alternatifi)."
-source = "https://github.com/Julien-cpsn/ATAC"
-license = "MIT"
-executable = "atac"
-install_method = "cargo"
-install_command = ["cargo", "install", "atac"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install atac\nbrew: brew install atac\nResmî: https://github.com/Julien-cpsn/ATAC#installation"""
-
-[[apps]]
-id = "posting"
-name = "posting"
-category = "Geliştirme"
-description = "Terminalde yaşayan güçlü HTTP istemcisi."
-source = "https://github.com/darrenburns/posting"
-license = "MIT"
-executable = "posting"
-install_method = "pipx"
-install_command = ["pipx", "install", "posting"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """pipx: pipx install posting\nuv: uv tool install posting\nResmî: https://github.com/darrenburns/posting"""
-
-[[apps]]
-id = "httpie"
-name = "HTTPie"
-category = "Geliştirme"
-description = "İnsan dostu HTTP istemcisi."
-source = "https://httpie.io/"
-license = "BSD-3-Clause"
-executable = "http"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "httpie"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install httpie\npipx: pipx install httpie\napt: sudo apt install httpie\npacman: sudo pacman -S httpie\nResmî: https://httpie.io/docs/cli/installation"""
-
-[[apps]]
-id = "xh"
-name = "xh"
-category = "Geliştirme"
-description = "Rust ile yazılmış hızlı HTTPie dostu HTTP istemcisi."
-source = "https://github.com/ducaale/xh"
-license = "MIT"
-executable = "xh"
-install_method = "cargo"
-install_command = ["cargo", "install", "xh"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install xh\nbrew: brew install xh\nResmî: https://github.com/ducaale/xh#installation"""
-
-[[apps]]
-id = "fx"
-name = "fx"
-category = "Geliştirme"
-description = "Etkileşimli terminal JSON görüntüleyici ve işleyici."
-source = "https://github.com/antonmedv/fx"
-license = "MIT"
-executable = "fx"
-install_method = "npm"
-install_command = ["npm", "install", "-g", "fx"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """npm: npm install -g fx\nbrew: brew install fx\nResmî: https://fx.wtf/"""
-
-[[apps]]
-id = "jqp"
-name = "jqp"
-category = "Geliştirme"
-description = "jq ifadelerini denemek için TUI oyun alanı."
-source = "https://github.com/noahgorstein/jqp"
-license = "MIT"
-executable = "jqp"
-install_method = "brew"
-install_command = ["brew", "install", "jqp"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install jqp\ngo: go install github.com/noahgorstein/jqp@latest\nResmî: https://github.com/noahgorstein/jqp#installation"""
-
-[[apps]]
-id = "mitmproxy"
-name = "mitmproxy"
-category = "Geliştirme"
-description = "Etkileşimli HTTPS ara sunucusu ve trafik inceleme aracı."
-source = "https://www.mitmproxy.org"
-license = "MIT"
-executable = "mitmproxy"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "mitmproxy"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """pipx: pipx install mitmproxy\nbrew: brew install mitmproxy\napt: sudo apt install mitmproxy\npacman: sudo pacman -S mitmproxy\nResmî: https://docs.mitmproxy.org/stable/overview-installation/"""
-
-[[apps]]
-id = "hyperfine"
-name = "hyperfine"
-category = "Geliştirme"
-description = "Komut satırı kıyaslama aracı."
-source = "https://github.com/sharkdp/hyperfine"
-license = "MIT/Apache-2.0"
-executable = "hyperfine"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "hyperfine"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install hyperfine\nbrew: brew install hyperfine\napt: sudo apt install hyperfine\npacman: sudo pacman -S hyperfine\nResmî: https://github.com/sharkdp/hyperfine#installation"""
-
-[[apps]]
-id = "tokei"
-name = "tokei"
-category = "Geliştirme"
-description = "Kod satırı ve dil istatistikleri sayacı."
-source = "https://github.com/XAMPPRocky/tokei"
-license = "MIT/Apache-2.0"
-executable = "tokei"
-install_method = "cargo"
-install_command = ["cargo", "install", "tokei"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install tokei\nbrew: brew install tokei\nResmî: https://github.com/XAMPPRocky/tokei#installation"""
-
-[[apps]]
-id = "just"
-name = "just"
-category = "Geliştirme"
-description = "Komut çalıştırıcı; Makefile'a modern alternatif."
-source = "https://github.com/casey/just"
-license = "CC0-1.0"
-executable = "just"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "just"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install just\nbrew: brew install just\napt: sudo apt install just\npacman: sudo pacman -S just\nResmî: https://github.com/casey/just#installation"""
-
-[[apps]]
-id = "watchexec"
-name = "watchexec"
-category = "Geliştirme"
-description = "Dosya değişikliklerinde komut çalıştıran izleyici."
-source = "https://github.com/watchexec/watchexec"
-license = "Apache-2.0"
-executable = "watchexec"
-install_method = "cargo"
-install_command = ["cargo", "install", "watchexec-cli"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install watchexec-cli\nbrew: brew install watchexec\nResmî: https://github.com/watchexec/watchexec#install"""
-
-[[apps]]
-id = "direnv"
-name = "direnv"
-category = "Geliştirme"
-description = "Dizine özel ortam değişkenlerini otomatik yükler."
-source = "https://direnv.net/"
-license = "MIT"
-executable = "direnv"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "direnv"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install direnv\nbrew: brew install direnv\npacman: sudo pacman -S direnv\nResmî: https://direnv.net/docs/installation.html"""
-
-[[apps]]
-id = "mise"
-name = "mise"
-category = "Geliştirme"
-description = "Çoklu dil sürüm yöneticisi (asdf alternatifi)."
-source = "https://mise.jdx.dev/"
-license = "MIT"
-executable = "mise"
-install_method = "brew"
-install_command = ["brew", "install", "mise"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """curl: curl https://mise.run | sh\nbrew: brew install mise\nResmî: https://mise.jdx.dev/getting-started.html"""
-
-[[apps]]
-id = "uv"
-name = "uv"
-category = "Geliştirme"
-description = "Astral'ın çok hızlı Python paket ve proje yöneticisi."
-source = "https://github.com/astral-sh/uv"
-license = "MIT/Apache-2.0"
-executable = "uv"
-install_method = "brew"
-install_command = ["brew", "install", "uv"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """curl: curl -LsSf https://astral.sh/uv/install.sh | sh\nbrew: brew install uv\npip: pip install uv\nResmî: https://docs.astral.sh/uv/getting-started/installation/"""
-
-[[apps]]
-id = "ruff"
-name = "ruff"
-category = "Geliştirme"
-description = "Çok hızlı Python linter ve biçimlendirici."
-source = "https://github.com/astral-sh/ruff"
-license = "MIT"
-executable = "ruff"
-install_method = "pipx"
-install_command = ["pipx", "install", "ruff"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """pipx: pipx install ruff\nuv: uv tool install ruff\nbrew: brew install ruff\nResmî: https://docs.astral.sh/ruff/installation/"""
-
-[[apps]]
-id = "shellcheck"
-name = "ShellCheck"
-category = "Geliştirme"
-description = "Kabuk betiği statik analiz aracı."
-source = "https://www.shellcheck.net/"
-license = "GPL-3.0"
-executable = "shellcheck"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "shellcheck"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install shellcheck\nbrew: brew install shellcheck\npacman: sudo pacman -S shellcheck\nResmî: https://github.com/koalaman/shellcheck#installing"""
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
 
 [[apps]]
 id = "act"
@@ -223,429 +15,13 @@ source = "https://github.com/nektos/act"
 license = "MIT"
 executable = "act"
 install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["brew", "install", "act"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install act\nResmî: https://nektosact.com/installation/"""
+install_notes = """
+brew: brew install act
+Resmî: https://nektosact.com/installation/
 
-# ---------------------------------------------------------------------------
-# Editörler
-# ---------------------------------------------------------------------------
-
-[[apps]]
-id = "pre-commit"
-name = "pre-commit"
-category = "Geliştirme"
-description = "Git kanca yöneticisi."
-source = "https://pre-commit.com/"
-license = "MIT"
-executable = "pre-commit"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "pre-commit"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S pre-commit\npipx: pipx install pre-commit\nbrew: brew install pre-commit"
-
-[[apps]]
-id = "editorconfig-checker"
-name = "ec"
-category = "Geliştirme"
-description = "EditorConfig doğrulayıcı."
-source = "https://github.com/editorconfig-checker/editorconfig-checker"
-license = "MIT"
-executable = "ec"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "editorconfig-checker"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S editorconfig-checker\nbrew: brew install editorconfig-checker"
-
-[[apps]]
-id = "shfmt"
-name = "shfmt"
-category = "Geliştirme"
-description = "Kabuk betik biçimlendirici."
-source = "https://github.com/mvdan/sh"
-license = "BSD"
-executable = "shfmt"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "shfmt"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S shfmt\ngo: go install mvdan.cc/sh/v3/cmd/shfmt@latest\nbrew: brew install shfmt"
-
-[[apps]]
-id = "yapf"
-name = "yapf"
-category = "Geliştirme"
-description = "Python biçimlendirici."
-source = "https://github.com/google/yapf"
-license = "Apache-2.0"
-executable = "yapf"
-install_method = "pipx"
-install_command = ["pipx", "install", "yapf"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install yapf\npacman: sudo pacman -S yapf\nResmî: https://github.com/google/yapf"
-
-[[apps]]
-id = "black"
-name = "black"
-category = "Geliştirme"
-description = "Kararsız Python biçimlendirici."
-source = "https://github.com/psf/black"
-license = "MIT"
-executable = "black"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "python-black"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S python-black\npipx: pipx install black\nResmî: https://github.com/psf/black"
-
-[[apps]]
-id = "mypy"
-name = "mypy"
-category = "Geliştirme"
-description = "Python statik tür denetleyici."
-source = "https://mypy-lang.org/"
-license = "MIT"
-executable = "mypy"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "mypy"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S mypy\npipx: pipx install mypy\nResmî: https://mypy-lang.org/"
-
-[[apps]]
-id = "pyright"
-name = "pyright"
-category = "Geliştirme"
-description = "Microsoft Python dil sunucusu CLI."
-source = "https://github.com/microsoft/pyright"
-license = "MIT"
-executable = "pyright"
-install_method = "npm"
-install_command = ["npm", "install", "-g", "pyright"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "npm: npm install -g pyright\npipx: pipx install pyright\nResmî: https://github.com/microsoft/pyright"
-
-[[apps]]
-id = "eslint"
-name = "eslint"
-category = "Geliştirme"
-description = "JavaScript/TypeScript linter."
-source = "https://eslint.org/"
-license = "MIT"
-executable = "eslint"
-install_method = "npm"
-install_command = ["npm", "install", "-g", "eslint"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "npm: npm install -g eslint\nResmî: https://eslint.org/"
-
-[[apps]]
-id = "prettier"
-name = "prettier"
-category = "Geliştirme"
-description = "Kod biçimlendirici."
-source = "https://prettier.io/"
-license = "MIT"
-executable = "prettier"
-install_method = "npm"
-install_command = ["npm", "install", "-g", "prettier"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "npm: npm install -g prettier\nResmî: https://prettier.io/"
-
-[[apps]]
-id = "typescript"
-name = "tsc"
-category = "Geliştirme"
-description = "TypeScript derleyicisi."
-source = "https://www.typescriptlang.org/"
-license = "Apache-2.0"
-executable = "tsc"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "typescript"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S typescript\nnpm: npm install -g typescript\nResmî: https://www.typescriptlang.org/"
-
-[[apps]]
-id = "rust-analyzer"
-name = "rust-analyzer"
-category = "Geliştirme"
-description = "Rust dil sunucusu."
-source = "https://rust-analyzer.github.io/"
-license = "Apache-2.0/MIT"
-executable = "rust-analyzer"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "rust-analyzer"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S rust-analyzer\nrustup: rustup component add rust-analyzer\nResmî: https://rust-analyzer.github.io/"
-
-[[apps]]
-id = "gopls"
-name = "gopls"
-category = "Geliştirme"
-description = "Go dil sunucusu."
-source = "https://github.com/golang/tools"
-license = "BSD"
-executable = "gopls"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "gopls"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S gopls\ngo: go install golang.org/x/tools/gopls@latest"
-
-[[apps]]
-id = "clangd"
-name = "clangd"
-category = "Geliştirme"
-description = "C/C++ dil sunucusu."
-source = "https://clangd.llvm.org/"
-license = "Apache-2.0"
-executable = "clangd"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "clang"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S clang\napt: sudo apt install clangd\nResmî: https://clangd.llvm.org/"
-
-[[apps]]
-id = "cmake"
-name = "cmake"
-category = "Geliştirme"
-description = "Çapraz platform derleme sistemi."
-source = "https://cmake.org/"
-license = "BSD"
-executable = "cmake"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "cmake"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S cmake\napt: sudo apt install cmake\nbrew: brew install cmake"
-
-[[apps]]
-id = "ninja"
-name = "ninja"
-category = "Geliştirme"
-description = "Küçük ve hızlı derleme sistemi."
-source = "https://ninja-build.org/"
-license = "Apache-2.0"
-executable = "ninja"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "ninja"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S ninja\napt: sudo apt install ninja-build\nbrew: brew install ninja"
-
-[[apps]]
-id = "meson"
-name = "meson"
-category = "Geliştirme"
-description = "Hızlı ve kullanıcı dostu derleme sistemi."
-source = "https://mesonbuild.com/"
-license = "Apache-2.0"
-executable = "meson"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "meson"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S meson\napt: sudo apt install meson\nbrew: brew install meson"
-
-[[apps]]
-id = "bazel"
-name = "bazel"
-category = "Geliştirme"
-description = "Google Bazel derleme aracı."
-source = "https://bazel.build/"
-license = "Apache-2.0"
-executable = "bazel"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "bazel"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S bazel\nbrew: brew install bazel\nResmî: https://bazel.build/"
-
-[[apps]]
-id = "mold"
-name = "mold"
-category = "Geliştirme"
-description = "Modern hızlı bağlayıcı (linker)."
-source = "https://github.com/rui314/mold"
-license = "MIT"
-executable = "mold"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "mold"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S mold\nResmî: https://github.com/rui314/mold"
-
-[[apps]]
-id = "ccache"
-name = "ccache"
-category = "Geliştirme"
-description = "Derleyici önbelleği."
-source = "https://ccache.dev/"
-license = "GPL-3.0"
-executable = "ccache"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "ccache"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S ccache\napt: sudo apt install ccache\nbrew: brew install ccache"
-
-[[apps]]
-id = "sccache"
-name = "sccache"
-category = "Geliştirme"
-description = "Paylaşımlı derleme önbelleği (Rust/C++)."
-source = "https://github.com/mozilla/sccache"
-license = "Apache-2.0"
-executable = "sccache"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "sccache"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S sccache\ncargo: cargo install sccache\nbrew: brew install sccache"
-
-[[apps]]
-id = "cloc"
-name = "cloc"
-category = "Geliştirme"
-description = "Kod satırı sayacı."
-source = "https://github.com/AlDanial/cloc"
-license = "GPL-2.0"
-executable = "cloc"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "cloc"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S cloc\napt: sudo apt install cloc\nbrew: brew install cloc"
-
-[[apps]]
-id = "loc"
-name = "loc"
-category = "Geliştirme"
-description = "Hızlı satır sayacı (Rust)."
-source = "https://github.com/cgag/loc"
-license = "MIT"
-executable = "loc"
-install_method = "cargo"
-install_command = ["cargo", "install", "loc"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "cargo: cargo install loc\nResmî: https://github.com/cgag/loc"
-
-[[apps]]
-id = "bench"
-name = "bench"
-category = "Geliştirme"
-description = "Haskell benchmark aracı."
-source = "https://github.com/gabriel439/bench"
-license = "BSD"
-executable = "bench"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "bench"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S bench\nResmî: https://github.com/gabriel439/bench"
-
-[[apps]]
-id = "strace"
-name = "strace"
-category = "Geliştirme"
-description = "Sistem çağrısı izleyici."
-source = "https://strace.io/"
-license = "LGPL-2.1"
-executable = "strace"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "strace"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S strace\napt: sudo apt install strace"
-
-[[apps]]
-id = "ltrace"
-name = "ltrace"
-category = "Geliştirme"
-description = "Kütüphane çağrısı izleyici."
-source = "https://www.ltrace.org/"
-license = "GPL-2.0"
-executable = "ltrace"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "ltrace"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S ltrace\napt: sudo apt install ltrace"
-
-[[apps]]
-id = "gdb"
-name = "gdb"
-category = "Geliştirme"
-description = "GNU hata ayıklayıcı."
-source = "https://www.gnu.org/software/gdb/"
-license = "GPL-3.0"
-executable = "gdb"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "gdb"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S gdb\napt: sudo apt install gdb\nbrew: brew install gdb"
-
-[[apps]]
-id = "lldb"
-name = "lldb"
-category = "Geliştirme"
-description = "LLVM hata ayıklayıcı."
-source = "https://lldb.llvm.org/"
-license = "Apache-2.0"
-executable = "lldb"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "lldb"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S lldb\napt: sudo apt install lldb\nbrew: brew install llvm"
-
-[[apps]]
-id = "valgrind"
-name = "valgrind"
-category = "Geliştirme"
-description = "Bellek hata dedektörü."
-source = "https://valgrind.org/"
-license = "GPL-2.0"
-executable = "valgrind"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "valgrind"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S valgrind\napt: sudo apt install valgrind"
-
-[[apps]]
-id = "heaptrack"
-name = "heaptrack"
-category = "Geliştirme"
-description = "Yığın bellek profilleyicisi."
-source = "https://github.com/KDE/heaptrack"
-license = "LGPL-2.1"
-executable = "heaptrack"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "heaptrack"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S heaptrack\nResmî: https://github.com/KDE/heaptrack"
-
-[[apps]]
-id = "perf"
-name = "perf"
-category = "Geliştirme"
-description = "Linux performans sayaçları."
-source = "https://perf.wiki.kernel.org/"
-license = "GPL-2.0"
-executable = "perf"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "perf"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S perf\napt: sudo apt install linux-tools-generic"
-
-[[apps]]
-id = "flamegraph"
-name = "flamegraph"
-category = "Geliştirme"
-description = "Flame graph betikleri."
-source = "https://github.com/brendangregg/FlameGraph"
-license = "CDDL"
-executable = "flamegraph"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "flamegraph"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S flamegraph\nResmî: https://github.com/brendangregg/FlameGraph"
-
-[[apps]]
-id = "ast-grep"
-name = "ast-grep"
-category = "Geliştirme"
-description = "AST tabanlı yapısal kod arama, lint ve yeniden yazma (sg)."
-source = "https://ast-grep.github.io/"
-license = "MIT"
-executable = "sg"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "ast-grep"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S ast-grep\ncargo: cargo install ast-grep --locked\nnpm: npm install -g @ast-grep/cli\nbrew: brew install ast-grep\nResmî: https://ast-grep.github.io/"
+"""
 
 [[apps]]
 id = "actionlint"
@@ -656,6 +32,1198 @@ source = "https://github.com/rhysd/actionlint"
 license = "MIT"
 executable = "actionlint"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "actionlint"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S actionlint\ngo: go install github.com/rhysd/actionlint/cmd/actionlint@latest\nbrew: brew install actionlint\nResmî: https://github.com/rhysd/actionlint"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "actionlint"]
+install_notes = """
+pacman: sudo pacman -S actionlint
+go: go install github.com/rhysd/actionlint/cmd/actionlint@latest
+brew: brew install actionlint
+Resmî: https://github.com/rhysd/actionlint
+
+"""
+
+[[apps]]
+id = "ast-grep"
+name = "ast-grep"
+category = "Geliştirme"
+description = "AST tabanlı yapısal kod arama, lint ve yeniden yazma (sg)."
+source = "https://ast-grep.github.io/"
+license = "MIT"
+executable = "sg"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ast-grep"]
+install_notes = """
+pacman: sudo pacman -S ast-grep
+cargo: cargo install ast-grep --locked
+npm: npm install -g @ast-grep/cli
+brew: brew install ast-grep
+Resmî: https://ast-grep.github.io/
+
+"""
+
+[[apps]]
+id = "atac"
+name = "ATAC"
+category = "Geliştirme"
+description = "Hesapsız, çevrimdışı TUI API istemcisi (Postman alternatifi)."
+source = "https://github.com/Julien-cpsn/ATAC"
+license = "MIT"
+executable = "atac"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "atac"]
+install_notes = """
+cargo: cargo install atac
+brew: brew install atac
+Resmî: https://github.com/Julien-cpsn/ATAC#installation
+
+"""
+
+[[apps]]
+id = "bazel"
+name = "bazel"
+category = "Geliştirme"
+description = "Google Bazel derleme aracı."
+source = "https://bazel.build/"
+license = "Apache-2.0"
+executable = "bazel"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "bazel"]
+install_notes = """
+pacman: sudo pacman -S bazel
+brew: brew install bazel
+Resmî: https://bazel.build/
+
+"""
+
+[[apps]]
+id = "bench"
+name = "bench"
+category = "Geliştirme"
+description = "Haskell benchmark aracı."
+source = "https://github.com/gabriel439/bench"
+license = "BSD-3-Clause"
+executable = "bench"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "bench"]
+install_notes = """
+pacman: sudo pacman -S bench
+Resmî: https://github.com/gabriel439/bench
+
+"""
+
+[[apps]]
+id = "black"
+name = "black"
+category = "Geliştirme"
+description = "Kararsız Python biçimlendirici."
+source = "https://github.com/psf/black"
+license = "MIT"
+executable = "black"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "python-black"]
+install_notes = """
+pacman: sudo pacman -S python-black
+pipx: pipx install black
+Resmî: https://github.com/psf/black
+
+"""
+
+[[apps]]
+id = "ccache"
+name = "ccache"
+category = "Geliştirme"
+description = "Derleyici önbelleği."
+source = "https://ccache.dev/"
+license = "GPL-3.0"
+executable = "ccache"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ccache"]
+install_notes = """
+pacman: sudo pacman -S ccache
+apt: sudo apt install ccache
+brew: brew install ccache
+
+"""
+
+[[apps]]
+id = "cgdb"
+name = "cgdb"
+category = "Geliştirme"
+description = "GNU Debugger için curses tabanlı TUI ön yüz."
+source = "https://github.com/cgdb/cgdb"
+license = "GPL-2.0-or-later"
+executable = "cgdb"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "cgdb"]
+install_notes = """
+pacman: sudo pacman -S cgdb
+Resmî: https://github.com/cgdb/cgdb
+
+"""
+
+[[apps]]
+id = "clangd"
+name = "clangd"
+category = "Geliştirme"
+description = "C/C++ dil sunucusu."
+source = "https://clangd.llvm.org/"
+license = "Apache-2.0"
+executable = "clangd"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "clang"]
+install_notes = """
+pacman: sudo pacman -S clang
+apt: sudo apt install clangd
+Resmî: https://clangd.llvm.org/
+
+"""
+
+[[apps]]
+id = "cloc"
+name = "cloc"
+category = "Geliştirme"
+description = "Kod satırı sayacı."
+source = "https://github.com/AlDanial/cloc"
+license = "GPL-2.0"
+executable = "cloc"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "cloc"]
+install_notes = """
+pacman: sudo pacman -S cloc
+apt: sudo apt install cloc
+brew: brew install cloc
+
+"""
+
+[[apps]]
+id = "cmake"
+name = "cmake"
+category = "Geliştirme"
+description = "Çapraz platform derleme sistemi."
+source = "https://cmake.org/"
+license = "BSD-3-Clause"
+executable = "cmake"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "cmake"]
+install_notes = """
+pacman: sudo pacman -S cmake
+apt: sudo apt install cmake
+brew: brew install cmake
+
+"""
+
+[[apps]]
+id = "cscope"
+name = "cscope"
+category = "Geliştirme"
+description = "C kaynak kodu tarayıcı ve çapraz referans aracı."
+source = "https://cscope.sourceforge.net/"
+license = "BSD-3-Clause"
+executable = "cscope"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "cscope"]
+install_notes = """
+pacman: sudo pacman -S cscope
+Resmî: https://cscope.sourceforge.net/
+
+"""
+
+[[apps]]
+id = "desed"
+name = "desed"
+category = "Geliştirme"
+description = "sed betikleri için etkileşimli hata ayıklama TUI'si."
+source = "https://github.com/SoptikHa2/desed"
+license = "GPL-3.0-or-later"
+executable = "desed"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "desed"]
+install_notes = """
+brew: brew install desed
+cargo: cargo install desed
+Resmî: https://github.com/SoptikHa2/desed
+
+"""
+
+[[apps]]
+id = "direnv"
+name = "direnv"
+category = "Geliştirme"
+description = "Dizine özel ortam değişkenlerini otomatik yükler."
+source = "https://direnv.net/"
+license = "MIT"
+executable = "direnv"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "direnv"]
+install_notes = """
+apt: sudo apt install direnv
+brew: brew install direnv
+pacman: sudo pacman -S direnv
+Resmî: https://direnv.net/docs/installation.html
+
+"""
+
+[[apps]]
+id = "editorconfig-checker"
+name = "ec"
+category = "Geliştirme"
+description = "EditorConfig doğrulayıcı."
+source = "https://github.com/editorconfig-checker/editorconfig-checker"
+license = "MIT"
+executable = "ec"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "editorconfig-checker"]
+install_notes = """
+pacman: sudo pacman -S editorconfig-checker
+brew: brew install editorconfig-checker
+
+"""
+
+[[apps]]
+id = "eslint"
+name = "eslint"
+category = "Geliştirme"
+description = "JavaScript/TypeScript linter."
+source = "https://eslint.org/"
+license = "MIT"
+executable = "eslint"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "eslint"]
+install_notes = """
+npm: npm install -g eslint
+Resmî: https://eslint.org/
+
+"""
+
+[[apps]]
+id = "euporie"
+name = "euporie"
+category = "Geliştirme"
+description = "Terminalde Jupyter notebook istemcisi."
+source = "https://github.com/joouha/euporie"
+license = "MIT"
+executable = "euporie"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "euporie"]
+install_notes = """
+pipx: pipx install euporie
+Resmî: https://github.com/joouha/euporie
+
+"""
+
+[[apps]]
+id = "flamegraph"
+name = "flamegraph"
+category = "Geliştirme"
+description = "Flame graph betikleri."
+source = "https://github.com/brendangregg/FlameGraph"
+license = "CDDL-1.0"
+executable = "flamegraph"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "flamegraph"]
+install_notes = """
+pacman: sudo pacman -S flamegraph
+Resmî: https://github.com/brendangregg/FlameGraph
+
+"""
+
+[[apps]]
+id = "fx"
+name = "fx"
+category = "Geliştirme"
+description = "Etkileşimli terminal JSON görüntüleyici ve işleyici."
+source = "https://github.com/antonmedv/fx"
+license = "MIT"
+executable = "fx"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "fx"]
+install_notes = """
+npm: npm install -g fx
+brew: brew install fx
+Resmî: https://fx.wtf/
+
+"""
+
+[[apps]]
+id = "gdb"
+name = "gdb"
+category = "Geliştirme"
+description = "GNU hata ayıklayıcı."
+source = "https://www.gnu.org/software/gdb/"
+license = "GPL-3.0"
+executable = "gdb"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "gdb"]
+install_notes = """
+pacman: sudo pacman -S gdb
+apt: sudo apt install gdb
+brew: brew install gdb
+
+"""
+
+[[apps]]
+id = "gopls"
+name = "gopls"
+category = "Geliştirme"
+description = "Go dil sunucusu."
+source = "https://github.com/golang/tools"
+license = "BSD-3-Clause"
+executable = "gopls"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "gopls"]
+install_notes = """
+pacman: sudo pacman -S gopls
+go: go install golang.org/x/tools/gopls@latest
+
+"""
+
+[[apps]]
+id = "heaptrack"
+name = "heaptrack"
+category = "Geliştirme"
+description = "Yığın bellek profilleyicisi."
+source = "https://github.com/KDE/heaptrack"
+license = "LGPL-2.1"
+executable = "heaptrack"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "heaptrack"]
+install_notes = """
+pacman: sudo pacman -S heaptrack
+Resmî: https://github.com/KDE/heaptrack
+
+"""
+
+[[apps]]
+id = "httpie"
+name = "HTTPie"
+category = "Geliştirme"
+description = "İnsan dostu HTTP istemcisi."
+source = "https://httpie.io/"
+license = "BSD-3-Clause"
+executable = "http"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "httpie"]
+install_notes = """
+brew: brew install httpie
+pipx: pipx install httpie
+apt: sudo apt install httpie
+pacman: sudo pacman -S httpie
+Resmî: https://httpie.io/docs/cli/installation
+
+"""
+
+[[apps]]
+id = "hyperfine"
+name = "hyperfine"
+category = "Geliştirme"
+description = "Komut satırı kıyaslama aracı."
+source = "https://github.com/sharkdp/hyperfine"
+license = "MIT OR Apache-2.0"
+executable = "hyperfine"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "hyperfine"]
+install_notes = """
+cargo: cargo install hyperfine
+brew: brew install hyperfine
+apt: sudo apt install hyperfine
+pacman: sudo pacman -S hyperfine
+Resmî: https://github.com/sharkdp/hyperfine#installation
+
+"""
+
+[[apps]]
+id = "jqp"
+name = "jqp"
+category = "Geliştirme"
+description = "jq ifadelerini denemek için TUI oyun alanı."
+source = "https://github.com/noahgorstein/jqp"
+license = "MIT"
+executable = "jqp"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "jqp"]
+install_notes = """
+brew: brew install jqp
+go: go install github.com/noahgorstein/jqp@latest
+Resmî: https://github.com/noahgorstein/jqp#installation
+
+"""
+
+[[apps]]
+id = "just"
+name = "just"
+category = "Geliştirme"
+description = "Komut çalıştırıcı; Makefile'a modern alternatif."
+source = "https://github.com/casey/just"
+license = "CC0-1.0"
+executable = "just"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "just"]
+install_notes = """
+cargo: cargo install just
+brew: brew install just
+apt: sudo apt install just
+pacman: sudo pacman -S just
+Resmî: https://github.com/casey/just#installation
+
+"""
+
+[[apps]]
+id = "kaskade"
+name = "kaskade"
+category = "Geliştirme"
+description = "Apache Kafka için metin kullanıcı arayüzü."
+source = "https://github.com/sauljabin/kaskade"
+license = "MIT"
+executable = "kaskade"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "kaskade"]
+install_notes = """
+brew: brew install kaskade
+pipx: pipx install kaskade
+Resmî: https://github.com/sauljabin/kaskade
+
+"""
+
+[apps.release]
+repo = "sauljabin/kaskade"
+
+[[apps]]
+id = "lldb"
+name = "lldb"
+category = "Geliştirme"
+description = "LLVM hata ayıklayıcı."
+source = "https://lldb.llvm.org/"
+license = "Apache-2.0"
+executable = "lldb"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "lldb"]
+install_notes = """
+pacman: sudo pacman -S lldb
+apt: sudo apt install lldb
+brew: brew install llvm
+
+"""
+
+[[apps]]
+id = "loc"
+name = "loc"
+category = "Geliştirme"
+description = "Hızlı satır sayacı (Rust)."
+source = "https://github.com/cgag/loc"
+license = "MIT"
+executable = "loc"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "loc"]
+install_notes = """
+cargo: cargo install loc
+Resmî: https://github.com/cgag/loc
+
+"""
+
+[[apps]]
+id = "ltrace"
+name = "ltrace"
+category = "Geliştirme"
+description = "Kütüphane çağrısı izleyici."
+source = "https://www.ltrace.org/"
+license = "GPL-2.0"
+executable = "ltrace"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ltrace"]
+install_notes = """
+pacman: sudo pacman -S ltrace
+apt: sudo apt install ltrace
+
+"""
+
+[[apps]]
+id = "meson"
+name = "meson"
+category = "Geliştirme"
+description = "Hızlı ve kullanıcı dostu derleme sistemi."
+source = "https://mesonbuild.com/"
+license = "Apache-2.0"
+executable = "meson"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "meson"]
+install_notes = """
+pacman: sudo pacman -S meson
+apt: sudo apt install meson
+brew: brew install meson
+
+"""
+
+[[apps]]
+id = "mise"
+name = "mise"
+category = "Geliştirme"
+description = "Çoklu dil sürüm yöneticisi (asdf alternatifi)."
+source = "https://mise.jdx.dev/"
+license = "MIT"
+executable = "mise"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "mise"]
+install_notes = """
+curl: curl https://mise.run | sh
+brew: brew install mise
+Resmî: https://mise.jdx.dev/getting-started.html
+
+"""
+
+[[apps]]
+id = "mitmproxy"
+name = "mitmproxy"
+category = "Geliştirme"
+description = "Etkileşimli HTTPS ara sunucusu ve trafik inceleme aracı."
+source = "https://www.mitmproxy.org"
+license = "MIT"
+executable = "mitmproxy"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "mitmproxy"]
+install_notes = """
+pipx: pipx install mitmproxy
+brew: brew install mitmproxy
+apt: sudo apt install mitmproxy
+pacman: sudo pacman -S mitmproxy
+Resmî: https://docs.mitmproxy.org/stable/overview-installation/
+
+"""
+
+[[apps]]
+id = "mold"
+name = "mold"
+category = "Geliştirme"
+description = "Modern hızlı bağlayıcı (linker)."
+source = "https://github.com/rui314/mold"
+license = "MIT"
+executable = "mold"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "mold"]
+install_notes = """
+pacman: sudo pacman -S mold
+Resmî: https://github.com/rui314/mold
+
+"""
+
+[[apps]]
+id = "mypy"
+name = "mypy"
+category = "Geliştirme"
+description = "Python statik tür denetleyici."
+source = "https://mypy-lang.org/"
+license = "MIT"
+executable = "mypy"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "mypy"]
+install_notes = """
+pacman: sudo pacman -S mypy
+pipx: pipx install mypy
+Resmî: https://mypy-lang.org/
+
+"""
+
+[[apps]]
+id = "nap"
+name = "nap"
+category = "Geliştirme"
+description = "Terminal kod parçacığı (snippet) yöneticisi."
+source = "https://github.com/maaslalani/nap"
+license = "MIT"
+executable = "nap"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "nap"]
+install_notes = """
+brew: brew install nap
+Resmî: https://github.com/maaslalani/nap
+
+"""
+
+[[apps]]
+id = "ninja"
+name = "ninja"
+category = "Geliştirme"
+description = "Küçük ve hızlı derleme sistemi."
+source = "https://ninja-build.org/"
+license = "Apache-2.0"
+executable = "ninja"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ninja"]
+install_notes = """
+pacman: sudo pacman -S ninja
+apt: sudo apt install ninja-build
+brew: brew install ninja
+
+"""
+
+[[apps]]
+id = "openapi-tui"
+name = "openapi-tui"
+category = "Geliştirme"
+description = "OpenAPI tanımlarını listeleyip tarayan ve çalıştıran TUI."
+source = "https://github.com/zaghaghi/openapi-tui"
+license = "MIT"
+executable = "openapi-tui"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "openapi-tui"]
+install_notes = """
+pacman: sudo pacman -S openapi-tui
+Resmî: https://github.com/zaghaghi/openapi-tui
+
+"""
+
+[[apps]]
+id = "perf"
+name = "perf"
+category = "Geliştirme"
+description = "Linux performans sayaçları."
+source = "https://perf.wiki.kernel.org/"
+license = "GPL-2.0"
+executable = "perf"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "perf"]
+install_notes = """
+pacman: sudo pacman -S perf
+apt: sudo apt install linux-tools-generic
+
+"""
+
+[[apps]]
+id = "posting"
+name = "posting"
+category = "Geliştirme"
+description = "Terminalde yaşayan güçlü HTTP istemcisi."
+source = "https://github.com/darrenburns/posting"
+license = "MIT"
+executable = "posting"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "posting"]
+install_notes = """
+pipx: pipx install posting
+uv: uv tool install posting
+Resmî: https://github.com/darrenburns/posting
+
+"""
+
+[[apps]]
+id = "pre-commit"
+name = "pre-commit"
+category = "Geliştirme"
+description = "Git kanca yöneticisi."
+source = "https://pre-commit.com/"
+license = "MIT"
+executable = "pre-commit"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "pre-commit"]
+install_notes = """
+pacman: sudo pacman -S pre-commit
+pipx: pipx install pre-commit
+brew: brew install pre-commit
+
+"""
+
+[[apps]]
+id = "presenterm"
+name = "presenterm"
+category = "Geliştirme"
+description = "Markdown sunumlarını terminalde gösteren araç."
+source = "https://github.com/mfontanini/presenterm"
+license = "BSD-2-Clause"
+executable = "presenterm"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "presenterm"]
+install_notes = """
+pacman: sudo pacman -S presenterm
+brew: brew install presenterm
+Resmî: https://github.com/mfontanini/presenterm
+
+"""
+
+[apps.release]
+repo = "mfontanini/presenterm"
+
+[[apps]]
+id = "prettier"
+name = "prettier"
+category = "Geliştirme"
+description = "Kod biçimlendirici."
+source = "https://prettier.io/"
+license = "MIT"
+executable = "prettier"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "prettier"]
+install_notes = """
+npm: npm install -g prettier
+Resmî: https://prettier.io/
+
+"""
+
+[[apps]]
+id = "pudb"
+name = "pudb"
+category = "Geliştirme"
+description = "Tam ekran konsol tabanlı Python hata ayıklayıcı."
+source = "https://github.com/inducer/pudb"
+license = "MIT"
+executable = "pudb"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "python-pudb"]
+install_notes = """
+pacman: sudo pacman -S python-pudb
+pacman paketi: python-pudb
+Resmî: https://github.com/inducer/pudb
+
+"""
+
+[[apps]]
+id = "pyright"
+name = "pyright"
+category = "Geliştirme"
+description = "Microsoft Python dil sunucusu CLI."
+source = "https://github.com/microsoft/pyright"
+license = "MIT"
+executable = "pyright"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "pyright"]
+install_notes = """
+npm: npm install -g pyright
+pipx: pipx install pyright
+Resmî: https://github.com/microsoft/pyright
+
+"""
+
+[[apps]]
+id = "resterm"
+name = "resterm"
+category = "Geliştirme"
+description = "HTTP, GraphQL, gRPC ve WebSocket için terminal API istemcisi."
+source = "https://github.com/unkn0wn-root/resterm"
+license = "Apache-2.0"
+executable = "resterm"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "resterm"]
+install_notes = """
+brew: brew install resterm
+Resmî: https://github.com/unkn0wn-root/resterm
+
+"""
+
+[apps.release]
+repo = "unkn0wn-root/resterm"
+
+[[apps]]
+id = "ruff"
+name = "ruff"
+category = "Geliştirme"
+description = "Çok hızlı Python linter ve biçimlendirici."
+source = "https://github.com/astral-sh/ruff"
+license = "MIT"
+executable = "ruff"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "ruff"]
+install_notes = """
+pipx: pipx install ruff
+uv: uv tool install ruff
+brew: brew install ruff
+Resmî: https://docs.astral.sh/ruff/installation/
+
+"""
+
+[[apps]]
+id = "runme"
+name = "runme"
+category = "Geliştirme"
+description = "Markdown runbook ve README içindeki komutları çalıştırır."
+source = "https://github.com/stateful/runme"
+license = "Apache-2.0"
+executable = "runme"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "runme"]
+install_notes = """
+brew: brew install runme
+Resmî: https://runme.dev/
+
+"""
+
+[apps.release]
+repo = "stateful/runme"
+
+[[apps]]
+id = "rust-analyzer"
+name = "rust-analyzer"
+category = "Geliştirme"
+description = "Rust dil sunucusu."
+source = "https://rust-analyzer.github.io/"
+license = "Apache-2.0 OR MIT"
+executable = "rust-analyzer"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "rust-analyzer"]
+install_notes = """
+pacman: sudo pacman -S rust-analyzer
+rustup: rustup component add rust-analyzer
+Resmî: https://rust-analyzer.github.io/
+
+"""
+
+[[apps]]
+id = "scc"
+name = "scc"
+category = "Geliştirme"
+description = "Hızlı kod satırı / karmaşıklık sayacı (Sloc Cloc and Code)."
+source = "https://github.com/boyter/scc"
+license = "MIT OR Unlicense"
+executable = "scc"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "scc"]
+install_notes = """
+brew: brew install scc
+go: go install github.com/boyter/scc/v4@latest
+Resmî: https://github.com/boyter/scc
+
+"""
+
+[apps.release]
+repo = "boyter/scc"
+
+[[apps]]
+id = "sccache"
+name = "sccache"
+category = "Geliştirme"
+description = "Paylaşımlı derleme önbelleği (Rust/C++)."
+source = "https://github.com/mozilla/sccache"
+license = "Apache-2.0"
+executable = "sccache"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "sccache"]
+install_notes = """
+pacman: sudo pacman -S sccache
+cargo: cargo install sccache
+brew: brew install sccache
+
+"""
+
+[[apps]]
+id = "scooter"
+name = "scooter"
+category = "Geliştirme"
+description = "Etkileşimli bul ve değiştir TUI'si."
+source = "https://github.com/thomasschafer/scooter"
+license = "MIT"
+executable = "scooter"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "scooter"]
+install_notes = """
+brew: brew install scooter
+cargo: cargo install scooter
+Resmî: https://github.com/thomasschafer/scooter
+
+"""
+
+[[apps]]
+id = "sequin"
+name = "sequin"
+category = "Geliştirme"
+description = "ANSI kaçış dizilerini okunabilir gösteren Charm aracı."
+source = "https://github.com/charmbracelet/sequin"
+license = "MIT"
+executable = "sequin"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "sequin"]
+install_notes = """
+brew: brew install sequin
+Resmî: https://github.com/charmbracelet/sequin
+
+"""
+
+[apps.release]
+repo = "charmbracelet/sequin"
+
+[[apps]]
+id = "shellcheck"
+name = "ShellCheck"
+category = "Geliştirme"
+description = "Kabuk betiği statik analiz aracı."
+source = "https://www.shellcheck.net/"
+license = "GPL-3.0"
+executable = "shellcheck"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "shellcheck"]
+install_notes = """
+apt: sudo apt install shellcheck
+brew: brew install shellcheck
+pacman: sudo pacman -S shellcheck
+Resmî: https://github.com/koalaman/shellcheck#installing
+
+"""
+
+[[apps]]
+id = "shfmt"
+name = "shfmt"
+category = "Geliştirme"
+description = "Kabuk betik biçimlendirici."
+source = "https://github.com/mvdan/sh"
+license = "BSD-3-Clause"
+executable = "shfmt"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "shfmt"]
+install_notes = """
+pacman: sudo pacman -S shfmt
+go: go install mvdan.cc/sh/v3/cmd/shfmt@latest
+brew: brew install shfmt
+
+"""
+
+[[apps]]
+id = "slumber"
+name = "slumber"
+category = "Geliştirme"
+description = "Terminal tabanlı REST / HTTP istemcisi."
+source = "https://github.com/LucasPickering/slumber"
+license = "MIT"
+executable = "slumber"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "slumber"]
+install_notes = """
+pacman: sudo pacman -S slumber
+Resmî: https://github.com/LucasPickering/slumber
+
+"""
+
+[[apps]]
+id = "strace"
+name = "strace"
+category = "Geliştirme"
+description = "Sistem çağrısı izleyici."
+source = "https://strace.io/"
+license = "LGPL-2.1"
+executable = "strace"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "strace"]
+install_notes = """
+pacman: sudo pacman -S strace
+apt: sudo apt install strace
+
+"""
+
+[[apps]]
+id = "tftui"
+name = "tftui"
+category = "Geliştirme"
+description = "Terraform plan/state için metin kullanıcı arayüzü."
+source = "https://github.com/idoavrah/terraform-tui"
+license = "Apache-2.0"
+executable = "tftui"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "tftui"]
+install_notes = """
+pipx: pipx install tftui
+uv: uv tool install tftui
+brew: brew install idoavrah/homebrew/tftui
+Resmî: https://github.com/idoavrah/terraform-tui
+
+"""
+
+[apps.release]
+repo = "idoavrah/terraform-tui"
+
+[[apps]]
+id = "tokei"
+name = "tokei"
+category = "Geliştirme"
+description = "Kod satırı ve dil istatistikleri sayacı."
+source = "https://github.com/XAMPPRocky/tokei"
+license = "MIT OR Apache-2.0"
+executable = "tokei"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "tokei"]
+install_notes = """
+cargo: cargo install tokei
+brew: brew install tokei
+Resmî: https://github.com/XAMPPRocky/tokei#installation
+
+"""
+
+[[apps]]
+id = "typescript"
+name = "tsc"
+category = "Geliştirme"
+description = "TypeScript derleyicisi."
+source = "https://www.typescriptlang.org/"
+license = "Apache-2.0"
+executable = "tsc"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "typescript"]
+install_notes = """
+pacman: sudo pacman -S typescript
+npm: npm install -g typescript
+Resmî: https://www.typescriptlang.org/
+
+"""
+
+[[apps]]
+id = "uv"
+name = "uv"
+category = "Geliştirme"
+description = "Astral'ın çok hızlı Python paket ve proje yöneticisi."
+source = "https://github.com/astral-sh/uv"
+license = "MIT OR Apache-2.0"
+executable = "uv"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "uv"]
+install_notes = """
+curl: curl -LsSf https://astral.sh/uv/install.sh | sh
+brew: brew install uv
+pip: pip install uv
+Resmî: https://docs.astral.sh/uv/getting-started/installation/
+
+"""
+
+[[apps]]
+id = "valgrind"
+name = "valgrind"
+category = "Geliştirme"
+description = "Bellek hata dedektörü."
+source = "https://valgrind.org/"
+license = "GPL-2.0"
+executable = "valgrind"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "valgrind"]
+install_notes = """
+pacman: sudo pacman -S valgrind
+apt: sudo apt install valgrind
+
+"""
+
+[[apps]]
+id = "watchexec"
+name = "watchexec"
+category = "Geliştirme"
+description = "Dosya değişikliklerinde komut çalıştıran izleyici."
+source = "https://github.com/watchexec/watchexec"
+license = "Apache-2.0"
+executable = "watchexec"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "watchexec-cli"]
+install_notes = """
+cargo: cargo install watchexec-cli
+brew: brew install watchexec
+Resmî: https://github.com/watchexec/watchexec#install
+
+"""
+
+[[apps]]
+id = "xh"
+name = "xh"
+category = "Geliştirme"
+description = "Rust ile yazılmış hızlı HTTPie dostu HTTP istemcisi."
+source = "https://github.com/ducaale/xh"
+license = "MIT"
+executable = "xh"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "xh"]
+install_notes = """
+cargo: cargo install xh
+brew: brew install xh
+Resmî: https://github.com/ducaale/xh#installation
+
+"""
+
+[[apps]]
+id = "yapf"
+name = "yapf"
+category = "Geliştirme"
+description = "Python biçimlendirici."
+source = "https://github.com/google/yapf"
+license = "Apache-2.0"
+executable = "yapf"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "yapf"]
+install_notes = """
+pipx: pipx install yapf
+pacman: sudo pacman -S yapf
+Resmî: https://github.com/google/yapf
+
+"""
+
+[[apps]]
+id = "yozefu"
+name = "yozefu"
+category = "Geliştirme"
+description = "Kafka kümelerindeki veriyi keşfetmek için TUI."
+source = "https://github.com/MAIF/yozefu"
+license = "Apache-2.0"
+executable = "yozefu"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "yozefu"]
+install_notes = """
+brew: brew install yozefu
+Resmî: https://github.com/MAIF/yozefu
+
+"""
+
+[apps.release]
+repo = "MAIF/yozefu"

@@ -334,12 +334,12 @@ mod tests {
     #[test]
     fn builtin_store_release_sources_are_valid() {
         let store = load_builtin_store().expect("mağaza kataloğu yüklenmeli");
-        let tracked = store
+        let version_tracked = store
             .entries()
             .iter()
-            .filter(|e| e.release.is_some())
+            .filter(|e| e.release.as_ref().is_some_and(|r| r.tracks_releases()))
             .count();
-        assert!(tracked > 0, "canlı takip için kayıt olmalı");
+        assert!(version_tracked > 0, "canlı sürüm takibi için kayıt olmalı");
         for entry in store.entries() {
             let Some(release) = &entry.release else {
                 continue;
@@ -347,12 +347,21 @@ mod tests {
             release
                 .validate()
                 .unwrap_or_else(|e| panic!("{}: {e}", entry.id));
-            // Depo, kaydın kaynak sayfasıyla tutarlı olmalı.
+            if release.tracks_releases() {
+                release
+                    .validate_for_resolve()
+                    .unwrap_or_else(|e| panic!("{}: {e}", entry.id));
+            }
+            // Depo mümkünse kaynak / repository_url ile tutarlı olmalı.
+            let repo_ok = entry.source.contains(&release.repo)
+                || entry
+                    .repository_url
+                    .as_deref()
+                    .is_some_and(|u| u.contains(&release.repo));
             assert!(
-                entry.source.contains(&release.repo),
-                "{}: depo '{}' kaynak sayfasıyla uyuşmuyor",
-                entry.id,
-                release.repo
+                repo_ok,
+                "{}: depo '{}' kaynak/repository_url ile uyuşmuyor",
+                entry.id, release.repo
             );
         }
     }
@@ -365,8 +374,8 @@ mod tests {
                 continue;
             }
             assert!(
-                entry.release.is_some(),
-                "{}: arşiv kayıtlarının canlı takip kaynağı olmalı",
+                entry.release.as_ref().is_some_and(|r| r.tracks_releases()),
+                "{}: arşiv kayıtlarının canlı takip kaynağı (asset_pattern) olmalı",
                 entry.id
             );
         }
@@ -378,8 +387,11 @@ mod tests {
         // bu yüzden ikisi de "hepsi ya da hiç" olmalıdır.
         let store = load_builtin_store().expect("mağaza kataloğu yüklenmeli");
         for entry in store.entries() {
-            if entry.release.is_none() {
+            let Some(release) = &entry.release else {
                 continue;
+            };
+            if !release.tracks_releases() {
+                continue; // yıldız-only release.repo
             }
             let has_top = entry.checksum.is_some();
             let has_artifacts = !entry.artifacts.is_empty()
@@ -397,9 +409,17 @@ mod tests {
     }
 
     #[test]
-    fn builtin_store_entries_declare_linux_arches() {
+    fn builtin_store_linux_entries_declare_both_arches() {
+        // macOS/Windows-only kayıtlar (OS etiketi) Linux mimarisini iddia etmez.
         let store = load_builtin_store().expect("mağaza kataloğu yüklenmeli");
         for entry in store.entries() {
+            let has_linux = entry
+                .supported_platforms
+                .iter()
+                .any(|p| p.starts_with("linux-"));
+            if !has_linux {
+                continue;
+            }
             assert!(
                 entry.supports_arch(crate::store::CpuArch::X86_64),
                 "{}: linux-x64 / x86_64",

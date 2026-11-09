@@ -1,101 +1,10 @@
-# Nova mağaza kataloğu — productivity
+# Nova mağaza kataloğu — Verimlilik
 #
 # Kategori: "Verimlilik"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
-
-[[apps]]
-id = "tmux"
-name = "tmux"
-category = "Verimlilik"
-description = "Terminal çoğullayıcı; oturum, pencere ve panel yönetimi."
-source = "https://github.com/tmux/tmux"
-license = "ISC"
-executable = "tmux"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "tmux"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install tmux\nbrew: brew install tmux\npacman: sudo pacman -S tmux\nResmî: https://github.com/tmux/tmux/wiki/Installing"""
-
-[[apps]]
-id = "zellij"
-name = "zellij"
-category = "Verimlilik"
-description = "Kullanıcı dostu terminal çalışma alanı / çoğullayıcı."
-source = "https://zellij.dev/"
-license = "MIT"
-executable = "zellij"
-install_method = "cargo"
-install_command = ["cargo", "install", "--locked", "zellij"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install --locked zellij\nbrew: brew install zellij\nResmî: https://zellij.dev/documentation/installation"""
-
-[[apps]]
-id = "glow"
-name = "Glow"
-category = "Verimlilik"
-description = "Terminalde Markdown okuyucu."
-source = "https://github.com/charmbracelet/glow"
-license = "MIT"
-executable = "glow"
-install_method = "brew"
-install_command = ["brew", "install", "glow"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install glow\ngo: go install github.com/charmbracelet/glow@latest\nResmî: https://github.com/charmbracelet/glow#installation"""
-
-[[apps]]
-id = "slides"
-name = "slides"
-category = "Verimlilik"
-description = "Markdown ile terminal sunumları."
-source = "https://github.com/maaslalani/slides"
-license = "MIT"
-executable = "slides"
-install_method = "brew"
-install_command = ["brew", "install", "slides"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install slides\ngo: go install github.com/maaslalani/slides@latest\nResmî: https://github.com/maaslalani/slides#installation"""
-
-[[apps]]
-id = "taskwarrior-tui"
-name = "taskwarrior-tui"
-category = "Verimlilik"
-description = "Taskwarrior için terminal panosu."
-source = "https://github.com/kdheepak/taskwarrior-tui"
-license = "MIT"
-executable = "taskwarrior-tui"
-install_method = "cargo"
-install_command = ["cargo", "install", "taskwarrior-tui"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install taskwarrior-tui\nbrew: brew install taskwarrior-tui\nResmî: https://kdheepak.com/taskwarrior-tui/"""
-
-[[apps]]
-id = "calcurse"
-name = "calcurse"
-category = "Verimlilik"
-description = "Takvim ve yapılacaklar için metin arayüzü."
-source = "https://calcurse.org/"
-license = "BSD-2-Clause"
-executable = "calcurse"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "calcurse"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install calcurse\nbrew: brew install calcurse\npacman: sudo pacman -S calcurse\nResmî: https://calcurse.org/"""
-
-[[apps]]
-id = "navi"
-name = "navi"
-category = "Verimlilik"
-description = "Etkileşimli cheatsheet aracı."
-source = "https://github.com/denisidoro/navi"
-license = "Apache-2.0"
-executable = "navi"
-install_method = "cargo"
-install_command = ["cargo", "install", "--locked", "navi"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install navi\ncargo: cargo install --locked navi\nResmî: https://github.com/denisidoro/navi#installation"""
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
 
 [[apps]]
 id = "atuin"
@@ -106,117 +15,14 @@ source = "https://atuin.sh/"
 license = "MIT"
 executable = "atuin"
 install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["brew", "install", "atuin"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """curl: curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh\nbrew: brew install atuin\nResmî: https://docs.atuin.sh/guide/installation/"""
+install_notes = """
+curl: curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+brew: brew install atuin
+Resmî: https://docs.atuin.sh/guide/installation/
 
-[[apps]]
-id = "zoxide"
-name = "zoxide"
-category = "Verimlilik"
-description = "Akıllı cd; sık kullanılan dizinlere hızlı atlar."
-source = "https://github.com/ajeetdsouza/zoxide"
-license = "MIT"
-executable = "zoxide"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "zoxide"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install zoxide --locked\nbrew: brew install zoxide\napt: sudo apt install zoxide\npacman: sudo pacman -S zoxide\nResmî: https://github.com/ajeetdsouza/zoxide#installation"""
-
-[[apps]]
-id = "starship"
-name = "Starship"
-category = "Verimlilik"
-description = "Hızlı, özelleştirilebilir kabuk istemi."
-source = "https://starship.rs/"
-license = "ISC"
-executable = "starship"
-install_method = "brew"
-install_command = ["brew", "install", "starship"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """curl: curl -sS https://starship.rs/install.sh | sh\nbrew: brew install starship\nResmî: https://starship.rs/guide/#%F0%9F%9A%80-installation"""
-
-[[apps]]
-id = "wtfutil"
-name = "wtfutil"
-category = "Verimlilik"
-description = "Kişisel bilgi panosu; widget'larla terminal dashboard."
-source = "https://wtfutil.com/"
-license = "MPL-2.0"
-executable = "wtfutil"
-install_method = "brew"
-install_command = ["brew", "install", "wtfutil"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install wtfutil\nResmî: https://wtfutil.com/"""
-
-[[apps]]
-id = "gum"
-name = "gum"
-category = "Verimlilik"
-description = "Kabuk betikleri için güzel etkileşimli istemler."
-source = "https://github.com/charmbracelet/gum"
-license = "MIT"
-executable = "gum"
-install_method = "brew"
-install_command = ["brew", "install", "gum"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install gum\ngo: go install github.com/charmbracelet/gum@latest\nResmî: https://github.com/charmbracelet/gum#installation"""
-
-# ---------------------------------------------------------------------------
-# Oyunlar
-# ---------------------------------------------------------------------------
-
-[[apps]]
-id = "cheat"
-name = "cheat"
-category = "Verimlilik"
-description = "Etkileşimli cheatsheet."
-source = "https://github.com/cheat/cheat"
-license = "MIT"
-executable = "cheat"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "cheat"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S cheat\nbrew: brew install cheat\nResmî: https://github.com/cheat/cheat"
-
-[[apps]]
-id = "tealdeer"
-name = "tldr-tealdeer"
-category = "Verimlilik"
-description = "Hızlı tldr istemcisi (tealdeer)."
-source = "https://github.com/tealdeer-rs/tealdeer"
-license = "MIT/Apache-2.0"
-executable = "tldr"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "tealdeer"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S tealdeer\ncargo: cargo install tealdeer\nNot: tldr id çakışabilir; tealdeer aynı exe."
-
-[[apps]]
-id = "howdoi"
-name = "howdoi"
-category = "Verimlilik"
-description = "Kod sorularına anında cevap."
-source = "https://github.com/gleitz/howdoi"
-license = "MIT"
-executable = "howdoi"
-install_method = "pipx"
-install_command = ["pipx", "install", "howdoi"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install howdoi\nResmî: https://github.com/gleitz/howdoi"
-
-[[apps]]
-id = "thefuck"
-name = "thefuck"
-category = "Verimlilik"
-description = "Yanlış komutu düzeltme sihirbazı."
-source = "https://github.com/nvbn/thefuck"
-license = "MIT"
-executable = "fuck"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "thefuck"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S thefuck\npipx: pipx install thefuck\nResmî: https://github.com/nvbn/thefuck"
+"""
 
 [[apps]]
 id = "autojump"
@@ -227,48 +33,32 @@ source = "https://github.com/wting/autojump"
 license = "GPL-3.0"
 executable = "autojump"
 install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "autojump"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S autojump\napt: sudo apt install autojump\nbrew: brew install autojump"
+install_notes = """
+pacman: sudo pacman -S autojump
+apt: sudo apt install autojump
+brew: brew install autojump
+
+"""
 
 [[apps]]
-id = "fasd"
-name = "fasd"
+id = "bagels"
+name = "bagels"
 category = "Verimlilik"
-description = "Sık kullanılan dosya/dizin erişimi."
-source = "https://github.com/clvv/fasd"
-license = "MIT"
-executable = "fasd"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "fasd"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S fasd\nbrew: brew install fasd"
+description = "Terminal gider / bütçe takip TUI'si."
+source = "https://github.com/EnhancedJax/Bagels"
+license = "GPL-3.0-only"
+executable = "bagels"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "bagels"]
+install_notes = """
+brew: brew install bagels
+pipx: pipx install bagels
+Resmî: https://github.com/EnhancedJax/Bagels
 
-[[apps]]
-id = "mcfly"
-name = "mcfly"
-category = "Verimlilik"
-description = "Akıllı kabuk geçmişi araması."
-source = "https://github.com/cantino/mcfly"
-license = "MIT"
-executable = "mcfly"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "mcfly"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S mcfly\nbrew: brew install mcfly\nResmî: https://github.com/cantino/mcfly"
-
-[[apps]]
-id = "restic"
-name = "restic"
-category = "Verimlilik"
-description = "Hızlı, güvenli ve verimli yedekleme aracı."
-source = "https://restic.net/"
-license = "BSD-2-Clause"
-executable = "restic"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "restic"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S restic\napt: sudo apt install restic\nbrew: brew install restic\nResmî: https://restic.readthedocs.io/en/stable/020_installation.html"
+"""
 
 [[apps]]
 id = "borg"
@@ -279,9 +69,160 @@ source = "https://www.borgbackup.org/"
 license = "BSD-3-Clause"
 executable = "borg"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "borg"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S borg\napt: sudo apt install borgbackup\nbrew: brew install borgbackup\nResmî: https://borgbackup.readthedocs.io/"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "borg"]
+install_notes = """
+pacman: sudo pacman -S borg
+apt: sudo apt install borgbackup
+brew: brew install borgbackup
+Resmî: https://borgbackup.readthedocs.io/
+
+"""
+
+[[apps]]
+id = "calcure"
+name = "calcure"
+category = "Verimlilik"
+description = "Modern TUI takvim ve görev uygulaması."
+source = "https://github.com/anufrievroman/calcure"
+license = "MIT"
+executable = "calcure"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "calcure"]
+install_notes = """
+brew: brew install calcure
+pipx: pipx install calcure
+Resmî: https://github.com/anufrievroman/calcure
+
+"""
+
+[[apps]]
+id = "calcurse"
+name = "calcurse"
+category = "Verimlilik"
+description = "Takvim ve yapılacaklar için metin arayüzü."
+source = "https://calcurse.org/"
+license = "BSD-2-Clause"
+executable = "calcurse"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "calcurse"]
+install_notes = """
+apt: sudo apt install calcurse
+brew: brew install calcurse
+pacman: sudo pacman -S calcurse
+Resmî: https://calcurse.org/
+
+"""
+
+[[apps]]
+id = "cheat"
+name = "cheat"
+category = "Verimlilik"
+description = "Etkileşimli cheatsheet."
+source = "https://github.com/cheat/cheat"
+license = "MIT"
+executable = "cheat"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "cheat"]
+install_notes = """
+pacman: sudo pacman -S cheat
+brew: brew install cheat
+Resmî: https://github.com/cheat/cheat
+
+"""
+
+[[apps]]
+id = "chezmoi"
+name = "chezmoi"
+category = "Verimlilik"
+description = "chezmoi, dotfile ve kişisel ayarları birden fazla makinede güvenli yöneten tek ikili araçtır. Şablonlar, parola yöneticisi entegrasyonu, age/gpg ile şifreleme, arşivden içe aktarma ve kurulum betikleri sunar. Yeni makinede init+apply; chezmoi update ile güncelleme. Nova yapılandırma senkronu değildir; chezmoi ev dizininizi git deposundan uygular."
+source = "https://www.chezmoi.io/"
+license = "MIT"
+executable = "chezmoi"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "chezmoi"]
+install_notes = """
+pacman: sudo pacman -S chezmoi
+apt: sudo apt-get install chezmoi
+dnf: sudo dnf install chezmoi
+brew: brew install chezmoi
+Resmî: https://www.chezmoi.io/install/
+
+"""
+
+[[apps]]
+id = "fasd"
+name = "fasd"
+category = "Verimlilik"
+description = "Sık kullanılan dosya/dizin erişimi."
+source = "https://github.com/clvv/fasd"
+license = "MIT"
+executable = "fasd"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "fasd"]
+install_notes = """
+pacman: sudo pacman -S fasd
+brew: brew install fasd
+
+"""
+
+[[apps]]
+id = "glow"
+name = "Glow"
+category = "Verimlilik"
+description = "Terminalde Markdown okuyucu."
+source = "https://github.com/charmbracelet/glow"
+license = "MIT"
+executable = "glow"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "glow"]
+install_notes = """
+brew: brew install glow
+go: go install github.com/charmbracelet/glow@latest
+Resmî: https://github.com/charmbracelet/glow#installation
+
+"""
+
+[[apps]]
+id = "gum"
+name = "gum"
+category = "Verimlilik"
+description = "Kabuk betikleri için güzel etkileşimli istemler."
+source = "https://github.com/charmbracelet/gum"
+license = "MIT"
+executable = "gum"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "gum"]
+install_notes = """
+brew: brew install gum
+go: go install github.com/charmbracelet/gum@latest
+Resmî: https://github.com/charmbracelet/gum#installation
+
+"""
+
+[[apps]]
+id = "howdoi"
+name = "howdoi"
+category = "Verimlilik"
+description = "Kod sorularına anında cevap."
+source = "https://github.com/gleitz/howdoi"
+license = "MIT"
+executable = "howdoi"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "howdoi"]
+install_notes = """
+pipx: pipx install howdoi
+Resmî: https://github.com/gleitz/howdoi
+
+"""
 
 [[apps]]
 id = "khal"
@@ -292,6 +233,344 @@ source = "https://lostpackets.de/khal/"
 license = "MIT"
 executable = "khal"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "khal"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S khal\npipx: pipx install khal\napt: sudo apt install khal\nbrew: brew install khal\nResmî: https://lostpackets.de/khal/"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "khal"]
+install_notes = """
+pacman: sudo pacman -S khal
+pipx: pipx install khal
+apt: sudo apt install khal
+brew: brew install khal
+Resmî: https://lostpackets.de/khal/
+
+"""
+
+[[apps]]
+id = "khard"
+name = "khard"
+category = "Verimlilik"
+description = "CardDAV / vCard konsol adres defteri yöneticisi."
+source = "https://github.com/lucc/khard"
+license = "GPL-3.0-only"
+executable = "khard"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "khard"]
+install_notes = """
+pacman: sudo pacman -S khard
+Resmî: https://github.com/lucc/khard
+
+"""
+
+[[apps]]
+id = "mcfly"
+name = "mcfly"
+category = "Verimlilik"
+description = "Akıllı kabuk geçmişi araması."
+source = "https://github.com/cantino/mcfly"
+license = "MIT"
+executable = "mcfly"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "mcfly"]
+install_notes = """
+pacman: sudo pacman -S mcfly
+brew: brew install mcfly
+Resmî: https://github.com/cantino/mcfly
+
+"""
+
+[[apps]]
+id = "navi"
+name = "navi"
+category = "Verimlilik"
+description = "Etkileşimli cheatsheet aracı."
+source = "https://github.com/denisidoro/navi"
+license = "Apache-2.0"
+executable = "navi"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "--locked", "navi"]
+install_notes = """
+brew: brew install navi
+cargo: cargo install --locked navi
+Resmî: https://github.com/denisidoro/navi#installation
+
+"""
+
+[[apps]]
+id = "psmux"
+name = "psmux"
+category = "Verimlilik"
+description = "[Windows] PowerShell/Windows Terminal için yerel tmux uyumlu çoğullayıcı."
+source = "https://github.com/psmux/psmux"
+license = "MIT"
+executable = "psmux"
+install_method = "cargo"
+supported_platforms = ["windows-x64", "windows-aarch64"]
+install_command = ["cargo", "install", "psmux"]
+install_notes = """
+cargo: cargo install psmux
+winget: winget install psmux
+scoop: scoop bucket add psmux https://github.com/psmux/scoop-psmux && scoop install psmux
+Resmî: https://github.com/psmux/psmux
+
+"""
+
+[[apps]]
+id = "restic"
+name = "restic"
+category = "Verimlilik"
+description = "Hızlı, güvenli ve verimli yedekleme aracı."
+source = "https://restic.net/"
+license = "BSD-2-Clause"
+executable = "restic"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "restic"]
+install_notes = """
+pacman: sudo pacman -S restic
+apt: sudo apt install restic
+brew: brew install restic
+Resmî: https://restic.readthedocs.io/en/stable/020_installation.html
+
+"""
+
+[[apps]]
+id = "screen"
+name = "screen"
+category = "Verimlilik"
+description = "GNU Screen — klasik terminal çoğullayıcı."
+source = "https://www.gnu.org/software/screen/"
+license = "GPL-3.0-or-later"
+executable = "screen"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "screen"]
+install_notes = """
+pacman: sudo pacman -S screen
+Resmî: https://www.gnu.org/software/screen/
+
+"""
+
+[[apps]]
+id = "slides"
+name = "slides"
+category = "Verimlilik"
+description = "Markdown ile terminal sunumları."
+source = "https://github.com/maaslalani/slides"
+license = "MIT"
+executable = "slides"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "slides"]
+install_notes = """
+brew: brew install slides
+go: go install github.com/maaslalani/slides@latest
+Resmî: https://github.com/maaslalani/slides#installation
+
+"""
+
+[[apps]]
+id = "starship"
+name = "Starship"
+category = "Verimlilik"
+description = "Hızlı, özelleştirilebilir kabuk istemi."
+source = "https://starship.rs/"
+license = "ISC"
+executable = "starship"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "starship"]
+install_notes = """
+curl: curl -sS https://starship.rs/install.sh | sh
+brew: brew install starship
+Resmî: https://starship.rs/guide/#%F0%9F%9A%80-installation
+
+"""
+
+[[apps]]
+id = "taskwarrior-tui"
+name = "taskwarrior-tui"
+category = "Verimlilik"
+description = "Taskwarrior için terminal kullanıcı arayüzü."
+source = "https://github.com/kdheepak/taskwarrior-tui"
+license = "MIT"
+executable = "taskwarrior-tui"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "taskwarrior-tui"]
+install_notes = """
+pacman: sudo pacman -S taskwarrior-tui
+brew: brew install taskwarrior-tui
+Resmî: https://github.com/kdheepak/taskwarrior-tui
+
+"""
+
+[apps.release]
+repo = "kdheepak/taskwarrior-tui"
+
+[[apps]]
+id = "tealdeer"
+name = "tldr-tealdeer"
+category = "Verimlilik"
+description = "Hızlı tldr istemcisi (tealdeer)."
+source = "https://github.com/tealdeer-rs/tealdeer"
+license = "MIT OR Apache-2.0"
+executable = "tldr"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "tealdeer"]
+install_notes = """
+pacman: sudo pacman -S tealdeer
+cargo: cargo install tealdeer
+Not: tldr id çakışabilir; tealdeer aynı exe.
+
+"""
+
+[[apps]]
+id = "thefuck"
+name = "thefuck"
+category = "Verimlilik"
+description = "Yanlış komutu düzeltme sihirbazı."
+source = "https://github.com/nvbn/thefuck"
+license = "MIT"
+executable = "fuck"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "thefuck"]
+install_notes = """
+pacman: sudo pacman -S thefuck
+pipx: pipx install thefuck
+Resmî: https://github.com/nvbn/thefuck
+
+"""
+
+[[apps]]
+id = "tmux"
+name = "tmux"
+category = "Verimlilik"
+description = "Terminal çoğullayıcı; oturum, pencere ve panel yönetimi."
+source = "https://github.com/tmux/tmux"
+license = "ISC"
+executable = "tmux"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "tmux"]
+install_notes = """
+apt: sudo apt install tmux
+brew: brew install tmux
+pacman: sudo pacman -S tmux
+Resmî: https://github.com/tmux/tmux/wiki/Installing
+
+"""
+
+[[apps]]
+id = "todoman"
+name = "todoman"
+category = "Verimlilik"
+description = "Standartlara dayalı basit CLI görev yöneticisi."
+source = "https://github.com/pimutils/todoman"
+license = "ISC"
+executable = "todo"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "todoman"]
+install_notes = """
+pacman: sudo pacman -S todoman
+Çalıştırılabilir: todo
+Resmî: https://github.com/pimutils/todoman
+
+"""
+
+[[apps]]
+id = "vdirsyncer"
+name = "vdirsyncer"
+category = "Verimlilik"
+description = "CalDAV ve CardDAV senkronizasyon aracı."
+source = "https://github.com/pimutils/vdirsyncer"
+license = "BSD-3-Clause"
+executable = "vdirsyncer"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "vdirsyncer"]
+install_notes = """
+pacman: sudo pacman -S vdirsyncer
+Resmî: https://github.com/pimutils/vdirsyncer
+
+"""
+
+[[apps]]
+id = "wtfutil"
+name = "wtfutil"
+category = "Verimlilik"
+description = "Kişisel bilgi panosu; widget'larla terminal dashboard."
+source = "https://wtfutil.com/"
+license = "MPL-2.0"
+executable = "wtfutil"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "wtfutil"]
+install_notes = """
+brew: brew install wtfutil
+Resmî: https://wtfutil.com/
+
+"""
+
+[[apps]]
+id = "yadm"
+name = "yadm"
+category = "Verimlilik"
+description = "Yet Another Dotfiles Manager."
+source = "https://github.com/yadm-dev/yadm"
+license = "GPL-3.0"
+executable = "yadm"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "yadm"]
+install_notes = """
+pacman: sudo pacman -S yadm
+brew: brew install yadm
+Resmî: https://github.com/yadm-dev/yadm
+
+"""
+
+[apps.release]
+repo = "yadm-dev/yadm"
+
+[[apps]]
+id = "zellij"
+name = "zellij"
+category = "Verimlilik"
+description = "Kullanıcı dostu terminal çalışma alanı / çoğullayıcı."
+source = "https://zellij.dev/"
+license = "MIT"
+executable = "zellij"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "--locked", "zellij"]
+install_notes = """
+cargo: cargo install --locked zellij
+brew: brew install zellij
+Resmî: https://zellij.dev/documentation/installation
+
+"""
+
+[[apps]]
+id = "zoxide"
+name = "zoxide"
+category = "Verimlilik"
+description = "Akıllı cd; sık kullanılan dizinlere hızlı atlar."
+source = "https://github.com/ajeetdsouza/zoxide"
+license = "MIT"
+executable = "zoxide"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "zoxide"]
+install_notes = """
+cargo: cargo install zoxide --locked
+brew: brew install zoxide
+apt: sudo apt install zoxide
+pacman: sudo pacman -S zoxide
+Resmî: https://github.com/ajeetdsouza/zoxide#installation
+
+"""
