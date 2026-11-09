@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-09T16:57:15Z",
-  "content_sha256": "ee1e5d186bdc7885cd18b945446a2d34673c7f7499d08f7da165fc011d5ae4db",
+  "generated_at": "2026-11-09T18:08:02Z",
+  "content_sha256": "e17437d67113603c4e7e7cd46b7b5ad1ebb1043d032b4a38b651c3cd189b8169",
   "command_count": 256,
   "concept_count": 20,
   "task_count": 26,
@@ -5865,7 +5865,13 @@
             "en": "Wrong device = data loss; confirm with -l first."
           },
           "risk": "destructive",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış cihaz seçimi veriyi kalıcı olarak siler; önce `fdisk -l` / `lsblk` ile doğrula.",
+              "en": "Wrong device permanently destroys data; confirm with `fdisk -l` / `lsblk` first."
+            }
+          ]
         }
       ],
       "related": [
@@ -18319,7 +18325,13 @@
             "en": "Placeholder disk. Wrong device wrecks the partition table. Confirm with `parted -l` / `lsblk` first. This example does not pass scripted destroy commands.\n"
           },
           "risk": "destructive",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "Yanlış cihaz seçimi bölüm tablosunu bozar; önce `parted -l` / `lsblk` ile doğrula.",
+              "en": "Wrong device wrecks the partition table; confirm with `parted -l` / `lsblk` first."
+            }
+          ]
         }
       ],
       "related": [
@@ -22394,7 +22406,13 @@
             "tr": "Tek bir dosyayı siler.",
             "en": "Removes a single file."
           },
-          "risk": "destructive"
+          "risk": "destructive",
+          "warnings": [
+            {
+              "tr": "Geri dönüşüm kutusu yoktur; silinen dosya genellikle kurtarılamaz.",
+              "en": "There is no trash; deleted files are usually unrecoverable."
+            }
+          ]
         },
         {
           "title": {
@@ -22406,7 +22424,13 @@
             "tr": "Onaylayarak dizini siler. -rf kullanmadan önce iki kez düşünün.",
             "en": "Recursively removes with prompts. Think twice before -rf."
           },
-          "risk": "destructive"
+          "risk": "destructive",
+          "warnings": [
+            {
+              "tr": "Özyinelemeli silme kalıcıdır; `-rf` kullanmadan önce yolu iki kez kontrol edin.",
+              "en": "Recursive delete is permanent; double-check the path before using `-rf`."
+            }
+          ]
         }
       ],
       "related": [
@@ -29198,7 +29222,13 @@
             "en": "Removes home too — destructive."
           },
           "risk": "destructive",
-          "requires_elevated": true
+          "requires_elevated": true,
+          "warnings": [
+            {
+              "tr": "'-r' ev dizinini ve posta kutusunu da siler; yedek yoksa veri kaybı kalıcıdır.",
+              "en": "'-r' also deletes the home directory and mail spool; without a backup, data loss is permanent."
+            }
+          ]
         }
       ],
       "related": [
@@ -32272,7 +32302,7 @@
         "en": "When a command “doesn’t work”, separate layers: **not found** (PATH),\n**permissions**, **library/deps**, **network**, or **config**?\n\n**Quick order:**\n1. `command -v` / `type` — is the binary there?\n2. `ls -l` / `id` — permissions and user.\n3. `journalctl -u … -e` or app logs.\n4. `lsof -i` / `ss` — ports and file handles.\n5. `strace -e openat,network …` — what does the kernel refuse?\n\n**strace:** `openat`/`connect` failures (`ENOENT`, `EACCES`, `ECONNREFUSED`)\nare strong hints. `-f` follows children; it is noisy — filter with `-e`.\nptrace restrictions (hardening/containers) may require sudo.\n\n**lsof / ss:** “who is listening?” and “is the file busy?”.\n**ps/pgrep/pkill:** process selection; `pkill` is dangerous with a bad pattern.\n\nCatalog CI does not run these tools “to prove” entries; content is checked\nagainst man/`--help` and careful examples. Do not share traces that contain secrets.\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "man 1 strace",
           "man 8 lsof",
@@ -32324,7 +32354,7 @@
         "en": "Linux packet filtering mostly sits on **netfilter**. Userland tools are different\ngenerations; they can all write the same kernel hooks.\n\n**Short map:**\n- **nft** (`nftables`) — modern primary interface; tables/chains/rules.\n- **iptables** — legacy IPv4 tool; many systems use an `iptables-nft` compat layer.\n- **firewall-cmd** (`firewalld`) — zone/service model (often default on Fedora).\n- **ufw** — “simple” frontend common on Ubuntu.\n- **pfctl** (BSD PF) — OpenBSD/FreeBSD; **not** equivalent to Linux netfilter tools.\n\n**Safe habit:** On remote sessions, **list first** (`nft list ruleset`,\n`iptables -L -n`, `firewall-cmd --list-all`, `ufw status`, on BSD `pfctl -s rules`).\nCatalog examples deliberately omit destructive flush / blind deny recipes — a bad\nrule cuts SSH.\n\n**Nova bank:** `nft` / `iptables` / `ufw` may be `draft` or carefully `reviewed`;\n`verification.status: verified` needs a human. `dangerous` / `destructive` labels\nare not theatrical — lockouts are real.\n\n**Choosing:** Follow the distro default for new automation (Arch/nft or firewalld;\nUbuntu/ufw; Fedora/firewalld). Two managers writing at once causes fights.\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "man 8 nft",
           "man 1 firewall-cmd",
@@ -32423,7 +32453,7 @@
         "en": "Modern CLIs often emit **JSON** or row-oriented tables. Prefer structure-aware\ntools over brittle `grep` on raw blobs.\n\n**jq:** a JSON filter language. `curl … | jq -r '.field'` is the common API\npattern. `-c` is compact; `-s` slurps documents into an array. Invalid JSON\nmakes jq fail — validate the source first.\n\n**sqlite3:** serverless SQL for app settings, browser profiles, embedded DB\nfiles. Use `-readonly` to inspect; `-json` / `-csv` to export. Mistaken\n`DELETE`/`DROP` is destructive — catalog examples emphasize read paths.\n\n**psql:** a client that needs a live server and credentials. Package names vary\nby distro → many entries stay `draft`.\n\n**python3 -m json.tool** / short `python3 -c` can pretty-print as a fallback;\njq filters are usually shorter and more compositional.\n\n**Pipeline habit:** producer → filter → consumer. Keep intermediates with `tee`;\ndo not leak secrets into logs.\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "https://jqlang.github.io/jq/manual/",
           "https://www.sqlite.org/cli.html"
@@ -32529,7 +32559,7 @@
         "en": "On modern Linux, interface/address management is mostly **iproute2** (`ip`);\nuse `ss` for sockets (prefer over legacy `netstat`).\n\n**Practical layers:**\n- Link/addr: `ip link` / `ip addr`.\n- Routing: `ip route` — default gateway and routes.\n- Transport: `ss -tulpn` — listening TCP/UDP (process names often need root).\n\n**Connectivity:** `ping` uses ICMP (may be blocked). For HTTP, `curl -I` or `wget`.\nPath tracing: `traceroute` / `tracepath` (package-dependent).\n\n**DNS:** Name → address. `dig` / `host` query resolvers; on systemd-resolved hosts,\n`resolvectl status` / `resolvectl query` help. Desktops often use NetworkManager\nvia `nmcli`.\n\n**Safety:** `nc` (netcat) is powerful for diagnostics but can open unwanted\nlisteners — catalog may mark it `draft`/`caution`. Firewall tooling needs care;\nnever invent rules or flags.\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "man ip-address / man ss",
           "man systemd-resolved / resolvectl",
@@ -32804,7 +32834,7 @@
         "en": "**`PATH`** is a colon-separated list of directories where the shell searches for\nexternal programs (e.g. `/usr/local/bin:/usr/bin:/bin`). On a bare name, the shell\nchecks builtins/aliases/functions first, then walks `PATH` for an executable.\n\n**Inspect:**\n- `echo \"$PATH\"` — search directories.\n- `type ls` / `command -v ls` — what the shell would run (builtin vs path).\n- `which ls` — often prints the first matching path (`type` is clearer for builtins).\n\n**Update:** `export PATH=\"$HOME/.local/bin:$PATH\"` for the session; persist via shell\nstartup files (`~/.bashrc`, `~/.zshrc`, …). A broken `PATH` causes “command not found”\nor picks the wrong binary.\n\n**Nova:** Local “commands on this system” come from client-side PATH discovery\n(`kind: nova-local-commands`) and must not inherit bank `verified` status.\nSee `docs/local-discovery-contract.md`.\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "man environ / POSIX PATH",
           "man bash (COMMAND EXECUTION)"
@@ -32859,7 +32889,7 @@
         "en": "Linux access is roughly **user + group + other** with read/write/execute bits.\nACLs exist on modern systems; this article focuses on classic `chmod`/`chown`.\n\n**Who am I?** `id`, `whoami`, `groups` — numeric uid/gid and memberships.\n**File mode:** `ls -l`, `stat`, `chmod` (symbolic `u+x` or octal `755`).\n**Ownership:** `chown user:group`; usually needs root.\n**Elevation:** `sudo` — config in `/etc/sudoers` (+ drop-ins); overly broad sudo\nis dangerous.\n\n**Directory vs file:** directory `x` means “traverse”; file `x` means “execute”.\nShared dirs involve sticky bits (e.g. `/tmp`).\n\nMany user/permission entries in the bank are `caution` or `dangerous`; do not\ncopy examples blindly. `verified` still requires a human.\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "man 1 chmod",
           "man 8 sudo",
@@ -32957,7 +32987,7 @@
         "en": "Processes start with three standard streams: **stdin** (0), **stdout** (1),\n**stderr** (2). The shell can attach them to files or other processes.\n\n**Redirection:**\n- `cmd > file` — write stdout (truncate/overwrite).\n- `cmd >> file` — append stdout.\n- `cmd < file` — read stdin from a file.\n- `cmd 2> err.log` — capture stderr; `2>&1` merges stderr into stdout.\n\n**Pipe (`|`):** Connects the left command’s stdout to the right command’s stdin.\nExample: `ps aux | grep ssh | head`. Data flows without intermediate files.\nstderr does not enter the pipe by default.\n\n**`tee`:** Copies stdout both to a file and further down the pipeline.\n\n**`xargs`:** Turns stdin tokens into arguments for another command\n(`find … -print0 | xargs -0 …` for whitespace-safe lists).\n\n**Caution:** `>` silently overwrites files. Prefer `>>` or backups when unsure.\nDestructive examples in this bank are labeled `dangerous`/`destructive`; do not\nrun destructive commands just to validate catalog entries.\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "man bash (REDIRECTION, PIPES)",
           "POSIX shell redirection"
@@ -33071,7 +33101,7 @@
         "en": "**systemd** is init/PID 1 and the service manager on many Linux distributions.\nConfiguration lives in units: `.service`, `.timer`, `.socket`, `.mount`, `.target`, …\n\n**Common unit types:**\n- `.service` — long-running process or oneshot job.\n- `.target` — synchronization point (e.g. `multi-user.target`).\n- `.timer` — calendar/monotonic scheduling (systemd timers).\n\n**systemctl (common):**\n- `systemctl status unit` — status (often without sudo).\n- `systemctl start|stop|restart unit` — runtime control (usually root).\n- `systemctl enable|disable unit` — boot enablement.\n- `systemctl daemon-reload` — after editing unit files.\n\n**Logs:** `journalctl -u unit -e` shows recent logs; `-f` follows.\nPersistent journals may live under `/var/log/journal` depending on distro config.\n\n**Related ctl tools:** `hostnamectl`, `timedatectl`, `loginctl`,\n`systemd-analyze blame` (boot timing), `bootctl` (systemd-boot; not everywhere).\n\n**Risk:** Mistaken `stop`/`disable` can cut remote access or networking; many\nentries are `dangerous` / `requires_elevated`. Unit paths and defaults vary —\nnever invent flags or package names.\n\n**Not BSD:** FreeBSD `service`/`sysrc`, OpenBSD `rcctl`, and macOS `launchctl`\nare not systemd units — separate records (Faz 5–6).\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "man systemd",
           "man systemctl",
@@ -33118,7 +33148,7 @@
         "en": "A terminal is a text interface; a *shell* (bash, zsh, fish, …) interprets each line.\nTypical form: `command [flags…] [arguments…]`.\n\n**Prompt:** Shows the shell is ready; press Enter to run the line. Interactive\ndefaults are often bash or zsh; scripts frequently use `#!/bin/sh` for a\nPOSIX-oriented shell.\n\n**Arguments and quoting:** Quote paths with spaces (`cd \"My Documents\"`). Single\nquotes usually disable expansion; double quotes may expand variables.\n\n**Exit status:** Success is usually `0`; non-zero means failure. Inspect the last\nstatus with `echo $?`. Scripts may use `set -e` to stop early on errors (shell-specific\nnuances apply).\n\n**Help:** `man command`, `command --help` (common on GNU tools), and sometimes `info`.\nCatalog entries must not be marked `verified` without checking man/`--help`.\n\n**Nova dual concept:** The curated bank is not the same as “commands found on PATH”;\npresence on PATH does not verify bank content.\n"
       },
       "verification": {
-        "status": "reviewed",
+        "status": "draft",
         "sources": [
           "POSIX.1 shell command language (overview)",
           "man bash (INVOCATION, SHELL GRAMMAR)"
