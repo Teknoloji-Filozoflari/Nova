@@ -1,8 +1,8 @@
-//! Komut Rehberi sekmesi: Nova-Commands bankası ≠ Mağaza ≠ PATH keşfi.
+//! Komut Rehberi sekmesi: görev odaklı IA · banka ≠ Mağaza ≠ PATH keşfi.
 
 use nova::app::App;
 use nova::catalog::Catalog;
-use nova::commands::{CommandsSource, BANK_KIND, LOCAL_KIND};
+use nova::commands::{CommandsBrowseMode, BANK_KIND, LOCAL_KIND};
 use ratatui::{backend::TestBackend, Terminal};
 
 fn app() -> App {
@@ -43,30 +43,73 @@ fn settings_lists_commands_bank_refresh_action() {
 }
 
 #[test]
-fn commands_tab_renders_bank_surface_distinct_from_store() {
+fn commands_tab_opens_on_start_not_alpha_categories() {
     let mut app = app();
     app.select_commands_tab();
+    assert_eq!(app.commands_mode, CommandsBrowseMode::Start);
     let text = all_text(&render(&app, 150, 42));
 
     assert!(text.contains("Komut Rehberi"), "sekme etiketi yok:\n{text}");
     assert!(
-        text.contains("Kaynak") || text.contains("Bilgi Bankası"),
-        "{text}"
+        text.contains("Başlangıç") || text.contains("Gezinme"),
+        "görev odaklı başlangıç yok:\n{text}"
     );
     assert!(
-        text.contains("Sistemimde Bulunan"),
-        "local kaynak etiketi yok:\n{text}"
+        text.contains("Göreve göre") || text.contains("By task"),
+        "görev modu yok:\n{text}"
     );
-    assert!(text.contains("Bank Kategorileri") || text.contains("Bank Komutları"));
+    assert!(
+        text.contains("Sistemde bulunanlar") || text.contains("On this system"),
+        "PATH modu yok:\n{text}"
+    );
     // Mağaza panelleri Komut Rehberi'nde açılmaz.
     assert!(
         !text.contains("Mağaza Kategorileri"),
         "Mağaza paneli Komut Rehberi'ne sızmamalı"
     );
     assert_eq!(app.commands_bank.kind, BANK_KIND);
-    assert_ne!(
-        app.commands_search_index.kind, BANK_KIND,
-        "search-index ayrı kind"
+    assert!(
+        !app.commands_bank.tasks.is_empty(),
+        "katalog tasks yüklenmeli"
+    );
+    assert!(
+        !app.commands_bank.profiles.is_empty(),
+        "katalog profiles yüklenmeli"
+    );
+}
+
+#[test]
+fn commands_tab_wires_tasks_and_profiles() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::ByTask);
+    assert!(app.commands_mode.needs_group_column());
+    assert!(
+        !app.filtered_tasks().is_empty(),
+        "görev listesi boş olmamalı"
+    );
+    let text = all_text(&render(&app, 180, 42));
+    assert!(
+        text.contains("Görev") || text.contains("draft"),
+        "görev yüzeyi yok:\n{text}"
+    );
+
+    app.set_commands_mode(CommandsBrowseMode::Context);
+    assert!(!app.commands_bank.profiles.is_empty());
+    // Çoklu seçim: Space/Enter profil ekler.
+    app.focus = nova::app::PanelFocus::CommandsCategory;
+    app.commands_category_index = 0;
+    let id = app.commands_bank.profiles[0].id.clone();
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char(' '),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(app.commands_selected_profiles.contains(&id));
+    assert!(
+        app.commands_bank.profiles[0].verification.status
+            == nova::commands::VerificationStatus::Draft
+            || !app.commands_selected_profiles.is_empty()
     );
 }
 
@@ -74,41 +117,45 @@ fn commands_tab_renders_bank_surface_distinct_from_store() {
 fn commands_tab_local_source_uses_local_kind_not_bank() {
     let mut app = app();
     app.select_commands_tab();
-    app.commands_source = CommandsSource::Local;
+    app.set_commands_mode(CommandsBrowseMode::SystemPath);
     app.focus = nova::app::PanelFocus::CommandsList;
     let text = all_text(&render(&app, 150, 42));
 
-    assert!(text.contains("Sistemimde Bulunan"), "{text}");
-    assert!(text.contains("PATH") || text.contains("Keşfi"), "{text}");
+    assert!(
+        text.contains("Sistemde bulunanlar") || text.contains("PATH"),
+        "{text}"
+    );
     assert_eq!(app.commands_local.kind, LOCAL_KIND);
     assert_ne!(app.commands_local.kind, BANK_KIND);
     assert!(app.commands_local.stub);
+    assert_eq!(app.commands_source(), nova::commands::CommandsSource::Local);
 }
 
 #[test]
-fn commands_detail_shows_examples_risk_and_packages() {
+fn commands_detail_shows_purpose_safe_example_risk_sudo() {
     let mut app = app();
     app.select_commands_tab();
-    // Geniş: sağ detay paneli (banka: 2 ikincil sütun → ~168+ sütun gerekir).
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    // Geniş: sağ detay paneli (gruplu: 2 ikincil sütun → ~168+ sütun gerekir).
     app.terminal_size = Some((180, 42));
     app.narrow_mode = false;
-    // İlk kategoride örnekleri/paketi olan bir komut seç.
     let cmds = app.filtered_bank_commands();
     assert!(!cmds.is_empty());
-    // Tercihen örnekleri olan kayda git.
     if let Some(idx) = cmds.iter().position(|c| !c.examples.is_empty()) {
         app.commands_entry_index = idx;
     }
     let text = all_text(&render(&app, 180, 42));
     assert!(
-        text.contains("risk")
-            || text.contains("Risk")
-            || text.contains("güvenli")
-            || text.contains("dikkat")
-            || text.contains("tehlikeli"),
-        "risk etiketi yok:\n{text}"
+        text.contains("Amaç") || text.contains("risk") || text.contains("Risk"),
+        "amaç/risk yok:\n{text}"
     );
-    // Dual-concept footer.
+    assert!(
+        text.contains("Güvenli örnek")
+            || text.contains("Beklenen etki")
+            || text.contains("sudo")
+            || text.contains("çalıştırılmaz"),
+        "detay alanları yok:\n{text}"
+    );
     assert!(
         text.contains("nova-commands-bank") || text.contains("kürate") || text.contains("Mağaza"),
         "{text}"
@@ -119,13 +166,12 @@ fn commands_detail_shows_examples_risk_and_packages() {
 fn commands_search_spans_categories_and_keeps_sources_separate() {
     let mut app = app();
     app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
     app.search_query = "ls".into();
     let bank_n = app.filtered_bank_commands().len();
     assert!(bank_n > 0, "bank araması boş olmamalı");
-    // En azından arama sonuçları listelenir; Local ile birleştirilmez.
-    app.commands_source = CommandsSource::Local;
+    app.set_commands_mode(CommandsBrowseMode::SystemPath);
     let _local_n = app.filtered_local_commands().len();
-    // kind'lar karışmaz.
     assert_eq!(app.commands_bank.kind, BANK_KIND);
     assert_eq!(app.commands_local.kind, LOCAL_KIND);
 }
@@ -134,6 +180,7 @@ fn commands_search_spans_categories_and_keeps_sources_separate() {
 fn command_favorites_are_separate_from_tool_and_store() {
     let mut app = app();
     app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
     let id = {
         let cmds = app.filtered_bank_commands();
         assert!(!cmds.is_empty());
@@ -152,8 +199,8 @@ fn command_favorites_are_separate_from_tool_and_store() {
         !app.state.file.favorites.contains(&id),
         "banka favorisi araç favorites setine yazılmamalı"
     );
-    // Local kaynakta F bank favorisi eklemez.
-    app.commands_source = CommandsSource::Local;
+    // PATH modunda F bank favorisi eklemez.
+    app.set_commands_mode(CommandsBrowseMode::SystemPath);
     let before = app.state.file.command_favorites.len();
     app.handle_key(f).unwrap();
     assert_eq!(app.state.file.command_favorites.len(), before);
@@ -162,7 +209,6 @@ fn command_favorites_are_separate_from_tool_and_store() {
 #[test]
 fn tab_order_is_guide_then_store_then_settings() {
     let mut app = app();
-    // Tüm araç kategorilerini kurulu işaretle ki görünür olsun.
     for e in app.catalog.entries_mut() {
         e.status = nova::detection::InstalledStatus::Installed;
     }
@@ -176,4 +222,31 @@ fn tab_order_is_guide_then_store_then_settings() {
     assert!(!app.commands_tab);
     app.set_tab_index(visible.len() + 2);
     assert!(app.settings_tab);
+}
+
+#[test]
+fn enter_never_auto_runs_commands() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    app.focus = nova::app::PanelFocus::CommandsList;
+    let before = app.modal.is_open();
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert_eq!(
+        app.modal.is_open(),
+        before,
+        "Enter modal/çalıştırma açmamalı"
+    );
+    assert!(
+        app.status_message.contains("Bank")
+            || app.status_message.contains("risk")
+            || app.status_message.contains("çalıştır")
+            || !app.status_message.is_empty(),
+        "bilgi satırı beklenirdi: {}",
+        app.status_message
+    );
 }

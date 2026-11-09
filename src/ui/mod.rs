@@ -914,9 +914,12 @@ fn draw_search(f: &mut Frame, app: &App, area: Rect) {
     let lang = app.ui_lang();
     let (text, style) = if app.search_active || !app.search_query.is_empty() {
         let prefix = if app.commands_tab {
-            match app.commands_source {
-                crate::commands::CommandsSource::Bank => "bank / ",
-                crate::commands::CommandsSource::Local => "PATH / ",
+            match app.commands_mode {
+                crate::commands::CommandsBrowseMode::SystemPath => "PATH / ",
+                crate::commands::CommandsBrowseMode::ByTask => "görev / ",
+                crate::commands::CommandsBrowseMode::Context => "bağlam / ",
+                crate::commands::CommandsBrowseMode::Start => "başlangıç / ",
+                crate::commands::CommandsBrowseMode::AllCommands => "komut / ",
             }
         } else if app.store_tab {
             "mağaza / "
@@ -1046,18 +1049,17 @@ fn draw_content(f: &mut Frame, app: &App, area: Rect, wide: bool) {
 
 /// Komut Rehberi içerik alanı.
 ///
-/// Dual-concept: kaynak paneli **Bilgi Bankası** ile **Sistemimde Bulunan**
-/// arasında seçim yapar; listeler birleştirilmez. Mağaza bu sekmede yok.
-/// Sütun genişlikleri bu ekranın [`PaneWidths`] tercihleridir.
+/// Görev odaklı IA: seçim (mod) → [grup] → liste → detay. PATH ve katalog
+/// listeleri birleştirilmez. Mağaza bu sekmede yok. Sütun genişlikleri bu
+/// ekranın [`PaneWidths`] tercihleridir (diğer ekranlar değişmez).
 fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes: PaneWidths) {
-    use crate::commands::CommandsSource;
-
     let tabs = panes.tabs;
     let secondary = panes.secondary;
     let cols = app.pane_secondary_cols();
     let side = wide && area.width >= detail_side_min_width(tabs, secondary, cols);
+    let grouped = app.commands_mode.needs_group_column();
     if wide {
-        if app.commands_source == CommandsSource::Bank {
+        if grouped {
             if side {
                 let after_fixed = area
                     .width
@@ -1075,8 +1077,8 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
                     ])
                     .split(area);
                 draw_categories(f, app, panels[0]);
-                draw_commands_source(f, app, panels[1]);
-                draw_commands_categories(f, app, panels[2]);
+                draw_commands_mode(f, app, panels[1]);
+                draw_commands_group(f, app, panels[2]);
                 draw_commands_list(f, app, panels[3]);
                 draw_commands_detail_panel(f, app, panels[4]);
             } else {
@@ -1096,8 +1098,8 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
                     ])
                     .split(area);
                 draw_categories(f, app, panels[0]);
-                draw_commands_source(f, app, panels[1]);
-                draw_commands_categories(f, app, panels[2]);
+                draw_commands_mode(f, app, panels[1]);
+                draw_commands_group(f, app, panels[2]);
                 draw_commands_list(f, app, panels[3]);
             }
         } else if side {
@@ -1113,7 +1115,7 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
                 ])
                 .split(area);
             draw_categories(f, app, panels[0]);
-            draw_commands_source(f, app, panels[1]);
+            draw_commands_mode(f, app, panels[1]);
             draw_commands_list(f, app, panels[2]);
             draw_commands_detail_panel(f, app, panels[3]);
         } else {
@@ -1129,7 +1131,7 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
                 ])
                 .split(area);
             draw_categories(f, app, panels[0]);
-            draw_commands_source(f, app, panels[1]);
+            draw_commands_mode(f, app, panels[1]);
             draw_commands_list(f, app, panels[2]);
         }
     } else {
@@ -1141,40 +1143,37 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(src_h), Constraint::Min(3)])
             .split(area);
-        draw_commands_source(f, app, panels[0]);
+        draw_commands_mode(f, app, panels[0]);
         draw_commands_list(f, app, panels[1]);
     }
 }
 
-fn draw_commands_source(f: &mut Frame, app: &App, area: Rect) {
-    use crate::commands::CommandsSource;
+fn commands_mode_label(mode: crate::commands::CommandsBrowseMode, en: bool) -> &'static str {
+    use crate::commands::CommandsBrowseMode::*;
+    match (mode, en) {
+        (Start, false) => "1 Başlangıç",
+        (Start, true) => "1 Start",
+        (ByTask, false) => "2 Göreve göre",
+        (ByTask, true) => "2 By task",
+        (Context, false) => "3 Kullanım bağlamı",
+        (Context, true) => "3 Usage context",
+        (AllCommands, false) => "4 Tüm komutlar",
+        (AllCommands, true) => "4 All commands",
+        (SystemPath, false) => "5 Sistemde bulunanlar",
+        (SystemPath, true) => "5 On this system",
+    }
+}
+
+fn draw_commands_mode(f: &mut Frame, app: &App, area: Rect) {
+    use crate::commands::CommandsBrowseMode;
     let pal = palette(app);
     let lang = app.ui_lang();
-    let bank_count = app.commands_bank.commands.len();
-    let local_count = app.commands_local.entries.len();
+    let en = lang.id().to_ascii_lowercase().starts_with("en");
     let fav_n = app.state.file.command_favorites.len();
-    let rows = [
-        (
-            CommandsSource::Bank,
-            format!(
-                "{} ({bank_count}) · {}",
-                lang.t(Msg::CommandsBank),
-                lang.t(Msg::CommandsBankKind)
-            ),
-        ),
-        (
-            CommandsSource::Local,
-            format!(
-                "{} ({local_count}) · {}",
-                lang.t(Msg::CommandsLocal),
-                lang.t(Msg::CommandsLocalKind)
-            ),
-        ),
-    ];
-    let items: Vec<ListItem> = rows
+    let items: Vec<ListItem> = CommandsBrowseMode::ALL
         .iter()
-        .map(|(src, label)| {
-            let selected = app.commands_source == *src;
+        .map(|mode| {
+            let selected = app.commands_mode == *mode;
             let focused = selected && app.focus == PanelFocus::CommandsSource;
             let style = if focused {
                 Style::default()
@@ -1186,15 +1185,16 @@ fn draw_commands_source(f: &mut Frame, app: &App, area: Rect) {
             } else {
                 Style::default().fg(pal.text)
             };
+            let label = truncate(
+                commands_mode_label(*mode, en),
+                area.width.saturating_sub(6) as usize,
+            );
             ListItem::new(Line::from(vec![
                 Span::styled(
                     if selected { "▶ " } else { "  " },
                     Style::default().add_modifier(Modifier::BOLD),
                 ),
-                Span::styled(
-                    truncate(label, area.width.saturating_sub(6) as usize),
-                    style,
-                ),
+                Span::styled(label, style),
             ]))
         })
         .collect();
@@ -1216,44 +1216,92 @@ fn draw_commands_source(f: &mut Frame, app: &App, area: Rect) {
                 .title(title),
         )
         .highlight_style(Style::default());
-    let mut state = ListState::default().with_selected(Some(app.commands_source.index()));
+    let mut state = ListState::default().with_selected(Some(app.commands_mode.index()));
     f.render_stateful_widget(list, area, &mut state);
 }
 
-fn draw_commands_categories(f: &mut Frame, app: &App, area: Rect) {
+fn draw_commands_group(f: &mut Frame, app: &App, area: Rect) {
+    use crate::commands::{CommandsBrowseMode, VerificationStatus};
     let pal = palette(app);
     let lang = app.ui_lang();
-    let cats = app.commands_bank_categories();
-    let items: Vec<ListItem> = cats
-        .iter()
-        .enumerate()
-        .map(|(i, cat)| {
-            let count = app.commands_bank.by_category(cat).len();
-            let selected = i == app.commands_category_index;
-            let focused = selected && app.focus == PanelFocus::CommandsCategory;
-            let style = if focused {
-                Style::default()
-                    .fg(pal.accent_on)
-                    .bg(pal.accent)
-                    .add_modifier(Modifier::BOLD)
-            } else if selected {
-                Style::default().fg(pal.accent)
+    let lang_id = lang.id();
+    let en = lang_id.to_ascii_lowercase().starts_with("en");
+    let (title, items): (String, Vec<ListItem>) = match app.commands_mode {
+        CommandsBrowseMode::ByTask => {
+            let cats = app.commands_bank.task_categories();
+            let items = cats
+                .iter()
+                .enumerate()
+                .map(|(i, cat)| {
+                    let count = app.commands_bank.tasks_in_category(cat).len();
+                    let selected = i == app.commands_category_index;
+                    let focused = selected && app.focus == PanelFocus::CommandsCategory;
+                    let style = row_style(pal, selected, focused);
+                    let label = truncate(
+                        &format!("{} ({count})", lang.bank_category(cat)),
+                        area.width.saturating_sub(6) as usize,
+                    );
+                    list_row(selected, label, style)
+                })
+                .collect();
+            let title = if en {
+                " Task groups "
             } else {
-                Style::default().fg(pal.text)
+                " Görev grupları "
             };
-            let label = truncate(
-                &format!("{} ({count})", lang.bank_category(cat)),
-                area.width.saturating_sub(6) as usize,
-            );
-            ListItem::new(Line::from(vec![
-                Span::styled(
-                    if selected { "▶ " } else { "  " },
-                    Style::default().add_modifier(Modifier::BOLD),
-                ),
-                Span::styled(label, style),
-            ]))
-        })
-        .collect();
+            (title.into(), items)
+        }
+        CommandsBrowseMode::Context => {
+            let items = app
+                .commands_bank
+                .profiles
+                .iter()
+                .enumerate()
+                .map(|(i, p)| {
+                    let selected = i == app.commands_category_index;
+                    let focused = selected && app.focus == PanelFocus::CommandsCategory;
+                    let style = row_style(pal, selected, focused);
+                    let checked = if app.commands_selected_profiles.contains(&p.id) {
+                        "[x]"
+                    } else {
+                        "[ ]"
+                    };
+                    let draft = if p.verification.status == VerificationStatus::Draft {
+                        " ·draft"
+                    } else {
+                        ""
+                    };
+                    let label = truncate(
+                        &format!("{checked} {}{draft}", p.name.pick(lang_id)),
+                        area.width.saturating_sub(6) as usize,
+                    );
+                    list_row(selected, label, style)
+                })
+                .collect();
+            let title = if en { " Profiles " } else { " Profiller " };
+            (title.into(), items)
+        }
+        CommandsBrowseMode::AllCommands => {
+            let cats = app.commands_bank_categories();
+            let items = cats
+                .iter()
+                .enumerate()
+                .map(|(i, cat)| {
+                    let count = app.commands_bank.by_category(cat).len();
+                    let selected = i == app.commands_category_index;
+                    let focused = selected && app.focus == PanelFocus::CommandsCategory;
+                    let style = row_style(pal, selected, focused);
+                    let label = truncate(
+                        &format!("{} ({count})", lang.bank_category(cat)),
+                        area.width.saturating_sub(6) as usize,
+                    );
+                    list_row(selected, label, style)
+                })
+                .collect();
+            (format!(" {} ", lang.t(Msg::CommandsCategories)), items)
+        }
+        _ => (String::new(), Vec::new()),
+    };
     let border = if app.focus == PanelFocus::CommandsCategory {
         Style::default().fg(pal.accent)
     } else {
@@ -1264,96 +1312,44 @@ fn draw_commands_categories(f: &mut Frame, app: &App, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .border_style(border)
-                .title(format!(" {} ", lang.t(Msg::CommandsCategories))),
+                .title(title),
         )
         .highlight_style(Style::default());
     let mut state = ListState::default().with_selected(Some(app.commands_category_index));
     f.render_stateful_widget(list, area, &mut state);
 }
 
+fn row_style(pal: ThemePalette, selected: bool, focused: bool) -> Style {
+    if focused {
+        Style::default()
+            .fg(pal.accent_on)
+            .bg(pal.accent)
+            .add_modifier(Modifier::BOLD)
+    } else if selected {
+        Style::default().fg(pal.accent)
+    } else {
+        Style::default().fg(pal.text)
+    }
+}
+
+fn list_row(selected: bool, label: String, style: Style) -> ListItem<'static> {
+    ListItem::new(Line::from(vec![
+        Span::styled(
+            if selected { "▶ " } else { "  " },
+            Style::default().add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(label, style),
+    ]))
+}
+
 fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
-    use crate::commands::CommandsSource;
+    use crate::commands::{CommandsBrowseMode, VerificationStatus};
     let pal = palette(app);
     let lang = app.ui_lang();
+    let lang_id = lang.id();
     let searching = !app.search_query.is_empty();
-    let (title, items): (String, Vec<ListItem>) = match app.commands_source {
-        CommandsSource::Bank => {
-            let cmds = app.filtered_bank_commands();
-            let items = if cmds.is_empty() {
-                let empty = if searching {
-                    lang.t(Msg::EmptyCommandsSearch)
-                } else if app.command_favorite_only {
-                    lang.t(Msg::EmptyCommandsFavorites)
-                } else {
-                    lang.t(Msg::EmptyCommandsCategory)
-                };
-                vec![ListItem::new(Span::styled(
-                    empty,
-                    Style::default().fg(pal.muted),
-                ))]
-            } else {
-                cmds.iter()
-                    .enumerate()
-                    .map(|(i, cmd)| {
-                        let selected = i == app.commands_entry_index;
-                        let focused = selected && app.focus == PanelFocus::CommandsList;
-                        let style = if focused {
-                            Style::default()
-                                .fg(pal.accent_on)
-                                .bg(pal.accent)
-                                .add_modifier(Modifier::BOLD)
-                        } else if selected {
-                            Style::default().fg(pal.accent)
-                        } else {
-                            Style::default().fg(pal.text)
-                        };
-                        let fav = if app.is_command_favorite(&cmd.id) {
-                            "★"
-                        } else {
-                            " "
-                        };
-                        let draft = if cmd.verification.status
-                            == crate::commands::VerificationStatus::Draft
-                        {
-                            "·draft"
-                        } else {
-                            ""
-                        };
-                        let risk = cmd.risk.marker();
-                        let cat = if searching {
-                            format!(" [{}]", lang.bank_category(&cmd.category))
-                        } else {
-                            String::new()
-                        };
-                        let label = truncate(
-                            &format!("{fav}{}{risk}{draft}{cat}", cmd.name),
-                            area.width.saturating_sub(6) as usize,
-                        );
-                        ListItem::new(Line::from(vec![
-                            Span::styled(
-                                if selected { "▶ " } else { "  " },
-                                Style::default().add_modifier(Modifier::BOLD),
-                            ),
-                            Span::styled(label, style),
-                        ]))
-                    })
-                    .collect()
-            };
-            let mut title = format!(" {} ({}) ", lang.t(Msg::CommandsList), cmds.len());
-            if app.command_favorite_only {
-                title = format!(" {} ★ ", lang.t(Msg::CommandsList));
-            }
-            if searching {
-                title = format!(
-                    " {} /{} ({}) ",
-                    lang.t(Msg::CommandsList),
-                    truncate(&app.search_query, 12),
-                    cmds.len()
-                );
-            }
-            (title, items)
-        }
-        CommandsSource::Local => {
+    let (title, items): (String, Vec<ListItem>) =
+        if app.commands_mode == CommandsBrowseMode::SystemPath {
             let ents = app.filtered_local_commands();
             let items = if ents.is_empty() {
                 vec![ListItem::new(Span::styled(
@@ -1366,33 +1362,17 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
                     .map(|(i, ent)| {
                         let selected = i == app.commands_entry_index;
                         let focused = selected && app.focus == PanelFocus::CommandsList;
-                        let style = if focused {
-                            Style::default()
-                                .fg(pal.accent_on)
-                                .bg(pal.accent)
-                                .add_modifier(Modifier::BOLD)
-                        } else if selected {
-                            Style::default().fg(pal.accent)
-                        } else {
-                            Style::default().fg(pal.text)
-                        };
-                        // bank_id eşleşmesi ≠ verified (dual-concept).
+                        let style = row_style(pal, selected, focused);
                         let bank = if ent.bank_id.is_some() {
-                            " ·bank?"
+                            " ·katalog?"
                         } else {
-                            ""
+                            " ·yalnız PATH"
                         };
                         let label = truncate(
                             &format!("{}{bank}", ent.name),
                             area.width.saturating_sub(6) as usize,
                         );
-                        ListItem::new(Line::from(vec![
-                            Span::styled(
-                                if selected { "▶ " } else { "  " },
-                                Style::default().add_modifier(Modifier::BOLD),
-                            ),
-                            Span::styled(label, style),
-                        ]))
+                        list_row(selected, label, style)
                     })
                     .collect()
             };
@@ -1407,8 +1387,124 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
                 format!(" {} ({}) ", lang.t(Msg::CommandsLocalList), ents.len())
             };
             (title, items)
-        }
-    };
+        } else if app.commands_list_shows_tasks() {
+            let tasks = app.filtered_tasks();
+            let items = if tasks.is_empty() {
+                vec![ListItem::new(Span::styled(
+                    if searching {
+                        lang.t(Msg::EmptyCommandsSearch)
+                    } else {
+                        "Bu grupta görev yok."
+                    },
+                    Style::default().fg(pal.muted),
+                ))]
+            } else {
+                tasks
+                    .iter()
+                    .enumerate()
+                    .map(|(i, task)| {
+                        let selected = i == app.commands_entry_index;
+                        let focused = selected && app.focus == PanelFocus::CommandsList;
+                        let style = row_style(pal, selected, focused);
+                        let draft = if task.verification.status == VerificationStatus::Draft {
+                            " ·draft"
+                        } else {
+                            ""
+                        };
+                        let label = truncate(
+                            &format!("{}{draft}", task.name.pick(lang_id)),
+                            area.width.saturating_sub(6) as usize,
+                        );
+                        list_row(selected, label, style)
+                    })
+                    .collect()
+            };
+            let title = if searching {
+                format!(
+                    " Görevler /{} ({}) ",
+                    truncate(&app.search_query, 12),
+                    tasks.len()
+                )
+            } else {
+                format!(" Görevler ({}) ", tasks.len())
+            };
+            (title, items)
+        } else {
+            let cmds = app.filtered_bank_commands();
+            let items = if cmds.is_empty() {
+                let empty = if searching {
+                    lang.t(Msg::EmptyCommandsSearch)
+                } else if app.command_favorite_only {
+                    lang.t(Msg::EmptyCommandsFavorites)
+                } else if app.commands_mode == CommandsBrowseMode::Context
+                    && app.commands_selected_profiles.is_empty()
+                {
+                    "Profil seçin (Space) — draft/doğrulanmamış işaretli."
+                } else if app.commands_task_drill.is_some() {
+                    "Bu görevin ilgili komutu yok."
+                } else {
+                    lang.t(Msg::EmptyCommandsCategory)
+                };
+                vec![ListItem::new(Span::styled(
+                    empty,
+                    Style::default().fg(pal.muted),
+                ))]
+            } else {
+                cmds.iter()
+                    .enumerate()
+                    .map(|(i, cmd)| {
+                        let selected = i == app.commands_entry_index;
+                        let focused = selected && app.focus == PanelFocus::CommandsList;
+                        let style = row_style(pal, selected, focused);
+                        let fav = if app.is_command_favorite(&cmd.id) {
+                            "★"
+                        } else {
+                            " "
+                        };
+                        let draft = if cmd.verification.status == VerificationStatus::Draft {
+                            "·draft"
+                        } else {
+                            ""
+                        };
+                        let risk = cmd.risk.marker();
+                        let cat = if searching
+                            || matches!(
+                                app.commands_mode,
+                                CommandsBrowseMode::Start | CommandsBrowseMode::Context
+                            )
+                            || app.commands_task_drill.is_some()
+                        {
+                            format!(" [{}]", lang.bank_category(&cmd.category))
+                        } else {
+                            String::new()
+                        };
+                        let label = truncate(
+                            &format!("{fav}{}{risk}{draft}{cat}", cmd.name),
+                            area.width.saturating_sub(6) as usize,
+                        );
+                        list_row(selected, label, style)
+                    })
+                    .collect()
+            };
+            let list_title = match app.commands_mode {
+                CommandsBrowseMode::Start => "Öğrenme",
+                CommandsBrowseMode::Context => "Bağlam komutları",
+                CommandsBrowseMode::ByTask => "İlgili komutlar",
+                _ => lang.t(Msg::CommandsList),
+            };
+            let mut title = format!(" {list_title} ({}) ", cmds.len());
+            if app.command_favorite_only {
+                title = format!(" {list_title} ★ ");
+            }
+            if searching {
+                title = format!(
+                    " {list_title} /{} ({}) ",
+                    truncate(&app.search_query, 12),
+                    cmds.len()
+                );
+            }
+            (title, items)
+        };
     let border = if app.focus == PanelFocus::CommandsList {
         Style::default().fg(pal.accent)
     } else {
@@ -2192,11 +2288,105 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
-    use crate::commands::{CommandsSource, VerificationStatus};
+    use crate::commands::{CommandsSource, RiskLevel, VerificationStatus};
     let lang = app.ui_lang();
     let lang_id = lang.id();
     let mut lines = Vec::new();
-    match app.commands_source {
+
+    if app.commands_list_shows_tasks() {
+        let tasks = app.filtered_tasks();
+        let Some(task) = tasks
+            .get(app.commands_entry_index.min(tasks.len().saturating_sub(1)))
+            .copied()
+        else {
+            lines.push(Line::from("Seçili görev yok.".to_string()));
+            return lines;
+        };
+        lines.push(Line::from(Span::styled(
+            task.name.pick(lang_id).to_string(),
+            Style::default().add_modifier(Modifier::BOLD),
+        )));
+        lines.push(Line::from(format!(
+            "{} · {}",
+            lang.bank_category(&task.category),
+            task.verification.status.as_str()
+        )));
+        if task.verification.status == VerificationStatus::Draft {
+            lines.push(Line::from(Span::styled(
+                "draft / doğrulanmamış — örnekler rehber amaçlı; otomatik çalışmaz.".to_string(),
+                Style::default().fg(Color::Yellow),
+            )));
+        }
+        lines.push(Line::from(Span::styled(
+            "Amaç:".to_string(),
+            Style::default().add_modifier(Modifier::BOLD),
+        )));
+        let summary = task.summary.pick(lang_id);
+        if !summary.is_empty() {
+            lines.push(Line::from(summary.to_string()));
+        }
+        // Güvenli örnek: implementations içinden en düşük riskli.
+        let mut best: Option<(&str, RiskLevel, &str, bool)> = None;
+        for impl_ in &task.implementations {
+            for ex in &impl_.examples {
+                let better = match best {
+                    None => true,
+                    Some((_, r, _, _)) => {
+                        (ex.risk as u8) < (r as u8)
+                            || (r != RiskLevel::Safe && ex.risk == RiskLevel::Safe)
+                    }
+                };
+                if better {
+                    let expl = ex.explanation.pick(lang_id);
+                    best = Some((
+                        ex.command.as_str(),
+                        ex.risk,
+                        expl,
+                        ex.requires_elevated || ex.privilege.as_deref() == Some("elevated"),
+                    ));
+                }
+            }
+        }
+        if let Some((cmd, risk, expl, elev)) = best {
+            lines.push(Line::from(Span::styled(
+                "Güvenli örnek:".to_string(),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(Span::styled(
+                format!("  {cmd}"),
+                Style::default().fg(Color::Cyan),
+            )));
+            lines.push(Line::from(format!(
+                "  {} · {}",
+                lang.t(Msg::CommandsRisk),
+                risk.label(lang_id)
+            )));
+            if elev {
+                lines.push(Line::from(lang.t(Msg::CommandsElevated).to_string()));
+            }
+            if !expl.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    "Beklenen etki:".to_string(),
+                    Style::default().add_modifier(Modifier::BOLD),
+                )));
+                lines.push(Line::from(format!("  {expl}")));
+            }
+        }
+        if !task.related_commands.is_empty() {
+            lines.push(Line::from(format!(
+                "{}: {}",
+                lang.t(Msg::CommandsRelated),
+                task.related_commands.join(", ")
+            )));
+        }
+        lines.push(Line::from(Span::styled(
+            "Enter: ilgili komutlar · Esc: geri · çalıştırılmaz.".to_string(),
+            Style::default().fg(Color::DarkGray),
+        )));
+        return lines;
+    }
+
+    match app.commands_source() {
         CommandsSource::Bank => {
             let cmds = app.filtered_bank_commands();
             let Some(cmd) = cmds
@@ -2228,6 +2418,10 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     Style::default().fg(Color::Yellow),
                 )));
             }
+            lines.push(Line::from(Span::styled(
+                "Amaç:".to_string(),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
             let summary = cmd.summary.pick(lang_id);
             if !summary.is_empty() {
                 lines.push(Line::from(summary.to_string()));
@@ -2236,8 +2430,66 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
             if !desc.is_empty() {
                 lines.push(Line::from(desc.to_string()));
             }
+            // Risk + neden
+            lines.push(Line::from(Span::styled(
+                format!("{} + neden:", lang.t(Msg::CommandsRisk)),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            let why = match cmd.risk {
+                RiskLevel::Safe => "Salt okuma / yerel bilgi; sistem durumunu değiştirmez.",
+                RiskLevel::Caution => "Yan etkileri olabilir; örnekleri dikkatle kullanın.",
+                RiskLevel::Dangerous => {
+                    "Sistem veya uzak durumu değiştirebilir; doğrulamadan çalıştırmayın."
+                }
+                RiskLevel::Destructive => {
+                    "Veri veya sistem kaybı riski yüksek; üretimde kullanmayın."
+                }
+            };
+            lines.push(Line::from(format!("  {} — {why}", cmd.risk.label(lang_id))));
             if cmd.requires_elevated {
-                lines.push(Line::from(lang.t(Msg::CommandsElevated).to_string()));
+                lines.push(Line::from(Span::styled(
+                    format!("sudo: {}", lang.t(Msg::CommandsElevated)),
+                    Style::default().fg(Color::Yellow),
+                )));
+            } else {
+                lines.push(Line::from(
+                    "sudo: gerekmez (kayıt yükseltme istemiyor).".to_string(),
+                ));
+            }
+            // Güvenli örnek tercih et
+            let safe_ex = cmd
+                .examples
+                .iter()
+                .find(|ex| ex.risk == RiskLevel::Safe)
+                .or_else(|| cmd.examples.first());
+            if let Some(ex) = safe_ex {
+                lines.push(Line::from(Span::styled(
+                    "Güvenli örnek:".to_string(),
+                    Style::default().add_modifier(Modifier::BOLD),
+                )));
+                let elev = if ex.requires_elevated { " · sudo" } else { "" };
+                let title = ex.title.pick(lang_id);
+                if !title.is_empty() {
+                    lines.push(Line::from(format!(
+                        "  · {title} [{}{}]",
+                        ex.risk.label(lang_id),
+                        elev
+                    )));
+                }
+                lines.push(Line::from(Span::styled(
+                    format!("    {}", ex.command),
+                    Style::default().fg(Color::Cyan),
+                )));
+                let expl = ex.explanation.pick(lang_id);
+                lines.push(Line::from(Span::styled(
+                    "Beklenen etki:".to_string(),
+                    Style::default().add_modifier(Modifier::BOLD),
+                )));
+                if !expl.is_empty() {
+                    lines.push(Line::from(format!("  {expl}")));
+                } else if !summary.is_empty() {
+                    lines.push(Line::from(format!("  {summary}")));
+                }
             }
             let is_arch = crate::commands::host_is_arch();
             if cmd.has_package_hints() {
@@ -2261,31 +2513,6 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     lang.t(Msg::CommandsInstallNotes)
                 )));
             }
-            if !cmd.examples.is_empty() {
-                lines.push(Line::from(Span::styled(
-                    format!("{}:", lang.t(Msg::CommandsExamples)),
-                    Style::default().add_modifier(Modifier::BOLD),
-                )));
-                for ex in cmd.examples.iter().take(4) {
-                    let title = ex.title.pick(lang_id);
-                    let elev = if ex.requires_elevated { " · sudo" } else { "" };
-                    if !title.is_empty() {
-                        lines.push(Line::from(format!(
-                            "  · {title} [{}{}]",
-                            ex.risk.label(lang_id),
-                            elev
-                        )));
-                    }
-                    lines.push(Line::from(Span::styled(
-                        format!("    {}", ex.command),
-                        Style::default().fg(Color::Cyan),
-                    )));
-                    let expl = ex.explanation.pick(lang_id);
-                    if !expl.is_empty() {
-                        lines.push(Line::from(format!("    {expl}")));
-                    }
-                }
-            }
             if !cmd.related.is_empty() {
                 lines.push(Line::from(format!(
                     "{}: {}",
@@ -2300,6 +2527,10 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     cmd.nova.concepts.join(", ")
                 )));
             }
+            lines.push(Line::from(Span::styled(
+                "Otomatik çalıştırılmaz — yalnız açık eylem / kopyalama.".to_string(),
+                Style::default().fg(Color::DarkGray),
+            )));
             lines.push(Line::from(Span::styled(
                 lang.t(Msg::CommandsBankFooter).to_string(),
                 Style::default().fg(Color::DarkGray),
@@ -2319,6 +2550,13 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 Style::default().add_modifier(Modifier::BOLD),
             )));
             lines.push(Line::from(ent.path.clone()));
+            lines.push(Line::from(Span::styled(
+                "Amaç:".to_string(),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(
+                "Bu cihazda PATH üzerinde bulunan yürütülebilir (katalog kaydı değil).".to_string(),
+            ));
             lines.push(Line::from(format!(
                 "source={} · kind={}",
                 ent.source.as_str(),
@@ -2327,7 +2565,7 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
             match &ent.bank_id {
                 Some(id) => {
                     lines.push(Line::from(format!(
-                        "bank_id={id} ({})",
+                        "katalog eşleşmesi bank_id={id} ({})",
                         ent.bank_match.as_deref().unwrap_or("match")
                     )));
                     lines.push(Line::from(Span::styled(
@@ -2335,8 +2573,17 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                         Style::default().fg(Color::Yellow),
                     )));
                 }
-                None => lines.push(Line::from(lang.t(Msg::CommandsLocalNoBank).to_string())),
+                None => {
+                    lines.push(Line::from(
+                        "katalogda karşılık yok — yalnız sistem PATH.".to_string(),
+                    ));
+                    lines.push(Line::from(lang.t(Msg::CommandsLocalNoBank).to_string()));
+                }
             }
+            lines.push(Line::from(Span::styled(
+                "PATH ≠ katalog · otomatik çalıştırılmaz.".to_string(),
+                Style::default().fg(Color::DarkGray),
+            )));
             lines.push(Line::from(Span::styled(
                 lang.t(Msg::CommandsLocalFooter).to_string(),
                 Style::default().fg(Color::DarkGray),
@@ -2967,7 +3214,7 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
         if tight {
             "↑↓ · Tab · −/+ · ?"
         } else {
-            "↑↓ kaynak/liste   Tab panel   −/+ boyut   / ara   F favori   ?"
+            "↑↓ gezinme/liste   Tab panel   Space profil   / ara   F favori   ?"
         }
     } else if app.store_tab {
         match app.focus {
@@ -3118,12 +3365,17 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
     if app.commands_tab {
         lines.push(help_line(&[(
             lang.t(Msg::CommandsGuide),
-            "Bilgi Bankası ≠ Sistemimde Bulunan ≠ Mağaza",
+            "Başlangıç→Görev→Bağlam→Tümü→PATH · katalog ≠ PATH ≠ Mağaza",
         )]));
         lines.push(help_line(&[
             ("F", lang.t(Msg::HelpCommandFavorite)),
             ("C", lang.t(Msg::HelpCommandFavOnly)),
+            ("Space", "profil seç"),
             ("/", lang.t(Msg::HelpSearch)),
+        ]));
+        lines.push(help_line(&[
+            ("Enter", "bilgi / görev aç"),
+            ("Esc", "görevden geri"),
         ]));
     }
     // Mağaza sekmesinin kendi tuşları ayrı satırda anlatılır; sekme

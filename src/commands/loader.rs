@@ -272,6 +272,19 @@ mod tests {
                 .any(|(l, _)| l.starts_with("arch") || l == "pacman" || l == "apt" || l == "dnf"),
             "{pairs:?}"
         );
+        // Faz 8/9: tasks + profiles katalogda; UI bunları tüketir.
+        assert_eq!(
+            bank.task_count.unwrap_or(bank.tasks.len()),
+            bank.tasks.len()
+        );
+        assert_eq!(
+            bank.profile_count.unwrap_or(bank.profiles.len()),
+            bank.profiles.len()
+        );
+        assert!(!bank.tasks.is_empty(), "tasks wire beklenirdi");
+        assert!(!bank.profiles.is_empty(), "profiles wire beklenirdi");
+        assert!(bank.find_task("show-local-ip").is_some());
+        assert!(bank.find_profile("arch-server").is_some());
     }
 
     #[test]
