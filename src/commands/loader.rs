@@ -242,11 +242,11 @@ mod tests {
             bank.command_count.unwrap_or(bank.commands.len()),
             bank.commands.len()
         );
-        // Canlı banka schema v2 + beklenen digest (Nova-Commands #22 / Faz 9).
+        // Canlı banka schema v2 + beklenen digest (Nova-Commands #30 / IA gaps).
         assert_eq!(bank.schema_version, 2);
         assert_eq!(
             man.content_sha256,
-            "f08edacc291b3d81d5d1ac24f8eead941873498c0e252e72f1ff96def4e2f6ee"
+            "ee1e5d186bdc7885cd18b945446a2d34673c7f7499d08f7da165fc011d5ae4db"
         );
         let with_refs = bank
             .commands

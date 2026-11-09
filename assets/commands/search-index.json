@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 310,
+  "entry_count": 315,
   "entries": [
     {
       "type": "command",
@@ -9418,6 +9418,7 @@
         "apk",
         "emerge",
         "xbps-install",
+        "xbps-query",
         "eopkg",
         "slackpkg",
         "nix",
@@ -9531,6 +9532,8 @@
       "related_commands": [
         "id",
         "whoami",
+        "stat",
+        "groups",
         "chmod",
         "chown",
         "chgrp",
@@ -9632,7 +9635,9 @@
         "mkfs.btrfs",
         "mkfs.fat",
         "wipefs",
-        "fsck"
+        "fsck",
+        "get-volume",
+        "get-disk"
       ]
     },
     {
@@ -9750,13 +9755,29 @@
         "ss",
         "nft",
         "ufw",
-        "ssh"
+        "ssh",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "wget",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli"
       ],
       "related_tasks": [
         "update-system",
         "install-package",
         "list-running-services",
-        "show-local-ip"
+        "show-local-ip",
+        "check-dns",
+        "check-internet-connectivity",
+        "show-public-ip",
+        "inspect-network-interfaces"
       ]
     },
     {
@@ -9829,13 +9850,29 @@
         "ufw",
         "ss",
         "ip",
-        "ssh"
+        "ssh",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "wget",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli"
       ],
       "related_tasks": [
         "update-system",
         "install-package",
         "list-running-services",
-        "check-firewall-status"
+        "check-firewall-status",
+        "check-dns",
+        "check-internet-connectivity",
+        "show-public-ip",
+        "inspect-network-interfaces"
       ]
     },
     {
@@ -9911,13 +9948,29 @@
         "journalctl",
         "firewall-cmd",
         "ss",
-        "ip"
+        "ip",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "wget",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli"
       ],
       "related_tasks": [
         "update-system",
         "install-package",
         "list-running-services",
-        "check-firewall-status"
+        "check-firewall-status",
+        "check-dns",
+        "check-internet-connectivity",
+        "show-public-ip",
+        "inspect-network-interfaces"
       ]
     },
     {
@@ -9951,13 +10004,33 @@
         "sysrc",
         "pfctl",
         "ifconfig",
-        "ssh"
+        "ssh",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "ip",
+        "networksetup",
+        "ipconfig",
+        "nmcli",
+        "route",
+        "netstat-bsd",
+        "netsh",
+        "wget"
       ],
       "related_tasks": [
         "update-system",
         "list-running-services",
         "check-firewall-status",
-        "show-local-ip"
+        "show-local-ip",
+        "check-dns",
+        "check-internet-connectivity",
+        "inspect-network-interfaces",
+        "inspect-routing-table",
+        "show-public-ip"
       ]
     },
     {
@@ -9994,7 +10067,27 @@
         "rsync",
         "ssh",
         "ufw",
-        "systemctl"
+        "systemctl",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "ip",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli",
+        "wget",
+        "scp",
+        "sftp",
+        "git",
+        "find",
+        "lscpu",
+        "lspci",
+        "lsusb"
       ],
       "related_tasks": [
         "inspect-container",
@@ -10002,7 +10095,15 @@
         "backup-directory",
         "connect-ssh",
         "check-firewall-status",
-        "update-system"
+        "update-system",
+        "check-dns",
+        "check-internet-connectivity",
+        "inspect-network-interfaces",
+        "show-public-ip",
+        "transfer-files-ssh",
+        "clone-git-repo",
+        "find-files",
+        "list-hardware"
       ]
     },
     {
@@ -10080,7 +10181,29 @@
         "firewall-cmd",
         "pacman",
         "apt",
-        "dnf"
+        "dnf",
+        "dig",
+        "host",
+        "resolvectl",
+        "ping",
+        "curl",
+        "mtr",
+        "traceroute",
+        "ifconfig",
+        "networksetup",
+        "ipconfig",
+        "nmcli",
+        "route",
+        "netstat-bsd",
+        "netsh",
+        "wget",
+        "scp",
+        "rsync",
+        "sftp",
+        "find",
+        "lscpu",
+        "lspci",
+        "lsusb"
       ],
       "related_tasks": [
         "show-local-ip",
@@ -10092,7 +10215,15 @@
         "connect-ssh",
         "check-open-ports",
         "check-memory",
-        "list-running-processes"
+        "list-running-processes",
+        "check-dns",
+        "check-internet-connectivity",
+        "inspect-network-interfaces",
+        "inspect-routing-table",
+        "show-public-ip",
+        "transfer-files-ssh",
+        "find-files",
+        "list-hardware"
       ]
     },
     {
@@ -10132,13 +10263,20 @@
         "restic",
         "borg",
         "rclone",
-        "zfs"
+        "zfs",
+        "tar",
+        "gzip",
+        "unzip",
+        "find"
       ],
       "related_tasks": [
         "check-disk-space",
         "inspect-disk-usage",
         "backup-directory",
-        "connect-ssh"
+        "connect-ssh",
+        "compress-archive",
+        "extract-archive",
+        "find-files"
       ]
     },
     {
@@ -10254,7 +10392,18 @@
         "winget",
         "netsh",
         "ipconfig",
-        "sc"
+        "sc",
+        "dig",
+        "host",
+        "resolvectl",
+        "ip",
+        "ifconfig",
+        "networksetup",
+        "nmcli",
+        "route",
+        "netstat-bsd",
+        "curl",
+        "wget"
       ],
       "related_tasks": [
         "show-local-ip",
@@ -10263,7 +10412,11 @@
         "list-running-services",
         "inspect-system-logs",
         "update-system",
-        "check-firewall-status"
+        "check-firewall-status",
+        "check-dns",
+        "inspect-network-interfaces",
+        "inspect-routing-table",
+        "show-public-ip"
       ]
     },
     {
@@ -10594,6 +10747,82 @@
     },
     {
       "type": "task",
+      "id": "clone-git-repo",
+      "name": {
+        "tr": "Git deposu klonla",
+        "en": "Clone a git repo"
+      },
+      "category": "development",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "development",
+        "git"
+      ],
+      "summary": {
+        "tr": "Uzak Git deposunu yerel dizine klonla (mevcut git örneği).",
+        "en": "Clone a remote Git repository locally (existing git example)."
+      },
+      "intent": {
+        "tr": [
+          "git clone",
+          "repo indir",
+          "depo klonla"
+        ],
+        "en": [
+          "git clone",
+          "clone repository"
+        ]
+      },
+      "related_commands": [
+        "git"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "compress-archive",
+      "name": {
+        "tr": "Arşiv oluştur",
+        "en": "Create archive"
+      },
+      "category": "archives",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "archives",
+        "backup"
+      ],
+      "summary": {
+        "tr": "Dizinden tar.gz arşivi oluştur (mevcut tar örneği).",
+        "en": "Create a tar.gz archive from a directory (existing tar example)."
+      },
+      "intent": {
+        "tr": [
+          "arşiv oluştur",
+          "tar.gz yap",
+          "sıkıştır"
+        ],
+        "en": [
+          "create archive",
+          "make tar.gz",
+          "compress folder"
+        ]
+      },
+      "related_commands": [
+        "tar"
+      ]
+    },
+    {
+      "type": "task",
       "id": "connect-ssh",
       "name": {
         "tr": "SSH ile bağlan",
@@ -10629,6 +10858,81 @@
       },
       "related_commands": [
         "ssh"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "extract-archive",
+      "name": {
+        "tr": "Arşiv çıkar",
+        "en": "Extract archive"
+      },
+      "category": "archives",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "archives"
+      ],
+      "summary": {
+        "tr": "tar.gz arşivini çıkar (mevcut tar örneği).",
+        "en": "Extract a tar.gz archive (existing tar example)."
+      },
+      "intent": {
+        "tr": [
+          "arşiv aç",
+          "tar çıkar",
+          "extract"
+        ],
+        "en": [
+          "extract archive",
+          "untar",
+          "unzip tar.gz"
+        ]
+      },
+      "related_commands": [
+        "tar"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "find-files",
+      "name": {
+        "tr": "Dosya bul",
+        "en": "Find files"
+      },
+      "category": "search",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "search",
+        "filesystem"
+      ],
+      "summary": {
+        "tr": "İsim veya tür ile dosya/dizin ara (find salt okuma örnekleri).",
+        "en": "Search files/dirs by name or type (read-only find examples)."
+      },
+      "intent": {
+        "tr": [
+          "dosya bul",
+          "find isim",
+          "boş dizin bul"
+        ],
+        "en": [
+          "find files",
+          "find by name",
+          "find empty dirs"
+        ]
+      },
+      "related_commands": [
+        "find"
       ]
     },
     {
@@ -10705,6 +11009,7 @@
         ]
       },
       "related_commands": [
+        "df",
         "du",
         "get-childitem"
       ]
@@ -10873,6 +11178,44 @@
         "dnf",
         "pacman",
         "winget"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "list-hardware",
+      "name": {
+        "tr": "Donanımı listele",
+        "en": "List hardware"
+      },
+      "category": "hardware",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "hardware",
+        "inventory"
+      ],
+      "summary": {
+        "tr": "CPU / PCI / USB envanterini salt okuma komutlarla göster.",
+        "en": "Show CPU / PCI / USB inventory with read-only commands."
+      },
+      "intent": {
+        "tr": [
+          "donanım listele",
+          "cpu bilgisi",
+          "pci usb"
+        ],
+        "en": [
+          "list hardware",
+          "cpu info",
+          "pci usb"
+        ]
+      },
+      "related_commands": [
+        "lscpu",
+        "lspci",
+        "lsusb"
       ]
     },
     {
@@ -11139,10 +11482,10 @@
       ]
     }
   ],
-  "content_sha256": "f08edacc291b3d81d5d1ac24f8eead941873498c0e252e72f1ff96def4e2f6ee",
-  "generated_at": "2026-11-04T20:52:51Z",
+  "content_sha256": "ee1e5d186bdc7885cd18b945446a2d34673c7f7499d08f7da165fc011d5ae4db",
+  "generated_at": "2026-11-09T16:57:15Z",
   "command_count": 256,
   "concept_count": 20,
-  "task_count": 21,
+  "task_count": 26,
   "profile_count": 13
 }
