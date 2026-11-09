@@ -2160,9 +2160,7 @@ impl App {
         if self.tool_detail_side_layout_active() {
             v.push(PanelFocus::ToolDetail);
         }
-        if self.selected_tool_has_ai_actions() {
-            v.push(PanelFocus::ToolActions);
-        }
+        // AI aksiyonları alt panel değil; Enter → ToolActionsMenu modal.
         if detail_vis && !self.tool_detail_side_layout_active() && !self.settings_tab {
             v.push(PanelFocus::ToolDetail);
         }
@@ -2401,8 +2399,8 @@ impl App {
     /// bozmaz, yalnızca durum satırında görünür. Başarı mesajı bilinçli
     /// olarak "istendi" der; aracın gerçekten çalıştığını Nova doğrulayamaz.
     ///
-    /// AI eylem listesi odaklı değilken Enter her zaman birincil açmayı
-    /// çalıştırır (aksiyon paneli görünür olsa bile).
+    /// AI aksiyonları olan araçlarda Enter Mağaza kurulu menüsü gibi
+    /// ortalanmış aksiyon modalını açar; diğerlerinde doğrudan başlatır.
     pub fn select_tool(&mut self) {
         if self.settings_tab {
             self.activate_settings_action();
@@ -2416,10 +2414,28 @@ impl App {
             self.status_message = "Başlatılacak araç yok.".into();
             return;
         };
+        if entry.has_ai_actions() {
+            self.open_tool_actions_menu(&entry);
+            return;
+        }
         self.launch_catalog_entry(entry);
     }
 
-    /// Odak aksiyon listesindeyken seçili AI eylemini başlatır.
+    /// Kurulu AI aracı için Mağaza tarzı aksiyon modalını açar.
+    pub fn open_tool_actions_menu(&mut self, entry: &crate::catalog::CatalogEntry) {
+        if !entry.has_ai_actions() {
+            self.status_message = "Bu araç için aksiyon yok.".into();
+            return;
+        }
+        self.tool_action_index = 0;
+        self.modal = modal::Modal::ToolActionsMenu {
+            tool_id: entry.id.clone(),
+            name: entry.name.clone(),
+            index: 0,
+        };
+    }
+
+    /// Modal / eski odak yolu: seçili AI eylemini başlatır.
     pub fn select_tool_action(&mut self) {
         let Some(entry) = self.selected_tool().cloned() else {
             self.status_message = "Başlatılacak araç yok.".into();
@@ -2437,6 +2453,25 @@ impl App {
             self.status_message = "Başlatılacak aksiyon yok.".into();
             return;
         };
+        self.launch_catalog_entry(entry.with_action(&action));
+    }
+
+    /// Verilen araç kimliği ve aksiyon indeksinden başlatır (modal Enter).
+    fn launch_tool_action_by_id(&mut self, tool_id: &str, index: usize) {
+        let Some(entry) = self.catalog.get_by_id(tool_id).cloned() else {
+            self.status_message = format!("Araç '{tool_id}' katalogda yok.");
+            return;
+        };
+        if entry.actions.is_empty() {
+            self.status_message = "Bu araç için aksiyon yok.".into();
+            return;
+        }
+        let idx = index.min(entry.actions.len().saturating_sub(1));
+        let Some(action) = entry.actions.get(idx).cloned() else {
+            self.status_message = "Başlatılacak aksiyon yok.".into();
+            return;
+        };
+        self.tool_action_index = idx;
         self.launch_catalog_entry(entry.with_action(&action));
     }
 
@@ -4461,6 +4496,25 @@ impl App {
                 }
                 _ => {}
             },
+            modal::Modal::ToolActionsMenu { tool_id, index, .. } => {
+                let max = self
+                    .catalog
+                    .get_by_id(tool_id)
+                    .map(|e| e.actions.len().saturating_sub(1))
+                    .unwrap_or(0);
+                match code {
+                    KeyCode::Esc => take(modal::Modal::None),
+                    KeyCode::Up | KeyCode::Char('k') => *index = index.saturating_sub(1),
+                    KeyCode::Down | KeyCode::Char('j') => *index = (*index + 1).min(max),
+                    KeyCode::Enter => {
+                        let id = tool_id.clone();
+                        let idx = *index;
+                        take(modal::Modal::None);
+                        self.launch_tool_action_by_id(&id, idx);
+                    }
+                    _ => {}
+                }
+            }
             modal::Modal::JobProgress {
                 log_scroll,
                 done,

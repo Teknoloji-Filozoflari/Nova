@@ -4,8 +4,8 @@
 # `assets/catalog/` altında; loader tüm kategori dosyalarını birleştirir.
 # Kullanıcı düzenlemez; özelleştirme: ~/.config/nova/config.toml
 #
-# `actions`: AI aracı seçilince detay yanında her zaman görünen eylemler.
-# Boş args = birincil açma (Enter listede de bunu yapar).
+# `actions`: AI aracı Enter ile Mağaza tarzı aksiyon modalında sunulur.
+# Boş args = birincil açma (modalda «Aç»).
 
 [[tools]]
 id = "opencode"
