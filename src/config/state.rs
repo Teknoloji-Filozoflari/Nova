@@ -126,14 +126,112 @@ pub struct Prefs {
     /// Arayüz dili (`tr`, `en`, `ru`, `az`, `uz`, `kk`). `None` → Türkçe.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub language: Option<String>,
-    /// Paylaşılan ikincil sütun genişliği (Mağaza kategorileri, Komut Rehberi
-    /// kaynak/kategori, Ayarlar yan paneli). `None` → UI varsayılanı.
+    /// Eski paylaşılan ikincil sütun genişliği (geriye dönük okuma).
+    /// Yeni yazılar [`Self::pane_sizes`] altına, ekran başına gider.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pane_secondary_width: Option<u16>,
-    /// Paylaşılan liste sütunu tercih genişliği (Mağaza uygulamaları / Komut
-    /// listesi). Yan detay düzeninde fazla alan detaya gider. `None` → UI varsayılanı.
+    /// Eski paylaşılan liste sütunu (geriye dönük okuma).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pane_list_width: Option<u16>,
+    /// Ekran + panel türüne göre kalıcı boyutlar (çapraz ekran sızıntısı yok).
+    #[serde(default, skip_serializing_if = "PaneSizesByScreen::is_empty")]
+    pub pane_sizes: PaneSizesByScreen,
+}
+
+/// Hangi ana sekme / ekran.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum UiScreen {
+    /// Kurulu araçlar.
+    Tools,
+    /// Mağaza.
+    Store,
+    /// Komut Rehberi.
+    Commands,
+    /// Ayarlar.
+    Settings,
+}
+
+/// Tek bir ekranın panel boyut tercihleri.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ScreenPaneSizes {
+    /// Sol sekme / kategori sütunu genişliği.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tabs: Option<u16>,
+    /// İkincil sütun (Mağaza kategorileri, Komut kaynak/banka kategori,
+    /// Ayarlar ayar paneli).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub secondary: Option<u16>,
+    /// Liste / seçici sütunu genişliği.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub list: Option<u16>,
+    /// Yan detay tercih genişliği (Length); fazla alan yine detaya kalabilir.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail_width: Option<u16>,
+    /// Alt detay şeridi yüksekliği.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail_height: Option<u16>,
+    /// AI aksiyon paneli yüksekliği (kenarlık dâhil tercih).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub actions_height: Option<u16>,
+    /// Dar Mağaza'da üst kategori paneli yüksekliği.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub secondary_height: Option<u16>,
+}
+
+impl ScreenPaneSizes {
+    /// Hiçbir alan set değil mi?
+    pub fn is_empty(&self) -> bool {
+        self.tabs.is_none()
+            && self.secondary.is_none()
+            && self.list.is_none()
+            && self.detail_width.is_none()
+            && self.detail_height.is_none()
+            && self.actions_height.is_none()
+            && self.secondary_height.is_none()
+    }
+}
+
+/// Ekranlara göre panel boyutları (`state.toml` → `[prefs.pane_sizes]`).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PaneSizesByScreen {
+    #[serde(default, skip_serializing_if = "ScreenPaneSizes::is_empty")]
+    pub tools: ScreenPaneSizes,
+    #[serde(default, skip_serializing_if = "ScreenPaneSizes::is_empty")]
+    pub store: ScreenPaneSizes,
+    #[serde(default, skip_serializing_if = "ScreenPaneSizes::is_empty")]
+    pub commands: ScreenPaneSizes,
+    #[serde(default, skip_serializing_if = "ScreenPaneSizes::is_empty")]
+    pub settings: ScreenPaneSizes,
+}
+
+impl PaneSizesByScreen {
+    /// Tüm ekranlar boş mu?
+    pub fn is_empty(&self) -> bool {
+        self.tools.is_empty()
+            && self.store.is_empty()
+            && self.commands.is_empty()
+            && self.settings.is_empty()
+    }
+
+    /// Ekranın boyut kaydı (paylaşımsız).
+    pub fn get(&self, screen: UiScreen) -> &ScreenPaneSizes {
+        match screen {
+            UiScreen::Tools => &self.tools,
+            UiScreen::Store => &self.store,
+            UiScreen::Commands => &self.commands,
+            UiScreen::Settings => &self.settings,
+        }
+    }
+
+    /// Ekranın boyut kaydı (mutasyon için).
+    pub fn get_mut(&mut self, screen: UiScreen) -> &mut ScreenPaneSizes {
+        match screen {
+            UiScreen::Tools => &mut self.tools,
+            UiScreen::Store => &mut self.store,
+            UiScreen::Commands => &mut self.commands,
+            UiScreen::Settings => &mut self.settings,
+        }
+    }
 }
 
 impl StateFile {
@@ -444,5 +542,29 @@ mod tests {
         let old: Prefs = toml::from_str("language = \"tr\"\n").unwrap();
         assert!(old.pane_secondary_width.is_none());
         assert!(old.pane_list_width.is_none());
+        assert!(old.pane_sizes.is_empty());
+    }
+
+    #[test]
+    fn pane_sizes_per_screen_round_trip_without_bleed() {
+        let raw = r#"
+[pane_sizes.tools]
+tabs = 30
+list = 36
+
+[pane_sizes.store]
+secondary = 22
+list = 40
+detail_height = 12
+"#;
+        let p: Prefs = toml::from_str(raw).unwrap();
+        assert_eq!(p.pane_sizes.tools.tabs, Some(30));
+        assert_eq!(p.pane_sizes.tools.list, Some(36));
+        assert!(p.pane_sizes.tools.secondary.is_none());
+        assert_eq!(p.pane_sizes.store.secondary, Some(22));
+        assert_eq!(p.pane_sizes.store.list, Some(40));
+        assert_eq!(p.pane_sizes.store.detail_height, Some(12));
+        assert!(p.pane_sizes.commands.is_empty());
+        assert!(p.pane_sizes.settings.is_empty());
     }
 }
