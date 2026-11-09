@@ -284,6 +284,11 @@ pub struct App {
     pub store_outdated_override: Option<host::OutdatedPackages>,
     /// Testlerde host PM varlığını sabitlemek için (`None` → gerçek `which`).
     pub store_host_tools_override: Option<host::HostTools>,
+    /// Nova self-update başarılıysa: TUI çıktıktan sonra bu ikili `exec` edilir.
+    ///
+    /// Doğrulama poll anında yapılır; geçersizse alan `None` kalır ve oturum
+    /// bozulmadan devam eder.
+    pub pending_self_restart: Option<PathBuf>,
 }
 
 impl App {
@@ -413,6 +418,7 @@ impl App {
             store_cache_path: None,
             store_outdated_override: None,
             store_host_tools_override: None,
+            pending_self_restart: None,
         };
         // Mağaza uygulamalarının kurulum durumu başlangıçta bir kez hesaplanır;
         // liste her karede bu önbellekten okur. Kurulu mağaza uygulamaları
@@ -3135,6 +3141,50 @@ impl App {
         });
     }
 
+    /// Nova self-update başarısını işler: ikiliyi doğrular, durumu kaydeder,
+    /// geçerliyse temiz çıkış + yeniden başlatmayı planlar.
+    ///
+    /// Doğrulama başarısızsa TUI açık kalır; kullanıcı elle yeniden açabilir.
+    fn apply_nova_update_success(&mut self, outcome: crate::update::UpdateOutcome) {
+        let summary = outcome.summary.clone();
+        match crate::update::validate_restart_binary(&outcome.binary_path) {
+            Ok(binary) => {
+                let _ = self.persist_state();
+                let restart_msg = format!("{summary} Yeniden başlatılıyor…");
+                self.status_message = format!("✓ {restart_msg}");
+                if let modal::Modal::JobProgress {
+                    phase,
+                    status_line,
+                    done,
+                    ..
+                } = &mut self.modal
+                {
+                    *phase = "Yeniden başlatılıyor".into();
+                    *status_line = restart_msg.clone();
+                    *done = Some(Ok(restart_msg));
+                }
+                self.pending_self_restart = Some(binary);
+                self.running = false;
+            }
+            Err(err) => {
+                let msg = format!("{summary} Otomatik yeniden başlatma yapılamadı: {err}");
+                self.status_message = format!("✓ {msg}");
+                if let modal::Modal::JobProgress {
+                    phase,
+                    status_line,
+                    done,
+                    ..
+                } = &mut self.modal
+                {
+                    *phase = "Tamamlandı".into();
+                    *status_line = msg.clone();
+                    *done = Some(Ok(msg));
+                }
+                self.pending_self_restart = None;
+            }
+        }
+    }
+
     /// Arka plandaki kurulum işinin durumunu kontrol eder.
     ///
     /// İş tamamlandıysa sonucu durum satırına yazar ve katalogdaki tespit
@@ -3215,18 +3265,7 @@ impl App {
             }
             Ok(JobResult::Nova(Ok(outcome))) => {
                 crate::store::path::ensure_local_bin_on_process_path();
-                self.status_message = format!("✓ {}", outcome.summary);
-                if let modal::Modal::JobProgress {
-                    phase,
-                    status_line,
-                    done,
-                    ..
-                } = &mut self.modal
-                {
-                    *phase = "Tamamlandı".into();
-                    *status_line = outcome.summary.clone();
-                    *done = Some(Ok(outcome.summary));
-                }
+                self.apply_nova_update_success(outcome);
             }
             Ok(JobResult::Nova(Err(message))) => {
                 self.status_message = format!("Hata: {message}");
@@ -5742,6 +5781,95 @@ mod tests {
         }
         assert!(
             app.status_message.contains("başarısız"),
+            "mesaj: {}",
+            app.status_message
+        );
+    }
+
+    fn write_fake_nova_binary(tag: &str) -> (PathBuf, PathBuf) {
+        let dir = std::env::temp_dir().join(format!(
+            "nova-app-restart-{tag}-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let bin = dir.join("nova");
+        std::fs::write(&bin, b"#!/bin/sh\necho nova\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&bin).unwrap().permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(&bin, perms).unwrap();
+        }
+        (dir, bin)
+    }
+
+    #[test]
+    fn nova_update_success_schedules_self_restart() {
+        let mut app = sample_app();
+        let (dir, bin) = write_fake_nova_binary("ok");
+        let (tx, _progress_tx) = app.begin_job(
+            crate::progress::JobKind::NovaRelease,
+            "Nova test".into(),
+            "test".into(),
+            "nova".into(),
+            "Nova".into(),
+            false,
+        );
+        tx.send(JobResult::Nova(Ok(crate::update::UpdateOutcome {
+            version: crate::update::Version::parse("0.2.0").unwrap(),
+            install_dir: dir.clone(),
+            binary_path: bin.clone(),
+            summary: "kuruldu".into(),
+        })))
+        .unwrap();
+        app.poll_install();
+        assert!(!app.running, "güncelleme sonrası döngü kapanmalı");
+        assert_eq!(app.pending_self_restart.as_ref(), Some(&bin));
+        assert!(
+            app.status_message.contains("Yeniden başlatılıyor"),
+            "mesaj: {}",
+            app.status_message
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn nova_update_success_keeps_session_when_restart_binary_missing() {
+        let mut app = sample_app();
+        let missing = std::env::temp_dir().join(format!(
+            "nova-missing-restart-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let (tx, _progress_tx) = app.begin_job(
+            crate::progress::JobKind::NovaRelease,
+            "Nova test".into(),
+            "test".into(),
+            "nova".into(),
+            "Nova".into(),
+            false,
+        );
+        tx.send(JobResult::Nova(Ok(crate::update::UpdateOutcome {
+            version: crate::update::Version::parse("0.2.0").unwrap(),
+            install_dir: missing.parent().unwrap().to_path_buf(),
+            binary_path: missing,
+            summary: "kuruldu".into(),
+        })))
+        .unwrap();
+        app.poll_install();
+        assert!(app.running, "bozuk restart oturumu kapatmamalı");
+        assert!(app.pending_self_restart.is_none());
+        assert!(
+            app.status_message.contains("Otomatik yeniden başlatma"),
             "mesaj: {}",
             app.status_message
         );
