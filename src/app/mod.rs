@@ -53,13 +53,15 @@ pub enum PanelFocus {
     Category,
     /// Araç paneli odaklı.
     Tool,
-    /// AI araç eylemleri listesi (detay yanı) odaklı.
+    /// Kurulu araç detay paneli (yan veya alt şerit).
+    ToolDetail,
+    /// AI araç eylemleri listesi (alt dikey panel) odaklı.
     ToolActions,
     /// Mağaza kategorileri paneli odaklı.
     StoreCategory,
     /// Mağaza uygulamaları paneli odaklı.
     StoreApp,
-    /// Mağaza sağ detay paneli odaklı (kaynak/depo bağlantısı; Enter → tarayıcı).
+    /// Mağaza detay paneli odaklı (yan veya alt; Enter → tarayıcı).
     StoreDetail,
     /// Komut Rehberi: Bilgi Bankası ↔ Sistemimde Bulunan kaynak seçici.
     CommandsSource,
@@ -67,6 +69,8 @@ pub enum PanelFocus {
     CommandsCategory,
     /// Komut Rehberi: komut / yerel PATH listesi.
     CommandsList,
+    /// Komut Rehberi detay paneli (yan veya alt şerit).
+    CommandsDetail,
     /// Ayarlar → Tema seçici paneli odaklı.
     ThemePicker,
     /// Ayarlar → Dil seçici paneli odaklı.
@@ -494,7 +498,7 @@ impl App {
             && crate::ui::tool_detail_side_layout(
                 size.0 >= crate::ui::WIDE_MIN_WIDTH,
                 size.0,
-                panes.secondary,
+                panes.tabs,
             );
         let actions_count = if tools_tab {
             self.selected_tool()
@@ -966,13 +970,17 @@ impl App {
                 self.focus = self.next_focus();
             }
             KeyCode::Tab => {
-                self.focus = self.next_focus();
+                self.focus = self.next_focus_wrapping();
+            }
+            KeyCode::BackTab => {
+                self.focus = self.prev_focus_wrapping();
             }
             KeyCode::Enter => match self.focus {
                 PanelFocus::Category => {
                     self.focus = self.next_focus();
                 }
                 PanelFocus::Tool => self.select_tool(),
+                PanelFocus::ToolDetail => {}
                 PanelFocus::ToolActions => self.select_tool_action(),
                 PanelFocus::StoreCategory => {
                     self.focus = PanelFocus::StoreApp;
@@ -994,6 +1002,7 @@ impl App {
                 PanelFocus::CommandsList => {
                     self.show_selected_command_info();
                 }
+                PanelFocus::CommandsDetail => {}
                 PanelFocus::ThemePicker => {
                     let _ = self.apply_theme_at_picker_index();
                 }
@@ -1079,19 +1088,13 @@ impl App {
                     }
                 }
             }
-            // Paylaşılan sütun genişlikleri — her sekmede (Kurulu / Mağaza /
-            // Komut Rehberi / Ayarlar); tercihler `state.toml`'a yazılır.
-            KeyCode::Char('[') => {
-                self.nudge_pane_secondary(-1);
-            }
-            KeyCode::Char(']') => {
-                self.nudge_pane_secondary(1);
-            }
+            // Odaklı panel boyutu: yalnızca `-` / `+` (ve `=` = `+`).
+            // `[` / `]` artık boyutlandırmaz; yardımda `-`/`+` gösterilir.
             KeyCode::Char('-') => {
-                self.nudge_pane_list(-1);
+                self.resize_focused_panel(-1);
             }
             KeyCode::Char('=') | KeyCode::Char('+') => {
-                self.nudge_pane_list(1);
+                self.resize_focused_panel(1);
             }
             _ => {}
         }
@@ -1264,6 +1267,7 @@ impl App {
                     self.reset_tool_action_index();
                 }
             }
+            PanelFocus::ToolDetail | PanelFocus::CommandsDetail => {}
             PanelFocus::ToolActions => {
                 let max = self.selected_tool_actions_len().saturating_sub(1);
                 self.tool_action_index = (self.tool_action_index + 1).min(max);
@@ -1344,6 +1348,7 @@ impl App {
                     self.reset_tool_action_index();
                 }
             }
+            PanelFocus::ToolDetail | PanelFocus::CommandsDetail => {}
             PanelFocus::ToolActions => {
                 // ↑ ilk aksiyondayken araç listesine döner.
                 if self.tool_action_index == 0 {
@@ -1669,20 +1674,23 @@ impl App {
         })
     }
 
-    /// Geniş terminalde Komut Rehberi detayı sağ sütunda mı?
-    pub fn commands_detail_side_active(&self) -> bool {
-        let Some((w, _)) = self.terminal_size else {
-            return false;
-        };
-        let panes = self.pane_widths();
-        self.commands_tab
-            && w >= crate::ui::WIDE_MIN_WIDTH
-            && w >= crate::ui::detail_side_min_width(panes.secondary, self.pane_secondary_cols())
+    /// Etkin ekranın sütun / yükseklik tercihleri (`state.toml` → kırpılmış).
+    pub fn pane_widths(&self) -> crate::ui::PaneWidths {
+        crate::ui::PaneWidths::for_screen(self.ui_screen(), &self.state.file.prefs)
     }
 
-    /// Paylaşılan sütun genişlikleri (`state.toml` prefs → kırpılmış).
-    pub fn pane_widths(&self) -> crate::ui::PaneWidths {
-        crate::ui::PaneWidths::from_prefs(&self.state.file.prefs)
+    /// Aktif ana sekme (boyut kalıcılığı anahtarı).
+    pub fn ui_screen(&self) -> crate::config::state::UiScreen {
+        use crate::config::state::UiScreen;
+        if self.store_tab {
+            UiScreen::Store
+        } else if self.commands_tab {
+            UiScreen::Commands
+        } else if self.settings_tab {
+            UiScreen::Settings
+        } else {
+            UiScreen::Tools
+        }
     }
 
     /// Yan-detay eşiği için ikincil sütun sayısı (banka Komut=2, diğer=1).
@@ -1694,126 +1702,300 @@ impl App {
         }
     }
 
-    /// İkincil sütunu (`[` / `]`) bir adım kaydırır ve kalıcı yazar.
-    fn nudge_pane_secondary(&mut self, delta: i16) {
-        let cur = self.pane_widths().secondary as i16;
-        let next = crate::ui::clamp_secondary_width((cur + delta).clamp(0, i16::MAX) as u16);
-        self.state.file.prefs.pane_secondary_width = Some(next);
-        match self.persist_state() {
-            Ok(()) => {
-                self.status_message = format!(
-                    "İkincil sütun: {next}  (liste {})  — state.toml",
-                    self.pane_widths().list
-                );
-            }
-            Err(e) => {
-                self.status_message = format!("Sütun genişliği kaydedilemedi: {e}");
-            }
-        }
-    }
-
-    /// Liste sütununu (`-` / `=`) bir adım kaydırır ve kalıcı yazar.
-    fn nudge_pane_list(&mut self, delta: i16) {
-        let cur = self.pane_widths().list as i16;
-        let next = crate::ui::clamp_list_width((cur + delta).clamp(0, i16::MAX) as u16);
-        self.state.file.prefs.pane_list_width = Some(next);
-        match self.persist_state() {
-            Ok(()) => {
-                self.status_message = format!(
-                    "Liste sütunu: {next}  (ikincil {})  — state.toml",
-                    self.pane_widths().secondary
-                );
-            }
-            Err(e) => {
-                self.status_message = format!("Sütun genişliği kaydedilemedi: {e}");
-            }
-        }
-    }
-
-    /// Etkin odak zinciri (soldan sağa).
-    ///
-    /// Mağaza sekmesinde üç panel vardır: sekme listesi, mağaza kategorileri
-    /// ve mağaza uygulamaları. Araç/Ayarlar sekmesinde iki panel vardır. AI
-    /// aracı seçiliyken aksiyonlar yatay şeritte görünür ve odak
-    /// zincirine eklenir (Tab/a ile açılmaz). Dar terminalde gizlenen
-    /// paneller zincirden çıkarılır.
-    fn focus_chain(&self) -> &'static [PanelFocus] {
-        if self.commands_tab {
-            return if self.narrow_mode {
-                if self.commands_source == CommandsSource::Bank {
-                    &[
-                        PanelFocus::CommandsSource,
-                        PanelFocus::CommandsCategory,
-                        PanelFocus::CommandsList,
-                    ]
-                } else {
-                    &[PanelFocus::CommandsSource, PanelFocus::CommandsList]
-                }
-            } else if self.commands_source == CommandsSource::Bank {
-                &[
-                    PanelFocus::Category,
-                    PanelFocus::CommandsSource,
-                    PanelFocus::CommandsCategory,
-                    PanelFocus::CommandsList,
-                ]
-            } else {
-                &[
-                    PanelFocus::Category,
-                    PanelFocus::CommandsSource,
-                    PanelFocus::CommandsList,
-                ]
-            };
-        }
-        let side = if self.language_picker_open {
-            2u8
-        } else if self.theme_picker_open {
-            1u8
-        } else {
-            0u8
+    /// Detay paneli (yan veya alt) şu an görünür mü?
+    pub fn detail_panel_visible(&self) -> bool {
+        let Some((w, h)) = self.terminal_size else {
+            // Boyut bilinmiyorsa (birim test) alt detayı zincire alma;
+            // yan detay ayrı `*_side_active` kontrolleriyle eklenir.
+            return false;
         };
-        let ai_actions = self.selected_tool_has_ai_actions();
-        match (
-            self.store_tab,
-            self.settings_tab,
-            side,
-            self.narrow_mode,
-            ai_actions,
-        ) {
-            (true, _, _, false, _) if self.store_detail_side_active() => &[
-                PanelFocus::Category,
-                PanelFocus::StoreCategory,
-                PanelFocus::StoreApp,
-                PanelFocus::StoreDetail,
-            ],
-            (true, _, _, false, _) => &[
-                PanelFocus::Category,
-                PanelFocus::StoreCategory,
-                PanelFocus::StoreApp,
-            ],
-            (true, _, _, true, _) => &[PanelFocus::StoreCategory, PanelFocus::StoreApp],
-            (_, true, 1, false, _) => &[
-                PanelFocus::Category,
-                PanelFocus::Tool,
-                PanelFocus::ThemePicker,
-            ],
-            (_, true, 1, true, _) => &[PanelFocus::Tool, PanelFocus::ThemePicker],
-            (_, true, 2, false, _) => &[
-                PanelFocus::Category,
-                PanelFocus::Tool,
-                PanelFocus::LanguagePicker,
-            ],
-            (_, true, 2, true, _) => &[PanelFocus::Tool, PanelFocus::LanguagePicker],
-            (_, true, _, false, _) => &[PanelFocus::Category, PanelFocus::Tool],
-            (_, true, _, true, _) => &[PanelFocus::Tool],
-            (false, false, _, false, true) => &[
-                PanelFocus::Category,
-                PanelFocus::Tool,
-                PanelFocus::ToolActions,
-            ],
-            (false, false, _, true, true) => &[PanelFocus::Tool, PanelFocus::ToolActions],
-            (false, false, _, false, false) => &[PanelFocus::Category, PanelFocus::Tool],
-            (false, false, _, true, false) => &[PanelFocus::Tool],
+        w >= crate::ui::MEDIUM_MIN_WIDTH && h >= 10
+    }
+
+    /// Odaklı paneli `-` / `+` ile bir adım boyutlandırır; yalnızca bu ekrana yazar.
+    fn resize_focused_panel(&mut self, delta: i16) {
+        let screen = self.ui_screen();
+        let panes = self.pane_widths();
+        let focus = self.focus;
+
+        let is_vertical = match focus {
+            PanelFocus::ToolActions => true,
+            PanelFocus::ToolDetail => !self.tool_detail_side_layout_active(),
+            PanelFocus::StoreDetail => !self.store_detail_side_active(),
+            PanelFocus::CommandsDetail => !self.commands_detail_side_active(),
+            PanelFocus::StoreCategory if self.narrow_mode && self.store_tab => true,
+            PanelFocus::CommandsSource if self.narrow_mode && self.commands_tab => true,
+            _ => false,
+        };
+
+        let slot = match focus {
+            PanelFocus::Category => "tabs",
+            PanelFocus::StoreCategory | PanelFocus::CommandsSource | PanelFocus::CommandsCategory => {
+                if is_vertical {
+                    "secondary_height"
+                } else {
+                    "secondary"
+                }
+            }
+            PanelFocus::Tool
+            | PanelFocus::StoreApp
+            | PanelFocus::CommandsList
+            | PanelFocus::ThemePicker
+            | PanelFocus::LanguagePicker => {
+                // Ayarlar: picker açıkken ayar paneli `secondary`, liste `list`.
+                if self.settings_tab && focus == PanelFocus::Tool && self.settings_side_picker_open()
+                {
+                    "secondary"
+                } else {
+                    "list"
+                }
+            }
+            PanelFocus::ToolDetail | PanelFocus::StoreDetail | PanelFocus::CommandsDetail => {
+                if is_vertical {
+                    "detail_height"
+                } else {
+                    "detail_width"
+                }
+            }
+            PanelFocus::ToolActions => "actions_height",
+        };
+
+        let (cur, min_v, max_v, label) = match slot {
+            "tabs" => (
+                panes.tabs,
+                crate::ui::TABS_PANEL_WIDTH_MIN,
+                crate::ui::TABS_PANEL_WIDTH_MAX,
+                "genişlik",
+            ),
+            "secondary" => (
+                panes.secondary,
+                crate::ui::SECONDARY_PANEL_WIDTH_MIN,
+                crate::ui::SECONDARY_PANEL_WIDTH_MAX,
+                "genişlik",
+            ),
+            "list" => (
+                panes.list,
+                crate::ui::LIST_PANEL_WIDTH_MIN,
+                crate::ui::LIST_PANEL_WIDTH_MAX,
+                "genişlik",
+            ),
+            "detail_width" => (
+                panes.detail_width,
+                crate::ui::STORE_DETAIL_PANEL_WIDTH.min(crate::ui::TOOL_DETAIL_PANEL_WIDTH),
+                crate::ui::DETAIL_PANEL_WIDTH_MAX,
+                "genişlik",
+            ),
+            "detail_height" => (
+                panes.detail_height,
+                crate::ui::DETAIL_HEIGHT_MIN,
+                crate::ui::DETAIL_HEIGHT_MAX,
+                "yükseklik",
+            ),
+            "actions_height" => {
+                let needed = crate::ui::actions_panel_rows(self.selected_tool_actions_len());
+                let cur = if panes.actions_height > 0 {
+                    panes.actions_height.max(needed)
+                } else {
+                    needed
+                };
+                (
+                    cur,
+                    needed.max(crate::ui::ACTIONS_PANEL_BORDER_ROWS + 1),
+                    crate::ui::ACTIONS_HEIGHT_MAX,
+                    "yükseklik",
+                )
+            }
+            "secondary_height" => (
+                panes.secondary_height,
+                crate::ui::STORE_CAT_HEIGHT_MIN,
+                crate::ui::STORE_CAT_HEIGHT_MAX,
+                "yükseklik",
+            ),
+            _ => unreachable!(),
+        };
+
+        let next_i = cur as i16 + delta;
+        if next_i < min_v as i16 {
+            self.status_message = format!(
+                "{}: en küçük {label} ({min_v})",
+                self.focus_panel_name()
+            );
+            return;
         }
+        if next_i > max_v as i16 {
+            self.status_message = format!(
+                "{}: en büyük {label} ({max_v})",
+                self.focus_panel_name()
+            );
+            return;
+        }
+        let next = next_i as u16;
+
+        // Kardeşten yer çal: yatayda list↔detail veya tabs↔list.
+        let sizes = self.state.file.prefs.pane_sizes.get_mut(screen);
+        match slot {
+            "tabs" => sizes.tabs = Some(next),
+            "secondary" => sizes.secondary = Some(next),
+            "list" => {
+                sizes.list = Some(next);
+                // Detay yan paneldeyken listeden çalınan/eklenen yer detaya yansır.
+            }
+            "detail_width" => {
+                sizes.detail_width = Some(next);
+                // Detay büyürken listeden çal (kardeş).
+                if delta > 0 {
+                    let list_cur = panes.list;
+                    if list_cur > crate::ui::LIST_PANEL_WIDTH_MIN {
+                        sizes.list = Some(list_cur - 1);
+                    }
+                } else {
+                    let list_cur = panes.list;
+                    if list_cur < crate::ui::LIST_PANEL_WIDTH_MAX {
+                        sizes.list = Some(list_cur + 1);
+                    }
+                }
+            }
+            "detail_height" => sizes.detail_height = Some(next),
+            "actions_height" => sizes.actions_height = Some(next),
+            "secondary_height" => sizes.secondary_height = Some(next),
+            _ => {}
+        }
+
+        // tabs/secondary/list büyürken mümkünse listeden veya secondary'den çal.
+        if matches!(slot, "tabs" | "secondary") && delta > 0 {
+            let list_cur = self.pane_widths().list;
+            if list_cur > crate::ui::LIST_PANEL_WIDTH_MIN {
+                self.state.file.prefs.pane_sizes.get_mut(screen).list = Some(list_cur - 1);
+            }
+        } else if slot == "list" && delta > 0 {
+            // Liste büyürken detay genişlik tercihini daralt (yan düzen).
+            let d = self.pane_widths().detail_width;
+            let dmin = crate::ui::STORE_DETAIL_PANEL_WIDTH.min(crate::ui::TOOL_DETAIL_PANEL_WIDTH);
+            if d > dmin {
+                self.state.file.prefs.pane_sizes.get_mut(screen).detail_width = Some(d - 1);
+            }
+        }
+
+        match self.persist_state() {
+            Ok(()) => {
+                self.status_message = format!(
+                    "{} {label}: {next}  (−/+ boyut · Tab panel)",
+                    self.focus_panel_name()
+                );
+            }
+            Err(e) => {
+                self.status_message = format!("Panel boyutu kaydedilemedi: {e}");
+            }
+        }
+    }
+
+    /// Odaklı panelin durum çubuğu adı.
+    pub fn focus_panel_name(&self) -> &'static str {
+        match self.focus {
+            PanelFocus::Category => "Sekmeler",
+            PanelFocus::Tool if self.settings_tab => "Ayarlar",
+            PanelFocus::Tool => "Araçlar",
+            PanelFocus::ToolDetail => "Detay",
+            PanelFocus::ToolActions => "Aksiyonlar",
+            PanelFocus::StoreCategory => "Mağaza kategorileri",
+            PanelFocus::StoreApp => "Uygulamalar",
+            PanelFocus::StoreDetail => "Mağaza detay",
+            PanelFocus::CommandsSource => "Komut kaynağı",
+            PanelFocus::CommandsCategory => "Banka kategorileri",
+            PanelFocus::CommandsList => "Komut listesi",
+            PanelFocus::CommandsDetail => "Komut detay",
+            PanelFocus::ThemePicker => "Tema",
+            PanelFocus::LanguagePicker => "Dil",
+        }
+    }
+
+    /// Kurulu yan-detay düzeni etkin mi?
+    pub fn tool_detail_side_layout_active(&self) -> bool {
+        let Some((w, _)) = self.terminal_size else {
+            return false;
+        };
+        let tools_tab = !self.store_tab && !self.settings_tab && !self.commands_tab;
+        tools_tab
+            && crate::ui::tool_detail_side_layout(true, w, self.pane_widths().tabs)
+    }
+
+    /// Komut Rehberi yan detay etkin mi?
+    pub fn commands_detail_side_active(&self) -> bool {
+        let Some((w, _)) = self.terminal_size else {
+            return false;
+        };
+        let panes = self.pane_widths();
+        self.commands_tab
+            && w >= crate::ui::WIDE_MIN_WIDTH
+            && w >= crate::ui::detail_side_min_width(
+                panes.tabs,
+                panes.secondary,
+                self.pane_secondary_cols(),
+            )
+    }
+
+    /// Etkin odak zinciri (görsel sıra: soldan sağa, sonra yukarıdan aşağı).
+    ///
+    /// Dar terminalde gizlenen paneller zincirden çıkarılır. Detay ve alt
+    /// aksiyon paneli görünürken zincire eklenir.
+    fn focus_chain(&self) -> Vec<PanelFocus> {
+        let detail_vis = self.detail_panel_visible();
+        if self.commands_tab {
+            let mut v = Vec::with_capacity(6);
+            if !self.narrow_mode {
+                v.push(PanelFocus::Category);
+            }
+            v.push(PanelFocus::CommandsSource);
+            if self.commands_source == CommandsSource::Bank {
+                v.push(PanelFocus::CommandsCategory);
+            }
+            v.push(PanelFocus::CommandsList);
+            if detail_vis {
+                v.push(PanelFocus::CommandsDetail);
+            }
+            return v;
+        }
+        if self.store_tab {
+            let mut v = Vec::with_capacity(5);
+            if !self.narrow_mode {
+                v.push(PanelFocus::Category);
+            }
+            v.push(PanelFocus::StoreCategory);
+            v.push(PanelFocus::StoreApp);
+            if detail_vis {
+                v.push(PanelFocus::StoreDetail);
+            }
+            return v;
+        }
+        if self.settings_tab {
+            let mut v = Vec::with_capacity(3);
+            if !self.narrow_mode {
+                v.push(PanelFocus::Category);
+            }
+            v.push(PanelFocus::Tool);
+            if self.theme_picker_open {
+                v.push(PanelFocus::ThemePicker);
+            } else if self.language_picker_open {
+                v.push(PanelFocus::LanguagePicker);
+            }
+            return v;
+        }
+        // Kurulu araçlar
+        let mut v = Vec::with_capacity(4);
+        if !self.narrow_mode {
+            v.push(PanelFocus::Category);
+        }
+        v.push(PanelFocus::Tool);
+        if self.tool_detail_side_layout_active() {
+            v.push(PanelFocus::ToolDetail);
+        }
+        if self.selected_tool_has_ai_actions() {
+            v.push(PanelFocus::ToolActions);
+        }
+        if detail_vis && !self.tool_detail_side_layout_active() && !self.settings_tab {
+            v.push(PanelFocus::ToolDetail);
+        }
+        v
     }
 
     /// Ayarlar yan paneli (tema veya dil) açık mı?
@@ -1829,7 +2011,7 @@ impl App {
         let panes = self.pane_widths();
         self.store_tab
             && w >= crate::ui::WIDE_MIN_WIDTH
-            && w >= crate::ui::detail_side_min_width(panes.secondary, 1)
+            && w >= crate::ui::detail_side_min_width(panes.tabs, panes.secondary, 1)
     }
 
     /// Seçili mağaza detay bağlantısını sistem tarayıcısında açar (`xdg-open`).
@@ -1855,7 +2037,7 @@ impl App {
         }
     }
 
-    /// Odak zincirinde bir sonraki panele geçer (son panelde kalır).
+    /// Odak zincirinde bir sonraki panele geçer (son panelde kalır; ←→ için).
     fn next_focus(&self) -> PanelFocus {
         let chain = self.focus_chain();
         let idx = chain.iter().position(|f| *f == self.focus).unwrap_or(0);
@@ -1865,7 +2047,7 @@ impl App {
             .unwrap_or_else(|| *chain.last().expect("odak zinciri boş olamaz"))
     }
 
-    /// Odak zincirinde bir önceki panele geçer (ilk panelde kalır).
+    /// Odak zincirinde bir önceki panele geçer (ilk panelde kalır; ←→ için).
     fn prev_focus(&self) -> PanelFocus {
         let chain = self.focus_chain();
         let idx = chain.iter().position(|f| *f == self.focus).unwrap_or(0);
@@ -1873,6 +2055,20 @@ impl App {
             .get(idx.saturating_sub(1))
             .copied()
             .unwrap_or(chain[0])
+    }
+
+    /// Tab: sonraki panel; sonda başa sarar.
+    fn next_focus_wrapping(&self) -> PanelFocus {
+        let chain = self.focus_chain();
+        let idx = chain.iter().position(|f| *f == self.focus).unwrap_or(0);
+        chain[(idx + 1) % chain.len()]
+    }
+
+    /// Shift+Tab: önceki panel; başta sona sarar.
+    fn prev_focus_wrapping(&self) -> PanelFocus {
+        let chain = self.focus_chain();
+        let idx = chain.iter().position(|f| *f == self.focus).unwrap_or(0);
+        chain[(idx + chain.len() - 1) % chain.len()]
     }
 
     /// Aramadan sonra odaklanılacak panel.
@@ -5195,58 +5391,84 @@ mod tests {
     }
 
     #[test]
-    fn pane_width_keys_nudge_shared_prefs_on_every_screen() {
+    fn focused_panel_resize_is_per_screen_without_bleed() {
         let mut app = sample_app();
         assert_eq!(
-            app.pane_widths().secondary,
+            app.pane_widths().tabs,
             crate::ui::SECONDARY_PANEL_WIDTH_DEFAULT
         );
         assert_eq!(app.pane_widths().list, crate::ui::LIST_PANEL_WIDTH_DEFAULT);
+
+        // Mağaza: uygulama listesine odaklanıp listeyi büyüt.
         app.select_store_tab();
-        app.handle_key(typed(']')).unwrap();
-        assert_eq!(
-            app.state.file.prefs.pane_secondary_width,
-            Some(crate::ui::SECONDARY_PANEL_WIDTH_DEFAULT + 1)
-        );
+        app.focus = PanelFocus::StoreApp;
+        let before_list = app.pane_widths().list;
         app.handle_key(typed('=')).unwrap();
         assert_eq!(
-            app.state.file.prefs.pane_list_width,
-            Some(crate::ui::LIST_PANEL_WIDTH_DEFAULT + 1)
+            app.state.file.prefs.pane_sizes.store.list,
+            Some(before_list + 1)
         );
-        app.select_commands_tab();
-        app.handle_key(typed('[')).unwrap();
-        assert_eq!(
-            app.state.file.prefs.pane_secondary_width,
-            Some(crate::ui::SECONDARY_PANEL_WIDTH_DEFAULT)
+        assert!(
+            app.state.file.prefs.pane_sizes.tools.list.is_none(),
+            "Mağaza boyutu Kurulu'ya sızmamalı"
         );
-        app.handle_key(typed('-')).unwrap();
-        assert_eq!(
-            app.state.file.prefs.pane_list_width,
-            Some(crate::ui::LIST_PANEL_WIDTH_DEFAULT)
-        );
-        // Kurulu (araç) sekmesinde de sütun tuşları çalışır.
+
+        // Kurulu: sekme sütununu küçült — Mağaza listesi değişmez.
         app.set_tab_index(0);
-        app.handle_key(typed(']')).unwrap();
-        assert_eq!(
-            app.state.file.prefs.pane_secondary_width,
-            Some(crate::ui::SECONDARY_PANEL_WIDTH_DEFAULT + 1)
-        );
-        app.handle_key(typed('=')).unwrap();
-        assert_eq!(
-            app.state.file.prefs.pane_list_width,
-            Some(crate::ui::LIST_PANEL_WIDTH_DEFAULT + 1)
-        );
-        // Ayarlar: hem [] hem -=.
-        app.select_settings_tab();
-        app.handle_key(typed('[')).unwrap();
-        assert_eq!(
-            app.state.file.prefs.pane_secondary_width,
-            Some(crate::ui::SECONDARY_PANEL_WIDTH_DEFAULT)
-        );
+        app.focus = PanelFocus::Category;
+        let tools_tabs = app.pane_widths().tabs;
         app.handle_key(typed('-')).unwrap();
         assert_eq!(
-            app.state.file.prefs.pane_list_width,
-            Some(crate::ui::LIST_PANEL_WIDTH_DEFAULT)
+            app.state.file.prefs.pane_sizes.tools.tabs,
+            Some(tools_tabs - 1)
+        );
+        assert_eq!(
+            app.state.file.prefs.pane_sizes.store.list,
+            Some(before_list + 1)
+        );
+
+        // `[` / `]` artık boyutlandırmaz.
+        let tabs_now = app.pane_widths().tabs;
+        app.handle_key(typed(']')).unwrap();
+        assert_eq!(app.pane_widths().tabs, tabs_now);
+    }
+
+    #[test]
+    fn tab_and_shift_tab_wrap_focus_without_resetting_selection() {
+        let mut app = sample_app();
+        mark_all_installed(&mut app);
+        app.focus = PanelFocus::Category;
+        app.tool_index = 2;
+        let selected = app.selected_tool().map(|e| e.id.clone());
+
+        app.handle_key(key(crossterm::event::KeyCode::Tab))
+            .unwrap();
+        assert_eq!(app.focus, PanelFocus::Tool);
+        assert_eq!(app.selected_tool().map(|e| e.id.clone()), selected);
+
+        // Tool'dan Tab → (aksiyon yoksa) başa sarar: Category.
+        app.handle_key(key(crossterm::event::KeyCode::Tab))
+            .unwrap();
+        assert_eq!(app.focus, PanelFocus::Category);
+        assert_eq!(app.tool_index, 2);
+
+        app.handle_key(key(crossterm::event::KeyCode::BackTab))
+            .unwrap();
+        assert_eq!(app.focus, PanelFocus::Tool);
+
+        // Sınırda geri bildirim.
+        app.focus = PanelFocus::Category;
+        for _ in 0..40 {
+            app.handle_key(typed('-')).unwrap();
+        }
+        assert!(
+            app.status_message.contains("en küçük") || app.status_message.contains("genişlik"),
+            "{}",
+            app.status_message
+        );
+        assert_eq!(
+            app.pane_widths().tabs,
+            crate::ui::TABS_PANEL_WIDTH_MIN
         );
     }
 

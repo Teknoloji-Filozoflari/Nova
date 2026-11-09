@@ -160,7 +160,7 @@ Düzen terminal boyutuna göre üç genişlik moduna ve bir yükseklik eşiğine
 
 | Bölge | Eşik | Davranış |
 |-------|------|----------|
-| Geniş | ≥ `WIDE_MIN_WIDTH` (70) | **Kurulu / Ayarlar:** sol sütun `prefs.pane_secondary_width` (varsayılan 28, `[` `]`). **Mağaza / Komut Rehberi:** sekme (26) + ikincil sütun (aynı pref) + liste (`prefs.pane_list_width`, varsayılan 32, `-` `=`); yan detayda fazla genişlik detaya gider. Sütun tuşları her sekmede çalışır |
+| Geniş | ≥ `WIDE_MIN_WIDTH` (70) | Sütunlar ekran başına `prefs.pane_sizes.{tools,store,commands,settings}` ile kalıcıdır. `Tab`/`Shift+Tab` görünür panelleri (sekme, liste, detay, alt aksiyon) döngüler; odaklı panel `-`/`+` ile boyutlanır (yatay→genişlik, dikey→yükseklik; kardeşten yer çalar). Eski `pane_secondary_width` / `pane_list_width` yalnızca yedek okumadır |
 | Orta | 45–69 | Tek sütun; kategori adı araç paneli başlığında; detay görünür. Mağaza sekmesinde kategoriler üstte, uygulamalar altta |
 | Dar | < 45 (`MEDIUM_MIN_WIDTH`) | Yalnızca araç listesi; detay gizli; durum satırında yol gösterilmez |
 | Sıkı ipucu | < 52 (`TIGHT_HINT_WIDTH`) | Arama/yardım/durum metinleri kısa biçime düşer |
@@ -519,12 +519,15 @@ Odak modeli bir **zincir**dir; `h`/`l` (ya da `←`/`→`) bu zincirde gezinir:
 
 | Sekme | Zincir |
 |-------|--------|
-| Araç (varsayılan) | `Category` → `Tool` |
-| Mağaza (geniş ekran) | `Category` → `StoreCategory` → `StoreApp` |
-| Mağaza (dar ekran) | `StoreCategory` → `StoreApp` |
+| Araç (varsayılan) | `Category` → `Tool` → (`ToolDetail` yan/alt) → (`ToolActions` AI) |
+| Mağaza (geniş ekran) | `Category` → `StoreCategory` → `StoreApp` → (`StoreDetail`) |
+| Mağaza (dar ekran) | `StoreCategory` → `StoreApp` → (`StoreDetail` görünürse) |
+
+`Tab` / `Shift+Tab` zincirde **sarar**; `←`/`→` kenarda durur. Odak değişimi
+seçimi veya süren işi sıfırlamaz.
 
 Dar ekranda üç sütun yan yana sığmadığından mağaza kategorileri **üstte**,
-uygulamalar **alta** yerleşir; buna göre zincir de iki panele düşer.
+uygulamalar **alta** yerleşir; buna göre zincir de sekmeyi düşürür.
 
 `m` tuşu yalnızca bu sekmeye bir **kısayoldur** (`App::select_store_tab`); odağı
 doğrudan uygulama listesine götürür ki kurulum eylemi hemen görünsün.
