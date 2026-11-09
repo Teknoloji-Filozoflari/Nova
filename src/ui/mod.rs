@@ -155,7 +155,10 @@ impl PaneWidths {
     }
 
     /// Ekrana özel boyutlar; eski global alanlar yalnızca o ekranda yedek.
-    pub fn for_screen(screen: crate::config::state::UiScreen, prefs: &crate::config::state::Prefs) -> Self {
+    pub fn for_screen(
+        screen: crate::config::state::UiScreen,
+        prefs: &crate::config::state::Prefs,
+    ) -> Self {
         use crate::config::state::UiScreen;
         let s = prefs.pane_sizes.get(screen);
         let legacy_sec = prefs.pane_secondary_width;
@@ -186,11 +189,7 @@ impl PaneWidths {
             secondary: clamp_secondary_width(
                 secondary_raw.unwrap_or(SECONDARY_PANEL_WIDTH_DEFAULT),
             ),
-            list: clamp_list_width(
-                s.list
-                    .or(legacy_list)
-                    .unwrap_or(LIST_PANEL_WIDTH_DEFAULT),
-            ),
+            list: clamp_list_width(s.list.or(legacy_list).unwrap_or(LIST_PANEL_WIDTH_DEFAULT)),
             detail_width: clamp_detail_width(s.detail_width.unwrap_or(default_detail_w)),
             detail_height: clamp_detail_height(s.detail_height.unwrap_or(default_detail_h)),
             actions_height: s.actions_height.unwrap_or(0),
@@ -218,8 +217,11 @@ pub fn clamp_list_width(w: u16) -> u16 {
 
 /// Yan detay genişliğini min/max aralığına kırpar.
 pub fn clamp_detail_width(w: u16) -> u16 {
-    w.clamp(STORE_DETAIL_PANEL_WIDTH.min(TOOL_DETAIL_PANEL_WIDTH), DETAIL_PANEL_WIDTH_MAX)
-        .max(LIST_PANEL_MIN_WIDTH)
+    w.clamp(
+        STORE_DETAIL_PANEL_WIDTH.min(TOOL_DETAIL_PANEL_WIDTH),
+        DETAIL_PANEL_WIDTH_MAX,
+    )
+    .max(LIST_PANEL_MIN_WIDTH)
 }
 
 /// Alt detay yüksekliğini min/max aralığına kırpar.
@@ -1131,7 +1133,10 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
             draw_commands_list(f, app, panels[2]);
         }
     } else {
-        let src_h = panes.secondary_height.min(area.height.saturating_sub(3)).max(3);
+        let src_h = panes
+            .secondary_height
+            .min(area.height.saturating_sub(3))
+            .max(3);
         let panels = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(src_h), Constraint::Min(3)])
@@ -3377,7 +3382,9 @@ mod tests {
             detail_side_min_width(store.tabs, store.secondary, 1),
             STORE_DETAIL_SIDE_MIN_WIDTH
         );
-        assert!(detail_side_min_width(store.tabs, store.secondary, 2) > STORE_DETAIL_SIDE_MIN_WIDTH);
+        assert!(
+            detail_side_min_width(store.tabs, store.secondary, 2) > STORE_DETAIL_SIDE_MIN_WIDTH
+        );
     }
 
     #[test]

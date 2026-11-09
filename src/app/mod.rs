@@ -1730,7 +1730,9 @@ impl App {
 
         let slot = match focus {
             PanelFocus::Category => "tabs",
-            PanelFocus::StoreCategory | PanelFocus::CommandsSource | PanelFocus::CommandsCategory => {
+            PanelFocus::StoreCategory
+            | PanelFocus::CommandsSource
+            | PanelFocus::CommandsCategory => {
                 if is_vertical {
                     "secondary_height"
                 } else {
@@ -1743,7 +1745,9 @@ impl App {
             | PanelFocus::ThemePicker
             | PanelFocus::LanguagePicker => {
                 // Ayarlar: picker açıkken ayar paneli `secondary`, liste `list`.
-                if self.settings_tab && focus == PanelFocus::Tool && self.settings_side_picker_open()
+                if self.settings_tab
+                    && focus == PanelFocus::Tool
+                    && self.settings_side_picker_open()
                 {
                     "secondary"
                 } else {
@@ -1816,17 +1820,13 @@ impl App {
 
         let next_i = cur as i16 + delta;
         if next_i < min_v as i16 {
-            self.status_message = format!(
-                "{}: en küçük {label} ({min_v})",
-                self.focus_panel_name()
-            );
+            self.status_message =
+                format!("{}: en küçük {label} ({min_v})", self.focus_panel_name());
             return;
         }
         if next_i > max_v as i16 {
-            self.status_message = format!(
-                "{}: en büyük {label} ({max_v})",
-                self.focus_panel_name()
-            );
+            self.status_message =
+                format!("{}: en büyük {label} ({max_v})", self.focus_panel_name());
             return;
         }
         let next = next_i as u16;
@@ -1872,7 +1872,12 @@ impl App {
             let d = self.pane_widths().detail_width;
             let dmin = crate::ui::STORE_DETAIL_PANEL_WIDTH.min(crate::ui::TOOL_DETAIL_PANEL_WIDTH);
             if d > dmin {
-                self.state.file.prefs.pane_sizes.get_mut(screen).detail_width = Some(d - 1);
+                self.state
+                    .file
+                    .prefs
+                    .pane_sizes
+                    .get_mut(screen)
+                    .detail_width = Some(d - 1);
             }
         }
 
@@ -1915,8 +1920,7 @@ impl App {
             return false;
         };
         let tools_tab = !self.store_tab && !self.settings_tab && !self.commands_tab;
-        tools_tab
-            && crate::ui::tool_detail_side_layout(true, w, self.pane_widths().tabs)
+        tools_tab && crate::ui::tool_detail_side_layout(true, w, self.pane_widths().tabs)
     }
 
     /// Komut Rehberi yan detay etkin mi?
@@ -5441,14 +5445,12 @@ mod tests {
         app.tool_index = 2;
         let selected = app.selected_tool().map(|e| e.id.clone());
 
-        app.handle_key(key(crossterm::event::KeyCode::Tab))
-            .unwrap();
+        app.handle_key(key(crossterm::event::KeyCode::Tab)).unwrap();
         assert_eq!(app.focus, PanelFocus::Tool);
         assert_eq!(app.selected_tool().map(|e| e.id.clone()), selected);
 
         // Tool'dan Tab → (aksiyon yoksa) başa sarar: Category.
-        app.handle_key(key(crossterm::event::KeyCode::Tab))
-            .unwrap();
+        app.handle_key(key(crossterm::event::KeyCode::Tab)).unwrap();
         assert_eq!(app.focus, PanelFocus::Category);
         assert_eq!(app.tool_index, 2);
 
@@ -5466,10 +5468,7 @@ mod tests {
             "{}",
             app.status_message
         );
-        assert_eq!(
-            app.pane_widths().tabs,
-            crate::ui::TABS_PANEL_WIDTH_MIN
-        );
+        assert_eq!(app.pane_widths().tabs, crate::ui::TABS_PANEL_WIDTH_MIN);
     }
 
     #[test]
