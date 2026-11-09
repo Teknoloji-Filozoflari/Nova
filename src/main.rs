@@ -138,6 +138,19 @@ fn run() -> Result<(), NovaError> {
     }
     app.run(&mut terminal)?;
 
+    // Self-update sonrası: önce terminali geri yükle, sonra yeni ikiliyi exec et.
+    // Guard Drop / elle restore ham moda bozulmuş bir oturum bırakmaz; exec
+    // başarısızsa süreç ayakta kalır ve hata normal ekranda basılır.
+    let restart = app.pending_self_restart.take();
+    drop(terminal);
+    guard.restore();
+    if let Some(binary) = restart {
+        if let Err(err) = nova::update::restart_into(&binary) {
+            eprintln!("Nova: {err}");
+            return Err(NovaError::Internal(err));
+        }
+    }
+
     Ok(())
 }
 

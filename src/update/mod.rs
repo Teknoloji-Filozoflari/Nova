@@ -243,11 +243,13 @@ pub fn install_nova_from_git_with_progress(
                 .unwrap_or_else(|| PathBuf::from("."))
                 .join(".cargo/bin")
         });
+    let binary_path = bin_dir.join("nova");
     Ok(UpdateOutcome {
         version,
         install_dir: bin_dir,
+        binary_path,
         summary: format!(
-            "Nova kaynak güncellemesi tamamlandı (`{}`). Yeni kabuk veya PATH yenilemesi gerekebilir.",
+            "Nova kaynak güncellemesi tamamlandı (`{}`). Uygulama yeni ikiliyle yeniden başlatılacak.",
             plan.command_display
         ),
     })
@@ -276,6 +278,8 @@ pub struct UpdateOutcome {
     pub version: Version,
     /// Yükleme dizini (kullanıcı alanı).
     pub install_dir: PathBuf,
+    /// Yeniden başlatılacak ikili yolu (`~/.local/bin/nova` veya cargo bin).
+    pub binary_path: PathBuf,
     /// Yapılan işlemin kısa özeti.
     pub summary: String,
 }
@@ -558,11 +562,80 @@ pub fn install_nova_from_url(
     Ok(UpdateOutcome {
         version: version.clone(),
         install_dir: install_root,
+        binary_path: dest.clone(),
         summary: format!(
-            "Nova v{version} kuruldu: {}. Yeni sürüm için yeni bir kabuk veya PATH yenilemesi gerekebilir.",
+            "Nova v{version} kuruldu: {}. Uygulama yeni ikiliyle yeniden başlatılacak.",
             dest.display()
         ),
     })
+}
+
+/// Self-update sonrası yeniden başlatılacak ikiliyi doğrular.
+///
+/// Başarısızsa TUI oturumu bozulmadan kalmalı; bu yüzden `exec` öncesi
+/// dosya varlığı / çalıştırılabilirlik kontrol edilir.
+pub fn validate_restart_binary(path: &Path) -> Result<PathBuf, String> {
+    if path.as_os_str().is_empty() {
+        return Err("yeniden başlatma yolu boş".into());
+    }
+    let meta = std::fs::metadata(path).map_err(|e| {
+        format!(
+            "yeni ikili bulunamadı ({}): {e}. Güncelleme kuruldu; Nova'yı elle yeniden açın.",
+            path.display()
+        )
+    })?;
+    if !meta.is_file() {
+        return Err(format!(
+            "yeniden başlatma yolu dosya değil: {}. Nova'yı elle yeniden açın.",
+            path.display()
+        ));
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if meta.permissions().mode() & 0o111 == 0 {
+            return Err(format!(
+                "yeni ikili çalıştırılabilir değil: {}. Nova'yı elle yeniden açın.",
+                path.display()
+            ));
+        }
+    }
+    Ok(path.to_path_buf())
+}
+
+/// Terminal geri yüklendikten sonra yeni Nova ikilisini çalıştırır.
+///
+/// Unix'te süreç `exec` ile değiştirilir (temiz el değiştirme). `exec`
+/// yalnızca hata durumunda döner — o zaman çağıran süreç ayaktadır ve
+/// hata mesajı basılabilir; ham/alt ekran zaten kapatılmış olmalıdır.
+pub fn restart_into(binary: &Path) -> Result<(), String> {
+    let binary = validate_restart_binary(binary)?;
+    // Self-update sonrası TUI argümansız açılır; dahili pager argv'si taşınmaz.
+    let args: Vec<std::ffi::OsString> = Vec::new();
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        let err = std::process::Command::new(&binary).args(&args).exec();
+        Err(format!(
+            "yeni Nova başlatılamadı ({}): {err}. Güncelleme kuruldu; Nova'yı elle yeniden açın.",
+            binary.display()
+        ))
+    }
+
+    #[cfg(not(unix))]
+    {
+        std::process::Command::new(&binary)
+            .args(&args)
+            .spawn()
+            .map_err(|e| {
+                format!(
+                    "yeni Nova başlatılamadı ({}): {e}. Güncelleme kuruldu; Nova'yı elle yeniden açın.",
+                    binary.display()
+                )
+            })?;
+        std::process::exit(0);
+    }
 }
 
 fn dirs_fallback_local_bin() -> PathBuf {
@@ -778,5 +851,38 @@ mod tests {
         let release = parse_github_release_json(body).unwrap().unwrap();
         assert_eq!(release.version.to_string(), "0.3.0");
         assert!(release.download_url.is_none());
+    }
+
+    #[test]
+    fn validate_restart_binary_rejects_missing_path() {
+        let err =
+            validate_restart_binary(Path::new("/tmp/nova-definitely-missing-0087")).unwrap_err();
+        assert!(err.contains("bulunamadı") || err.contains("elle"));
+    }
+
+    #[test]
+    fn validate_restart_binary_accepts_executable() {
+        let dir = std::env::temp_dir().join(format!(
+            "nova-restart-validate-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let bin = dir.join("nova");
+        std::fs::write(&bin, b"#!/bin/sh\necho ok\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&bin).unwrap().permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(&bin, perms).unwrap();
+        }
+        let ok = validate_restart_binary(&bin).unwrap();
+        assert_eq!(ok, bin);
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
