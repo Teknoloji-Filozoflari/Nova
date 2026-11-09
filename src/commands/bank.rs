@@ -87,22 +87,46 @@ impl VerificationStatus {
     }
 }
 
-/// TR/EN (ve diğer) lokalize metin.
+/// Katalog / rehber lokalize metin (tr, en, ru, az, uz, kk, tk).
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct LocalizedString {
     pub tr: Option<String>,
     pub en: Option<String>,
+    #[serde(default)]
+    pub ru: Option<String>,
+    #[serde(default)]
+    pub az: Option<String>,
+    #[serde(default)]
+    pub uz: Option<String>,
+    #[serde(default)]
+    pub kk: Option<String>,
+    #[serde(default)]
+    pub tk: Option<String>,
 }
 
 impl LocalizedString {
     /// Nova dil koduna göre metin; yoksa `en`, sonra `tr`.
     pub fn pick(&self, lang: &str) -> &str {
         let code = lang.to_ascii_lowercase();
-        let primary = match code.as_str() {
-            "en" | "en-us" | "en-gb" => self.en.as_deref().or(self.tr.as_deref()),
-            _ => self.tr.as_deref().or(self.en.as_deref()),
+        let specific = match code.as_str() {
+            "en" | "en-us" | "en-gb" => self.en.as_deref(),
+            "ru" | "ru-ru" => self.ru.as_deref(),
+            "az" | "az-az" => self.az.as_deref(),
+            "uz" | "uz-uz" => self.uz.as_deref(),
+            "kk" | "kk-kz" => self.kk.as_deref(),
+            "tk" | "tk-tm" => self.tk.as_deref(),
+            "tr" | "tr-tr" => self.tr.as_deref(),
+            _ => None,
         };
-        primary.unwrap_or("")
+        specific
+            .or(self.en.as_deref())
+            .or(self.tr.as_deref())
+            .or(self.ru.as_deref())
+            .or(self.az.as_deref())
+            .or(self.uz.as_deref())
+            .or(self.kk.as_deref())
+            .or(self.tk.as_deref())
+            .unwrap_or("")
     }
 }
 

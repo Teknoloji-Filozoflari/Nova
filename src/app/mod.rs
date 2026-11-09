@@ -205,6 +205,11 @@ pub struct App {
     pub commands_selected_profiles: std::collections::BTreeSet<String>,
     /// Göreve göre: seçilen görevden komutlara drill-down.
     pub commands_task_drill: Option<String>,
+    /// Gruplu modlarda gezinme paneli breadcrumb'a alındı mı? (max 3 panel).
+    ///
+    /// `false`: Mod + Grup + Liste (yan detay yok). `true`: Grup + Liste + Detay;
+    /// Esc ile geri. Başlangıç / PATH her zaman içerik gösterir (commit gerekmez).
+    pub commands_guide_committed: bool,
     /// Gömülü Nova-Commands bankası (`nova-commands-bank`).
     pub commands_bank: CommandBank,
     /// Gömülü arama indeksi (`nova-commands-search-index`) — banka ile ayrı kind.
@@ -388,6 +393,7 @@ impl App {
             commands_entry_index: 0,
             commands_selected_profiles: std::collections::BTreeSet::new(),
             commands_task_drill: None,
+            commands_guide_committed: false,
             commands_bank,
             commands_search_index,
             commands_local: LocalCommandsSnapshot::empty_stub(),
@@ -641,42 +647,58 @@ impl App {
 
         let panel_top = areas.content_top;
         let panel_h = areas.content_height;
-        // Geniş: sekmeler | mod | (grup) | liste [| yan detay]
+        // Geniş: sekmeler | [mod] | (grup) | liste [| yan detay] — en fazla 3 içerik paneli.
         if areas.wide {
-            let source_end = areas.category_end_x.saturating_add(areas.secondary_width);
-            let group_end = source_end.saturating_add(areas.secondary_width);
+            let mode_visible = self.commands_mode_panel_visible();
+            let grouped = self.commands_mode.needs_group_column();
+            let mut cursor = areas.category_end_x;
             let list_end = if areas.commands_detail_side {
                 areas.commands_list_end_x
             } else {
                 u16::MAX
             };
 
-            if x < source_end {
-                if let Some(row) = list_index_at_y(
-                    y,
-                    panel_top,
-                    panel_h,
-                    self.commands_mode.index(),
-                    CommandsBrowseMode::ALL.len(),
-                ) {
-                    self.set_commands_mode(CommandsBrowseMode::from_index(row));
-                    self.focus = PanelFocus::CommandsSource;
+            if mode_visible {
+                let source_end = cursor.saturating_add(areas.secondary_width);
+                if x < source_end {
+                    if let Some(row) = list_index_at_y(
+                        y,
+                        panel_top,
+                        panel_h,
+                        self.commands_mode.index(),
+                        CommandsBrowseMode::ALL.len(),
+                    ) {
+                        self.set_commands_mode(CommandsBrowseMode::from_index(row));
+                        self.focus = PanelFocus::CommandsSource;
+                    }
+                    return;
                 }
-            } else if self.commands_mode.needs_group_column() && x < group_end {
-                let n = self.commands_group_len();
-                if let Some(row) =
-                    list_index_at_y(y, panel_top, panel_h, self.commands_category_index, n)
-                {
-                    self.commands_category_index = row;
-                    self.commands_entry_index = 0;
-                    self.commands_task_drill = None;
-                    self.focus = PanelFocus::CommandsCategory;
+                cursor = source_end;
+            }
+
+            if grouped {
+                let group_end = cursor.saturating_add(areas.secondary_width);
+                if x < group_end {
+                    let n = self.commands_group_len();
+                    if let Some(row) =
+                        list_index_at_y(y, panel_top, panel_h, self.commands_category_index, n)
+                    {
+                        self.commands_category_index = row;
+                        self.commands_entry_index = 0;
+                        self.commands_task_drill = None;
+                        self.focus = PanelFocus::CommandsCategory;
+                    }
+                    return;
                 }
-            } else if x < list_end {
+                cursor = group_end;
+            }
+
+            if x < list_end || x >= cursor {
                 let n = self.commands_list_len();
                 if let Some(row) =
                     list_index_at_y(y, panel_top, panel_h, self.commands_entry_index, n)
                 {
+                    self.commit_commands_guide();
                     self.commands_entry_index = row;
                     self.focus = PanelFocus::CommandsList;
                     self.show_selected_command_info();
@@ -928,7 +950,18 @@ impl App {
                     // Görev drill-down'dan komut listesine çık — çalıştırma yok.
                     self.commands_task_drill = None;
                     self.commands_entry_index = 0;
-                    self.status_message = "Görev listesine dönüldü (komut çalıştırılmadı).".into();
+                    self.status_message = self
+                        .ui_lang()
+                        .t(crate::i18n::Msg::CommandsStatusTaskBack)
+                        .to_string();
+                } else if self.commands_tab && self.commands_guide_committed {
+                    // Progressive breadcrumb: grup/liste seviyesinden moda geri.
+                    self.commands_guide_committed = false;
+                    self.focus = PanelFocus::CommandsSource;
+                    self.status_message = self
+                        .ui_lang()
+                        .t(crate::i18n::Msg::CommandsStatusNavBack)
+                        .to_string();
                 } else {
                     self.running = false;
                 }
@@ -982,9 +1015,11 @@ impl App {
             KeyCode::Char('l') | KeyCode::Right => {
                 // Aksiyon paneli dikey listedir; → odak taşır (seçim ↑↓ ile).
                 self.focus = self.next_focus();
+                self.maybe_commit_commands_guide_on_focus();
             }
             KeyCode::Tab => {
                 self.focus = self.next_focus_wrapping();
+                self.maybe_commit_commands_guide_on_focus();
             }
             KeyCode::BackTab => {
                 self.focus = self.prev_focus_wrapping();
@@ -1014,6 +1049,7 @@ impl App {
                     if self.commands_mode == CommandsBrowseMode::Context {
                         self.toggle_selected_profile();
                     } else {
+                        self.commit_commands_guide();
                         self.focus = PanelFocus::CommandsList;
                     }
                 }
@@ -1502,11 +1538,13 @@ impl App {
         self.commands_category_index = 0;
         self.commands_entry_index = 0;
         self.commands_task_drill = None;
+        self.commands_guide_committed = false;
         self.refresh_local_commands_stub();
         self.focus = PanelFocus::CommandsList;
-        self.status_message =
-            "Komut Rehberi: önce ne yapmak istediğini seç (Başlangıç). PATH ≠ katalog. Çalıştırma yok."
-                .into();
+        self.status_message = self
+            .ui_lang()
+            .t(crate::i18n::Msg::CommandsStatusOpened)
+            .to_string();
     }
 
     /// Mağaza sekmesine geçer.
@@ -1603,9 +1641,75 @@ impl App {
         self.commands_category_index = 0;
         self.commands_entry_index = 0;
         self.commands_task_drill = None;
+        self.commands_guide_committed = false;
         if mode == CommandsBrowseMode::SystemPath {
             self.refresh_local_commands_stub();
         }
+    }
+
+    /// Gezinme (mod) sütunu çizilsin mi? Commit sonrası breadcrumb'a alınır.
+    pub fn commands_mode_panel_visible(&self) -> bool {
+        !self.commands_mode.needs_group_column() || !self.commands_guide_committed
+    }
+
+    /// Gruplu modda liste/detaya inince mod panelini breadcrumb'a alır (max 3 panel).
+    pub fn commit_commands_guide(&mut self) {
+        if self.commands_mode.needs_group_column() {
+            self.commands_guide_committed = true;
+            if self.focus == PanelFocus::CommandsSource {
+                self.focus = PanelFocus::CommandsCategory;
+            }
+        }
+    }
+
+    fn maybe_commit_commands_guide_on_focus(&mut self) {
+        if !self.commands_tab {
+            return;
+        }
+        if matches!(
+            self.focus,
+            PanelFocus::CommandsList | PanelFocus::CommandsDetail
+        ) {
+            self.commit_commands_guide();
+        }
+    }
+
+    /// Progressive breadcrumb (mod › grup › görev).
+    pub fn commands_breadcrumb(&self) -> String {
+        use crate::i18n::Msg;
+        let lang = self.ui_lang();
+        let sep = lang.t(Msg::CommandsBreadcrumbSep);
+        let mut parts =
+            vec![crate::i18n::commands_mode_label(self.commands_mode, lang).to_string()];
+        if self.commands_mode.needs_group_column() {
+            let group = match self.commands_mode {
+                CommandsBrowseMode::ByTask => self
+                    .commands_bank
+                    .task_categories()
+                    .get(self.commands_category_index)
+                    .map(|c| lang.bank_category(c).to_string()),
+                CommandsBrowseMode::Context => self
+                    .commands_bank
+                    .profiles
+                    .get(self.commands_category_index)
+                    .map(|p| p.name.pick(lang.id()).to_string()),
+                CommandsBrowseMode::AllCommands => self
+                    .commands_bank_categories()
+                    .get(self.commands_category_index)
+                    .copied()
+                    .map(|c| lang.bank_category(c).to_string()),
+                _ => None,
+            };
+            if let Some(g) = group {
+                parts.push(g);
+            }
+        }
+        if let Some(ref tid) = self.commands_task_drill {
+            if let Some(task) = self.commands_bank.find_task(tid) {
+                parts.push(task.name.pick(lang.id()).to_string());
+            }
+        }
+        parts.join(sep)
     }
 
     /// Grup sütunu satır sayısı.
@@ -1858,11 +1962,15 @@ impl App {
         }
     }
 
-    /// Yan-detay eşiği için ikincil sütun sayısı (gruplu modlar=2, diğer=1).
+    /// Yan-detay eşiği için ikincil sütun sayısı.
     ///
+    /// Gruplu + mod görünür: 2 (Mod+Grup). Commit sonrası veya Başlangıç/PATH: 1.
     /// Pane-resize davranışı aynı kalır: yalnızca Commands ekranı `secondary_cols` kullanır.
     pub fn pane_secondary_cols(&self) -> u16 {
-        if self.commands_tab && self.commands_mode.needs_group_column() {
+        if self.commands_tab
+            && self.commands_mode.needs_group_column()
+            && self.commands_mode_panel_visible()
+        {
             2
         } else {
             1
@@ -2091,10 +2199,16 @@ impl App {
     }
 
     /// Komut Rehberi yan detay etkin mi?
+    ///
+    /// Gruplu + mod paneli açıkken yan detay 4. içerik paneli olur — kapalı
+    /// (max 3); detay alt şeritte kalır. Commit sonrası Grup+Liste+Detay.
     pub fn commands_detail_side_active(&self) -> bool {
         let Some((w, _)) = self.terminal_size else {
             return false;
         };
+        if self.commands_mode.needs_group_column() && self.commands_mode_panel_visible() {
+            return false;
+        }
         let panes = self.pane_widths();
         self.commands_tab
             && w >= crate::ui::WIDE_MIN_WIDTH
@@ -2116,7 +2230,9 @@ impl App {
             if !self.narrow_mode {
                 v.push(PanelFocus::Category);
             }
-            v.push(PanelFocus::CommandsSource);
+            if self.commands_mode_panel_visible() {
+                v.push(PanelFocus::CommandsSource);
+            }
             if self.commands_mode.needs_group_column() {
                 v.push(PanelFocus::CommandsCategory);
             }
@@ -2279,8 +2395,11 @@ impl App {
             };
             self.commands_task_drill = Some(task_id);
             self.commands_entry_index = 0;
-            self.status_message =
-                format!("Görev → ilgili komutlar: {task_name} (Esc geri · çalıştırılmaz)");
+            self.commit_commands_guide();
+            self.status_message = format!(
+                "{}: {task_name}",
+                self.ui_lang().t(crate::i18n::Msg::CommandsStatusTaskDrill)
+            );
             return;
         }
         self.show_selected_command_info();

@@ -225,6 +225,54 @@ fn tab_order_is_guide_then_store_then_settings() {
 }
 
 #[test]
+fn guide_keeps_max_three_content_panels_with_breadcrumb_esc() {
+    let mut app = app();
+    app.select_commands_tab();
+    // Başlangıç: içerik hemen (liste odaklı), commit yok.
+    assert_eq!(app.commands_mode, CommandsBrowseMode::Start);
+    assert!(app.commands_mode_panel_visible());
+    assert!(!app.commands_guide_committed);
+    assert_eq!(app.pane_secondary_cols(), 1);
+
+    app.set_commands_mode(CommandsBrowseMode::ByTask);
+    assert!(app.commands_mode.needs_group_column());
+    assert!(app.commands_mode_panel_visible());
+    assert_eq!(app.pane_secondary_cols(), 2);
+    // Yan detay Mod+Grup iken kapalı (max 3).
+    app.terminal_size = Some((200, 42));
+    app.narrow_mode = false;
+    assert!(!app.commands_detail_side_active());
+
+    app.commit_commands_guide();
+    assert!(!app.commands_mode_panel_visible());
+    assert_eq!(app.pane_secondary_cols(), 1);
+    let crumb = app.commands_breadcrumb();
+    assert!(
+        crumb.contains("Göreve")
+            || crumb.contains("task")
+            || crumb.contains("Task")
+            || !crumb.is_empty(),
+        "breadcrumb boş: {crumb}"
+    );
+
+    // Esc: drill yoksa commit geri alınır.
+    app.focus = nova::app::PanelFocus::CommandsList;
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Esc,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(!app.commands_guide_committed);
+    assert!(app.commands_mode_panel_visible());
+    assert!(app.running);
+
+    // PATH ayrı kalır.
+    app.set_commands_mode(CommandsBrowseMode::SystemPath);
+    assert_eq!(app.commands_source(), nova::commands::CommandsSource::Local);
+    assert!(app.commands_mode_panel_visible());
+}
+
+#[test]
 fn enter_never_auto_runs_commands() {
     let mut app = app();
     app.select_commands_tab();
