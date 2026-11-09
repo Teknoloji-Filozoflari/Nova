@@ -10,6 +10,7 @@
 
 use nova::app::{App, PanelFocus};
 use nova::catalog::{Catalog, CATEGORIES};
+use nova::commands::CommandsBrowseMode;
 use nova::detection::InstalledStatus;
 use ratatui::backend::TestBackend;
 use ratatui::style::Color;
@@ -30,6 +31,8 @@ fn main() {
     capture_store(&out);
     capture_settings(&out);
     capture_ai_actions(&out);
+    capture_commands_start(&out);
+    capture_commands_task_detail(&out);
 
     eprintln!("frames → {}", out.display());
 }
@@ -99,7 +102,7 @@ fn capture_main_list(out: &Path) {
     app.focus = PanelFocus::Tool;
     app.tool_index = 0;
     app.status_message = "Nova — kurulu araçları başlat, Mağaza’dan yenilerini keşfet.".into();
-    dump(&app, 120, 36, out.join("01-main-list.json"));
+    dump(&mut app, 120, 36, out.join("01-main-list.json"));
 }
 
 fn capture_store(out: &Path) {
@@ -116,7 +119,7 @@ fn capture_store(out: &Path) {
     app.store_app_index = 0;
     app.status_message =
         "Mağaza: imzalı katalog + Nova-Store repo (main). Arch’ta pacman tercih edilir.".into();
-    dump(&app, 140, 40, out.join("02-store.json"));
+    dump(&mut app, 140, 40, out.join("02-store.json"));
 }
 
 fn capture_settings(out: &Path) {
@@ -124,16 +127,17 @@ fn capture_settings(out: &Path) {
     app.select_settings_tab();
     app.settings_action_index = 0; // Güncelle (Nova)
     app.focus = PanelFocus::Tool; // Ayarlar listesi vurgulu
-    app.status_message = "Ayarlar: Güncelle (Releases + repo main) · Tema · Dil · Gelişmiş.".into();
+    app.status_message =
+        "Ayarlar: Güncelle · Mağaza kataloğu · Komut bankası · Tema · Dil · Gelişmiş.".into();
     // Ayarlar alt detay şeridini sade tutmak için AI kategorisinden çık.
     set_category(&mut app, "Sistem ve Kaynak Kullanımı");
-    dump(&app, 100, 32, out.join("03-settings.json"));
+    dump(&mut app, 100, 32, out.join("03-settings.json"));
 }
 
 fn capture_ai_actions(out: &Path) {
     let mut app = base_app();
     set_category(&mut app, "AI ve Kodlama");
-    // Claude Code seçili; aksiyon paneli yan yana (genişlik ≥ 110).
+    // Claude Code seçili; Enter → Mağaza tarzı aksiyon modalı.
     if let Some(idx) = app
         .filtered_tools()
         .iter()
@@ -145,11 +149,67 @@ fn capture_ai_actions(out: &Path) {
     if let Some(entry) = app.selected_tool().cloned() {
         app.open_tool_actions_menu(&entry);
     }
-    app.status_message = "AI araçları: Enter → Mağaza tarzı aksiyon modalı.".into();
-    dump(&app, 140, 36, out.join("04-ai-actions.json"));
+    app.status_message = "Kurulu AI: Enter → aksiyon modalı (Aç / Devam / …). Esc kapatır.".into();
+    dump(&mut app, 140, 36, out.join("04-ai-actions.json"));
 }
 
-fn dump(app: &App, width: u16, height: u16, path: PathBuf) {
+/// Komut Rehberi · Başlangıç — Mod + Liste + yan Detay (max 3; TR tema).
+fn capture_commands_start(out: &Path) {
+    let mut app = base_app();
+    app.select_commands_tab();
+    assert_eq!(app.commands_mode, CommandsBrowseMode::Start);
+    app.focus = PanelFocus::CommandsList;
+    app.commands_entry_index = 0;
+    app.status_message =
+        "Komut Rehberi · Başlangıç: öğrenme sırası. PATH ≠ katalog. Çalıştırma yok.".into();
+    // Yan detay için ≥140 sütun (tabs+mode+list_min+detail).
+    dump(&mut app, 160, 40, out.join("05-commands-start.json"));
+}
+
+/// Komut Rehberi · Göreve göre drill + yan detay (commit sonrası: Grup+Liste+Detay).
+///
+/// Eski 4 sütunlu (Mod+Grup+Liste+Detay) düzeni bilinçli olarak yakalanmaz —
+/// #62 yoğunluk kuralı: en fazla 3 içerik paneli.
+fn capture_commands_task_detail(out: &Path) {
+    let mut app = base_app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::ByTask);
+
+    // disks / Disk alanını kontrol et — net görev + ilgili komutlar.
+    let cats = app.commands_bank.task_categories();
+    if let Some(idx) = cats.iter().position(|c| *c == "disks") {
+        app.commands_category_index = idx;
+    }
+    let task_idx = app
+        .filtered_tasks()
+        .iter()
+        .position(|t| t.id == "check-disk-space")
+        .unwrap_or(0);
+    app.commands_entry_index = task_idx;
+    app.focus = PanelFocus::CommandsList;
+    // Enter ile aynı yol: drill + commit (breadcrumb; mod paneli gizlenir).
+    app.commands_task_drill = Some("check-disk-space".into());
+    app.commands_entry_index = 0;
+    app.commit_commands_guide();
+    // Örnekli bir komut satırı seç (detay dolu görünsün).
+    if let Some(idx) = app
+        .filtered_bank_commands()
+        .iter()
+        .position(|c| !c.examples.is_empty())
+    {
+        app.commands_entry_index = idx;
+    }
+    app.status_message =
+        "Göreve göre › Disk › Disk alanını kontrol et — ilgili komutlar; Enter çalıştırmaz.".into();
+    dump(&mut app, 160, 42, out.join("06-commands-task-detail.json"));
+}
+
+fn dump(app: &mut App, width: u16, height: u16, path: PathBuf) {
+    // draw yan-detay eşiklerini area’dan hesaplar; terminal_size odak/test
+    // yardımcıları için senkron tutulur.
+    app.terminal_size = Some((width, height));
+    app.narrow_mode = width < nova::ui::WIDE_MIN_WIDTH;
+
     let mut terminal = Terminal::new(TestBackend::new(width, height)).expect("TestBackend");
     terminal.draw(|f| nova::ui::draw(f, app)).expect("draw");
     let buffer = terminal.backend().buffer();

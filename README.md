@@ -36,7 +36,8 @@ değiştirmez; onları bir araya getirir.
 | **Mağaza** | Ayrı katalog; arşiv+SHA-256, paket yöneticisi veya resmi yönerge. Arch’ta `pacman` önce |
 | **İmzalı + repo katalog** | [Nova-Store](https://github.com/Teknoloji-Filozoflari/Nova-Store) **Releases** (minisign) ve **`main` repo** senkronu — imza doğrulanmazsa uzak Releases verisi uygulanmaz |
 | **Nova self-update** | **GitHub Releases** ikilisi *ve* repo **`main`** üzerinden `cargo install --git` (ağ + derleme). İkisi birbirinin yerine geçmez |
-| **AI aksiyonları** | Seçili AI aracında detay yanında Aç / Devam / Çıkış / Yardım |
+| **AI aksiyonları** | Kurulu AI araçta `Enter` → Mağaza tarzı aksiyon modalı (Aç / Devam / Çıkış / Yardım) |
+| **Komut Rehberi** | Görev odaklı bilgi bankası (Başlangıç → Göreve göre…); PATH ≠ katalog; çalıştırma yok; en fazla 3 içerik paneli |
 | **Tema + dil** | Dokuz tema; `tr` varsayılan — en / ru / az / uz / kk / tk |
 | **Klavye + fare** | Liste tıklama/kaydırma; `Tab`/`Shift+Tab` panel odağı; odaklı panel `-`/`+` ile boyutlanır (ekran başına `state.toml`) |
 
@@ -78,10 +79,12 @@ tmux, …). Emülatör yokken arayüz gezilebilir; başlatma backend bulamazsa h
 ## Kullanım
 
 ```text
-┌──────────────┬──────────────────┬────────────────────────────┐
-│ Kategoriler  │ Araçlar / Mağaza │ Ayrıntı / AI eylemleri     │
-│  (+ Ayarlar) │                  │                            │
-└──────────────┴──────────────────┴────────────────────────────┘
+┌────────────┬───────────────────┬──────────────────────────────┐
+│ Kategoriler│ Araçlar / Mağaza /│ Ayrıntı (yan veya alt)       │
+│ + Rehber   │ Komut listesi     │ Kurulu AI: Enter → modal     │
+│ + Mağaza   │                   │ Rehber: max 3 içerik paneli  │
+│ + Ayarlar  │                   │                              │
+└────────────┴───────────────────┴──────────────────────────────┘
 ```
 
 | Tuş | İşlev |
@@ -95,6 +98,7 @@ tmux, …). Emülatör yokken arayüz gezilebilir; başlatma backend bulamazsa h
 | `c` / `r` / `p` | Yalnızca favoriler / geçmiş / proje dizinleri |
 | `s` | Ayarlar |
 | `m` | Mağaza |
+| `g` | Komut Rehberi |
 | `u` / `U` | Bağlama duyarlı güncelleme (Nova veya Mağaza) |
 | `G` | Nova: repo `main` → `cargo install --git` (güncelleme penceresinde) |
 | `o` | Dosya seçici |
@@ -107,7 +111,15 @@ tmux, …). Emülatör yokken arayüz gezilebilir; başlatma backend bulamazsa h
 Onay pencerelerinde `Enter` onaylar, `Esc` vazgeçer.
 
 <p align="center">
-  <img alt="Nova AI aksiyonları" src="docs/screenshots/ai-actions.png" width="820">
+  <img alt="Nova Kurulu AI aksiyon modalı" src="docs/screenshots/ai-actions.png" width="820">
+</p>
+
+<p align="center">
+  <img alt="Nova Komut Rehberi Başlangıç" src="docs/screenshots/commands-start.png" width="820">
+</p>
+
+<p align="center">
+  <img alt="Nova Komut Rehberi görev detayı" src="docs/screenshots/commands-task-detail.png" width="820">
 </p>
 
 ## Kurulu uygulamalar vs Mağaza
