@@ -710,11 +710,10 @@ pub fn store_detail_links(app: &App) -> Vec<StoreDetailLink> {
             url: source.to_string(),
         });
     }
-    if let Some(release) = &entry.release {
-        if let Some(url) = crate::browser::github_repo_https_url(&release.repo) {
-            if out.iter().all(|l| l.url != url) {
-                out.push(StoreDetailLink { label: "Depo", url });
-            }
+    if let Some(repo) = crate::store::stars::verified_repo_for_store_entry(entry) {
+        let url = repo.https_url();
+        if out.iter().all(|l| l.url != url) {
+            out.push(StoreDetailLink { label: "Depo", url });
         }
     }
     out
@@ -2658,6 +2657,17 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         )));
     }
 
+    // 3b) GitHub yıldız — yalnızca doğrulanmış release.repo / repository_url / repo_url
+    if let Some(repo) =
+        crate::store::stars::verified_repo_for_tool(entry.repo_url.as_deref(), store_match)
+    {
+        let line = crate::store::stars::stars_display_line(&app.github_stars_cache, &repo.key());
+        lines.push(Line::from(Span::styled(
+            truncate(&line, inner_w.max(1)),
+            Style::default().fg(Color::Yellow),
+        )));
+    }
+
     // 4) Kaynak / sürüm (Mağaza eşleşmesi varsa; yoksa katalog notu)
     if let Some(store) = store_match {
         lines.push(Line::from(vec![
@@ -2844,9 +2854,9 @@ fn default_usage_examples(exe: &str, category: &str, name: &str) -> Vec<String> 
 
 /// Mağaza uygulamasının detay satırlarını üretir.
 ///
-/// Sıralama bilinçlidir: ad, kategori ve **satır kırılmış açıklama** üstte;
-/// kurulum / güven / kaynak bağlantıları hemen ardından gelir. Kaynak ve depo
-/// satırları tıklanabilir / Enter ile tarayıcıda açılır.
+/// Kullanıcı §4 sırası (Kurulu ile hizalı): ad/kategori/açıklama → durum →
+/// bağlantılar → yıldız → kaynak/sürüm/kurulum → notlar → güncelleme ipucu.
+/// Yıldız yalnızca `release.repo` / `repository_url` doğrulandığında.
 fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     let Some(entry) = app.selected_store_app() else {
         return vec![Line::from(Span::styled(
@@ -2869,7 +2879,7 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
 
     let mut lines: Vec<Line> = Vec::new();
 
-    // 1. Ad (bold) + kategori ayrı satır — ne olduğu hemen okunsun.
+    // 1) Ad / kategori / açıklama
     lines.push(Line::from(Span::styled(
         entry.name.clone(),
         Style::default().add_modifier(Modifier::BOLD),
@@ -2886,7 +2896,6 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ),
     ]));
 
-    // 2. Açıklama — satır kırarak; tek satırlık `…` şeridi yok.
     let desc = entry.description.trim();
     if desc.is_empty() {
         lines.push(Line::from(Span::styled(
@@ -2902,16 +2911,7 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         }
     }
 
-    // 3. Sürüm.
-    lines.push(Line::from(vec![
-        Span::styled("Sürüm: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(
-            entry.version.as_deref().unwrap_or("belirtilmemiş"),
-            Style::default().fg(Color::White),
-        ),
-    ]));
-
-    // 4. Kurulum durumu (önbellekten; her karede `which` çağrısı yapılmaz).
+    // 2) Durum (+ canlı takip özeti)
     lines.push(Line::from(vec![
         Span::styled("Durum: ", Style::default().fg(Color::DarkGray)),
         Span::styled(
@@ -2919,8 +2919,6 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
             Style::default().fg(status_color(status)),
         ),
     ]));
-
-    // 5. Canlı sürüm takibi / PM güncelleme.
     let follow = if let Some(pm) = pm_update {
         format!(
             "PM güncelleme ({}) → {}",
@@ -2954,79 +2952,7 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         Span::styled(follow, Style::default().fg(Color::Cyan)),
     ]));
 
-    // 6. Kurulum yöntemi — kısa kod değil, anlaşılır etiket.
-    let display_method = resolved_plan
-        .as_ref()
-        .map(|p| p.method)
-        .unwrap_or(entry.install_method);
-    let method_line = if entry.install_method.is_installable() {
-        let state = if status == crate::detection::InstalledStatus::Installed {
-            "kurulu"
-        } else {
-            "kurulabilir"
-        };
-        let mut label = format!("{state} · {}", display_method.label());
-        if display_method != entry.install_method {
-            label.push_str(&format!(
-                " (katalog: {})",
-                entry.install_method.short_label()
-            ));
-        }
-        label
-    } else {
-        entry.install_method.label().to_string()
-    };
-    for part in wrap_text(&format!("Kurulum: {method_line}"), inner_w) {
-        lines.push(Line::from(Span::styled(
-            part,
-            Style::default().fg(Color::Yellow),
-        )));
-    }
-
-    // Güven sınıfı: A/B/C/D (distro / proje+imza / kayıt defteri / manuel).
-    let trust_class = entry.trust_class();
-    let trust_color = match trust_class {
-        crate::store::trust::TrustClass::A => Color::Green,
-        crate::store::trust::TrustClass::B => Color::Cyan,
-        crate::store::trust::TrustClass::C => Color::Yellow,
-        crate::store::trust::TrustClass::D => Color::DarkGray,
-    };
-    lines.push(Line::from(vec![
-        Span::styled("Güven: ", Style::default().fg(Color::DarkGray)),
-        Span::styled(entry.trust_display(), Style::default().fg(trust_color)),
-    ]));
-    if let Some(note) = trust_class.risk_note() {
-        for part in wrap_text(&format!("Risk: {note}"), inner_w) {
-            lines.push(Line::from(Span::styled(
-                part,
-                Style::default().fg(Color::Yellow),
-            )));
-        }
-    }
-
-    if entry.install_method.is_package_manager() {
-        let cmd = resolved_plan
-            .as_ref()
-            .map(|p| p.rendered())
-            .or_else(|| {
-                entry
-                    .install_command
-                    .as_ref()
-                    .map(|a| crate::store::format_install_command(a))
-            })
-            .unwrap_or_default();
-        if !cmd.is_empty() {
-            lines.push(Line::from(vec![
-                Span::styled("Komut: ", Style::default().fg(Color::DarkGray)),
-                Span::styled(
-                    truncate(&cmd, inner_w.saturating_sub(8)),
-                    Style::default().fg(Color::White),
-                ),
-            ]));
-        }
-    }
-
-    // 7. Kaynak / depo bağlantıları (tıkla veya detayda Enter → tarayıcı).
+    // 3) Proje bağlantıları
     if links.is_empty() {
         lines.push(Line::from(vec![
             Span::styled("Kaynak: ", Style::default().fg(Color::DarkGray)),
@@ -3069,6 +2995,95 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
             Style::default().fg(Color::DarkGray),
         )));
     }
+
+    // 3b) GitHub yıldız — verified release.repo / repository_url only
+    if let Some(repo) = crate::store::stars::verified_repo_for_store_entry(entry) {
+        let line = crate::store::stars::stars_display_line(&app.github_stars_cache, &repo.key());
+        lines.push(Line::from(vec![Span::styled(
+            truncate(&line, inner_w.max(1)),
+            Style::default().fg(Color::Yellow),
+        )]));
+    }
+
+    // 4) Kaynak / sürüm / kurulum (güven + komut)
+    lines.push(Line::from(vec![
+        Span::styled("Sürüm: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            entry.version.as_deref().unwrap_or("belirtilmemiş"),
+            Style::default().fg(Color::White),
+        ),
+    ]));
+
+    let display_method = resolved_plan
+        .as_ref()
+        .map(|p| p.method)
+        .unwrap_or(entry.install_method);
+    let method_line = if entry.install_method.is_installable() {
+        let state = if status == crate::detection::InstalledStatus::Installed {
+            "kurulu"
+        } else {
+            "kurulabilir"
+        };
+        let mut label = format!("{state} · {}", display_method.label());
+        if display_method != entry.install_method {
+            label.push_str(&format!(
+                " (katalog: {})",
+                entry.install_method.short_label()
+            ));
+        }
+        label
+    } else {
+        entry.install_method.label().to_string()
+    };
+    for part in wrap_text(&format!("Kurulum: {method_line}"), inner_w) {
+        lines.push(Line::from(Span::styled(
+            part,
+            Style::default().fg(Color::Yellow),
+        )));
+    }
+
+    let trust_class = entry.trust_class();
+    let trust_color = match trust_class {
+        crate::store::trust::TrustClass::A => Color::Green,
+        crate::store::trust::TrustClass::B => Color::Cyan,
+        crate::store::trust::TrustClass::C => Color::Yellow,
+        crate::store::trust::TrustClass::D => Color::DarkGray,
+    };
+    lines.push(Line::from(vec![
+        Span::styled("Güven: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(entry.trust_display(), Style::default().fg(trust_color)),
+    ]));
+    if let Some(note) = trust_class.risk_note() {
+        for part in wrap_text(&format!("Risk: {note}"), inner_w) {
+            lines.push(Line::from(Span::styled(
+                part,
+                Style::default().fg(Color::Yellow),
+            )));
+        }
+    }
+
+    if entry.install_method.is_package_manager() {
+        let cmd = resolved_plan
+            .as_ref()
+            .map(|p| p.rendered())
+            .or_else(|| {
+                entry
+                    .install_command
+                    .as_ref()
+                    .map(|a| crate::store::format_install_command(a))
+            })
+            .unwrap_or_default();
+        if !cmd.is_empty() {
+            lines.push(Line::from(vec![
+                Span::styled("Komut: ", Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    truncate(&cmd, inner_w.saturating_sub(8)),
+                    Style::default().fg(Color::White),
+                ),
+            ]));
+        }
+    }
+
     lines.push(Line::from(vec![
         Span::styled("Lisans: ", Style::default().fg(Color::DarkGray)),
         Span::styled(
@@ -3076,8 +3091,6 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
             Style::default().fg(Color::White),
         ),
     ]));
-
-    // 8. Çalıştırılabilir dosya.
     lines.push(Line::from(vec![
         Span::styled("Executable: ", Style::default().fg(Color::DarkGray)),
         Span::styled(
@@ -3086,7 +3099,6 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ),
     ]));
 
-    // 9. Mimari / platform.
     if let Some(arch) = crate::store::CpuArch::host() {
         let ok = entry.supports_arch(arch);
         lines.push(Line::from(vec![
@@ -3112,7 +3124,6 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ]));
     }
 
-    // 10. İmza / checksum (güven ayrıntısı).
     if let Some(sig) = &entry.signature {
         lines.push(Line::from(vec![
             Span::styled("İmza: ", Style::default().fg(Color::DarkGray)),
@@ -3133,7 +3144,7 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         ]));
     }
 
-    // 11. Kurulum notları (özellikle manual) — satır kırarak.
+    // 5) Notlar (örnekler yerine kurulum notları)
     if let Some(notes) = entry.install_notes.as_deref().filter(|n| !n.is_empty()) {
         lines.push(Line::from(Span::styled(
             "Notlar:",
@@ -3149,7 +3160,8 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
         }
     }
 
-    // 12. Eylem ipuçları.
+    // 6) Güncelleme / kurulum ipuçları (Mağaza: katalog kaynağı güvenilir;
+    // Kurulu’daki UpdateTrust ile karıştırılmaz — bkz. #64).
     let installed = status == crate::detection::InstalledStatus::Installed;
     lines.push(Line::from(""));
     let hint = if link_focus && !links.is_empty() {

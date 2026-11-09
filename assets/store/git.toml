@@ -1,10 +1,278 @@
-# Nova mağaza kataloğu — git
+# Nova mağaza kataloğu — Git
 #
 # Kategori: "Git"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
+
+[[apps]]
+id = "delta"
+name = "delta"
+category = "Git"
+description = """
+Git diff'lerini renkli ve okunaklı gösterir; genellikle git yapılandırmasına bağlanır.
+
+"""
+source = "https://github.com/dandavison/delta"
+license = "MIT"
+executable = "delta"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "git-delta"]
+install_notes = """
+brew: brew install git-delta
+cargo: cargo install git-delta
+apt: sudo apt install git-delta
+pacman: sudo pacman -S git-delta
+Resmî: https://github.com/dandavison/delta#installation
+
+"""
+
+[[apps]]
+id = "difftastic"
+name = "difftastic"
+category = "Git"
+description = "Sözdizimi bilen yapısal diff aracı (difft)."
+source = "https://difftastic.wilfred.me.uk/"
+license = "MIT"
+executable = "difft"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "difftastic"]
+install_notes = """
+pacman: sudo pacman -S difftastic
+cargo: cargo install difftastic
+brew: brew install difftastic
+Resmî: https://difftastic.wilfred.me.uk/
+
+"""
+
+[[apps]]
+id = "ggc"
+name = "ggc"
+category = "Git"
+description = "Geleneksel komutlar ve TUI sunan modern Git CLI."
+source = "https://github.com/bmf-san/ggc"
+license = "MIT"
+executable = "ggc"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "ggc"]
+install_notes = """
+brew: brew install ggc
+Resmî: https://github.com/bmf-san/ggc
+
+"""
+
+[apps.release]
+repo = "bmf-san/ggc"
+
+[[apps]]
+id = "gh-dash"
+name = "gh-dash"
+category = "Git"
+description = "GitHub PR ve issue'ları için zengin terminal panosu."
+source = "https://github.com/dlvhdr/gh-dash"
+license = "MIT"
+executable = "gh-dash"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """
+gh: gh extension install dlvhdr/gh-dash
+Resmî: https://github.com/dlvhdr/gh-dash#installation
+
+"""
+
+[[apps]]
+id = "gh"
+name = "GitHub CLI"
+category = "Git"
+description = "GitHub için resmi komut satırı aracı (PR, issue, Actions)."
+source = "https://cli.github.com/"
+license = "MIT"
+executable = "gh"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "gh"]
+install_notes = """
+brew: brew install gh
+apt: sudo apt install gh
+pacman: sudo pacman -S github-cli
+Resmî: https://cli.github.com/
+
+"""
+
+[[apps]]
+id = "git-absorb"
+name = "git-absorb"
+category = "Git"
+description = "Otomatik fixup commit emici."
+source = "https://github.com/tummychow/git-absorb"
+license = "BSD-3-Clause"
+executable = "git-absorb"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "git-absorb"]
+install_notes = """
+pacman: sudo pacman -S git-absorb
+cargo: cargo install git-absorb
+brew: brew install git-absorb
+
+"""
+
+[[apps]]
+id = "git-cliff"
+name = "git-cliff"
+category = "Git"
+description = "Changelog üretici."
+source = "https://github.com/orhun/git-cliff"
+license = "Apache-2.0 OR MIT"
+executable = "git-cliff"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "git-cliff"]
+install_notes = """
+pacman: sudo pacman -S git-cliff
+cargo: cargo install git-cliff
+brew: brew install git-cliff
+
+"""
+
+[[apps]]
+id = "git-lfs"
+name = "git-lfs"
+category = "Git"
+description = "Git Large File Storage."
+source = "https://git-lfs.com/"
+license = "MIT"
+executable = "git-lfs"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "git-lfs"]
+install_notes = """
+pacman: sudo pacman -S git-lfs
+apt: sudo apt install git-lfs
+brew: brew install git-lfs
+
+"""
+
+[[apps]]
+id = "git-town"
+name = "Git Town"
+category = "Git"
+description = "Git Town, özellik dallarının oluşturma, senkron, PR önerme, birleştirme ve temizleme adımlarını otomatikleştiren Git komut setidir. Git Flow, GitHub/GitLab Flow ve trunk-based iş akışlarıyla uyumludur; mono-repo ve yığılmış (stacked) değişiklikleri destekler. hack/sync/propose/ship ile çakışma sonrası continue/undo sunar. Nova depo yaşam döngüsü yönetmez; Git Town dal iş akışını hızlandırır."
+source = "https://github.com/git-town/git-town"
+license = "MIT"
+executable = "git-town"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "git-town"]
+install_notes = """
+pacman: sudo pacman -S git-town
+brew: brew install git-town
+Debian/Ubuntu: yayınladığı git-town_linux_intel_64.deb dosyasını indirip sudo apt-get install git-town_linux_intel_64.deb
+RedHat: rpm -i git-town_linux_intel_64.rpm
+Komutlar git-town olarak çalışır; git town komutu da aynı ikiliyi çağırır.
+Resmî: https://www.git-town.com/install.html
+
+"""
+
+[[apps]]
+id = "gitoxide"
+name = "gitoxide"
+category = "Git"
+description = "Rust ile yazılmış hızlı Git uygulaması (gix)."
+source = "https://github.com/Byron/gitoxide"
+license = "Apache-2.0"
+executable = "gix"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "gitoxide"]
+install_notes = """
+pacman: sudo pacman -S gitoxide
+brew: brew install gitoxide
+Çalıştırılabilir: gix
+Resmî: https://github.com/Byron/gitoxide
+
+"""
+
+[apps.release]
+repo = "Byron/gitoxide"
+
+[[apps]]
+id = "gitu"
+name = "gitu"
+category = "Git"
+description = "Magit esinli TUI Git istemcisi."
+source = "https://github.com/altsem/gitu"
+license = "MIT"
+executable = "gitu"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "gitu"]
+install_notes = """
+pacman: sudo pacman -S gitu
+Resmî: https://github.com/altsem/gitu
+
+"""
+
+[[apps]]
+id = "gitui"
+name = "gitui"
+category = "Git"
+description = "Rust ile yazılmış hızlı Git terminal arayüzü."
+source = "https://github.com/extrawurst/gitui"
+license = "MIT"
+executable = "gitui"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "gitui"]
+install_notes = """
+cargo: cargo install gitui
+brew: brew install gitui
+apt: sudo apt install gitui
+pacman: sudo pacman -S gitui
+Resmî: https://github.com/extrawurst/gitui#installation
+
+"""
+
+[[apps]]
+id = "glab"
+name = "glab"
+category = "Git"
+description = "GitLab resmi CLI."
+source = "https://gitlab.com/gitlab-org/cli"
+license = "MIT"
+executable = "glab"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "glab"]
+install_notes = """
+pacman: sudo pacman -S glab
+brew: brew install glab
+Resmî: https://gitlab.com/gitlab-org/cli
+
+"""
+
+[[apps]]
+id = "jj"
+name = "jj"
+category = "Git"
+description = "Jujutsu: Git uyumlu, basit ve güçlü sürüm kontrol sistemi."
+source = "https://github.com/jj-vcs/jj"
+license = "Apache-2.0"
+executable = "jj"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "jujutsu"]
+install_notes = """
+pacman: sudo pacman -S jujutsu
+cargo: cargo install --locked --bin jj jj-cli
+brew: brew install jj
+Resmî: https://jj-vcs.github.io/jj/
+
+"""
 
 [[apps]]
 id = "lazygit"
@@ -41,85 +309,56 @@ asset_pattern = "lazygit_{version}_linux_x86_64.tar.gz"
 checksum_asset_pattern = "checksums.txt"
 
 [[apps]]
-id = "gitui"
-name = "gitui"
+id = "onefetch"
+name = "onefetch"
 category = "Git"
-description = "Rust ile yazılmış hızlı Git terminal arayüzü."
-source = "https://github.com/extrawurst/gitui"
+description = "Git deposu özetini terminalde gösteren araç."
+source = "https://github.com/o2sh/onefetch"
 license = "MIT"
-executable = "gitui"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "gitui"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install gitui\nbrew: brew install gitui\napt: sudo apt install gitui\npacman: sudo pacman -S gitui\nResmî: https://github.com/extrawurst/gitui#installation"""
-
-[[apps]]
-id = "gh"
-name = "GitHub CLI"
-category = "Git"
-description = "GitHub için resmi komut satırı aracı (PR, issue, Actions)."
-source = "https://cli.github.com/"
-license = "MIT"
-executable = "gh"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "gh"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install gh\napt: sudo apt install gh\npacman: sudo pacman -S github-cli\nResmî: https://cli.github.com/"""
-
-[[apps]]
-id = "gh-dash"
-name = "gh-dash"
-category = "Git"
-description = "GitHub PR ve issue'ları için zengin terminal panosu."
-source = "https://github.com/dlvhdr/gh-dash"
-license = "MIT"
-executable = "gh-dash"
-install_method = "manual"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """gh: gh extension install dlvhdr/gh-dash\nResmî: https://github.com/dlvhdr/gh-dash#installation"""
-
-[[apps]]
-id = "delta"
-name = "delta"
-category = "Git"
-description = "Git diff'lerini renkli ve okunaklı gösterir; genellikle git yapılandırmasına bağlanır."
-source = "https://github.com/dandavison/delta"
-license = "MIT"
-executable = "delta"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "git-delta"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install git-delta\ncargo: cargo install git-delta\napt: sudo apt install git-delta\npacman: sudo pacman -S git-delta\nResmî: https://github.com/dandavison/delta#installation"""
-
-[[apps]]
-id = "tig"
-name = "tig"
-category = "Git"
-description = "ncurses tabanlı metin kipinde Git arayüzü."
-source = "https://jonas.github.io/tig/"
-license = "GPL-2.0"
-executable = "tig"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "tig"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install tig\nbrew: brew install tig\npacman: sudo pacman -S tig\nResmî: https://jonas.github.io/tig/INSTALL.html"""
-
-# ---------------------------------------------------------------------------
-# Dosya ve Arama
-# ---------------------------------------------------------------------------
-
-[[apps]]
-id = "glab"
-name = "glab"
-category = "Git"
-description = "GitLab resmi CLI."
-source = "https://gitlab.com/gitlab-org/cli"
-license = "MIT"
-executable = "glab"
+executable = "onefetch"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "glab"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S glab\nbrew: brew install glab\nResmî: https://gitlab.com/gitlab-org/cli"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "onefetch"]
+install_notes = """
+pacman: sudo pacman -S onefetch
+Resmî: https://github.com/o2sh/onefetch
+
+"""
+
+[[apps]]
+id = "serie"
+name = "serie"
+category = "Git"
+description = "Zengin git commit grafiği gösteren terminal aracı."
+source = "https://github.com/lusingander/serie"
+license = "MIT"
+executable = "serie"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "serie"]
+install_notes = """
+pacman: sudo pacman -S serie
+Resmî: https://github.com/lusingander/serie
+
+"""
+
+[[apps]]
+id = "soft-serve"
+name = "soft-serve"
+category = "Git"
+description = "Komut satırı için self-host Git sunucusu (Charm)."
+source = "https://github.com/charmbracelet/soft-serve"
+license = "MIT"
+executable = "soft"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "soft-serve"]
+install_notes = """
+pacman: sudo pacman -S soft-serve
+Çalıştırılabilir: soft
+Resmî: https://github.com/charmbracelet/soft-serve
+
+"""
 
 [[apps]]
 id = "tea"
@@ -130,71 +369,29 @@ source = "https://gitea.com/gitea/tea"
 license = "MIT"
 executable = "tea"
 install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "tea"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S tea\nResmî: https://gitea.com/gitea/tea"
+install_notes = """
+pacman: sudo pacman -S tea
+Resmî: https://gitea.com/gitea/tea
+
+"""
 
 [[apps]]
-id = "git-absorb"
-name = "git-absorb"
+id = "tig"
+name = "tig"
 category = "Git"
-description = "Otomatik fixup commit emici."
-source = "https://github.com/tummychow/git-absorb"
-license = "BSD"
-executable = "git-absorb"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "git-absorb"]
+description = "ncurses tabanlı metin kipinde Git arayüzü."
+source = "https://jonas.github.io/tig/"
+license = "GPL-2.0"
+executable = "tig"
+install_method = "apt"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S git-absorb\ncargo: cargo install git-absorb\nbrew: brew install git-absorb"
+install_command = ["sudo", "apt", "install", "-y", "tig"]
+install_notes = """
+apt: sudo apt install tig
+brew: brew install tig
+pacman: sudo pacman -S tig
+Resmî: https://jonas.github.io/tig/INSTALL.html
 
-[[apps]]
-id = "git-cliff"
-name = "git-cliff"
-category = "Git"
-description = "Changelog üretici."
-source = "https://github.com/orhun/git-cliff"
-license = "Apache-2.0/MIT"
-executable = "git-cliff"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "git-cliff"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S git-cliff\ncargo: cargo install git-cliff\nbrew: brew install git-cliff"
-
-[[apps]]
-id = "git-lfs"
-name = "git-lfs"
-category = "Git"
-description = "Git Large File Storage."
-source = "https://git-lfs.com/"
-license = "MIT"
-executable = "git-lfs"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "git-lfs"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S git-lfs\napt: sudo apt install git-lfs\nbrew: brew install git-lfs"
-
-[[apps]]
-id = "jj"
-name = "jj"
-category = "Git"
-description = "Jujutsu: Git uyumlu, basit ve güçlü sürüm kontrol sistemi."
-source = "https://github.com/jj-vcs/jj"
-license = "Apache-2.0"
-executable = "jj"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "jujutsu"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S jujutsu\ncargo: cargo install --locked --bin jj jj-cli\nbrew: brew install jj\nResmî: https://jj-vcs.github.io/jj/"
-
-[[apps]]
-id = "difftastic"
-name = "difftastic"
-category = "Git"
-description = "Sözdizimi bilen yapısal diff aracı (difft)."
-source = "https://difftastic.wilfred.me.uk/"
-license = "MIT"
-executable = "difft"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "difftastic"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S difftastic\ncargo: cargo install difftastic\nbrew: brew install difftastic\nResmî: https://difftastic.wilfred.me.uk/"
+"""

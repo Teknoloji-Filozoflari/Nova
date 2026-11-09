@@ -1,277 +1,10 @@
-# Nova mağaza kataloğu — ai
+# Nova mağaza kataloğu — AI
 #
 # Kategori: "AI"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
-
-[[apps]]
-id = "aider"
-name = "Aider"
-category = "AI"
-description = "Terminalde LLM ile çift programlama; Claude ve GPT ile kod düzenler."
-source = "https://aider.chat"
-license = "Apache-2.0"
-executable = "aider"
-install_method = "pipx"
-install_command = ["pipx", "install", "aider-chat"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """pipx: pipx install aider-chat\npip: python3 -m pip install aider-chat\nResmî: https://aider.chat/"""
-
-[[apps]]
-id = "claude"
-name = "Claude Code"
-category = "AI"
-description = "Anthropic'in terminal tabanlı kodlama asistanı."
-source = "https://code.claude.com"
-license = "Proprietary"
-executable = "claude"
-# Nova YALNIZCA Anthropic native CDN ikilisini kurar (SHA-256, doğru mimari).
-# npm yolu kullanılmaz; katalogdaki install_command yalnızca tanıma / not içindir.
-install_method = "npm"
-install_command = ["npm", "install", "-g", "@anthropic-ai/claude-code"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """Nova: Anthropic native CDN (downloads.claude.ai, SHA-256) — tek kurulum yolu
-Manuel: curl -fsSL https://claude.ai/install.sh | bash
-npm kullanılmaz (kırılgan): optional-deps / ignore-scripts yer tutucu → Exec format error
-Resmî: https://code.claude.com/docs/en/setup"""
-
-[[apps]]
-id = "codex"
-name = "Codex"
-category = "AI"
-description = "OpenAI'nin terminal tabanlı kodlama ajanı."
-source = "https://github.com/openai/codex"
-license = "Apache-2.0"
-executable = "codex"
-install_method = "npm"
-install_command = ["npm", "install", "-g", "@openai/codex"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """npm: npm install -g @openai/codex\nResmî: https://github.com/openai/codex#installation"""
-
-[[apps]]
-id = "gemini-cli"
-name = "Gemini CLI"
-category = "AI"
-description = "Google Gemini için resmi terminal kodlama istemcisi."
-source = "https://github.com/google-gemini/gemini-cli"
-license = "Apache-2.0"
-executable = "gemini"
-install_method = "npm"
-install_command = ["npm", "install", "-g", "@google/gemini-cli"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """npm: npm install -g @google/gemini-cli\nResmî: https://github.com/google-gemini/gemini-cli"""
-
-[[apps]]
-id = "llm"
-name = "llm"
-category = "AI"
-description = "Simon Willison'ın çok modellli komut satırı LLM aracı."
-source = "https://llm.datasette.io"
-license = "Apache-2.0"
-executable = "llm"
-install_method = "pipx"
-install_command = ["pipx", "install", "llm"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """pipx: pipx install llm\nuv: uv tool install llm\nResmî: https://llm.datasette.io/en/stable/setup.html"""
-
-[[apps]]
-id = "opencode"
-name = "OpenCode"
-category = "AI"
-description = "Terminalde çalışan açık kaynaklı yapay zekâ kodlama asistanı."
-source = "https://opencode.ai"
-license = "MIT"
-executable = "opencode"
-install_method = "npm"
-install_command = ["npm", "install", "-g", "opencode-ai"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """npm: npm install -g opencode-ai\ncurl: curl -fsSL https://opencode.ai/install | bash\nResmî: https://opencode.ai/"""
-
-[[apps]]
-id = "crush"
-name = "Crush"
-category = "AI"
-description = "Charmbracelet'in terminal AI kodlama ajanı."
-source = "https://github.com/charmbracelet/crush"
-license = "MIT"
-executable = "crush"
-install_method = "brew"
-install_command = ["brew", "install", "charmbracelet/tap/crush"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install charmbracelet/tap/crush\ngo: go install github.com/charmbracelet/crush@latest\nResmî: https://github.com/charmbracelet/crush"""
-
-[[apps]]
-id = "goose"
-name = "Goose"
-category = "AI"
-description = "Block'un açık kaynaklı, yerel çalışabilen AI ajanı."
-source = "https://block.github.io/goose/"
-license = "Apache-2.0"
-executable = "goose"
-install_method = "manual"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """Resmî kurulum: https://block.github.io/goose/docs/getting-started/installation/"""
-
-[[apps]]
-id = "plandex"
-name = "Plandex"
-category = "AI"
-description = "Büyük kod tabanları için terminal AI geliştirme aracı."
-source = "https://github.com/plandex-ai/plandex"
-license = "MIT"
-executable = "plandex"
-install_method = "manual"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """curl: curl -sL https://plandex.ai/install.sh | bash\nResmî: https://github.com/plandex-ai/plandex#install"""
-
-[[apps]]
-id = "continue-cli"
-name = "Continue CLI"
-category = "AI"
-description = "Continue.dev açık kaynak kod asistanının CLI istemcisi."
-source = "https://continue.dev"
-license = "Apache-2.0"
-executable = "cn"
-install_method = "npm"
-install_command = ["npm", "i", "-g", "@continuedev/cli"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """npm: npm i -g @continuedev/cli\nResmî: https://docs.continue.dev/"""
-
-[[apps]]
-id = "qwen-code"
-name = "Qwen Code"
-category = "AI"
-description = "Alibaba Qwen modelleri için terminal kodlama istemcisi."
-source = "https://github.com/QwenLM/qwen-code"
-license = "Apache-2.0"
-executable = "qwen"
-install_method = "npm"
-install_command = ["npm", "install", "-g", "@qwen-code/qwen-code"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """npm: npm install -g @qwen-code/qwen-code\nResmî: https://github.com/QwenLM/qwen-code"""
-
-[[apps]]
-id = "amp"
-name = "Amp"
-category = "AI"
-description = "Sourcegraph'in terminal odaklı AI kodlama ajanı."
-source = "https://ampcode.com"
-license = "Proprietary"
-executable = "amp"
-install_method = "npm"
-install_command = ["npm", "install", "-g", "@sourcegraph/amp"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """npm: npm install -g @sourcegraph/amp\nResmî: https://ampcode.com/"""
-
-# ---------------------------------------------------------------------------
-# Git
-# ---------------------------------------------------------------------------
-
-[[apps]]
-id = "auggie"
-name = "Auggie"
-category = "AI"
-description = "Augment Code terminal asistanı."
-source = "https://www.augmentcode.com/"
-license = "Proprietary"
-executable = "auggie"
-install_method = "npm"
-install_command = ["npm", "install", "-g", "@augmentcode/auggie"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "npm: npm install -g @augmentcode/auggie\nResmî: https://www.augmentcode.com/"
-
-[[apps]]
-id = "openhands"
-name = "OpenHands"
-category = "AI"
-description = "Açık kaynak AI yazılım mühendisi ajanı."
-source = "https://github.com/All-Hands-AI/OpenHands"
-license = "MIT"
-executable = "openhands"
-install_method = "pipx"
-install_command = ["pipx", "install", "openhands"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install openhands\nuv: uv tool install openhands\nResmî: https://github.com/All-Hands-AI/OpenHands"
-
-[[apps]]
-id = "mods"
-name = "mods"
-category = "AI"
-description = "CLI için AI (Charmbracelet)."
-source = "https://github.com/charmbracelet/mods"
-license = "MIT"
-executable = "mods"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "mods"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S mods\nbrew: brew install charmbracelet/tap/mods\nResmî: https://github.com/charmbracelet/mods"
-
-[[apps]]
-id = "tgpt"
-name = "tgpt"
-category = "AI"
-description = "ChatGPT benzeri terminal AI istemcisi."
-source = "https://github.com/aandrew-me/tgpt"
-license = "GPL-3.0"
-executable = "tgpt"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "tgpt"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S tgpt\nbrew: brew install tgpt\nResmî: https://github.com/aandrew-me/tgpt"
-
-[[apps]]
-id = "shell-gpt"
-name = "ShellGPT"
-category = "AI"
-description = "ChatGPT destekli kabuk asistanı (sgpt)."
-source = "https://github.com/TheR1D/shell_gpt"
-license = "MIT"
-executable = "sgpt"
-install_method = "pipx"
-install_command = ["pipx", "install", "shell-gpt"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install shell-gpt\nuv: uv tool install shell-gpt\nResmî: https://github.com/TheR1D/shell_gpt"
-
-[[apps]]
-id = "fabric-ai"
-name = "Fabric"
-category = "AI"
-description = "AI örüntüleri ile içerik işleme CLI."
-source = "https://github.com/danielmiessler/fabric"
-license = "MIT"
-executable = "fabric"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "fabric"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S fabric\nResmî: https://github.com/danielmiessler/fabric"
-
-[[apps]]
-id = "tts"
-name = "tts"
-category = "AI"
-description = "Coqui TTS komut satırı ses sentezi."
-source = "https://github.com/coqui-ai/TTS"
-license = "MPL-2.0"
-executable = "tts"
-install_method = "pipx"
-install_command = ["pipx", "install", "TTS"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install TTS\nResmî: https://github.com/coqui-ai/TTS"
-
-[[apps]]
-id = "ollama"
-name = "Ollama"
-category = "AI"
-description = "Yerel LLM çalıştırma ve yönetme."
-source = "https://ollama.com/"
-license = "MIT"
-executable = "ollama"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "ollama"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S ollama\ncurl: https://ollama.com/install.sh\nResmî: https://ollama.com/"
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
 
 [[apps]]
 id = "aichat"
@@ -282,9 +15,67 @@ source = "https://github.com/sigoden/aichat"
 license = "Apache-2.0"
 executable = "aichat"
 install_method = "cargo"
-install_command = ["cargo", "install", "aichat"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "cargo: cargo install aichat\nbrew: brew install aichat\npacman: AUR aichat\nResmî: https://github.com/sigoden/aichat"
+install_command = ["cargo", "install", "aichat"]
+install_notes = """
+cargo: cargo install aichat
+brew: brew install aichat
+pacman: AUR aichat
+Resmî: https://github.com/sigoden/aichat
+
+"""
+
+[[apps]]
+id = "aider"
+name = "Aider"
+category = "AI"
+description = "Terminalde LLM ile çift programlama; Claude ve GPT ile kod düzenler."
+source = "https://aider.chat"
+license = "Apache-2.0"
+executable = "aider"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "aider-chat"]
+install_notes = """
+pipx: pipx install aider-chat
+pip: python3 -m pip install aider-chat
+Resmî: https://aider.chat/
+
+"""
+
+[[apps]]
+id = "amp"
+name = "Amp"
+category = "AI"
+description = "Sourcegraph'in terminal odaklı AI kodlama ajanı."
+source = "https://ampcode.com"
+license = "LicenseRef-Proprietary"
+executable = "amp"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "@sourcegraph/amp"]
+install_notes = """
+npm: npm install -g @sourcegraph/amp
+Resmî: https://ampcode.com/
+
+"""
+
+[[apps]]
+id = "auggie"
+name = "Auggie"
+category = "AI"
+description = "Augment Code terminal asistanı."
+source = "https://www.augmentcode.com/"
+license = "LicenseRef-Proprietary"
+executable = "auggie"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "@augmentcode/auggie"]
+install_notes = """
+npm: npm install -g @augmentcode/auggie
+Resmî: https://www.augmentcode.com/
+
+"""
 
 [[apps]]
 id = "chatgpt-cli"
@@ -296,7 +87,144 @@ license = "MIT"
 executable = "chatgpt"
 install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "go: go install github.com/kardolus/chatgpt-cli/cmd/chatgpt@latest\nResmî: https://github.com/kardolus/chatgpt-cli"
+install_notes = """
+go: go install github.com/kardolus/chatgpt-cli/cmd/chatgpt@latest
+Resmî: https://github.com/kardolus/chatgpt-cli
+
+"""
+
+[[apps]]
+id = "claude"
+name = "Claude Code"
+category = "AI"
+description = "Anthropic'in terminal tabanlı kodlama asistanı."
+source = "https://code.claude.com"
+license = "LicenseRef-Proprietary"
+executable = "claude"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "@anthropic-ai/claude-code"]
+install_notes = """
+npm: npm install -g @anthropic-ai/claude-code
+Resmî: https://code.claude.com/
+
+"""
+
+[[apps]]
+id = "codex"
+name = "Codex"
+category = "AI"
+description = "OpenAI'nin terminal tabanlı kodlama ajanı."
+source = "https://github.com/openai/codex"
+license = "Apache-2.0"
+executable = "codex"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "@openai/codex"]
+install_notes = """
+npm: npm install -g @openai/codex
+Resmî: https://github.com/openai/codex#installation
+
+"""
+
+[[apps]]
+id = "continue-cli"
+name = "Continue CLI"
+category = "AI"
+description = "Continue.dev açık kaynak kod asistanının CLI istemcisi."
+source = "https://continue.dev"
+license = "Apache-2.0"
+executable = "cn"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "i", "-g", "@continuedev/cli"]
+install_notes = """
+npm: npm i -g @continuedev/cli
+Resmî: https://docs.continue.dev/
+
+"""
+
+[[apps]]
+id = "crush"
+name = "Crush"
+category = "AI"
+description = "Charmbracelet'in terminal AI kodlama ajanı."
+source = "https://github.com/charmbracelet/crush"
+license = "MIT"
+executable = "crush"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "charmbracelet/tap/crush"]
+install_notes = """
+brew: brew install charmbracelet/tap/crush
+go: go install github.com/charmbracelet/crush@latest
+Resmî: https://github.com/charmbracelet/crush
+
+"""
+
+[[apps]]
+id = "fabric-ai"
+name = "Fabric"
+category = "AI"
+description = "AI örüntüleri ile içerik işleme CLI."
+source = "https://github.com/danielmiessler/fabric"
+license = "MIT"
+executable = "fabric"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "fabric"]
+install_notes = """
+pacman: sudo pacman -S fabric
+Resmî: https://github.com/danielmiessler/fabric
+
+"""
+
+[[apps]]
+id = "gemini-cli"
+name = "Gemini CLI"
+category = "AI"
+description = "Google Gemini için resmi terminal kodlama istemcisi."
+source = "https://github.com/google-gemini/gemini-cli"
+license = "Apache-2.0"
+executable = "gemini"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "@google/gemini-cli"]
+install_notes = """
+npm: npm install -g @google/gemini-cli
+Resmî: https://github.com/google-gemini/gemini-cli
+
+"""
+
+[[apps]]
+id = "goose"
+name = "Goose"
+category = "AI"
+description = "Block'un açık kaynaklı, yerel çalışabilen AI ajanı."
+source = "https://block.github.io/goose/"
+license = "Apache-2.0"
+executable = "goose"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = "Resmî kurulum: https://block.github.io/goose/docs/getting-started/installation/"
+
+[[apps]]
+id = "llm"
+name = "llm"
+category = "AI"
+description = "Simon Willison'ın çok modellli komut satırı LLM aracı."
+source = "https://llm.datasette.io"
+license = "Apache-2.0"
+executable = "llm"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "llm"]
+install_notes = """
+pipx: pipx install llm
+uv: uv tool install llm
+Resmî: https://llm.datasette.io/en/stable/setup.html
+
+"""
 
 [[apps]]
 id = "llmfit"
@@ -307,6 +235,216 @@ source = "https://github.com/AlexsJones/llmfit"
 license = "MIT"
 executable = "llmfit"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "llmfit"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S llmfit\nuv: uv tool install -U llmfit\nbrew: brew install llmfit\nResmî: https://www.llmfit.org/"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "llmfit"]
+install_notes = """
+pacman: sudo pacman -S llmfit
+uv: uv tool install -U llmfit
+brew: brew install llmfit
+Resmî: https://www.llmfit.org/
+
+"""
+
+[[apps]]
+id = "mods"
+name = "mods"
+category = "AI"
+description = "CLI için AI (Charmbracelet)."
+source = "https://github.com/charmbracelet/mods"
+license = "MIT"
+executable = "mods"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "mods"]
+install_notes = """
+pacman: sudo pacman -S mods
+brew: brew install charmbracelet/tap/mods
+Resmî: https://github.com/charmbracelet/mods
+
+"""
+
+[[apps]]
+id = "oh-my-pi"
+name = "oh-my-pi"
+category = "AI"
+description = "omp (oh-my-pi), Stencil Labs’ın Pi tabanlı terminal kodlama ajanıdır: 60+ model sağlayıcısı, 31+ yerleşik araç, LSP ve gerçek hata ayıklayıcı (DAP) desteği sunar. Dosya okuma/düzenleme, alt ajanlar, kod çalıştırma ve işbirliği oturumları içerir. Nova bir mağaza/başlatıcıdır; oh-my-pi projede kod yazıp düzenleyen ajanın kendisidir."
+source = "https://github.com/can1357/oh-my-pi"
+license = "MIT"
+executable = "omp"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """
+Resmî kurulumlar (upstream README):
+Bun (önerilen, Bun >= 1.4.4): bun install -g @oh-my-pi/pi-coding-agent
+Homebrew: brew install can1357/tap/omp
+Kurulum betiği (ön derleme ikilisini SHA-256 ile doğrular): curl -fsSL https://omp.sh/install | sh
+Nix: nix profile add github:can1357/oh-my-pi
+mise: mise use -g github:can1357/oh-my-pi
+Not: Nova uzak curl|sh / Bun yollarını otomatik çalıştırmaz; otomatik kurulum için desteklenen yöntemler arasında yer almaz (trust D).
+Resmî: https://github.com/can1357/oh-my-pi
+
+"""
+
+[apps.release]
+repo = "can1357/oh-my-pi"
+
+[[apps]]
+id = "ollama"
+name = "Ollama"
+category = "AI"
+description = "Yerel LLM çalıştırma ve yönetme."
+source = "https://ollama.com/"
+license = "MIT"
+executable = "ollama"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ollama"]
+install_notes = """
+pacman: sudo pacman -S ollama
+curl: https://ollama.com/install.sh
+Resmî: https://ollama.com/
+
+"""
+
+[[apps]]
+id = "opencode"
+name = "OpenCode"
+category = "AI"
+description = "Terminalde çalışan açık kaynaklı yapay zekâ kodlama asistanı."
+source = "https://opencode.ai"
+license = "MIT"
+executable = "opencode"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "opencode-ai"]
+install_notes = """
+npm: npm install -g opencode-ai
+curl: curl -fsSL https://opencode.ai/install | bash
+Resmî: https://opencode.ai/
+
+"""
+
+[[apps]]
+id = "openhands"
+name = "OpenHands"
+category = "AI"
+description = "Açık kaynak AI yazılım mühendisi ajanı."
+source = "https://github.com/All-Hands-AI/OpenHands"
+license = "MIT"
+executable = "openhands"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "openhands"]
+install_notes = """
+pipx: pipx install openhands
+uv: uv tool install openhands
+Resmî: https://github.com/All-Hands-AI/OpenHands
+
+"""
+
+[[apps]]
+id = "plandex"
+name = "Plandex"
+category = "AI"
+description = "Büyük kod tabanları için terminal AI geliştirme aracı."
+source = "https://github.com/plandex-ai/plandex"
+license = "MIT"
+executable = "plandex"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """
+curl: curl -sL https://plandex.ai/install.sh | bash
+Resmî: https://github.com/plandex-ai/plandex#install
+
+"""
+
+[[apps]]
+id = "qwen-code"
+name = "Qwen Code"
+category = "AI"
+description = "Alibaba Qwen modelleri için terminal kodlama istemcisi."
+source = "https://github.com/QwenLM/qwen-code"
+license = "Apache-2.0"
+executable = "qwen"
+install_method = "npm"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["npm", "install", "-g", "@qwen-code/qwen-code"]
+install_notes = """
+npm: npm install -g @qwen-code/qwen-code
+Resmî: https://github.com/QwenLM/qwen-code
+
+"""
+
+[[apps]]
+id = "shell-gpt"
+name = "ShellGPT"
+category = "AI"
+description = "ChatGPT destekli kabuk asistanı (sgpt)."
+source = "https://github.com/TheR1D/shell_gpt"
+license = "MIT"
+executable = "sgpt"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "shell-gpt"]
+install_notes = """
+pipx: pipx install shell-gpt
+uv: uv tool install shell-gpt
+Resmî: https://github.com/TheR1D/shell_gpt
+
+"""
+
+[[apps]]
+id = "tgpt"
+name = "tgpt"
+category = "AI"
+description = "ChatGPT benzeri terminal AI istemcisi."
+source = "https://github.com/aandrew-me/tgpt"
+license = "GPL-3.0"
+executable = "tgpt"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "tgpt"]
+install_notes = """
+pacman: sudo pacman -S tgpt
+brew: brew install tgpt
+Resmî: https://github.com/aandrew-me/tgpt
+
+"""
+
+[[apps]]
+id = "tts"
+name = "tts"
+category = "AI"
+description = "Coqui TTS komut satırı ses sentezi."
+source = "https://github.com/coqui-ai/TTS"
+license = "MPL-2.0"
+executable = "tts"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "TTS"]
+install_notes = """
+pipx: pipx install TTS
+Resmî: https://github.com/coqui-ai/TTS
+
+"""
+
+[[apps]]
+id = "vtcode"
+name = "VT Code"
+category = "AI"
+description = "Yerel öncelikli terminal AI kodlama ajanı (CLI)."
+source = "https://github.com/vinhnx/vtcode"
+license = "MIT OR Apache-2.0"
+executable = "vtcode"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "vtcode"]
+install_notes = """
+brew: brew install vtcode
+cargo: cargo install vtcode
+Resmî: https://github.com/vinhnx/vtcode
+
+"""
+
+[apps.release]
+repo = "vinhnx/vtcode"

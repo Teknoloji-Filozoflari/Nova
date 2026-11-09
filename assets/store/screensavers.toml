@@ -1,86 +1,45 @@
-# Nova mağaza kataloğu — screensavers
+# Nova mağaza kataloğu — Ekran Koruyucular
 #
 # Kategori: "Ekran Koruyucular"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
 
 [[apps]]
-id = "pipes-sh"
-name = "pipes.sh"
+id = "asciimatics-demo"
+name = "asciimatics"
 category = "Ekran Koruyucular"
-description = "Rastgele boru ekran koruyucusu."
-source = "https://github.com/pipeseroni/pipes.sh"
-license = "MIT"
-executable = "pipes.sh"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "pipes.sh"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S pipes.sh\nbrew: brew install pipes-sh\nResmî: https://github.com/pipeseroni/pipes.sh"
-
-[[apps]]
-id = "nyancat"
-name = "nyancat"
-category = "Ekran Koruyucular"
-description = "Nyan Cat terminal animasyonu."
-source = "https://github.com/klange/nyancat"
-license = "NCSA"
-executable = "nyancat"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "nyancat"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S nyancat\napt: sudo apt install nyancat\nResmî: https://github.com/klange/nyancat"
-
-[[apps]]
-id = "terminal-parrot"
-name = "terminal-parrot"
-category = "Ekran Koruyucular"
-description = "Dans eden papağan animasyonu."
-source = "https://github.com/jmhobbs/terminal-parrot"
-license = "MIT"
-executable = "terminal-parrot"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "terminal-parrot"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S terminal-parrot / AUR\ngo: go install github.com/jmhobbs/terminal-parrot@latest"
-
-[[apps]]
-id = "unimatrix"
-name = "unimatrix"
-category = "Ekran Koruyucular"
-description = "Unicode Matrix yağmuru."
-source = "https://github.com/will8211/unimatrix"
-license = "GPL-3.0"
-executable = "unimatrix"
-install_method = "manual"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pip: pip install unimatrix (veya betiği PATH'e kopyalayın)\nResmî: https://github.com/will8211/unimatrix"
-
-[[apps]]
-id = "rusty-rain"
-name = "rusty-rain"
-category = "Ekran Koruyucular"
-description = "Rust Matrix yağmuru."
-source = "https://github.com/cowboy8625/rusty-rain"
+description = "ASCII animasyon kütüphanesi demo."
+source = "https://github.com/peterbrittain/asciimatics"
 license = "Apache-2.0"
-executable = "rusty-rain"
-install_method = "cargo"
-install_command = ["cargo", "install", "rusty-rain"]
+executable = "asciimatics"
+install_method = "pipx"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "cargo: cargo install rusty-rain\nResmî: https://github.com/cowboy8625/rusty-rain"
+install_command = ["pipx", "install", "asciimatics"]
+install_notes = """
+pipx: pipx install asciimatics
+pip: pip install asciimatics
+Resmî: https://github.com/peterbrittain/asciimatics
+
+"""
 
 [[apps]]
-id = "lavat"
-name = "lavat"
+id = "astroterm"
+name = "astroterm"
 category = "Ekran Koruyucular"
-description = "Lava lamba ASCII animasyonu."
-source = "https://github.com/AngelJumbo/lavat"
+description = "Terminal için planetaryum / gökyüzü görüntüleyici."
+source = "https://github.com/da-luce/astroterm"
 license = "MIT"
-executable = "lavat"
-install_method = "manual"
+executable = "astroterm"
+install_method = "pacman"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "Resmî: https://github.com/AngelJumbo/lavat\nmake && sudo make install"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "astroterm"]
+install_notes = """
+pacman: sudo pacman -S astroterm
+Resmî: https://github.com/da-luce/astroterm
+
+"""
 
 [[apps]]
 id = "bonsai-sh"
@@ -92,20 +51,80 @@ license = "GPL-3.0"
 executable = "bonsai"
 install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "cbonsai tercih edilir: pacman -S cbonsai\nResmî: https://gitlab.com/jallbrit/cbonsai"
+install_notes = """
+cbonsai tercih edilir: pacman -S cbonsai
+Resmî: https://gitlab.com/jallbrit/cbonsai
+
+"""
 
 [[apps]]
-id = "asciimatics-demo"
-name = "asciimatics"
+id = "lavat"
+name = "lavat"
 category = "Ekran Koruyucular"
-description = "ASCII animasyon kütüphanesi demo."
-source = "https://github.com/peterbrittain/asciimatics"
-license = "Apache-2.0"
-executable = "asciimatics"
-install_method = "pipx"
-install_command = ["pipx", "install", "asciimatics"]
+description = "Lava lamba ASCII animasyonu."
+source = "https://github.com/AngelJumbo/lavat"
+license = "MIT"
+executable = "lavat"
+install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install asciimatics\npip: pip install asciimatics\nResmî: https://github.com/peterbrittain/asciimatics"
+install_notes = """
+Resmî: https://github.com/AngelJumbo/lavat
+make && sudo make install
+
+"""
+
+[[apps]]
+id = "nyancat"
+name = "nyancat"
+category = "Ekran Koruyucular"
+description = "Nyan Cat terminal animasyonu."
+source = "https://github.com/klange/nyancat"
+license = "NCSA"
+executable = "nyancat"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "nyancat"]
+install_notes = """
+pacman: sudo pacman -S nyancat
+apt: sudo apt install nyancat
+Resmî: https://github.com/klange/nyancat
+
+"""
+
+[[apps]]
+id = "pipes-sh"
+name = "pipes.sh"
+category = "Ekran Koruyucular"
+description = "Rastgele boru ekran koruyucusu."
+source = "https://github.com/pipeseroni/pipes.sh"
+license = "MIT"
+executable = "pipes.sh"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "pipes.sh"]
+install_notes = """
+pacman: sudo pacman -S pipes.sh
+brew: brew install pipes-sh
+Resmî: https://github.com/pipeseroni/pipes.sh
+
+"""
+
+[[apps]]
+id = "rusty-rain"
+name = "rusty-rain"
+category = "Ekran Koruyucular"
+description = "Rust Matrix yağmuru."
+source = "https://github.com/cowboy8625/rusty-rain"
+license = "Apache-2.0"
+executable = "rusty-rain"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "rusty-rain"]
+install_notes = """
+cargo: cargo install rusty-rain
+Resmî: https://github.com/cowboy8625/rusty-rain
+
+"""
 
 [[apps]]
 id = "termframe"
@@ -116,6 +135,60 @@ source = "https://github.com/pamburus/termframe"
 license = "MIT"
 executable = "termframe"
 install_method = "cargo"
-install_command = ["cargo", "install", "termframe"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "cargo: cargo install termframe\nResmî: https://github.com/pamburus/termframe"
+install_command = ["cargo", "install", "termframe"]
+install_notes = """
+cargo: cargo install termframe
+Resmî: https://github.com/pamburus/termframe
+
+"""
+
+[[apps]]
+id = "terminal-parrot"
+name = "terminal-parrot"
+category = "Ekran Koruyucular"
+description = "Dans eden papağan animasyonu."
+source = "https://github.com/jmhobbs/terminal-parrot"
+license = "MIT"
+executable = "terminal-parrot"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "terminal-parrot"]
+install_notes = """
+pacman: sudo pacman -S terminal-parrot / AUR
+go: go install github.com/jmhobbs/terminal-parrot@latest
+
+"""
+
+[[apps]]
+id = "tty-clock"
+name = "tty-clock"
+category = "Ekran Koruyucular"
+description = "Terminalde dijital saat ekran koruyucusu."
+source = "https://github.com/xorg62/tty-clock"
+license = "BSD-3-Clause"
+executable = "tty-clock"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "tty-clock"]
+install_notes = """
+brew: brew install tty-clock
+Resmî: https://github.com/xorg62/tty-clock
+
+"""
+
+[[apps]]
+id = "unimatrix"
+name = "unimatrix"
+category = "Ekran Koruyucular"
+description = "Unicode Matrix yağmuru."
+source = "https://github.com/will8211/unimatrix"
+license = "GPL-3.0"
+executable = "unimatrix"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """
+pip: pip install unimatrix (veya betiği PATH'e kopyalayın)
+Resmî: https://github.com/will8211/unimatrix
+
+"""

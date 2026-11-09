@@ -1,127 +1,30 @@
-# Nova mağaza kataloğu — network
+# Nova mağaza kataloğu — Ağ
 #
 # Kategori: "Ağ"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
 
 [[apps]]
-id = "bandwhich"
-name = "bandwhich"
+id = "adguardian"
+name = "AdGuardian"
 category = "Ağ"
-description = "Ağ bant genişliğini süreç ve bağlantı bazında gösterir. Yerel arayüzleri izlemek için ek izinler gerekebilir."
-source = "https://github.com/imsnif/bandwhich"
+description = "AdGuard Home için gerçek zamanlı trafik izleme TUI (resmi olmayan)."
+source = "https://github.com/lissy93/AdGuardian-Term"
 license = "MIT"
-executable = "bandwhich"
+executable = "adguardian"
 install_method = "cargo"
-install_command = ["cargo", "install", "bandwhich"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install bandwhich\nbrew: brew install bandwhich\nResmî: https://github.com/imsnif/bandwhich#installation"""
+install_command = ["cargo", "install", "adguardian"]
+install_notes = """
+cargo: cargo install adguardian
+Resmî: https://github.com/lissy93/AdGuardian-Term
 
-[[apps]]
-id = "curl"
-name = "curl"
-category = "Ağ"
-description = "Veri transfer ve HTTP istek aracı."
-source = "https://curl.se/"
-license = "curl"
-executable = "curl"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "curl"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install curl\nbrew: brew install curl\npacman: sudo pacman -S curl\nResmî: https://curl.se/docs/install.html"""
+"""
 
-[[apps]]
-id = "mtr"
-name = "mtr"
-category = "Ağ"
-description = "ping ve traceroute'u birleştiren ağ tanılama aracı. Hedef adresi vermek gerekir."
-source = "https://github.com/traviscross/mtr"
-license = "GPL-2.0"
-executable = "mtr"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "mtr"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install mtr\nbrew: brew install mtr\npacman: sudo pacman -S mtr\nResmî: https://github.com/traviscross/mtr"""
-
-[[apps]]
-id = "gping"
-name = "gping"
-category = "Ağ"
-description = "Grafikli ping; birden fazla hostu görsel izler."
-source = "https://github.com/orf/gping"
-license = "MIT"
-executable = "gping"
-install_method = "cargo"
-install_command = ["cargo", "install", "gping"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install gping\ncargo: cargo install gping\nResmî: https://github.com/orf/gping#installation"""
-
-[[apps]]
-id = "dog"
-name = "dog"
-category = "Ağ"
-description = "Kullanıcı dostu DNS istemcisi; dig alternatifi."
-source = "https://github.com/ogham/dog"
-license = "EUPL-1.2"
-executable = "dog"
-install_method = "cargo"
-install_command = ["cargo", "install", "dog"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install dog\ncargo: cargo install dog\nResmî: https://github.com/ogham/dog#installation"""
-
-[[apps]]
-id = "nmap"
-name = "nmap"
-category = "Ağ"
-description = "Ağ keşif ve güvenlik tarama aracı."
-source = "https://nmap.org/"
-license = "Nmap"
-executable = "nmap"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "nmap"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install nmap\nbrew: brew install nmap\npacman: sudo pacman -S nmap\nResmî: https://nmap.org/download.html"""
-
-[[apps]]
-id = "termshark"
-name = "termshark"
-category = "Ağ"
-description = "Wireshark/tshark için terminal arayüzü."
-source = "https://github.com/gcla/termshark"
-license = "MIT"
-executable = "termshark"
-install_method = "brew"
-install_command = ["brew", "install", "termshark"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """go: go install github.com/gcla/termshark/v2/cmd/termshark@latest\nbrew: brew install termshark\nResmî: https://github.com/gcla/termshark#installation"""
-
-[[apps]]
-id = "trippy"
-name = "trippy"
-category = "Ağ"
-description = "mtr benzeri modern ağ tanılama aracı (trip)."
-source = "https://github.com/fujiapple852/trippy"
-license = "Apache-2.0"
-executable = "trip"
-install_method = "cargo"
-install_command = ["cargo", "install", "trippy"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install trippy\nbrew: brew install trippy\nResmî: https://trippy.cli.rs/"""
-
-[[apps]]
-id = "wget"
-name = "wget"
-category = "Ağ"
-description = "Dosya indirme aracı."
-source = "https://www.gnu.org/software/wget/"
-license = "GPL-3.0"
-executable = "wget"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "wget"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install wget\nbrew: brew install wget\npacman: sudo pacman -S wget\nResmî: https://www.gnu.org/software/wget/"""
+[apps.release]
+repo = "lissy93/AdGuardian-Term"
 
 [[apps]]
 id = "aria2"
@@ -132,156 +35,36 @@ source = "https://aria2.github.io/"
 license = "GPL-2.0"
 executable = "aria2c"
 install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["sudo", "apt", "install", "-y", "aria2"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install aria2\nbrew: brew install aria2\npacman: sudo pacman -S aria2\nResmî: https://aria2.github.io/"""
+install_notes = """
+apt: sudo apt install aria2
+brew: brew install aria2
+pacman: sudo pacman -S aria2
+Resmî: https://aria2.github.io/
 
-# ---------------------------------------------------------------------------
-# Konteyner
-# ---------------------------------------------------------------------------
-
-[[apps]]
-id = "tcpdump"
-name = "tcpdump"
-category = "Ağ"
-description = "Paket yakalama."
-source = "https://www.tcpdump.org/"
-license = "BSD"
-executable = "tcpdump"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "tcpdump"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S tcpdump\napt: sudo apt install tcpdump\nbrew: brew install tcpdump"
+"""
 
 [[apps]]
-id = "iperf3"
-name = "iperf3"
+id = "bandwhich"
+name = "bandwhich"
 category = "Ağ"
-description = "Ağ performans ölçümü."
-source = "https://iperf.fr/"
-license = "BSD"
-executable = "iperf3"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "iperf3"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S iperf3\napt: sudo apt install iperf3\nbrew: brew install iperf3"
+description = """
+Ağ bant genişliğini süreç ve bağlantı bazında gösterir. Yerel arayüzleri izlemek için ek izinler gerekebilir.
 
-[[apps]]
-id = "speedtest-cli"
-name = "speedtest-cli"
-category = "Ağ"
-description = "Ookla hız testi CLI."
-source = "https://github.com/sivel/speedtest-cli"
-license = "Apache-2.0"
-executable = "speedtest-cli"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "speedtest-cli"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S speedtest-cli\npipx: pipx install speedtest-cli\napt: sudo apt install speedtest-cli"
-
-[[apps]]
-id = "nmap-ncat"
-name = "ncat"
-category = "Ağ"
-description = "Nmap netcat (ncat)."
-source = "https://nmap.org/ncat/"
-license = "Nmap"
-executable = "ncat"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "nmap"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S nmap\napt: sudo apt install ncat"
-
-[[apps]]
-id = "socat"
-name = "socat"
-category = "Ağ"
-description = "Çok amaçlı röle (netcat++)."
-source = "http://www.dest-unreach.org/socat/"
-license = "GPL-2.0"
-executable = "socat"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "socat"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S socat\napt: sudo apt install socat\nbrew: brew install socat"
-
-[[apps]]
-id = "netcat"
-name = "netcat"
-category = "Ağ"
-description = "TCP/UDP İsviçre çakısı."
-source = "https://nmap.org/ncat/"
-license = "BSD"
-executable = "nc"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "gnu-netcat"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S gnu-netcat openbsd-netcat\napt: sudo apt install netcat-openbsd"
-
-[[apps]]
-id = "whois"
-name = "whois"
-category = "Ağ"
-description = "WHOIS sorgu aracı."
-source = "https://github.com/rfc1036/whois"
-license = "GPL-2.0"
-executable = "whois"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "whois"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S whois\napt: sudo apt install whois\nbrew: brew install whois"
-
-[[apps]]
-id = "dig"
-name = "dig"
-category = "Ağ"
-description = "DNS sorgu aracı (bind)."
-source = "https://www.isc.org/bind/"
-license = "MPL-2.0"
-executable = "dig"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "bind"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S bind\napt: sudo apt install dnsutils\nbrew: brew install bind"
-
-[[apps]]
-id = "doggo"
-name = "doggo"
-category = "Ağ"
-description = "İnsan dostu komut satırı DNS istemcisi."
-source = "https://github.com/mr-karan/doggo"
-license = "GPL-3.0"
-executable = "doggo"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "doggo"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S doggo\nbrew: brew install doggo\ngo: go install github.com/mr-karan/doggo/cmd/doggo@latest\nResmî: https://github.com/mr-karan/doggo"
-
-[[apps]]
-id = "oha"
-name = "oha"
-category = "Ağ"
-description = "HTTP yük üreteci (rakyll/hey esinli, TUI)."
-source = "https://github.com/hatoo/oha"
+"""
+source = "https://github.com/imsnif/bandwhich"
 license = "MIT"
-executable = "oha"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "oha"]
+executable = "bandwhich"
+install_method = "cargo"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S oha\ncargo: cargo install oha\nbrew: brew install oha\nResmî: https://github.com/hatoo/oha"
+install_command = ["cargo", "install", "bandwhich"]
+install_notes = """
+cargo: cargo install bandwhich
+brew: brew install bandwhich
+Resmî: https://github.com/imsnif/bandwhich#installation
 
-[[apps]]
-id = "rustscan"
-name = "rustscan"
-category = "Ağ"
-description = "Hızlı modern port tarayıcı."
-source = "https://github.com/bee-san/RustScan"
-license = "GPL-3.0"
-executable = "rustscan"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "rustscan"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S rustscan\ncargo: cargo install rustscan\nbrew: brew install rustscan\nResmî: https://github.com/bee-san/RustScan"
+"""
 
 [[apps]]
 id = "croc"
@@ -292,6 +75,534 @@ source = "https://github.com/schollz/croc"
 license = "MIT"
 executable = "croc"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "croc"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S croc\nbrew: brew install croc\nResmî: https://github.com/schollz/croc"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "croc"]
+install_notes = """
+pacman: sudo pacman -S croc
+brew: brew install croc
+Resmî: https://github.com/schollz/croc
+
+"""
+
+[[apps]]
+id = "curl"
+name = "curl"
+category = "Ağ"
+description = "Veri transfer ve HTTP istek aracı."
+source = "https://curl.se/"
+license = "curl"
+executable = "curl"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "curl"]
+install_notes = """
+apt: sudo apt install curl
+brew: brew install curl
+pacman: sudo pacman -S curl
+Resmî: https://curl.se/docs/install.html
+
+"""
+
+[[apps]]
+id = "curlie"
+name = "curlie"
+category = "Ağ"
+description = "curl gücü, HTTPie kullanım kolaylığı."
+source = "https://github.com/rs/curlie"
+license = "MIT"
+executable = "curlie"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "curlie"]
+install_notes = """
+pacman: sudo pacman -S curlie
+brew: brew install curlie
+Resmî: https://github.com/rs/curlie
+
+"""
+
+[apps.release]
+repo = "rs/curlie"
+
+[[apps]]
+id = "dig"
+name = "dig"
+category = "Ağ"
+description = "DNS sorgu aracı (bind)."
+source = "https://www.isc.org/bind/"
+license = "MPL-2.0"
+executable = "dig"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "bind"]
+install_notes = """
+pacman: sudo pacman -S bind
+apt: sudo apt install dnsutils
+brew: brew install bind
+
+"""
+
+[[apps]]
+id = "dog"
+name = "dog"
+category = "Ağ"
+description = "Kullanıcı dostu DNS istemcisi; dig alternatifi."
+source = "https://github.com/ogham/dog"
+license = "EUPL-1.2"
+executable = "dog"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "dog"]
+install_notes = """
+brew: brew install dog
+cargo: cargo install dog
+Resmî: https://github.com/ogham/dog#installation
+
+"""
+
+[[apps]]
+id = "doggo"
+name = "doggo"
+category = "Ağ"
+description = "İnsan dostu komut satırı DNS istemcisi."
+source = "https://github.com/mr-karan/doggo"
+license = "GPL-3.0"
+executable = "doggo"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "doggo"]
+install_notes = """
+pacman: sudo pacman -S doggo
+brew: brew install doggo
+go: go install github.com/mr-karan/doggo/cmd/doggo@latest
+Resmî: https://github.com/mr-karan/doggo
+
+"""
+
+[[apps]]
+id = "gping"
+name = "gping"
+category = "Ağ"
+description = "Grafikli ping; birden fazla hostu görsel izler."
+source = "https://github.com/orf/gping"
+license = "MIT"
+executable = "gping"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "gping"]
+install_notes = """
+brew: brew install gping
+cargo: cargo install gping
+Resmî: https://github.com/orf/gping#installation
+
+"""
+
+[[apps]]
+id = "iperf3"
+name = "iperf3"
+category = "Ağ"
+description = "Ağ performans ölçümü."
+source = "https://iperf.fr/"
+license = "BSD-3-Clause"
+executable = "iperf3"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "iperf3"]
+install_notes = """
+pacman: sudo pacman -S iperf3
+apt: sudo apt install iperf3
+brew: brew install iperf3
+
+"""
+
+[[apps]]
+id = "mosh"
+name = "mosh"
+category = "Ağ"
+description = "Kopmalara dayanıklı mobil kabuk (SSH alternatifi)."
+source = "https://mosh.org/"
+license = "GPL-3.0-only"
+executable = "mosh"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "mosh"]
+install_notes = """
+pacman: sudo pacman -S mosh
+Resmî: https://mosh.org/
+
+"""
+
+[[apps]]
+id = "mtr"
+name = "mtr"
+category = "Ağ"
+description = "ping ve traceroute'u birleştiren ağ tanılama aracı. Hedef adresi vermek gerekir."
+source = "https://github.com/traviscross/mtr"
+license = "GPL-2.0"
+executable = "mtr"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "mtr"]
+install_notes = """
+apt: sudo apt install mtr
+brew: brew install mtr
+pacman: sudo pacman -S mtr
+Resmî: https://github.com/traviscross/mtr
+
+"""
+
+[[apps]]
+id = "netcat"
+name = "netcat"
+category = "Ağ"
+description = "TCP/UDP İsviçre çakısı."
+source = "https://nmap.org/ncat/"
+license = "BSD-3-Clause"
+executable = "nc"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "gnu-netcat"]
+install_notes = """
+pacman: sudo pacman -S gnu-netcat openbsd-netcat
+apt: sudo apt install netcat-openbsd
+
+"""
+
+[[apps]]
+id = "nmap-ncat"
+name = "ncat"
+category = "Ağ"
+description = "Nmap netcat (ncat)."
+source = "https://nmap.org/ncat/"
+license = "LicenseRef-Nmap"
+executable = "ncat"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "nmap"]
+install_notes = """
+pacman: sudo pacman -S nmap
+apt: sudo apt install ncat
+
+"""
+
+[[apps]]
+id = "nmap"
+name = "nmap"
+category = "Ağ"
+description = "Ağ keşif ve güvenlik tarama aracı."
+source = "https://nmap.org/"
+license = "LicenseRef-Nmap"
+executable = "nmap"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "nmap"]
+install_notes = """
+apt: sudo apt install nmap
+brew: brew install nmap
+pacman: sudo pacman -S nmap
+Resmî: https://nmap.org/download.html
+
+"""
+
+[[apps]]
+id = "oha"
+name = "oha"
+category = "Ağ"
+description = "HTTP yük üreteci (rakyll/hey esinli, TUI)."
+source = "https://github.com/hatoo/oha"
+license = "MIT"
+executable = "oha"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "oha"]
+install_notes = """
+pacman: sudo pacman -S oha
+cargo: cargo install oha
+brew: brew install oha
+Resmî: https://github.com/hatoo/oha
+
+"""
+
+[[apps]]
+id = "oryx"
+name = "oryx"
+category = "Ağ"
+description = "eBPF ile ağ trafiği dinleme TUI'si."
+source = "https://github.com/pythops/oryx"
+license = "GPL-3.0-only"
+executable = "oryx"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "oryx"]
+install_notes = """
+pacman: sudo pacman -S oryx
+Resmî: https://github.com/pythops/oryx
+
+"""
+
+[[apps]]
+id = "psnet"
+name = "psnet"
+category = "Ağ"
+description = "[Windows] Hız grafikleri ve DNS çözümlemeli gerçek zamanlı ağ monitörü TUI."
+source = "https://github.com/psmux/psnet"
+license = "MIT"
+executable = "psnet"
+install_method = "cargo"
+supported_platforms = ["windows-x64"]
+install_command = ["cargo", "install", "psnet"]
+install_notes = """
+cargo: cargo install psnet
+winget: winget install psmux.psnet
+Resmî: https://github.com/psmux/psnet
+
+"""
+
+[[apps]]
+id = "rustnet"
+name = "rustnet"
+category = "Ağ"
+description = "eBPF ve paket incelemesiyle gerçek zamanlı ağ izleme TUI'si."
+source = "https://github.com/domcyrus/rustnet"
+license = "Apache-2.0"
+executable = "rustnet"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "rustnet"]
+install_notes = """
+pacman: sudo pacman -S rustnet
+Resmî: https://github.com/domcyrus/rustnet
+
+"""
+
+[[apps]]
+id = "rustscan"
+name = "rustscan"
+category = "Ağ"
+description = "Hızlı modern port tarayıcı."
+source = "https://github.com/bee-san/RustScan"
+license = "GPL-3.0"
+executable = "rustscan"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "rustscan"]
+install_notes = """
+pacman: sudo pacman -S rustscan
+cargo: cargo install rustscan
+brew: brew install rustscan
+Resmî: https://github.com/bee-san/RustScan
+
+"""
+
+[[apps]]
+id = "socat"
+name = "socat"
+category = "Ağ"
+description = "Çok amaçlı röle (netcat++)."
+source = "https://github.com/3ndG4me/socat"
+license = "GPL-2.0"
+executable = "socat"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "socat"]
+install_notes = """
+pacman: sudo pacman -S socat
+apt: sudo apt install socat
+brew: brew install socat
+
+"""
+
+[[apps]]
+id = "speedtest-cli"
+name = "speedtest-cli"
+category = "Ağ"
+description = "Ookla hız testi CLI."
+source = "https://github.com/sivel/speedtest-cli"
+license = "Apache-2.0"
+executable = "speedtest-cli"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "speedtest-cli"]
+install_notes = """
+pacman: sudo pacman -S speedtest-cli
+pipx: pipx install speedtest-cli
+apt: sudo apt install speedtest-cli
+
+"""
+
+[[apps]]
+id = "tailscale"
+name = "Tailscale"
+category = "Ağ"
+description = "Tailscale, WireGuard® tabanlı özel ağları kolaylaştıran açık kaynak istemcidir: tailscaled arka plan hizmeti ve tailscale CLI ile cihazları tailnet’e bağlar, durum ve IP tanılaması yapar. Paketler pkgs.tailscale.com üzerinden sunulur. Nova bir VPN değildir; Tailscale makinenizi kimlik doğrulamalı şifreli mesh ağına ekler (elevated kurulum gerekir)."
+source = "https://tailscale.com/"
+license = "BSD-3-Clause"
+executable = "tailscale"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "tailscale"]
+install_notes = """
+pacman: sudo pacman -S tailscale
+Servis: tailscaled systemd servisi (tailscaled.service) arka planda çalışır; systemctl status tailscaled ile izlenir.
+Yönetici izni: tailscale up, tailscale set ve tailscale down komutları sudo gerektirir.
+İlk bağlantı: sudo tailscale up komutu kimlik doğrulama URL'sini yazdırır; tarayıcıda açıp tailnet'e giriş yapın ve cihazın admin konsolundaki Machines sayfasında göründüğünü doğrulayın.
+Durum: tailscale status ve tailscale ip komutlarıyla kontrol edilir.
+tun çekirdek modülü gerekir; eksikse sudo modprobe tun ile yükleyin.
+Debian/Ubuntu ve RHEL: https://pkgs.tailscale.com/stable/#linux (resmî betik: curl -fsSL https://tailscale.com/install.sh | sh)
+Resmî: https://tailscale.com/docs/install/linux
+
+"""
+
+[[apps]]
+id = "tcpdump"
+name = "tcpdump"
+category = "Ağ"
+description = "Paket yakalama."
+source = "https://www.tcpdump.org/"
+license = "BSD-3-Clause"
+executable = "tcpdump"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "tcpdump"]
+install_notes = """
+pacman: sudo pacman -S tcpdump
+apt: sudo apt install tcpdump
+brew: brew install tcpdump
+
+"""
+
+[[apps]]
+id = "termshark"
+name = "termshark"
+category = "Ağ"
+description = "Wireshark/tshark için terminal arayüzü."
+source = "https://github.com/gcla/termshark"
+license = "MIT"
+executable = "termshark"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "termshark"]
+install_notes = """
+go: go install github.com/gcla/termshark/v2/cmd/termshark@latest
+brew: brew install termshark
+Resmî: https://github.com/gcla/termshark#installation
+
+"""
+
+[[apps]]
+id = "trippy"
+name = "trippy"
+category = "Ağ"
+description = "mtr benzeri modern ağ tanılama aracı (trip)."
+source = "https://github.com/fujiapple852/trippy"
+license = "Apache-2.0"
+executable = "trip"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "trippy"]
+install_notes = """
+cargo: cargo install trippy
+brew: brew install trippy
+Resmî: https://trippy.cli.rs/
+
+"""
+
+[[apps]]
+id = "updo"
+name = "updo"
+category = "Ağ"
+description = "Uyarı destekli uptime izleme CLI aracı."
+source = "https://github.com/Owloops/updo"
+license = "MIT"
+executable = "updo"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "owloops/tap/updo"]
+install_notes = """
+brew: brew install owloops/tap/updo
+Resmî: https://github.com/Owloops/updo
+
+"""
+
+[apps.release]
+repo = "Owloops/updo"
+
+[[apps]]
+id = "wget"
+name = "wget"
+category = "Ağ"
+description = "Dosya indirme aracı."
+source = "https://www.gnu.org/software/wget/"
+license = "GPL-3.0"
+executable = "wget"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "wget"]
+install_notes = """
+apt: sudo apt install wget
+brew: brew install wget
+pacman: sudo pacman -S wget
+Resmî: https://www.gnu.org/software/wget/
+
+"""
+
+[[apps]]
+id = "whois"
+name = "whois"
+category = "Ağ"
+description = "WHOIS sorgu aracı."
+source = "https://github.com/rfc1036/whois"
+license = "GPL-2.0"
+executable = "whois"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "whois"]
+install_notes = """
+pacman: sudo pacman -S whois
+apt: sudo apt install whois
+brew: brew install whois
+
+"""
+
+[[apps]]
+id = "wireguard-tools"
+name = "WireGuard tools"
+category = "Ağ"
+description = "wireguard-tools, modern VPN tüneli WireGuard için kullanıcı alanı araçlarını sağlar: wg ile anahtar üretimi ve arayüz yapılandırması, wg-quick ile hızlı up/down. Kernel veya wireguard-go üzerinden çalışır; SSH benzeri genel anahtar değişimiyle kurulur, IPsec/OpenVPN’e göre daha sade ve performanslıdır. Nova ağ tüneli kurmaz; bu paket WireGuard arayüzlerini yönetir (root/CAP_NET_ADMIN)."
+source = "https://www.wireguard.com/"
+license = "GPL-2.0-only"
+executable = "wg"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "wireguard-tools"]
+install_notes = """
+pacman: sudo pacman -S wireguard-tools
+apt: sudo apt install wireguard-tools
+dnf: sudo dnf install wireguard-tools
+Komutlar: wg (tünel yapılandırma ve anahtar üretimi) ve wg-quick (bash tabanlı hızlı kurulum).
+Sistem izinleri: wg-quick arayüz oluşturma ve yönlendirme için root (CAP_NET_ADMIN) gerektirir; up/down komutları sudo ile çalıştırılmalıdır.
+wireguard çekirdek modülü gerekir; yoksa wireguard-go kullanıcı alanı uygulamasına düşer.
+Resmî: https://www.wireguard.com/
+
+"""
+
+[[apps]]
+id = "wishlist"
+name = "wishlist"
+category = "Ağ"
+description = "Birden fazla SSH ucu için tek giriş noktası (Charm)."
+source = "https://github.com/charmbracelet/wishlist"
+license = "MIT"
+executable = "wishlist"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "wishlist"]
+install_notes = """
+pacman: sudo pacman -S wishlist
+brew: brew install wishlist
+Resmî: https://github.com/charmbracelet/wishlist
+
+"""
+
+[apps.release]
+repo = "charmbracelet/wishlist"

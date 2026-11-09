@@ -24,6 +24,8 @@
 //! - `artifacts` — mimariye özel arşiv URL/checksum/release desenleri
 //! - `install_command` — paket yöneticisi yöntemlerinde kabuksuz argv
 //! - `install_notes` — alternatifler ve resmî URL (özellikle `manual`)
+//! - `repository_url` — isteğe bağlı GitHub depo URL’si (yıldız / Depo linki;
+//!   `release.repo` yokken). Yalnızca `https://github.com/…`
 //! - `signature` — isteğe bağlı upstream imza (minisign/cosign/gpg/attestation)
 //!
 //! Katalog verisi UI koduna gömülmez; ayrı `assets/store/*.toml` dosyalarından
@@ -44,6 +46,7 @@ pub mod platform;
 pub mod remote;
 pub mod repo_sync;
 pub mod signature;
+pub mod stars;
 pub mod sync;
 pub mod trust;
 
@@ -280,6 +283,13 @@ pub struct StoreEntry {
     /// gelir. `None` ise bu uygulama canlı olarak takip edilmez.
     #[serde(default)]
     pub release: Option<manifest::ReleaseSource>,
+    /// İsteğe bağlı GitHub depo adresi (yıldız sayısı / Depo linki).
+    ///
+    /// `release.repo` yokken detay panelinde yıldız çekmek için kullanılır.
+    /// Yalnızca `https://github.com/owner/repo` kabul edilir; `source`
+    /// (proje sitesi) yıldız için tek başına yeterli değildir.
+    #[serde(default)]
+    pub repository_url: Option<String>,
     /// Upstream imza üstverisi (SHA-256 ötesinde, mümkünse doğrulanır).
     ///
     /// Yalnızca `download_archive` kayıtlarında anlamlıdır. UI'da
@@ -348,6 +358,9 @@ impl StoreEntry {
     }
 
     /// Host mimarisine göre canlı sürüm kaynağı (asset desenleri override).
+    ///
+    /// Yalnızca `asset_pattern` doluysa (veya artifact override ile doluyorsa)
+    /// döner — repo-only `release` yıldız / Depo için kullanılır, U denetimine girmez.
     pub fn release_source_for(&self, arch: CpuArch) -> Option<manifest::ReleaseSource> {
         let mut src = self.release.clone()?;
         if let Some(art) = self.artifact_for(arch) {
@@ -357,6 +370,9 @@ impl StoreEntry {
             if art.checksum_asset_pattern.is_some() {
                 src.checksum_asset_pattern = art.checksum_asset_pattern.clone();
             }
+        }
+        if !src.tracks_releases() {
+            return None;
         }
         Some(src)
     }
@@ -808,6 +824,7 @@ mod tests {
             install_command: None,
             install_notes: None,
             release: None,
+            repository_url: None,
             signature: None,
         }
     }
@@ -831,6 +848,7 @@ mod tests {
             install_command: Some(vec!["pipx".into(), "install".into(), format!("{id}-pkg")]),
             install_notes: Some(format!("pipx: pipx install {id}-pkg")),
             release: None,
+            repository_url: None,
             signature: None,
         }
     }

@@ -55,6 +55,10 @@ pub struct ReleaseSource {
     ///
     /// Yer tutucu içermeyen desenler sabit dosya adı olarak yorumlanır
     /// (bazı projeler sürümü dosya adına koymaz).
+    ///
+    /// Boş / eksik: yalnızca depo kimliği (yıldız, Depo linki). Canlı sürüm
+    /// çözümlemesi için `asset_pattern` gerekir.
+    #[serde(default)]
     pub asset_pattern: String,
     /// Doğrulama özeti dosyasının adı deseni.
     ///
@@ -65,10 +69,13 @@ pub struct ReleaseSource {
 }
 
 impl ReleaseSource {
-    /// Kaynağın kullanılabilir olup olmadığını doğrular.
-    ///
-    /// Depo `"owner/repo"` biçiminde olmalı, arşiv adı boş olmamalı ve
-    /// checksum kaynağı geçerli olmalıdır.
+    /// Canlı sürüm / arşiv takibi için asset deseni var mı?
+    pub fn tracks_releases(&self) -> bool {
+        !self.asset_pattern.trim().is_empty()
+    }
+
+    /// Depo kimliğini doğrular (`owner/repo`). Asset deseni zorunlu değildir
+    /// (Nova-Store’da yıldız-only `release.repo` kayıtları).
     pub fn validate(&self) -> Result<(), String> {
         let parts: Vec<&str> = self.repo.split('/').collect();
         if parts.len() != 2 || parts.iter().any(|p| p.trim().is_empty()) {
@@ -77,13 +84,22 @@ impl ReleaseSource {
                 self.repo
             ));
         }
-        if self.asset_pattern.trim().is_empty() {
-            return Err("asset_pattern boş olamaz".into());
-        }
         if let Some(pattern) = &self.checksum_asset_pattern {
             if pattern.trim().is_empty() {
                 return Err("checksum_asset_pattern boş olamaz".into());
             }
+            if !self.tracks_releases() {
+                return Err("checksum_asset_pattern asset_pattern olmadan kullanılamaz".into());
+            }
+        }
+        Ok(())
+    }
+
+    /// Canlı sürüm çözümlemesi için doğrular (asset deseni zorunlu).
+    pub fn validate_for_resolve(&self) -> Result<(), String> {
+        self.validate()?;
+        if !self.tracks_releases() {
+            return Err("asset_pattern boş olamaz".into());
         }
         Ok(())
     }
@@ -353,9 +369,12 @@ mod tests {
         bad.repo = "owner/".into();
         assert!(bad.validate().is_err());
 
-        let mut bad = source();
-        bad.asset_pattern = String::new();
-        assert!(bad.validate().is_err());
+        let mut repo_only = source();
+        repo_only.asset_pattern = String::new();
+        repo_only.checksum_asset_pattern = None;
+        assert!(repo_only.validate().is_ok());
+        assert!(!repo_only.tracks_releases());
+        assert!(repo_only.validate_for_resolve().is_err());
 
         let mut bad = source();
         bad.checksum_asset_pattern = Some("   ".into());

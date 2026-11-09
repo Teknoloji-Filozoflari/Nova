@@ -1,101 +1,10 @@
-# Nova mağaza kataloğu — panels
+# Nova mağaza kataloğu — Paneller
 #
 # Kategori: "Paneller"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
-
-[[apps]]
-id = "gotop"
-name = "gotop"
-category = "Paneller"
-description = "Grafiksel sistem izleyici."
-source = "https://github.com/xxxserxxx/gotop"
-license = "MIT"
-executable = "gotop"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "gotop"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S gotop\nResmî: https://github.com/xxxserxxx/gotop"
-
-[[apps]]
-id = "bashtop"
-name = "bashtop"
-category = "Paneller"
-description = "Bash kaynak izleyici (btop atası)."
-source = "https://github.com/aristocratos/bashtop"
-license = "Apache-2.0"
-executable = "bashtop"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "bashtop"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S bashtop\nResmî: https://github.com/aristocratos/bashtop"
-
-[[apps]]
-id = "bpytop"
-name = "bpytop"
-category = "Paneller"
-description = "Python kaynak izleyici."
-source = "https://github.com/aristocratos/bpytop"
-license = "Apache-2.0"
-executable = "bpytop"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "bpytop"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S bpytop\npipx: pipx install bpytop\nResmî: https://github.com/aristocratos/bpytop"
-
-[[apps]]
-id = "s-tui"
-name = "s-tui"
-category = "Paneller"
-description = "CPU sıcaklık/gerilim stres terminal UI."
-source = "https://github.com/amanusk/s-tui"
-license = "GPL-2.0"
-executable = "s-tui"
-install_method = "pipx"
-install_command = ["pipx", "install", "s-tui"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install s-tui\npacman: sudo pacman -S s-tui\nResmî: https://github.com/amanusk/s-tui"
-
-[[apps]]
-id = "tiptop"
-name = "tiptop"
-category = "Paneller"
-description = "Modern kaynak izleyici."
-source = "https://github.com/nschloe/tiptop"
-license = "GPL-3.0"
-executable = "tiptop"
-install_method = "pipx"
-install_command = ["pipx", "install", "tiptop"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pipx: pipx install tiptop\nResmî: https://github.com/nschloe/tiptop"
-
-[[apps]]
-id = "ytop"
-name = "ytop"
-category = "Paneller"
-description = "Rust TUI sistem izleyici (gotop esinli)."
-source = "https://github.com/cjbassi/ytop"
-license = "MIT"
-executable = "ytop"
-install_method = "cargo"
-install_command = ["cargo", "install", "ytop"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "cargo: cargo install ytop\nNot: bakım durumu değişken; bottom/btop alternatif.\nResmî: https://github.com/cjbassi/ytop"
-
-[[apps]]
-id = "below"
-name = "below"
-category = "Paneller"
-description = "Facebook'un zaman yolculuklu kaynak izleyicisi."
-source = "https://github.com/facebookincubator/below"
-license = "Apache-2.0"
-executable = "below"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "below"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S below\nResmî: https://github.com/facebookincubator/below"
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
 
 [[apps]]
 id = "atop"
@@ -106,48 +15,48 @@ source = "https://www.atoptool.nl/"
 license = "GPL-2.0"
 executable = "atop"
 install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "atop"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S atop\napt: sudo apt install atop\nResmî: https://www.atoptool.nl/"
+install_notes = """
+pacman: sudo pacman -S atop
+apt: sudo apt install atop
+Resmî: https://www.atoptool.nl/
+
+"""
 
 [[apps]]
-id = "iotop"
-name = "iotop"
+id = "bashtop"
+name = "bashtop"
 category = "Paneller"
-description = "I/O kullanım izleyici."
-source = "https://github.com/Tomas-M/iotop"
-license = "GPL-2.0"
-executable = "iotop"
+description = "Bash kaynak izleyici (btop atası)."
+source = "https://github.com/aristocratos/bashtop"
+license = "Apache-2.0"
+executable = "bashtop"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "iotop"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S iotop\napt: sudo apt install iotop\nResmî: https://github.com/Tomas-M/iotop"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "bashtop"]
+install_notes = """
+pacman: sudo pacman -S bashtop
+Resmî: https://github.com/aristocratos/bashtop
+
+"""
 
 [[apps]]
-id = "iftop"
-name = "iftop"
+id = "below"
+name = "below"
 category = "Paneller"
-description = "Ağ bant genişliği izleyici."
-source = "https://www.ex-parrot.com/pdw/iftop/"
-license = "GPL-2.0"
-executable = "iftop"
+description = "Facebook'un zaman yolculuklu kaynak izleyicisi."
+source = "https://github.com/facebookincubator/below"
+license = "Apache-2.0"
+executable = "below"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "iftop"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S iftop\napt: sudo apt install iftop\nResmî: https://www.ex-parrot.com/pdw/iftop/"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "below"]
+install_notes = """
+pacman: sudo pacman -S below
+Resmî: https://github.com/facebookincubator/below
 
-[[apps]]
-id = "nethogs"
-name = "nethogs"
-category = "Paneller"
-description = "Süreç bazlı ağ kullanımı."
-source = "https://github.com/raboof/nethogs"
-license = "GPL-2.0"
-executable = "nethogs"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "nethogs"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S nethogs\napt: sudo apt install nethogs\nResmî: https://github.com/raboof/nethogs"
+"""
 
 [[apps]]
 id = "bmon"
@@ -158,9 +67,50 @@ source = "https://github.com/tgraf/bmon"
 license = "MIT"
 executable = "bmon"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "bmon"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S bmon\napt: sudo apt install bmon\nbrew: brew install bmon"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "bmon"]
+install_notes = """
+pacman: sudo pacman -S bmon
+apt: sudo apt install bmon
+brew: brew install bmon
+
+"""
+
+[[apps]]
+id = "bpytop"
+name = "bpytop"
+category = "Paneller"
+description = "Python kaynak izleyici."
+source = "https://github.com/aristocratos/bpytop"
+license = "Apache-2.0"
+executable = "bpytop"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "bpytop"]
+install_notes = """
+pacman: sudo pacman -S bpytop
+pipx: pipx install bpytop
+Resmî: https://github.com/aristocratos/bpytop
+
+"""
+
+[[apps]]
+id = "cointop"
+name = "cointop"
+category = "Paneller"
+description = "Kripto para takip TUI."
+source = "https://github.com/cointop-sh/cointop"
+license = "Apache-2.0"
+executable = "cointop"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "cointop"]
+install_notes = """
+pacman: sudo pacman -S cointop
+brew: brew install cointop
+Resmî: https://github.com/cointop-sh/cointop
+
+"""
 
 [[apps]]
 id = "goaccess"
@@ -171,9 +121,140 @@ source = "https://goaccess.io/"
 license = "MIT"
 executable = "goaccess"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "goaccess"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S goaccess\napt: sudo apt install goaccess\nResmî: https://goaccess.io/"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "goaccess"]
+install_notes = """
+pacman: sudo pacman -S goaccess
+apt: sudo apt install goaccess
+Resmî: https://goaccess.io/
+
+"""
+
+[[apps]]
+id = "gonzo"
+name = "gonzo"
+category = "Paneller"
+description = "k9s esinli gerçek zamanlı log analiz TUI'si."
+source = "https://github.com/control-theory/gonzo"
+license = "MIT"
+executable = "gonzo"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "gonzo"]
+install_notes = """
+brew: brew install gonzo
+Resmî: https://github.com/control-theory/gonzo
+
+"""
+
+[[apps]]
+id = "gotop"
+name = "gotop"
+category = "Paneller"
+description = "Grafiksel sistem izleyici."
+source = "https://github.com/xxxserxxx/gotop"
+license = "MIT"
+executable = "gotop"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "gotop"]
+install_notes = """
+pacman: sudo pacman -S gotop
+Resmî: https://github.com/xxxserxxx/gotop
+
+"""
+
+[[apps]]
+id = "hwatch"
+name = "hwatch"
+category = "Paneller"
+description = "Modern watch alternatifi (geçmiş/diff)."
+source = "https://github.com/black-desk/hwatch"
+license = "MIT"
+executable = "hwatch"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "hwatch"]
+install_notes = """
+cargo: cargo install hwatch
+brew: brew install hwatch
+Resmî: https://github.com/black-desk/hwatch
+
+"""
+
+[[apps]]
+id = "iftop"
+name = "iftop"
+category = "Paneller"
+description = "Ağ bant genişliği izleyici."
+source = "https://www.ex-parrot.com/pdw/iftop/"
+license = "GPL-2.0"
+executable = "iftop"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "iftop"]
+install_notes = """
+pacman: sudo pacman -S iftop
+apt: sudo apt install iftop
+Resmî: https://www.ex-parrot.com/pdw/iftop/
+
+"""
+
+[[apps]]
+id = "iotop"
+name = "iotop"
+category = "Paneller"
+description = "I/O kullanım izleyici."
+source = "https://github.com/Tomas-M/iotop"
+license = "GPL-2.0"
+executable = "iotop"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "iotop"]
+install_notes = """
+pacman: sudo pacman -S iotop
+apt: sudo apt install iotop
+Resmî: https://github.com/Tomas-M/iotop
+
+"""
+
+[[apps]]
+id = "nethogs"
+name = "nethogs"
+category = "Paneller"
+description = "Süreç bazlı ağ kullanımı."
+source = "https://github.com/raboof/nethogs"
+license = "GPL-2.0"
+executable = "nethogs"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "nethogs"]
+install_notes = """
+pacman: sudo pacman -S nethogs
+apt: sudo apt install nethogs
+Resmî: https://github.com/raboof/nethogs
+
+"""
+
+[[apps]]
+id = "otel-tui"
+name = "otel-tui"
+category = "Paneller"
+description = "OpenTelemetry verisi için terminal görüntüleyici."
+source = "https://github.com/ymtdzzz/otel-tui"
+license = "Apache-2.0"
+executable = "otel-tui"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "otel-tui"]
+install_notes = """
+brew: brew install otel-tui
+Resmî: https://github.com/ymtdzzz/otel-tui
+
+"""
+
+[apps.release]
+repo = "ymtdzzz/otel-tui"
 
 [[apps]]
 id = "planor"
@@ -185,20 +266,11 @@ license = "GPL-3.0"
 executable = "planor"
 install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "go: go install github.com/mrusme/planor@latest\nResmî: https://github.com/mrusme/planor"
+install_notes = """
+go: go install github.com/mrusme/planor@latest
+Resmî: https://github.com/mrusme/planor
 
-[[apps]]
-id = "cointop"
-name = "cointop"
-category = "Paneller"
-description = "Kripto para takip TUI."
-source = "https://github.com/cointop-sh/cointop"
-license = "Apache-2.0"
-executable = "cointop"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "cointop"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S cointop\nbrew: brew install cointop\nResmî: https://github.com/cointop-sh/cointop"
+"""
 
 [[apps]]
 id = "process-compose"
@@ -210,20 +282,66 @@ license = "Apache-2.0"
 executable = "process-compose"
 install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "Resmî: https://github.com/f1bonacc1/process-compose/releases\nbrew: brew install process-compose"
+install_notes = """
+Resmî: https://github.com/f1bonacc1/process-compose/releases
+brew: brew install process-compose
+
+"""
 
 [[apps]]
-id = "hwatch"
-name = "hwatch"
+id = "s-tui"
+name = "s-tui"
 category = "Paneller"
-description = "Modern watch alternatifi (geçmiş/diff)."
-source = "https://github.com/black-desk/hwatch"
-license = "MIT"
-executable = "hwatch"
-install_method = "cargo"
-install_command = ["cargo", "install", "hwatch"]
+description = "CPU sıcaklık/gerilim stres terminal UI."
+source = "https://github.com/amanusk/s-tui"
+license = "GPL-2.0"
+executable = "s-tui"
+install_method = "pipx"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "cargo: cargo install hwatch\nbrew: brew install hwatch\nResmî: https://github.com/black-desk/hwatch"
+install_command = ["pipx", "install", "s-tui"]
+install_notes = """
+pipx: pipx install s-tui
+pacman: sudo pacman -S s-tui
+Resmî: https://github.com/amanusk/s-tui
+
+"""
+
+[[apps]]
+id = "ticker"
+name = "ticker"
+category = "Paneller"
+description = "Hisse senedi, kripto ve türev fiyatlarını terminalde izler."
+source = "https://github.com/achannarasappa/ticker"
+license = "GPL-3.0"
+executable = "ticker"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "achannarasappa/tap/ticker"]
+install_notes = """
+brew: brew install achannarasappa/tap/ticker
+Resmî: https://github.com/achannarasappa/ticker
+
+"""
+
+[apps.release]
+repo = "achannarasappa/ticker"
+
+[[apps]]
+id = "tiptop"
+name = "tiptop"
+category = "Paneller"
+description = "Modern kaynak izleyici."
+source = "https://github.com/nschloe/tiptop"
+license = "GPL-3.0"
+executable = "tiptop"
+install_method = "pipx"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["pipx", "install", "tiptop"]
+install_notes = """
+pipx: pipx install tiptop
+Resmî: https://github.com/nschloe/tiptop
+
+"""
 
 [[apps]]
 id = "viddy"
@@ -234,6 +352,29 @@ source = "https://github.com/sachaos/viddy"
 license = "MIT"
 executable = "viddy"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "viddy"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S viddy\nbrew: brew install viddy\nResmî: https://github.com/sachaos/viddy"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "viddy"]
+install_notes = """
+pacman: sudo pacman -S viddy
+brew: brew install viddy
+Resmî: https://github.com/sachaos/viddy
+
+"""
+
+[[apps]]
+id = "ytop"
+name = "ytop"
+category = "Paneller"
+description = "Rust TUI sistem izleyici (gotop esinli)."
+source = "https://github.com/cjbassi/ytop"
+license = "MIT"
+executable = "ytop"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "ytop"]
+install_notes = """
+cargo: cargo install ytop
+Not: bakım durumu değişken; bottom/btop alternatif.
+Resmî: https://github.com/cjbassi/ytop
+
+"""

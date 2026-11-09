@@ -156,13 +156,19 @@ fn store_detail_shows_trust_badge() {
         "liste rozetleri kaldırılmış olmalı"
     );
 
-    // Dosya ve Arama: ripgrep gibi download_archive (imzasız) → D + hash.
+    // Dosya ve Arama: ripgrep (download_archive, imzasız) → D + hash.
+    // Katalog sırası değişebilir; id ile seç.
     let target = nova::store::STORE_CATEGORIES
         .iter()
         .position(|c| *c == "Dosya ve Arama")
         .expect("kategori var");
     app.store_category_index = target;
-    app.store_app_index = 0;
+    let apps = app.filtered_store_apps();
+    let pos = apps
+        .iter()
+        .position(|e| e.id == "ripgrep")
+        .expect("ripgrep Dosya ve Arama’da olmalı");
+    app.store_app_index = pos;
     let lines = render(&app, 150, 42);
     let text = all_text(&lines);
     assert!(!text.contains("[hash]"), "liste satırında [hash] olmamalı");

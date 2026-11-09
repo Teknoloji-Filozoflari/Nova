@@ -1,10 +1,10 @@
-# Nova mağaza kataloğu — messaging
+# Nova mağaza kataloğu — Mesajlaşma
 #
 # Kategori: "Mesajlaşma"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
 
 [[apps]]
 id = "aerc"
@@ -15,35 +15,86 @@ source = "https://aerc-mail.org/"
 license = "MIT"
 executable = "aerc"
 install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["sudo", "apt", "install", "-y", "aerc"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install aerc\nbrew: brew install aerc\npacman: sudo pacman -S aerc\nResmî: https://aerc-mail.org/"""
+install_notes = """
+apt: sudo apt install aerc
+brew: brew install aerc
+pacman: sudo pacman -S aerc
+Resmî: https://aerc-mail.org/
+
+"""
 
 [[apps]]
-id = "neomutt"
-name = "NeoMutt"
+id = "discordo"
+name = "discordo"
 category = "Mesajlaşma"
-description = "Mutt'un gelişmiş e-posta istemcisi çatalı."
-source = "https://neomutt.org/"
-license = "GPL-2.0"
-executable = "neomutt"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "neomutt"]
+description = "Hafif Discord TUI."
+source = "https://github.com/ayn2op/discordo"
+license = "MIT"
+executable = "discordo"
+install_method = "pacman"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install neomutt\nbrew: brew install neomutt\npacman: sudo pacman -S neomutt\nResmî: https://neomutt.org/"""
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "discordo"]
+install_notes = """
+pacman: sudo pacman -S discordo / AUR
+Resmî: https://github.com/ayn2op/discordo
+
+"""
 
 [[apps]]
-id = "weechat"
-name = "WeeChat"
+id = "gomuks"
+name = "gomuks"
 category = "Mesajlaşma"
-description = "Hafif ve genişletilebilir IRC / sohbet istemcisi."
-source = "https://weechat.org/"
-license = "GPL-3.0"
-executable = "weechat"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "weechat"]
+description = "Matrix için terminal istemcisi."
+source = "https://github.com/tulir/gomuks"
+license = "AGPL-3.0-or-later"
+executable = "gomuks"
+install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install weechat\nbrew: brew install weechat\npacman: sudo pacman -S weechat\nResmî: https://weechat.org/download/"""
+install_notes = """
+go: go install maunium.net/go/gomuks@latest
+Resmî: https://github.com/tulir/gomuks
+
+"""
+
+[[apps]]
+id = "himalaya"
+name = "himalaya"
+category = "Mesajlaşma"
+description = "E-posta için CLI; MUA ile birlikte kullanılabilir."
+source = "https://github.com/pimalaya/himalaya"
+license = "MIT"
+executable = "himalaya"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "himalaya"]
+install_notes = """
+cargo: cargo install himalaya
+brew: brew install himalaya
+Resmî: https://github.com/pimalaya/himalaya#installation
+
+"""
+
+[[apps]]
+id = "iamb"
+name = "iamb"
+category = "Mesajlaşma"
+description = "Vim kullanıcıları için Matrix istemcisi."
+source = "https://github.com/ulyssa/iamb"
+license = "Apache-2.0"
+executable = "iamb"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "iamb"]
+install_notes = """
+brew: brew install iamb
+Resmî: https://github.com/ulyssa/iamb
+
+"""
+
+[apps.release]
+repo = "ulyssa/iamb"
 
 [[apps]]
 id = "irssi"
@@ -54,34 +105,158 @@ source = "https://irssi.org/"
 license = "GPL-2.0"
 executable = "irssi"
 install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["sudo", "apt", "install", "-y", "irssi"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install irssi\nbrew: brew install irssi\npacman: sudo pacman -S irssi\nResmî: https://irssi.org/download/"""
+install_notes = """
+apt: sudo apt install irssi
+brew: brew install irssi
+pacman: sudo pacman -S irssi
+Resmî: https://irssi.org/download/
+
+"""
 
 [[apps]]
-id = "tut"
-name = "tut"
+id = "isync"
+name = "isync"
 category = "Mesajlaşma"
-description = "Mastodon için TUI istemcisi."
-source = "https://github.com/RasmusLindroth/tut"
+description = "IMAP ve Maildir posta kutusu senkronizasyonu (mbsync)."
+source = "https://isync.sourceforge.io/"
+license = "GPL-2.0-or-later"
+executable = "mbsync"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "isync"]
+install_notes = """
+pacman: sudo pacman -S isync
+Çalıştırılabilir: mbsync
+Resmî: https://isync.sourceforge.io/
+
+"""
+
+[[apps]]
+id = "mutt"
+name = "mutt"
+category = "Mesajlaşma"
+description = "Küçük ama güçlü metin tabanlı e-posta istemcisi."
+source = "https://www.mutt.org/"
+license = "GPL-2.0-or-later"
+executable = "mutt"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "mutt"]
+install_notes = """
+pacman: sudo pacman -S mutt
+Resmî: https://www.mutt.org/
+
+"""
+
+[[apps]]
+id = "neomutt"
+name = "NeoMutt"
+category = "Mesajlaşma"
+description = "Mutt'un gelişmiş e-posta istemcisi çatalı."
+source = "https://neomutt.org/"
+license = "GPL-2.0"
+executable = "neomutt"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "neomutt"]
+install_notes = """
+apt: sudo apt install neomutt
+brew: brew install neomutt
+pacman: sudo pacman -S neomutt
+Resmî: https://neomutt.org/
+
+"""
+
+[[apps]]
+id = "notmuch"
+name = "notmuch"
+category = "Mesajlaşma"
+description = "Hızlı, etiket tabanlı e-posta indeksleyici ve arayüz."
+source = "https://notmuchmail.org/"
+license = "GPL-3.0-or-later"
+executable = "notmuch"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "notmuch"]
+install_notes = """
+pacman: sudo pacman -S notmuch
+Resmî: https://notmuchmail.org/
+
+"""
+
+[[apps]]
+id = "offlineimap"
+name = "offlineimap"
+category = "Mesajlaşma"
+description = "İki depo arasında e-posta senkronizasyonu."
+source = "https://github.com/OfflineIMAP/offlineimap3"
+license = "GPL-2.0-or-later"
+executable = "offlineimap"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "offlineimap"]
+install_notes = """
+pacman: sudo pacman -S offlineimap
+Resmî: https://github.com/OfflineIMAP/offlineimap3
+
+"""
+
+[[apps]]
+id = "pop"
+name = "pop"
+category = "Mesajlaşma"
+description = "Terminalden e-posta gönderen Charm aracı."
+source = "https://github.com/charmbracelet/pop"
 license = "MIT"
-executable = "tut"
+executable = "pop"
 install_method = "brew"
-install_command = ["brew", "install", "tut"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """go: go install github.com/RasmusLindroth/tut@latest\nbrew: brew install tut\nResmî: https://github.com/RasmusLindroth/tut#installing"""
+install_command = ["brew", "install", "pop"]
+install_notes = """
+brew: brew install pop
+Resmî: https://github.com/charmbracelet/pop
+
+"""
+
+[apps.release]
+repo = "charmbracelet/pop"
 
 [[apps]]
-id = "gomuks"
-name = "gomuks"
+id = "profanity"
+name = "profanity"
 category = "Mesajlaşma"
-description = "Matrix için terminal istemcisi."
-source = "https://github.com/tulir/gomuks"
-license = "AGPL-3.0"
-executable = "gomuks"
-install_method = "manual"
+description = "Konsol XMPP istemcisi."
+source = "https://profanity-im.github.io/"
+license = "GPL-3.0"
+executable = "profanity"
+install_method = "pacman"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """go: go install maunium.net/go/gomuks@latest\nResmî: https://github.com/tulir/gomuks"""
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "profanity"]
+install_notes = """
+pacman: sudo pacman -S profanity
+apt: sudo apt install profanity
+Resmî: https://profanity-im.github.io/
+
+"""
+
+[[apps]]
+id = "senpai"
+name = "senpai"
+category = "Mesajlaşma"
+description = "Modern IRC istemcisi."
+source = "https://git.sr.ht/~delthas/senpai"
+license = "ISC"
+executable = "senpai"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "senpai"]
+install_notes = """
+pacman: sudo pacman -S senpai
+Resmî: https://git.sr.ht/~delthas/senpai
+
+"""
 
 [[apps]]
 id = "signal-cli"
@@ -93,76 +268,7 @@ license = "GPL-3.0"
 executable = "signal-cli"
 install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """Resmî kurulum: https://github.com/AsamK/signal-cli#installation"""
-
-[[apps]]
-id = "himalaya"
-name = "himalaya"
-category = "Mesajlaşma"
-description = "E-posta için CLI; MUA ile birlikte kullanılabilir."
-source = "https://github.com/pimalaya/himalaya"
-license = "MIT"
-executable = "himalaya"
-install_method = "cargo"
-install_command = ["cargo", "install", "himalaya"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install himalaya\nbrew: brew install himalaya\nResmî: https://github.com/pimalaya/himalaya#installation"""
-
-# ---------------------------------------------------------------------------
-# Verimlilik
-# ---------------------------------------------------------------------------
-
-[[apps]]
-id = "toot"
-name = "toot"
-category = "Mesajlaşma"
-description = "Mastodon CLI istemcisi."
-source = "https://github.com/ihabunek/toot"
-license = "GPL-3.0"
-executable = "toot"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "toot"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S toot\npipx: pipx install toot\nResmî: https://github.com/ihabunek/toot"
-
-[[apps]]
-id = "senpai"
-name = "senpai"
-category = "Mesajlaşma"
-description = "Modern IRC istemcisi."
-source = "https://git.sr.ht/~delthas/senpai"
-license = "ISC"
-executable = "senpai"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "senpai"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S senpai\nResmî: https://git.sr.ht/~delthas/senpai"
-
-[[apps]]
-id = "tiny"
-name = "tiny"
-category = "Mesajlaşma"
-description = "Rust IRC istemcisi."
-source = "https://github.com/osa1/tiny"
-license = "MIT"
-executable = "tiny"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "tiny"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S tiny\ncargo: cargo install tiny\nResmî: https://github.com/osa1/tiny"
-
-[[apps]]
-id = "profanity"
-name = "profanity"
-category = "Mesajlaşma"
-description = "Konsol XMPP istemcisi."
-source = "https://profanity-im.github.io/"
-license = "GPL-3.0"
-executable = "profanity"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "profanity"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S profanity\napt: sudo apt install profanity\nResmî: https://profanity-im.github.io/"
+install_notes = "Resmî kurulum: https://github.com/AsamK/signal-cli#installation"
 
 [[apps]]
 id = "slack-term"
@@ -174,17 +280,98 @@ license = "MIT"
 executable = "slack-term"
 install_method = "manual"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "go: go install github.com/erroneousboat/slack-term@latest\nResmî: https://github.com/erroneousboat/slack-term"
+install_notes = """
+go: go install github.com/erroneousboat/slack-term@latest
+Resmî: https://github.com/erroneousboat/slack-term
+
+"""
 
 [[apps]]
-id = "discordo"
-name = "discordo"
+id = "tiny"
+name = "tiny"
 category = "Mesajlaşma"
-description = "Hafif Discord TUI."
-source = "https://github.com/ayn2op/discordo"
+description = "Rust IRC istemcisi."
+source = "https://github.com/osa1/tiny"
 license = "MIT"
-executable = "discordo"
+executable = "tiny"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "discordo"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S discordo / AUR\nResmî: https://github.com/ayn2op/discordo"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "tiny"]
+install_notes = """
+pacman: sudo pacman -S tiny
+cargo: cargo install tiny
+Resmî: https://github.com/osa1/tiny
+
+"""
+
+[[apps]]
+id = "toot"
+name = "toot"
+category = "Mesajlaşma"
+description = "Mastodon CLI istemcisi."
+source = "https://github.com/ihabunek/toot"
+license = "GPL-3.0"
+executable = "toot"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "toot"]
+install_notes = """
+pacman: sudo pacman -S toot
+pipx: pipx install toot
+Resmî: https://github.com/ihabunek/toot
+
+"""
+
+[[apps]]
+id = "tut"
+name = "tut"
+category = "Mesajlaşma"
+description = "Mastodon için TUI istemcisi."
+source = "https://github.com/RasmusLindroth/tut"
+license = "MIT"
+executable = "tut"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "tut"]
+install_notes = """
+go: go install github.com/RasmusLindroth/tut@latest
+brew: brew install tut
+Resmî: https://github.com/RasmusLindroth/tut#installing
+
+"""
+
+[[apps]]
+id = "urlscan"
+name = "urlscan"
+category = "Mesajlaşma"
+description = "Mutt ve terminal için URL seçici."
+source = "https://github.com/firecat53/urlscan"
+license = "GPL-2.0-or-later"
+executable = "urlscan"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "urlscan"]
+install_notes = """
+pacman: sudo pacman -S urlscan
+Resmî: https://github.com/firecat53/urlscan
+
+"""
+
+[[apps]]
+id = "weechat"
+name = "WeeChat"
+category = "Mesajlaşma"
+description = "Hafif ve genişletilebilir IRC / sohbet istemcisi."
+source = "https://weechat.org/"
+license = "GPL-3.0"
+executable = "weechat"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "weechat"]
+install_notes = """
+apt: sudo apt install weechat
+brew: brew install weechat
+pacman: sudo pacman -S weechat
+Resmî: https://weechat.org/download/
+
+"""

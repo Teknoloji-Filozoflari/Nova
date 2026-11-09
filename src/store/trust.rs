@@ -267,6 +267,7 @@ mod tests {
             install_command: None,
             install_notes: None,
             release: None,
+            repository_url: None,
             signature: with_sig.then(|| SignatureSpec {
                 kind: SignatureKind::Minisign,
                 signature_url: "https://example.org/a.tar.gz.minisig".into(),

@@ -301,6 +301,20 @@ pub struct App {
     /// Doğrulama poll anında yapılır; geçersizse alan `None` kalır ve oturum
     /// bozulmadan devam eder.
     pub pending_self_restart: Option<PathBuf>,
+    /// Oturum boyunca GitHub yıldız önbelleği (`owner/repo` → sayı / kalıcı hata).
+    ///
+    /// Yalnızca doğrulanmış `release.repo` / `repository_url` için doldurulur.
+    /// Token veya ham API gövdesi tutulmaz.
+    pub github_stars_cache: BTreeMap<String, crate::store::stars::StarsCacheEntry>,
+    /// Arka planda süren tek yıldız sorgusu (hız sınırı dostu; sırayla).
+    pub github_stars_job: Option<GithubStarsJob>,
+}
+
+/// Arka plan GitHub yıldız sorgusu.
+pub struct GithubStarsJob {
+    /// Sorgulanmakta olan `owner/repo`.
+    pub key: String,
+    receiver: Receiver<crate::store::stars::StarsFetchOutcome>,
 }
 
 impl App {
@@ -439,6 +453,8 @@ impl App {
             store_outdated_override: None,
             store_host_tools_override: None,
             pending_self_restart: None,
+            github_stars_cache: BTreeMap::new(),
+            github_stars_job: None,
         };
         // Mağaza uygulamalarının kurulum durumu başlangıçta bir kez hesaplanır;
         // liste her karede bu önbellekten okur. Kurulu mağaza uygulamaları
@@ -474,6 +490,8 @@ impl App {
             // Arka plandaki kurulum ve sürüm denetimi işlerini kontrol et.
             self.poll_install();
             self.poll_store_check();
+            self.poll_github_stars();
+            self.ensure_github_stars_for_visible_detail();
             // sudo parola isteyen apt/dnf: TUI’yi bırakıp gerçek TTY ile çalıştır.
             self.run_pending_tty_pm(terminal)?;
         }
@@ -4327,6 +4345,80 @@ impl App {
         }
     }
 
+    /// Görünür Mağaza / Kurulu detayı için doğrulanmış GitHub deposu.
+    ///
+    /// Yalnızca `release.repo` veya `repository_url` (Kurulu’da özel `repo_url`).
+    pub fn visible_detail_github_repo(&self) -> Option<crate::store::stars::VerifiedGithubRepo> {
+        if self.store_tab {
+            let entry = self.selected_store_app()?;
+            return crate::store::stars::verified_repo_for_store_entry(entry);
+        }
+        if self.settings_tab || self.commands_tab {
+            return None;
+        }
+        let tool = self.selected_tool()?;
+        let store = crate::store::sync::find_store_for_catalog_tool(
+            self.store.entries(),
+            &tool.id,
+            &tool.executable,
+            &tool.args,
+        );
+        crate::store::stars::verified_repo_for_tool(tool.repo_url.as_deref(), store)
+    }
+
+    /// Detay görünürken yıldız sayısını (gerekirse) arka planda ister.
+    ///
+    /// Oturum önbelleğinde varsa veya aynı depo zaten sorgulanıyorsa ağ yok.
+    /// Aynı anda en fazla bir istek (hız sınırı dostu).
+    pub fn ensure_github_stars_for_visible_detail(&mut self) {
+        let Some(repo) = self.visible_detail_github_repo() else {
+            return;
+        };
+        let key = repo.key();
+        if self.github_stars_cache.contains_key(&key) {
+            return;
+        }
+        if let Some(job) = &self.github_stars_job {
+            if job.key == key {
+                return;
+            }
+            // Başka bir depo sorgulanıyor; bitmesini bekle (sıralı).
+            return;
+        }
+        let (tx, rx) = mpsc::channel();
+        let owner = repo.owner.clone();
+        let name = repo.name.clone();
+        let key_for_thread = key.clone();
+        std::thread::spawn(move || {
+            let result = crate::store::stars::fetch_stargazers_count(&owner, &name);
+            let _ = tx.send(crate::store::stars::StarsFetchOutcome {
+                key: key_for_thread,
+                result,
+            });
+        });
+        self.github_stars_job = Some(GithubStarsJob { key, receiver: rx });
+    }
+
+    /// Arka plan yıldız sorgusunu kontrol eder; sonucu oturum önbelleğine yazar.
+    pub fn poll_github_stars(&mut self) {
+        let Some(job) = self.github_stars_job.take() else {
+            return;
+        };
+        match job.receiver.try_recv() {
+            Ok(outcome) => {
+                crate::store::stars::cache_outcome(&mut self.github_stars_cache, outcome);
+            }
+            Err(TryRecvError::Empty) => {
+                self.github_stars_job = Some(job);
+            }
+            Err(TryRecvError::Disconnected) => {
+                // Sessiz: detayda "Yıldız: —" için Failed yaz.
+                self.github_stars_cache
+                    .insert(job.key, crate::store::stars::StarsCacheEntry::Failed);
+            }
+        }
+    }
+
     /// Seçili mağaza uygulaması için bulunan yeni arşiv sürümü.
     pub fn store_update_for(&self, id: &str) -> Option<&ResolvedRelease> {
         self.store_updates.get(id)
@@ -5841,7 +5933,13 @@ mod tests {
         app.handle_key(typed('m')).unwrap();
         assert!(app.store_tab, "mağaza sekmesi seçili olmalı");
         assert!(matches!(app.modal, modal::Modal::None));
-        // İlk AI kaydı (Aider) pipx; Enter onay ister, hemen kurmaz.
+        // AI kategorisinde aider (pipx) — sıra değişse bile id ile seç.
+        let apps = app.filtered_store_apps();
+        let idx = apps
+            .iter()
+            .position(|e| e.id == "aider")
+            .expect("aider AI kategorisinde olmalı");
+        app.store_app_index = idx;
         app.handle_key(key(crossterm::event::KeyCode::Enter))
             .unwrap();
         match &app.modal {
@@ -5902,9 +6000,15 @@ mod tests {
         app.handle_key(typed('j')).unwrap();
         app.handle_key(typed('j')).unwrap();
         assert_eq!(app.selected_store_category(), "Dosya ve Arama");
-        // Uygulama listesine geç ve ilk kaydı (ripgrep) kur.
+        // Uygulama listesine geç ve ripgrep’i id ile seç (sıra değişebilir).
         app.handle_key(typed('l')).unwrap();
         assert_eq!(app.focus, PanelFocus::StoreApp);
+        let apps = app.filtered_store_apps();
+        let pos = apps
+            .iter()
+            .position(|e| e.id == "ripgrep")
+            .expect("ripgrep");
+        app.store_app_index = pos;
         app.handle_key(key(crossterm::event::KeyCode::Enter))
             .unwrap();
         match &app.modal {
@@ -6733,11 +6837,20 @@ mod tests {
         wait_for_store_check(&mut app2);
 
         let seen = provider.seen.lock().unwrap().clone();
-        // Her denetim izlenen 6 uygulama için bir çağrı yapar.
-        let tracked = 6usize;
+        // Her denetim, canlı `release` kaynağı olan uygulamalar kadar çağrı yapar.
+        let tracked = app
+            .store
+            .entries()
+            .iter()
+            .filter(|e| {
+                crate::store::CpuArch::host().is_none_or(|a| e.supports_arch(a))
+                    && e.release.as_ref().is_some_and(|r| r.tracks_releases())
+            })
+            .count();
+        assert!(tracked > 0, "canlı takip edilen uygulama olmalı");
         assert!(
             seen.len() >= tracked * 2,
-            "iki denetim de çağrı yapmalı: {}",
+            "iki denetim de çağrı yapmalı: {} (tracked={tracked})",
             seen.len()
         );
         // İlk denetim koşullu değildir (önbellek boş).
@@ -7103,5 +7216,86 @@ mod tests {
                 .count(),
             1
         );
+    }
+
+    #[test]
+    fn github_stars_use_verified_release_repo_only() {
+        let mut app = sample_app();
+        app.store_tab = true;
+        let git_idx = crate::store::STORE_CATEGORIES
+            .iter()
+            .position(|c| *c == "Git")
+            .expect("Git");
+        app.store_category_index = git_idx;
+        let apps = app.filtered_store_apps();
+        let i = apps
+            .iter()
+            .position(|e| e.id == "lazygit")
+            .expect("lazygit");
+        app.store_app_index = i;
+        let repo = app
+            .visible_detail_github_repo()
+            .expect("lazygit verified repo");
+        assert_eq!(repo.key(), "jesseduffield/lazygit");
+
+        // source GitHub olsa bile repository_url/release yoksa yıldız yok.
+        if let Some(entry) = app
+            .store
+            .entries_mut()
+            .iter_mut()
+            .find(|e| e.id == "lazygit")
+        {
+            entry.release = None;
+            entry.repository_url = None;
+            entry.source = "https://github.com/jesseduffield/lazygit".into();
+        }
+        assert!(
+            app.visible_detail_github_repo().is_none(),
+            "yalnızca source yıldız için yetmemeli"
+        );
+        if let Some(entry) = app
+            .store
+            .entries_mut()
+            .iter_mut()
+            .find(|e| e.id == "lazygit")
+        {
+            entry.repository_url = Some("https://github.com/jesseduffield/lazygit".into());
+        }
+        assert_eq!(
+            app.visible_detail_github_repo().map(|r| r.key()).as_deref(),
+            Some("jesseduffield/lazygit")
+        );
+    }
+
+    #[test]
+    fn github_stars_session_cache_skips_repeat_fetch() {
+        let mut app = sample_app();
+        app.store_tab = true;
+        let git_idx = crate::store::STORE_CATEGORIES
+            .iter()
+            .position(|c| *c == "Git")
+            .expect("Git");
+        app.store_category_index = git_idx;
+        let apps = app.filtered_store_apps();
+        let i = apps
+            .iter()
+            .position(|e| e.id == "lazygit")
+            .expect("lazygit");
+        app.store_app_index = i;
+        app.github_stars_cache.insert(
+            "jesseduffield/lazygit".into(),
+            crate::store::stars::StarsCacheEntry::Ready(12345),
+        );
+        app.ensure_github_stars_for_visible_detail();
+        assert!(
+            app.github_stars_job.is_none(),
+            "önbellekte varken ağ işi başlamamalı"
+        );
+        let shown = crate::store::stars::stars_display_line(
+            &app.github_stars_cache,
+            "jesseduffield/lazygit",
+        );
+        assert_eq!(shown, "Yıldız: 12345");
+        assert!(!shown.to_lowercase().contains("token"));
     }
 }

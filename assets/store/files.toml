@@ -1,10 +1,608 @@
-# Nova mağaza kataloğu — files
+# Nova mağaza kataloğu — Dosya ve Arama
 #
 # Kategori: "Dosya ve Arama"
 # `assets/store/` altında; loader tüm kategori dosyalarını birleştirir.
-# Kullanıcı düzenlemez. download_archive için https + SHA-256 zorunlu.
-# Desteklenen platformlar: linux-x64, linux-aarch64.
-# İsteğe bağlı: artifacts (mimari URL), signature (minisign/cosign/gpg).
+# Kullanıcı düzenlemez. Kaynak: Nova-Store sync (`tools/sync_store_catalog.sh`).
+# download_archive için https + SHA-256 zorunlu.
+# İsteğe bağlı: artifacts, release, repository_url, signature.
+
+[[apps]]
+id = "bat"
+name = "bat"
+category = "Dosya ve Arama"
+description = "Sözdizimi renklendirmeli dosya görüntüleyici."
+source = "https://github.com/sharkdp/bat"
+license = "MIT OR Apache-2.0"
+executable = "bat"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "bat"]
+install_notes = """
+brew: brew install bat
+apt: sudo apt install bat  # ikili adı bazen batcat
+cargo: cargo install bat
+pacman: sudo pacman -S bat
+Resmî: https://github.com/sharkdp/bat#installation
+
+"""
+
+[[apps]]
+id = "broot"
+name = "broot"
+category = "Dosya ve Arama"
+description = "Dizin ağacını etkileşimli gezen dosya gezgini."
+source = "https://github.com/Canop/broot"
+license = "MIT"
+executable = "broot"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "--locked", "broot"]
+install_notes = """
+cargo: cargo install --locked broot
+brew: brew install broot
+Resmî: https://dystroy.org/broot/install/
+
+"""
+
+[[apps]]
+id = "clifm"
+name = "clifm"
+category = "Dosya ve Arama"
+description = "Komut satırı dosya yöneticisi."
+source = "https://github.com/leo-arch/clifm"
+license = "GPL-2.0"
+executable = "clifm"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "clifm"]
+install_notes = """
+pacman: sudo pacman -S clifm
+Resmî: https://github.com/leo-arch/clifm
+
+"""
+
+[[apps]]
+id = "dust"
+name = "dust"
+category = "Dosya ve Arama"
+description = "Disk kullanımını ağaç olarak gösteren du alternatifi."
+source = "https://github.com/bootandy/dust"
+license = "Apache-2.0"
+executable = "dust"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "du-dust"]
+install_notes = """
+cargo: cargo install du-dust
+brew: brew install dust
+Resmî: https://github.com/bootandy/dust#installation
+
+"""
+
+[[apps]]
+id = "eza"
+name = "eza"
+category = "Dosya ve Arama"
+description = "Renkli ve simgeli dizin listesi; `ls`ye modern alternatif."
+source = "https://github.com/eza-community/eza"
+license = "MIT"
+executable = "eza"
+install_method = "download_archive"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+version = "0.23.5"
+
+[[apps.artifacts]]
+arch = "x86_64"
+download_url = "https://github.com/eza-community/eza/releases/download/v0.23.5/eza_x86_64-unknown-linux-musl.tar.gz"
+checksum = "e06eebab74b73d6b7d51a796a353824b001bea82df077706382e100815d28904"
+checksum_type = "sha256"
+asset_pattern = "eza_x86_64-unknown-linux-musl.tar.gz"
+
+[[apps.artifacts]]
+arch = "aarch64"
+download_url = "https://github.com/eza-community/eza/releases/download/v0.23.5/eza_aarch64-unknown-linux-gnu.tar.gz"
+checksum = "40b87ae8628aa2ff0f0d2dc24ab52f689631366385c3da630bae745671fd71ec"
+checksum_type = "sha256"
+asset_pattern = "eza_aarch64-unknown-linux-gnu.tar.gz"
+
+[apps.release]
+repo = "eza-community/eza"
+tag_prefix = "v"
+asset_pattern = "eza_x86_64-unknown-linux-musl.tar.gz"
+
+[[apps]]
+id = "far2l"
+name = "far2l"
+category = "Dosya ve Arama"
+description = "Far Manager Linux portu."
+source = "https://github.com/elfmz/far2l"
+license = "GPL-2.0"
+executable = "far2l"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "far2l"]
+install_notes = """
+pacman: sudo pacman -S far2l
+Resmî: https://github.com/elfmz/far2l
+
+"""
+
+[[apps]]
+id = "fd"
+name = "fd"
+category = "Dosya ve Arama"
+description = "Kullanıcı dostu, hızlı dosya bulucu; find alternatifi."
+source = "https://github.com/sharkdp/fd"
+license = "MIT OR Apache-2.0"
+executable = "fd"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "fd-find"]
+install_notes = """
+brew: brew install fd
+apt: sudo apt install fd-find  # ikili adı bazen fdfind
+cargo: cargo install fd-find
+pacman: sudo pacman -S fd
+Resmî: https://github.com/sharkdp/fd#installation
+
+"""
+
+[[apps]]
+id = "fdupes"
+name = "fdupes"
+category = "Dosya ve Arama"
+description = "Yinelenen dosya bulucu."
+source = "https://github.com/adrianlopezroche/fdupes"
+license = "MIT"
+executable = "fdupes"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "fdupes"]
+install_notes = """
+pacman: sudo pacman -S fdupes
+apt: sudo apt install fdupes
+Resmî: https://github.com/adrianlopezroche/fdupes
+
+"""
+
+[[apps]]
+id = "felix"
+name = "felix"
+category = "Dosya ve Arama"
+description = "Vim tuş bağlamalı TUI dosya yöneticisi."
+source = "https://github.com/kyoheiu/felix"
+license = "MIT"
+executable = "felix"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "felix-rs"]
+install_notes = """
+pacman: sudo pacman -S felix-rs
+cargo: cargo install felix
+Resmî: https://github.com/kyoheiu/felix
+
+"""
+
+[apps.release]
+repo = "kyoheiu/felix"
+
+[[apps]]
+id = "fff"
+name = "fff"
+category = "Dosya ve Arama"
+description = "Basit ve hızlı dosya yöneticisi."
+source = "https://github.com/dylanaraps/fff"
+license = "MIT"
+executable = "fff"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "fff"]
+install_notes = """
+pacman: sudo pacman -S fff
+Resmî: https://github.com/dylanaraps/fff
+
+"""
+
+[[apps]]
+id = "fzf"
+name = "fzf"
+category = "Dosya ve Arama"
+description = """
+Bulanık arama aracı; tek başına çalışır, Ctrl+T/Ctrl+R/Alt+C kısayolları için kabuk entegrasyonu gerekir.
+
+"""
+source = "https://github.com/junegunn/fzf"
+license = "MIT"
+executable = "fzf"
+install_method = "download_archive"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+version = "0.74.5"
+
+[[apps.artifacts]]
+arch = "x86_64"
+download_url = "https://github.com/junegunn/fzf/releases/download/v0.74.5/fzf-0.74.5-linux_amd64.tar.gz"
+checksum = "d47d7f882972c7d674dbbba998ffa4116e68379616ffac7695d0671e9a722c5f"
+checksum_type = "sha256"
+asset_pattern = "fzf-{version}-linux_amd64.tar.gz"
+checksum_asset_pattern = "fzf_{version}_checksums.txt"
+
+[[apps.artifacts]]
+arch = "aarch64"
+download_url = "https://github.com/junegunn/fzf/releases/download/v0.74.5/fzf-0.74.5-linux_arm64.tar.gz"
+checksum = "cf058001da21724a469b714a29cf4aab9cbe860d218a0d6c1b5b661efad7784c"
+checksum_type = "sha256"
+asset_pattern = "fzf-{version}-linux_arm64.tar.gz"
+checksum_asset_pattern = "fzf_{version}_checksums.txt"
+
+[apps.release]
+repo = "junegunn/fzf"
+tag_prefix = "v"
+asset_pattern = "fzf-{version}-linux_amd64.tar.gz"
+checksum_asset_pattern = "fzf_{version}_checksums.txt"
+
+[[apps]]
+id = "fzy"
+name = "fzy"
+category = "Dosya ve Arama"
+description = "Hızlı bulanık bulucu."
+source = "https://github.com/jhawthorn/fzy"
+license = "MIT"
+executable = "fzy"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "fzy"]
+install_notes = """
+pacman: sudo pacman -S fzy
+apt: sudo apt install fzy
+brew: brew install fzy
+Resmî: https://github.com/jhawthorn/fzy
+
+"""
+
+[[apps]]
+id = "gdu"
+name = "gdu"
+category = "Dosya ve Arama"
+description = "Hızlı disk kullanım analizcisi (ncdu benzeri)."
+source = "https://github.com/dundee/gdu"
+license = "MIT"
+executable = "gdu"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "gdu"]
+install_notes = """
+brew: brew install gdu
+go: go install github.com/dundee/gdu/v5/cmd/gdu@latest
+Resmî: https://github.com/dundee/gdu#installation
+
+"""
+
+[[apps]]
+id = "goful"
+name = "goful"
+category = "Dosya ve Arama"
+description = "Go ile yazılmış TUI dosya yöneticisi."
+source = "https://github.com/anmitsu/goful"
+license = "MIT"
+executable = "goful"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """
+go: go install github.com/anmitsu/goful@latest
+Resmî: https://github.com/anmitsu/goful
+
+"""
+
+[[apps]]
+id = "gtrash"
+name = "gtrash"
+category = "Dosya ve Arama"
+description = "rm alternatifli özellikli çöp kutusu CLI yöneticisi."
+source = "https://github.com/umlx5h/gtrash"
+license = "MIT"
+executable = "gtrash"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "gtrash"]
+install_notes = """
+brew: brew install gtrash
+Resmî: https://github.com/umlx5h/gtrash
+
+"""
+
+[apps.release]
+repo = "umlx5h/gtrash"
+
+[[apps]]
+id = "hunter"
+name = "hunter"
+category = "Dosya ve Arama"
+description = "Rust ile yazılmış hızlı dosya yöneticisi."
+source = "https://github.com/rabite0/hunter"
+license = "WTFPL"
+executable = "hunter"
+install_method = "cargo"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["cargo", "install", "hunter"]
+install_notes = """
+cargo: cargo install hunter
+Resmî: https://github.com/rabite0/hunter
+
+"""
+
+[[apps]]
+id = "igrep"
+name = "igrep"
+category = "Dosya ve Arama"
+description = "Etkileşimli grep / arama TUI'si."
+source = "https://github.com/konradsz/igrep"
+license = "MIT"
+executable = "igrep"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "igrep"]
+install_notes = """
+pacman: sudo pacman -S igrep
+Resmî: https://github.com/konradsz/igrep
+
+"""
+
+[[apps]]
+id = "jless"
+name = "jless"
+category = "Dosya ve Arama"
+description = "JSON için etkileşimli komut satırı sayfalayıcı."
+source = "https://github.com/PaulJuliusMartinez/jless"
+license = "MIT"
+executable = "jless"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "jless"]
+install_notes = """
+pacman: sudo pacman -S jless
+cargo: cargo install jless
+brew: brew install jless
+Resmî: https://github.com/PaulJuliusMartinez/jless
+
+"""
+
+[[apps]]
+id = "joshuto"
+name = "joshuto"
+category = "Dosya ve Arama"
+description = "Ranger esinli Rust terminal dosya yöneticisi."
+source = "https://github.com/kamiyaa/joshuto"
+license = "LGPL-3.0-only"
+executable = "joshuto"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "joshuto"]
+install_notes = """
+brew: brew install joshuto
+cargo: cargo install --locked joshuto
+Resmî: https://github.com/kamiyaa/joshuto
+
+"""
+
+[[apps]]
+id = "lf"
+name = "lf"
+category = "Dosya ve Arama"
+description = "Go ile yazılmış terminal dosya yöneticisi."
+source = "https://github.com/gokcehan/lf"
+license = "MIT"
+executable = "lf"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["brew", "install", "lf"]
+install_notes = """
+brew: brew install lf
+go: go install github.com/gokcehan/lf@latest
+Resmî: https://github.com/gokcehan/lf#installation
+
+"""
+
+[[apps]]
+id = "lfimg"
+name = "lfrun"
+category = "Dosya ve Arama"
+description = "lf için görüntü önizleme sarmalayıcısı."
+source = "https://github.com/cirala/lfimg"
+license = "MIT"
+executable = "lfrun"
+install_method = "manual"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_notes = """
+Resmî: https://github.com/cirala/lfimg
+lf kurulu olmalıdır.
+
+"""
+
+[[apps]]
+id = "lsd"
+name = "lsd"
+category = "Dosya ve Arama"
+description = "Renkli ikonlu modern ls alternatifi."
+source = "https://github.com/lsd-rs/lsd"
+license = "Apache-2.0"
+executable = "lsd"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "lsd"]
+install_notes = """
+pacman: sudo pacman -S lsd
+Resmî: https://github.com/lsd-rs/lsd
+
+"""
+
+[[apps]]
+id = "mc"
+name = "Midnight Commander"
+category = "Dosya ve Arama"
+description = "Klasik iki panelli terminal dosya yöneticisi."
+source = "https://midnight-commander.org/"
+license = "GPL-3.0"
+executable = "mc"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "mc"]
+install_notes = """
+apt: sudo apt install mc
+brew: brew install midnight-commander
+pacman: sudo pacman -S mc
+Resmî: https://midnight-commander.org/
+
+"""
+
+[[apps]]
+id = "ncdu"
+name = "ncdu"
+category = "Dosya ve Arama"
+description = "ncurses disk kullanım analizcisi."
+source = "https://dev.yorhel.nl/ncdu"
+license = "MIT"
+executable = "ncdu"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "ncdu"]
+install_notes = """
+apt: sudo apt install ncdu
+brew: brew install ncdu
+pacman: sudo pacman -S ncdu
+Resmî: https://dev.yorhel.nl/ncdu/
+
+"""
+
+[[apps]]
+id = "nnn"
+name = "nnn"
+category = "Dosya ve Arama"
+description = "Hafif ve hızlı terminal dosya yöneticisi."
+source = "https://github.com/jarun/nnn"
+license = "BSD-2-Clause"
+executable = "nnn"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "nnn"]
+install_notes = """
+apt: sudo apt install nnn
+brew: brew install nnn
+pacman: sudo pacman -S nnn
+Resmî: https://github.com/jarun/nnn#installation
+
+"""
+
+[[apps]]
+id = "ouch"
+name = "ouch"
+category = "Dosya ve Arama"
+description = "Arşiv sıkıştırma / açma için kullanıcı dostu CLI."
+source = "https://github.com/ouch-org/ouch"
+license = "MIT"
+executable = "ouch"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "ouch"]
+install_notes = """
+pacman: sudo pacman -S ouch
+cargo: cargo install ouch
+brew: brew install ouch
+Resmî: https://github.com/ouch-org/ouch
+
+"""
+
+[[apps]]
+id = "peco"
+name = "peco"
+category = "Dosya ve Arama"
+description = "Etkileşimli süzgeç aracı."
+source = "https://github.com/peco/peco"
+license = "MIT"
+executable = "peco"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "peco"]
+install_notes = """
+pacman: sudo pacman -S peco
+brew: brew install peco
+Resmî: https://github.com/peco/peco
+
+"""
+
+[[apps]]
+id = "ranger"
+name = "ranger"
+category = "Dosya ve Arama"
+description = "Vim tuşlarıyla çalışan Python dosya yöneticisi."
+source = "https://github.com/ranger/ranger"
+license = "GPL-3.0"
+executable = "ranger"
+install_method = "apt"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "apt", "install", "-y", "ranger"]
+install_notes = """
+pipx: pipx install ranger-fm
+apt: sudo apt install ranger
+brew: brew install ranger
+pacman: sudo pacman -S ranger
+Resmî: https://ranger.github.io/
+
+"""
+
+[[apps]]
+id = "rclone"
+name = "rclone"
+category = "Dosya ve Arama"
+description = "Bulut depolama için rsync benzeri senkronizasyon."
+source = "https://rclone.org/"
+license = "MIT"
+executable = "rclone"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "rclone"]
+install_notes = """
+pacman: sudo pacman -S rclone
+apt: sudo apt install rclone
+brew: brew install rclone
+Resmî: https://rclone.org/install/
+
+"""
+
+[[apps]]
+id = "rdfind"
+name = "rdfind"
+category = "Dosya ve Arama"
+description = "Yedek/yinelenen dosya bulucu."
+source = "https://github.com/pauldreik/rdfind"
+license = "GPL-2.0"
+executable = "rdfind"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "rdfind"]
+install_notes = """
+pacman: sudo pacman -S rdfind
+apt: sudo apt install rdfind
+Resmî: https://github.com/pauldreik/rdfind
+
+"""
+
+[[apps]]
+id = "repgrep"
+name = "repgrep"
+category = "Dosya ve Arama"
+description = "ripgrep için etkileşimli bul-ve-değiştir aracı."
+source = "https://github.com/acheronfail/repgrep"
+license = "MIT OR Apache-2.0 OR Unlicense"
+executable = "rgr"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "repgrep"]
+install_notes = """
+pacman: sudo pacman -S repgrep
+Çalıştırılabilir: rgr
+Resmî: https://github.com/acheronfail/repgrep
+
+"""
 
 [[apps]]
 id = "ripgrep"
@@ -40,344 +638,22 @@ asset_pattern = "ripgrep-{version}-x86_64-unknown-linux-musl.tar.gz"
 checksum_asset_pattern = "ripgrep-{version}-x86_64-unknown-linux-musl.tar.gz.sha256"
 
 [[apps]]
-id = "fzf"
-name = "fzf"
+id = "rmlint"
+name = "rmlint"
 category = "Dosya ve Arama"
-description = "Bulanık arama aracı; tek başına çalışır, Ctrl+T/Ctrl+R/Alt+C kısayolları için kabuk entegrasyonu gerekir."
-source = "https://github.com/junegunn/fzf"
-license = "MIT"
-executable = "fzf"
-install_method = "download_archive"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-version = "0.74.5"
-
-[[apps.artifacts]]
-arch = "x86_64"
-download_url = "https://github.com/junegunn/fzf/releases/download/v0.74.5/fzf-0.74.5-linux_amd64.tar.gz"
-checksum = "d47d7f882972c7d674dbbba998ffa4116e68379616ffac7695d0671e9a722c5f"
-checksum_type = "sha256"
-asset_pattern = "fzf-{version}-linux_amd64.tar.gz"
-checksum_asset_pattern = "fzf_{version}_checksums.txt"
-
-[[apps.artifacts]]
-arch = "aarch64"
-download_url = "https://github.com/junegunn/fzf/releases/download/v0.74.5/fzf-0.74.5-linux_arm64.tar.gz"
-checksum = "cf058001da21724a469b714a29cf4aab9cbe860d218a0d6c1b5b661efad7784c"
-checksum_type = "sha256"
-asset_pattern = "fzf-{version}-linux_arm64.tar.gz"
-checksum_asset_pattern = "fzf_{version}_checksums.txt"
-
-[apps.release]
-repo = "junegunn/fzf"
-tag_prefix = "v"
-asset_pattern = "fzf-{version}-linux_amd64.tar.gz"
-checksum_asset_pattern = "fzf_{version}_checksums.txt"
-
-[[apps]]
-id = "eza"
-name = "eza"
-category = "Dosya ve Arama"
-description = "Renkli ve simgeli dizin listesi; `ls`ye modern alternatif."
-source = "https://github.com/eza-community/eza"
-license = "MIT"
-executable = "eza"
-install_method = "download_archive"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-version = "0.23.5"
-
-[[apps.artifacts]]
-arch = "x86_64"
-download_url = "https://github.com/eza-community/eza/releases/download/v0.23.5/eza_x86_64-unknown-linux-musl.tar.gz"
-checksum = "e06eebab74b73d6b7d51a796a353824b001bea82df077706382e100815d28904"
-checksum_type = "sha256"
-asset_pattern = "eza_x86_64-unknown-linux-musl.tar.gz"
-
-[[apps.artifacts]]
-arch = "aarch64"
-download_url = "https://github.com/eza-community/eza/releases/download/v0.23.5/eza_aarch64-unknown-linux-gnu.tar.gz"
-checksum = "40b87ae8628aa2ff0f0d2dc24ab52f689631366385c3da630bae745671fd71ec"
-checksum_type = "sha256"
-asset_pattern = "eza_aarch64-unknown-linux-gnu.tar.gz"
-
-[apps.release]
-repo = "eza-community/eza"
-tag_prefix = "v"
-asset_pattern = "eza_x86_64-unknown-linux-musl.tar.gz"
-
-[[apps]]
-id = "bat"
-name = "bat"
-category = "Dosya ve Arama"
-description = "Sözdizimi renklendirmeli dosya görüntüleyici."
-source = "https://github.com/sharkdp/bat"
-license = "MIT/Apache-2.0"
-executable = "bat"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "bat"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install bat\napt: sudo apt install bat  # ikili adı bazen batcat\ncargo: cargo install bat\npacman: sudo pacman -S bat\nResmî: https://github.com/sharkdp/bat#installation"""
-
-[[apps]]
-id = "fd"
-name = "fd"
-category = "Dosya ve Arama"
-description = "Kullanıcı dostu, hızlı dosya bulucu; find alternatifi."
-source = "https://github.com/sharkdp/fd"
-license = "MIT/Apache-2.0"
-executable = "fd"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "fd-find"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install fd\napt: sudo apt install fd-find  # ikili adı bazen fdfind\ncargo: cargo install fd-find\npacman: sudo pacman -S fd\nResmî: https://github.com/sharkdp/fd#installation"""
-
-[[apps]]
-id = "yazi"
-name = "yazi"
-category = "Dosya ve Arama"
-description = "Rust ile yazılmış hızlı terminal dosya yöneticisi."
-source = "https://github.com/sxyazi/yazi"
-license = "MIT"
-executable = "yazi"
-install_method = "cargo"
-install_command = ["cargo", "install", "--locked", "yazi-fm", "yazi-cli"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install --locked yazi-fm yazi-cli\nbrew: brew install yazi\nResmî: https://yazi-rs.github.io/docs/installation"""
-
-[[apps]]
-id = "ranger"
-name = "ranger"
-category = "Dosya ve Arama"
-description = "Vim tuşlarıyla çalışan Python dosya yöneticisi."
-source = "https://github.com/ranger/ranger"
+description = "Yinelenen dosya bulucu ve temizleyici."
+source = "https://github.com/sahib/rmlint"
 license = "GPL-3.0"
-executable = "ranger"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "ranger"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """pipx: pipx install ranger-fm\napt: sudo apt install ranger\nbrew: brew install ranger\npacman: sudo pacman -S ranger\nResmî: https://ranger.github.io/"""
-
-[[apps]]
-id = "nnn"
-name = "nnn"
-category = "Dosya ve Arama"
-description = "Hafif ve hızlı terminal dosya yöneticisi."
-source = "https://github.com/jarun/nnn"
-license = "BSD-2-Clause"
-executable = "nnn"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "nnn"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install nnn\nbrew: brew install nnn\npacman: sudo pacman -S nnn\nResmî: https://github.com/jarun/nnn#installation"""
-
-[[apps]]
-id = "lf"
-name = "lf"
-category = "Dosya ve Arama"
-description = "Go ile yazılmış terminal dosya yöneticisi."
-source = "https://github.com/gokcehan/lf"
-license = "MIT"
-executable = "lf"
-install_method = "brew"
-install_command = ["brew", "install", "lf"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install lf\ngo: go install github.com/gokcehan/lf@latest\nResmî: https://github.com/gokcehan/lf#installation"""
-
-[[apps]]
-id = "mc"
-name = "Midnight Commander"
-category = "Dosya ve Arama"
-description = "Klasik iki panelli terminal dosya yöneticisi."
-source = "https://midnight-commander.org/"
-license = "GPL-3.0"
-executable = "mc"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "mc"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install mc\nbrew: brew install midnight-commander\npacman: sudo pacman -S mc\nResmî: https://midnight-commander.org/"""
-
-[[apps]]
-id = "broot"
-name = "broot"
-category = "Dosya ve Arama"
-description = "Dizin ağacını etkileşimli gezen dosya gezgini."
-source = "https://github.com/Canop/broot"
-license = "MIT"
-executable = "broot"
-install_method = "cargo"
-install_command = ["cargo", "install", "--locked", "broot"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install --locked broot\nbrew: brew install broot\nResmî: https://dystroy.org/broot/install/"""
-
-[[apps]]
-id = "superfile"
-name = "superfile"
-category = "Dosya ve Arama"
-description = "Modern ve güzel terminal dosya yöneticisi."
-source = "https://github.com/yorukot/superfile"
-license = "MIT"
-executable = "spf"
-install_method = "brew"
-install_command = ["brew", "install", "superfile"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install superfile\nResmî: https://github.com/yorukot/superfile#installation"""
-
-[[apps]]
-id = "dust"
-name = "dust"
-category = "Dosya ve Arama"
-description = "Disk kullanımını ağaç olarak gösteren du alternatifi."
-source = "https://github.com/bootandy/dust"
-license = "Apache-2.0"
-executable = "dust"
-install_method = "cargo"
-install_command = ["cargo", "install", "du-dust"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """cargo: cargo install du-dust\nbrew: brew install dust\nResmî: https://github.com/bootandy/dust#installation"""
-
-[[apps]]
-id = "gdu"
-name = "gdu"
-category = "Dosya ve Arama"
-description = "Hızlı disk kullanım analizcisi (ncdu benzeri)."
-source = "https://github.com/dundee/gdu"
-license = "MIT"
-executable = "gdu"
-install_method = "brew"
-install_command = ["brew", "install", "gdu"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """brew: brew install gdu\ngo: go install github.com/dundee/gdu/v5/cmd/gdu@latest\nResmî: https://github.com/dundee/gdu#installation"""
-
-[[apps]]
-id = "ncdu"
-name = "ncdu"
-category = "Dosya ve Arama"
-description = "ncurses disk kullanım analizcisi."
-source = "https://dev.yorhel.nl/ncdu"
-license = "MIT"
-executable = "ncdu"
-install_method = "apt"
-install_command = ["sudo", "apt", "install", "-y", "ncdu"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = """apt: sudo apt install ncdu\nbrew: brew install ncdu\npacman: sudo pacman -S ncdu\nResmî: https://dev.yorhel.nl/ncdu/"""
-
-# ---------------------------------------------------------------------------
-# Geliştirme
-# ---------------------------------------------------------------------------
-
-[[apps]]
-id = "vifm"
-name = "Vifm"
-category = "Dosya ve Arama"
-description = "vim benzeri dosya yöneticisi."
-source = "https://vifm.info/"
-license = "GPL-2.0"
-executable = "vifm"
+executable = "rmlint"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "vifm"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S vifm\napt: sudo apt install vifm\nbrew: brew install vifm\nResmî: https://vifm.info/"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "rmlint"]
+install_notes = """
+pacman: sudo pacman -S rmlint
+apt: sudo apt install rmlint
+Resmî: https://rmlint.readthedocs.io/
 
-[[apps]]
-id = "fff"
-name = "fff"
-category = "Dosya ve Arama"
-description = "Basit ve hızlı dosya yöneticisi."
-source = "https://github.com/dylanaraps/fff"
-license = "MIT"
-executable = "fff"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "fff"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S fff\nResmî: https://github.com/dylanaraps/fff"
-
-[[apps]]
-id = "clifm"
-name = "clifm"
-category = "Dosya ve Arama"
-description = "Komut satırı dosya yöneticisi."
-source = "https://github.com/leo-arch/clifm"
-license = "GPL-2.0"
-executable = "clifm"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "clifm"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S clifm\nResmî: https://github.com/leo-arch/clifm"
-
-[[apps]]
-id = "xplr"
-name = "xplr"
-category = "Dosya ve Arama"
-description = "Hacklenebilir, minimal dosya gezgini."
-source = "https://github.com/sayanarijit/xplr"
-license = "MIT"
-executable = "xplr"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "xplr"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S xplr\ncargo: cargo install xplr\nResmî: https://xplr.dev/"
-
-[[apps]]
-id = "far2l"
-name = "far2l"
-category = "Dosya ve Arama"
-description = "Far Manager Linux portu."
-source = "https://github.com/elfmz/far2l"
-license = "GPL-2.0"
-executable = "far2l"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "far2l"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S far2l\nResmî: https://github.com/elfmz/far2l"
-
-[[apps]]
-id = "goful"
-name = "goful"
-category = "Dosya ve Arama"
-description = "Go ile yazılmış TUI dosya yöneticisi."
-source = "https://github.com/anmitsu/goful"
-license = "MIT"
-executable = "goful"
-install_method = "manual"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "go: go install github.com/anmitsu/goful@latest\nResmî: https://github.com/anmitsu/goful"
-
-[[apps]]
-id = "lfimg"
-name = "lfrun"
-category = "Dosya ve Arama"
-description = "lf için görüntü önizleme sarmalayıcısı."
-source = "https://github.com/cirala/lfimg"
-license = "MIT"
-executable = "lfrun"
-install_method = "manual"
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "Resmî: https://github.com/cirala/lfimg\nlf kurulu olmalıdır."
-
-[[apps]]
-id = "hunter"
-name = "hunter"
-category = "Dosya ve Arama"
-description = "Rust ile yazılmış hızlı dosya yöneticisi."
-source = "https://github.com/rabite0/hunter"
-license = "WTFPL"
-executable = "hunter"
-install_method = "cargo"
-install_command = ["cargo", "install", "hunter"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "cargo: cargo install hunter\nResmî: https://github.com/rabite0/hunter"
-
-[[apps]]
-id = "fzy"
-name = "fzy"
-category = "Dosya ve Arama"
-description = "Hızlı bulanık bulucu."
-source = "https://github.com/jhawthorn/fzy"
-license = "MIT"
-executable = "fzy"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "fzy"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S fzy\napt: sudo apt install fzy\nbrew: brew install fzy\nResmî: https://github.com/jhawthorn/fzy"
+"""
 
 [[apps]]
 id = "skim"
@@ -388,97 +664,136 @@ source = "https://github.com/skim-rs/skim"
 license = "MIT"
 executable = "sk"
 install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
 install_command = ["sudo", "pacman", "-S", "--noconfirm", "skim"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S skim\ncargo: cargo install skim\nResmî: https://github.com/skim-rs/skim"
+install_notes = """
+pacman: sudo pacman -S skim
+cargo: cargo install skim
+Resmî: https://github.com/skim-rs/skim
+
+"""
 
 [[apps]]
-id = "peco"
-name = "peco"
+id = "stu"
+name = "stu"
 category = "Dosya ve Arama"
-description = "Etkileşimli süzgeç aracı."
-source = "https://github.com/peco/peco"
+description = "Amazon S3 tarayıcı TUI'si."
+source = "https://github.com/lusingander/stu"
 license = "MIT"
-executable = "peco"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "peco"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S peco\nbrew: brew install peco\nResmî: https://github.com/peco/peco"
+executable = "stu"
+install_method = "brew"
+supported_platforms = ["linux-x64", "linux-aarch64", "macos-x64", "macos-aarch64"]
+install_command = ["brew", "install", "stu"]
+install_notes = """
+brew: brew install stu
+cargo: cargo install stu
+Resmî: https://github.com/lusingander/stu
+
+"""
 
 [[apps]]
-id = "rmlint"
-name = "rmlint"
+id = "superfile"
+name = "superfile"
 category = "Dosya ve Arama"
-description = "Yinelenen dosya bulucu ve temizleyici."
-source = "https://github.com/sahib/rmlint"
-license = "GPL-3.0"
-executable = "rmlint"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "rmlint"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S rmlint\napt: sudo apt install rmlint\nResmî: https://rmlint.readthedocs.io/"
-
-[[apps]]
-id = "fdupes"
-name = "fdupes"
-category = "Dosya ve Arama"
-description = "Yinelenen dosya bulucu."
-source = "https://github.com/adrianlopezroche/fdupes"
+description = "Modern ve güzel terminal dosya yöneticisi."
+source = "https://github.com/yorukot/superfile"
 license = "MIT"
-executable = "fdupes"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "fdupes"]
+executable = "spf"
+install_method = "brew"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S fdupes\napt: sudo apt install fdupes\nResmî: https://github.com/adrianlopezroche/fdupes"
+install_command = ["brew", "install", "superfile"]
+install_notes = """
+brew: brew install superfile
+Resmî: https://github.com/yorukot/superfile#installation
+
+"""
 
 [[apps]]
-id = "rdfind"
-name = "rdfind"
+id = "television"
+name = "television"
 category = "Dosya ve Arama"
-description = "Yedek/yinelenen dosya bulucu."
-source = "https://github.com/pauldreik/rdfind"
+description = "Genel amaçlı, hızlı terminal bulanık (fuzzy) bulucu."
+source = "https://github.com/alexpasmantier/television"
+license = "MIT"
+executable = "tv"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "television"]
+install_notes = """
+pacman: sudo pacman -S television
+Çalıştırılabilir: tv
+Resmî: https://github.com/alexpasmantier/television
+
+"""
+
+[[apps]]
+id = "termscp"
+name = "termscp"
+category = "Dosya ve Arama"
+description = "SCP/SFTP/FTP/S3/SMB için özellik zengin terminal dosya transfer TUI'si."
+source = "https://github.com/veeso/termscp"
+license = "MIT"
+executable = "termscp"
+install_method = "pacman"
+supported_platforms = ["linux-x64", "linux-aarch64"]
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "termscp"]
+install_notes = """
+pacman: sudo pacman -S termscp
+Resmî: https://github.com/veeso/termscp
+
+"""
+
+[[apps]]
+id = "vifm"
+name = "Vifm"
+category = "Dosya ve Arama"
+description = "vim benzeri dosya yöneticisi."
+source = "https://vifm.info/"
 license = "GPL-2.0"
-executable = "rdfind"
+executable = "vifm"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "rdfind"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S rdfind\napt: sudo apt install rdfind\nResmî: https://github.com/pauldreik/rdfind"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "vifm"]
+install_notes = """
+pacman: sudo pacman -S vifm
+apt: sudo apt install vifm
+brew: brew install vifm
+Resmî: https://vifm.info/
+
+"""
 
 [[apps]]
-id = "jless"
-name = "jless"
+id = "xplr"
+name = "xplr"
 category = "Dosya ve Arama"
-description = "JSON için etkileşimli komut satırı sayfalayıcı."
-source = "https://github.com/PaulJuliusMartinez/jless"
+description = "Hacklenebilir, minimal dosya gezgini."
+source = "https://github.com/sayanarijit/xplr"
 license = "MIT"
-executable = "jless"
+executable = "xplr"
 install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "jless"]
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S jless\ncargo: cargo install jless\nbrew: brew install jless\nResmî: https://github.com/PaulJuliusMartinez/jless"
+install_command = ["sudo", "pacman", "-S", "--noconfirm", "xplr"]
+install_notes = """
+pacman: sudo pacman -S xplr
+cargo: cargo install xplr
+Resmî: https://xplr.dev/
+
+"""
 
 [[apps]]
-id = "ouch"
-name = "ouch"
+id = "yazi"
+name = "yazi"
 category = "Dosya ve Arama"
-description = "Arşiv sıkıştırma / açma için kullanıcı dostu CLI."
-source = "https://github.com/ouch-org/ouch"
+description = "Rust ile yazılmış hızlı terminal dosya yöneticisi."
+source = "https://github.com/sxyazi/yazi"
 license = "MIT"
-executable = "ouch"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "ouch"]
+executable = "yazi"
+install_method = "cargo"
 supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S ouch\ncargo: cargo install ouch\nbrew: brew install ouch\nResmî: https://github.com/ouch-org/ouch"
+install_command = ["cargo", "install", "--locked", "yazi-fm", "yazi-cli"]
+install_notes = """
+cargo: cargo install --locked yazi-fm yazi-cli
+brew: brew install yazi
+Resmî: https://yazi-rs.github.io/docs/installation
 
-[[apps]]
-id = "rclone"
-name = "rclone"
-category = "Dosya ve Arama"
-description = "Bulut depolama için rsync benzeri senkronizasyon."
-source = "https://rclone.org/"
-license = "MIT"
-executable = "rclone"
-install_method = "pacman"
-install_command = ["sudo", "pacman", "-S", "--noconfirm", "rclone"]
-supported_platforms = ["linux-x64", "linux-aarch64"]
-install_notes = "pacman: sudo pacman -S rclone\napt: sudo apt install rclone\nbrew: brew install rclone\nResmî: https://rclone.org/install/"
+"""
