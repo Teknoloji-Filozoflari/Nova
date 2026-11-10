@@ -88,6 +88,19 @@ pub fn draw(f: &mut Frame, app: &App) {
         Modal::StoreInstalledMenu { name, index, .. } => {
             draw_store_installed_menu(f, area, name, *index)
         }
+        Modal::StoreManualMenu {
+            name,
+            index,
+            options,
+            ..
+        } => draw_store_manual_menu(f, area, app, name, *index, options),
+        Modal::StoreManualCommand {
+            name,
+            label,
+            command,
+            source_url,
+            ..
+        } => draw_store_manual_command(f, area, app, name, label, command, source_url.as_deref()),
         Modal::ToolActionsMenu {
             tool_id,
             name,
@@ -291,6 +304,204 @@ fn draw_store_installed_menu(f: &mut Frame, screen: Rect, name: &str, index: usi
     let area = modal_area(screen, width, lines.len() as u16);
     let inner = frame(f, area, "Kurulu uygulama");
     f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
+}
+
+/// Manuel / trust-D kurulum seçenekleri — Kurulu menüsü görsel dilinde.
+fn draw_store_manual_menu(
+    f: &mut Frame,
+    screen: Rect,
+    app: &App,
+    name: &str,
+    index: usize,
+    options: &[crate::store::manual_options::ManualInstallOption],
+) {
+    let lang = app.ui_lang();
+    let width = 82
+        .min(screen.width.saturating_sub(MODAL_MARGIN * 2))
+        .max(48);
+    let inner_w = width.saturating_sub(4) as usize;
+    let accent = Color::Yellow;
+    let title = lang.t(crate::i18n::Msg::StoreManualMenuTitle);
+    let index = if options.is_empty() {
+        0
+    } else {
+        index.min(options.len() - 1)
+    };
+
+    let mut lines: Vec<Line> = Vec::new();
+    lines.push(Line::from(Span::styled(
+        truncate(
+            &format!(
+                "'{name}' — {}",
+                lang.t(crate::i18n::Msg::StoreManualNovaDoesNotInstall)
+            ),
+            inner_w,
+        ),
+        Style::default().fg(accent).add_modifier(Modifier::BOLD),
+    )));
+    lines.push(Line::from(Span::styled(
+        "─".repeat(inner_w.min(48)),
+        Style::default().fg(Color::DarkGray),
+    )));
+
+    if options.is_empty() {
+        lines.push(Line::from(Span::styled(
+            lang.t(crate::i18n::Msg::StoreManualEmpty),
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for (i, opt) in options.iter().enumerate() {
+            let selected = i == index;
+            let mark = if selected { "▶" } else { " " };
+            let label = format!("{mark} {}", opt.label);
+            let hint = format!("  {}", opt.detail);
+            let label_chars = label.chars().count();
+            let hint_budget = inner_w.saturating_sub(label_chars);
+            let hint = if hint_budget == 0 {
+                String::new()
+            } else {
+                truncate(&hint, hint_budget)
+            };
+            if selected {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        truncate(&label, inner_w),
+                        Style::default()
+                            .fg(Color::Black)
+                            .bg(accent)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(hint, Style::default().fg(Color::DarkGray).bg(accent)),
+                ]));
+            } else {
+                lines.push(Line::from(vec![
+                    Span::styled(truncate(&label, inner_w), Style::default().fg(Color::White)),
+                    Span::styled(hint, Style::default().fg(Color::DarkGray)),
+                ]));
+            }
+        }
+    }
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        lang.t(crate::i18n::Msg::StoreManualFooter),
+        Style::default().fg(accent).add_modifier(Modifier::BOLD),
+    )));
+
+    let max_h = screen
+        .height
+        .saturating_sub(MODAL_MARGIN * 2)
+        .saturating_sub(2);
+    let height = (lines.len() as u16).min(max_h.max(8));
+    let area = modal_area(screen, width, height);
+    f.render_widget(Clear, area);
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(accent))
+        .title(format!(" {title} "));
+    let inner = block.inner(area);
+    f.render_widget(block, area);
+    f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
+}
+
+/// Tek manuel komutun okunabilir gösterimi (Nova çalıştırmaz).
+fn draw_store_manual_command(
+    f: &mut Frame,
+    screen: Rect,
+    app: &App,
+    name: &str,
+    label: &str,
+    command: &str,
+    source_url: Option<&str>,
+) {
+    let lang = app.ui_lang();
+    let width = 82
+        .min(screen.width.saturating_sub(MODAL_MARGIN * 2))
+        .max(48);
+    let inner_w = width.saturating_sub(4) as usize;
+    let accent = Color::Yellow;
+    let title = lang.t(crate::i18n::Msg::StoreManualCommandTitle);
+
+    let mut lines: Vec<Line> = Vec::new();
+    lines.push(Line::from(Span::styled(
+        truncate(&format!("'{name}' — {label}"), inner_w),
+        Style::default().fg(accent).add_modifier(Modifier::BOLD),
+    )));
+    lines.push(Line::from(Span::styled(
+        lang.t(crate::i18n::Msg::StoreManualNovaDoesNotInstall),
+        Style::default().fg(Color::DarkGray),
+    )));
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        lang.t(crate::i18n::Msg::StoreManualCommandLabel),
+        Style::default().fg(Color::DarkGray),
+    )));
+    for part in wrap_text_modal(command, inner_w) {
+        lines.push(Line::from(Span::styled(
+            part,
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
+        )));
+    }
+    if let Some(url) = source_url {
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            truncate(url, inner_w),
+            Style::default().fg(Color::Blue),
+        )));
+    }
+    lines.push(Line::from(""));
+    let footer = if source_url.is_some() {
+        lang.t(crate::i18n::Msg::StoreManualCommandFooterOpen)
+    } else {
+        lang.t(crate::i18n::Msg::StoreManualCommandFooterClose)
+    };
+    lines.push(Line::from(Span::styled(
+        footer,
+        Style::default().fg(accent).add_modifier(Modifier::BOLD),
+    )));
+
+    let max_h = screen
+        .height
+        .saturating_sub(MODAL_MARGIN * 2)
+        .saturating_sub(2);
+    let height = (lines.len() as u16).min(max_h.max(8));
+    let area = modal_area(screen, width, height);
+    f.render_widget(Clear, area);
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(accent))
+        .title(format!(" {title} "));
+    let inner = block.inner(area);
+    f.render_widget(block, area);
+    f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
+}
+
+/// Modal içi basit kelime kaydırması (ui::wrap_text ile aynı fikir).
+fn wrap_text_modal(text: &str, width: usize) -> Vec<String> {
+    let width = width.max(1);
+    let mut out = Vec::new();
+    for raw in text.lines() {
+        if raw.is_empty() {
+            out.push(String::new());
+            continue;
+        }
+        let mut line = String::new();
+        for ch in raw.chars() {
+            if line.chars().count() >= width {
+                out.push(std::mem::take(&mut line));
+            }
+            line.push(ch);
+        }
+        if !line.is_empty() || out.is_empty() {
+            out.push(line);
+        }
+    }
+    if out.is_empty() {
+        out.push(String::new());
+    }
+    out
 }
 
 /// Kurulu AI aracı aksiyon menüsü — Mağaza kurulum onayı boyut/görsel dili.

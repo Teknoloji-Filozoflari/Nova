@@ -3346,6 +3346,26 @@ impl App {
         apps.get(self.store_app_index.min(apps.len() - 1)).copied()
     }
 
+    /// Manuel / trust-D mağaza kaydı için kurulum seçenekleri modalını açar.
+    ///
+    /// Uzun `install_notes` metni durum satırına yazılmaz; Bun / Homebrew /
+    /// curl / kaynak gibi satırlar seçilebilir listede sunulur. Nova bu
+    /// komutları çalıştırmaz.
+    pub fn open_store_manual_menu(&mut self, entry: &StoreEntry) {
+        let open_lbl = self.ui_lang().t(crate::i18n::Msg::StoreManualOpenSource);
+        let options = crate::store::manual_options::options_for_entry(entry, open_lbl);
+        self.status_message = self
+            .ui_lang()
+            .t(crate::i18n::Msg::StoreManualStatusHint)
+            .to_string();
+        self.modal = modal::Modal::StoreManualMenu {
+            id: entry.id.clone(),
+            name: entry.name.clone(),
+            index: 0,
+            options,
+        };
+    }
+
     /// Seçili mağaza uygulamasına yönelik eylemi başlatır.
     ///
     /// Öncelik sırası:
@@ -3355,7 +3375,7 @@ impl App {
     /// 2. **Kurulu** uygulamada yeniden kurulum sorulmaz; kaldırma /
     ///    güncelleme denetimi menüsü açılır.
     /// 3. Doğrulanabilir özeti olmayan kayıtta Nova kurulum yapmaz; resmî
-    ///    yönergeyi gösterir.
+    ///    yönerge seçeneklerini modalda gösterir.
     /// 4. Diğer hâllerde kurulum onayı sorulur.
     pub fn select_store_app(&mut self) {
         let apps = self.filtered_store_apps();
@@ -3414,12 +3434,13 @@ impl App {
                 index: 0,
             };
         } else if !entry.install_method.is_installable() {
-            // curl|bash vb. manual kayıtlarda "Kur" sunulmaz; talimat gösterilir.
-            let note = entry
-                .install_notes
-                .as_deref()
-                .unwrap_or("resmî kurulum yönergelerini takip edin");
-            self.status_message = format!("'{}' için {note}", entry.name);
+            // curl|bash vb. manual: uzun notları durum satırına dökme —
+            // Kurulu menüsü gibi okunabilir seçenek modalı aç.
+            // `apps` hâlâ `self.store` ödünçünü tuttuğu için yönteme
+            // geçmeden önce kaydı sahiplenip bırak.
+            let owned = entry.clone();
+            drop(apps);
+            self.open_store_manual_menu(&owned);
         } else {
             if let Some(arch) = crate::store::CpuArch::host() {
                 if !entry.supports_arch(arch) {
@@ -3507,11 +3528,7 @@ impl App {
             return;
         };
         if !entry.install_method.is_installable() {
-            let note = entry
-                .install_notes
-                .as_deref()
-                .unwrap_or("resmî kurulum yönergelerini takip edin");
-            self.status_message = format!("'{}' için Nova kurulum yapmıyor. {note}", entry.name);
+            self.open_store_manual_menu(&entry);
             return;
         }
         if let Some(arch) = crate::store::CpuArch::host() {
@@ -4852,6 +4869,111 @@ impl App {
                 }
                 _ => {}
             },
+            modal::Modal::StoreManualMenu {
+                id,
+                name,
+                index,
+                options,
+            } => {
+                let max = options.len().saturating_sub(1);
+                match code {
+                    KeyCode::Esc => take(modal::Modal::None),
+                    KeyCode::Up | KeyCode::Char('k') => *index = index.saturating_sub(1),
+                    KeyCode::Down | KeyCode::Char('j') => *index = (*index + 1).min(max),
+                    KeyCode::Enter => {
+                        if options.is_empty() {
+                            take(modal::Modal::None);
+                        } else {
+                            let idx = (*index).min(max);
+                            let opt = options[idx].clone();
+                            let app_id = id.clone();
+                            let app_name = name.clone();
+                            match opt.kind {
+                                crate::store::manual_options::ManualInstallKind::OpenUrl => {
+                                    take(modal::Modal::None);
+                                    match crate::browser::open_https_url(&opt.detail) {
+                                        Ok(()) => {
+                                            self.status_message = format!(
+                                                "{} tarayıcıda açılıyor (xdg-open): {}",
+                                                app_name, opt.detail
+                                            );
+                                        }
+                                        Err(e) => {
+                                            self.status_message =
+                                                format!("'{app_name}' kaynağı açılamadı: {e}");
+                                        }
+                                    }
+                                }
+                                crate::store::manual_options::ManualInstallKind::Command => {
+                                    let source_url = options
+                                        .iter()
+                                        .find(|o| {
+                                            o.kind
+                                                == crate::store::manual_options::ManualInstallKind::OpenUrl
+                                        })
+                                        .map(|o| o.detail.clone())
+                                        .or_else(|| {
+                                            self.store.get_by_id(&app_id).and_then(|e| {
+                                                let s = e.source.trim();
+                                                s.starts_with("https://").then(|| s.to_string())
+                                            })
+                                        });
+                                    take(modal::Modal::StoreManualCommand {
+                                        id: app_id,
+                                        name: app_name,
+                                        label: opt.label,
+                                        command: opt.detail,
+                                        source_url,
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            modal::Modal::StoreManualCommand {
+                id,
+                name,
+                source_url,
+                ..
+            } => match code {
+                KeyCode::Esc => {
+                    // Menüye geri dön (seçenekler yeniden üretilir).
+                    // `open_store_manual_menu` `self.modal` yazar; JobProgress
+                    // yolundaki gibi `take` ile korunur.
+                    let app_id = id.clone();
+                    if let Some(entry) = self.store.get_by_id(&app_id).cloned() {
+                        self.open_store_manual_menu(&entry);
+                        take(std::mem::replace(&mut self.modal, modal::Modal::None));
+                    } else {
+                        take(modal::Modal::None);
+                    }
+                }
+                KeyCode::Enter => {
+                    if let Some(url) = source_url.clone() {
+                        let app_name = name.clone();
+                        take(modal::Modal::None);
+                        match crate::browser::open_https_url(&url) {
+                            Ok(()) => {
+                                self.status_message =
+                                    format!("{} tarayıcıda açılıyor (xdg-open): {url}", app_name);
+                            }
+                            Err(e) => {
+                                self.status_message =
+                                    format!("'{app_name}' kaynağı açılamadı: {e}");
+                            }
+                        }
+                    } else {
+                        take(modal::Modal::None);
+                        self.status_message = self
+                            .ui_lang()
+                            .t(crate::i18n::Msg::StoreManualNovaDoesNotInstall)
+                            .to_string();
+                    }
+                }
+                _ => {}
+            },
             modal::Modal::ToolActionsMenu { tool_id, index, .. } => {
                 let max = self
                     .catalog
@@ -5974,12 +6096,22 @@ mod tests {
         app.store_app_index = goose_idx;
         app.handle_key(key(crossterm::event::KeyCode::Enter))
             .unwrap();
-        assert_eq!(app.modal, modal::Modal::None, "onay ekranı açılmamalı");
+        match &app.modal {
+            modal::Modal::StoreManualMenu { id, options, .. } => {
+                assert_eq!(id, "goose");
+                assert!(!options.is_empty(), "resmî seçenek beklenirdi: {options:?}");
+                assert!(
+                    options.iter().any(|o| {
+                        o.kind == crate::store::manual_options::ManualInstallKind::OpenUrl
+                    }),
+                    "{options:?}"
+                );
+            }
+            other => panic!("manuel seçenek modalı beklenirdi (kurulum onayı değil): {other:?}"),
+        }
         assert!(
-            app.status_message.contains("Goose")
-                || app.status_message.to_lowercase().contains("kurulum")
-                || app.status_message.contains("goose"),
-            "mesaj: {}",
+            !app.status_message.contains("block.github.io/goose/docs"),
+            "uzun talimat durum satırına dökülmemeli: {}",
             app.status_message
         );
         assert!(app.install_job.is_none(), "kurulum başlatılmamalı");
@@ -6058,6 +6190,81 @@ mod tests {
             } => assert_eq!(id, "ripgrep"),
             other => panic!("kaldırma onayı beklenirdi: {other:?}"),
         }
+    }
+
+    #[test]
+    fn store_enter_on_manual_opens_options_modal_not_status_dump() {
+        let mut app = sample_app();
+        app.select_store_tab();
+        if let Some(idx) = STORE_CATEGORIES.iter().position(|c| *c == "AI") {
+            app.store_category_index = idx;
+        }
+        let apps = app.filtered_store_apps();
+        let pos = apps
+            .iter()
+            .position(|e| e.id == "oh-my-pi")
+            .expect("oh-my-pi");
+        app.store_app_index = pos;
+        app.store_status.insert(
+            "oh-my-pi".into(),
+            crate::detection::InstalledStatus::Missing,
+        );
+        app.select_store_app();
+        match &app.modal {
+            modal::Modal::StoreManualMenu {
+                id, index, options, ..
+            } => {
+                assert_eq!(id, "oh-my-pi");
+                assert_eq!(*index, 0);
+                assert!(
+                    options.len() >= 3,
+                    "yapılandırılmış seçenek beklenirdi: {options:?}"
+                );
+                assert!(
+                    options.iter().any(|o| o.label.starts_with("Bun")),
+                    "{options:?}"
+                );
+                assert!(
+                    options.iter().any(|o| {
+                        o.kind == crate::store::manual_options::ManualInstallKind::OpenUrl
+                    }),
+                    "{options:?}"
+                );
+            }
+            other => panic!("manuel kurulum menüsü beklenirdi: {other:?}"),
+        }
+        // Uzun install_notes durum satırına dökülmemeli.
+        assert!(
+            !app.status_message.contains("bun install -g"),
+            "durum satırı komut duvarı olmamalı: {}",
+            app.status_message
+        );
+        assert!(
+            app.status_message.len() < 120,
+            "durum satırı kısa kalmalı: {}",
+            app.status_message
+        );
+
+        // Enter on first command option → readable command modal
+        app.handle_key(key(crossterm::event::KeyCode::Enter))
+            .unwrap();
+        match &app.modal {
+            modal::Modal::StoreManualCommand {
+                id, command, label, ..
+            } => {
+                assert_eq!(id, "oh-my-pi");
+                assert!(label.starts_with("Bun"), "{label}");
+                assert!(command.contains("bun install"), "{command}");
+            }
+            other => panic!("komut modalı beklenirdi: {other:?}"),
+        }
+        // Esc → menüye dönüş
+        app.handle_key(key(crossterm::event::KeyCode::Esc)).unwrap();
+        assert!(
+            matches!(app.modal, modal::Modal::StoreManualMenu { .. }),
+            "{:?}",
+            app.modal
+        );
     }
 
     #[test]
@@ -6567,9 +6774,19 @@ mod tests {
         // curl|bash kayıtları bilerek `manual` kalır (ör. plandex).
         app.start_store_install("plandex");
         assert!(app.install_job.is_none());
+        match &app.modal {
+            modal::Modal::StoreManualMenu { id, .. } => assert_eq!(id, "plandex"),
+            other => panic!("manuel seçenek modalı beklenirdi: {other:?}"),
+        }
         assert!(
-            app.status_message.contains("Nova kurulum yapmıyor"),
+            app.status_message.contains("Nova")
+                || app.status_message.to_lowercase().contains("kurulum"),
             "mesaj: {}",
+            app.status_message
+        );
+        assert!(
+            !app.status_message.contains('\n') && app.status_message.len() < 160,
+            "durum satırı kısa kalmalı: {}",
             app.status_message
         );
     }

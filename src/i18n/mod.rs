@@ -298,6 +298,16 @@ impl Language {
             Msg::HelpCommandFavOnly => t.help_command_fav_only,
             Msg::Actions => t.actions,
             Msg::CategoryLabel => t.category_label,
+            Msg::StoreManualMenuTitle => t.store_manual_menu_title,
+            Msg::StoreManualOpenSource => t.store_manual_open_source,
+            Msg::StoreManualNovaDoesNotInstall => t.store_manual_nova_does_not_install,
+            Msg::StoreManualFooter => t.store_manual_footer,
+            Msg::StoreManualEmpty => t.store_manual_empty,
+            Msg::StoreManualStatusHint => t.store_manual_status_hint,
+            Msg::StoreManualCommandTitle => t.store_manual_command_title,
+            Msg::StoreManualCommandLabel => t.store_manual_command_label,
+            Msg::StoreManualCommandFooterOpen => t.store_manual_command_footer_open,
+            Msg::StoreManualCommandFooterClose => t.store_manual_command_footer_close,
         }
     }
 
@@ -514,6 +524,26 @@ pub enum Msg {
     Actions,
     /// Detay satırı / form alanı: "Kategori".
     CategoryLabel,
+    /// Mağaza manuel kurulum seçenekleri modal başlığı.
+    StoreManualMenuTitle,
+    /// Manuel modalda kaynak URL satırı.
+    StoreManualOpenSource,
+    /// Nova’nın kurmadığını belirten kısa uyarı.
+    StoreManualNovaDoesNotInstall,
+    /// Manuel menü alt bilgi (↑↓ / Enter / Esc).
+    StoreManualFooter,
+    /// Seçenek yokken yer tutucu.
+    StoreManualEmpty,
+    /// Modal açılınca durum satırı (kısa; not duvarı değil).
+    StoreManualStatusHint,
+    /// Tek komut gösterim modalı başlığı.
+    StoreManualCommandTitle,
+    /// Komut satırı etiketi.
+    StoreManualCommandLabel,
+    /// Komut modalı: kaynak açılabilir.
+    StoreManualCommandFooterOpen,
+    /// Komut modalı: yalnızca kapat.
+    StoreManualCommandFooterClose,
 }
 
 struct Table {
@@ -687,6 +717,16 @@ struct Table {
     help_command_fav_only: &'static str,
     actions: &'static str,
     category_label: &'static str,
+    store_manual_menu_title: &'static str,
+    store_manual_open_source: &'static str,
+    store_manual_nova_does_not_install: &'static str,
+    store_manual_footer: &'static str,
+    store_manual_empty: &'static str,
+    store_manual_status_hint: &'static str,
+    store_manual_command_title: &'static str,
+    store_manual_command_label: &'static str,
+    store_manual_command_footer_open: &'static str,
+    store_manual_command_footer_close: &'static str,
 }
 
 const TR: Table = Table {
@@ -863,6 +903,16 @@ const TR: Table = Table {
     help_command_fav_only: "Yalnız banka favorileri",
     actions: "Aksiyonlar",
     category_label: "Kategori",
+    store_manual_menu_title: "Kurulum seçenekleri",
+    store_manual_open_source: "Kaynak sayfasını aç",
+    store_manual_nova_does_not_install: "Nova kurmuyor (resmî talimat)",
+    store_manual_footer: "↑↓ seç    Enter aç/göster    Esc vazgeç",
+    store_manual_empty: "Kurulum seçeneği yok.",
+    store_manual_status_hint: "Resmî kurulum seçenekleri — Nova otomatik kurmaz.",
+    store_manual_command_title: "Kurulum komutu",
+    store_manual_command_label: "Komut (kendiniz çalıştırın):",
+    store_manual_command_footer_open: "Enter: kaynağı aç    Esc: seçeneklere dön",
+    store_manual_command_footer_close: "Esc: seçeneklere dön",
 };
 
 const EN: Table = Table {
@@ -1038,6 +1088,16 @@ const EN: Table = Table {
     help_command_fav_only: "Bank favorites only",
     actions: "Actions",
     category_label: "Category",
+    store_manual_menu_title: "Install options",
+    store_manual_open_source: "Open source page",
+    store_manual_nova_does_not_install: "Nova does not install (official docs)",
+    store_manual_footer: "↑↓ select    Enter open/show    Esc cancel",
+    store_manual_empty: "No install options.",
+    store_manual_status_hint: "Official install options — Nova will not auto-install.",
+    store_manual_command_title: "Install command",
+    store_manual_command_label: "Command (run it yourself):",
+    store_manual_command_footer_open: "Enter: open source    Esc: back to options",
+    store_manual_command_footer_close: "Esc: back to options",
 };
 
 const RU: Table = Table {
@@ -1212,6 +1272,16 @@ const RU: Table = Table {
     help_command_fav_only: "Bank favorites only",
     actions: "Действия",
     category_label: "Категория",
+    store_manual_menu_title: "Варианты установки",
+    store_manual_open_source: "Открыть страницу источника",
+    store_manual_nova_does_not_install: "Nova не устанавливает (офиц. инструкция)",
+    store_manual_footer: "↑↓ выбор    Enter открыть/показать    Esc отмена",
+    store_manual_empty: "Нет вариантов установки.",
+    store_manual_status_hint: "Официальные варианты — Nova не ставит автоматически.",
+    store_manual_command_title: "Команда установки",
+    store_manual_command_label: "Команда (выполните сами):",
+    store_manual_command_footer_open: "Enter: открыть источник    Esc: к вариантам",
+    store_manual_command_footer_close: "Esc: к вариантам",
 };
 
 const AZ: Table = Table {
@@ -1386,6 +1456,16 @@ const AZ: Table = Table {
     help_command_fav_only: "Bank favorites only",
     actions: "Əməliyyatlar",
     category_label: "Kateqoriya",
+    store_manual_menu_title: "Quraşdırma seçimləri",
+    store_manual_open_source: "Mənbə səhifəsini aç",
+    store_manual_nova_does_not_install: "Nova quraşdırmır (rəsmi təlimat)",
+    store_manual_footer: "↑↓ seç    Enter aç/göstər    Esc imtina",
+    store_manual_empty: "Quraşdırma seçimi yoxdur.",
+    store_manual_status_hint: "Rəsmi quraşdırma seçimləri — Nova avtomatik quraşdırmır.",
+    store_manual_command_title: "Quraşdırma əmri",
+    store_manual_command_label: "Əmr (özünüz işə salın):",
+    store_manual_command_footer_open: "Enter: mənbəni aç    Esc: seçimlərə qayıt",
+    store_manual_command_footer_close: "Esc: seçimlərə qayıt",
 };
 
 const UZ: Table = Table {
@@ -1561,6 +1641,16 @@ const UZ: Table = Table {
     help_command_fav_only: "Bank favorites only",
     actions: "Amallar",
     category_label: "Toifa",
+    store_manual_menu_title: "Oʻrnatish variantlari",
+    store_manual_open_source: "Manba sahifasini ochish",
+    store_manual_nova_does_not_install: "Nova oʻrnatmaydi (rasmiy yoʻriqnoma)",
+    store_manual_footer: "↑↓ tanlash    Enter ochish/koʻrsatish    Esc bekor",
+    store_manual_empty: "Oʻrnatish varianti yoʻq.",
+    store_manual_status_hint: "Rasmiy oʻrnatish variantlari — Nova avtomatik oʻrnatmaydi.",
+    store_manual_command_title: "Oʻrnatish buyrugʻi",
+    store_manual_command_label: "Buyruq (oʻzingiz ishga tushiring):",
+    store_manual_command_footer_open: "Enter: manbani ochish    Esc: variantlarga",
+    store_manual_command_footer_close: "Esc: variantlarga",
 };
 
 const KK: Table = Table {
@@ -1735,6 +1825,16 @@ const KK: Table = Table {
     help_command_fav_only: "Bank favorites only",
     actions: "Әрекеттер",
     category_label: "Санат",
+    store_manual_menu_title: "Орнату нұсқалары",
+    store_manual_open_source: "Дереккөз бетін ашу",
+    store_manual_nova_does_not_install: "Nova орнатпайды (ресми нұсқау)",
+    store_manual_footer: "↑↓ таңдау    Enter ашу/көрсету    Esc бас тарту",
+    store_manual_empty: "Орнату нұсқасы жоқ.",
+    store_manual_status_hint: "Ресми орнату нұсқалары — Nova автомат орнатпайды.",
+    store_manual_command_title: "Орнату пәрмені",
+    store_manual_command_label: "Пәрмен (өзіңіз орындаңыз):",
+    store_manual_command_footer_open: "Enter: дереккөзді ашу    Esc: нұсқаларға",
+    store_manual_command_footer_close: "Esc: нұсқаларға",
 };
 
 const TK: Table = Table {
@@ -1910,6 +2010,16 @@ const TK: Table = Table {
     help_command_fav_only: "Bank favorites only",
     actions: "Hereketler",
     category_label: "Kategoriýa",
+    store_manual_menu_title: "Gurnama opsiýalary",
+    store_manual_open_source: "Çeşme sahypasyny aç",
+    store_manual_nova_does_not_install: "Nova gurnamaýar (resmi görkezme)",
+    store_manual_footer: "↑↓ saýla    Enter aç/görkez    Esc ýatyr",
+    store_manual_empty: "Gurnama opsiýasy ýok.",
+    store_manual_status_hint: "Resmi gurnama opsiýalary — Nova awtomatiki gurnamaýar.",
+    store_manual_command_title: "Gurnama buýrugy",
+    store_manual_command_label: "Buýruk (öziň işlediň):",
+    store_manual_command_footer_open: "Enter: çeşmäni aç    Esc: opsiýalara dolan",
+    store_manual_command_footer_close: "Esc: opsiýalara dolan",
 };
 
 #[cfg(test)]
