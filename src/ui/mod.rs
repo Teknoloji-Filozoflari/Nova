@@ -1311,6 +1311,15 @@ fn draw_commands_group(f: &mut Frame, app: &App, area: Rect) {
     f.render_stateful_widget(list, area, &mut state);
 }
 
+fn risk_color(pal: ThemePalette, risk: crate::commands::RiskLevel) -> Color {
+    use crate::commands::RiskLevel;
+    match risk {
+        RiskLevel::Safe => pal.success,
+        RiskLevel::Caution => pal.warn,
+        RiskLevel::Dangerous | RiskLevel::Destructive => pal.error,
+    }
+}
+
 fn row_style(pal: ThemePalette, selected: bool, focused: bool) -> Style {
     if focused {
         Style::default()
@@ -1341,7 +1350,41 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
     let lang_id = lang.id();
     let searching = !app.search_query.is_empty();
     let (title, items): (String, Vec<ListItem>) =
-        if app.commands_mode == CommandsBrowseMode::SystemPath {
+        if app.commands_mode == CommandsBrowseMode::ServerSecurity {
+            let steps = app.filtered_checklist_steps();
+            let items = if steps.is_empty() {
+                vec![ListItem::new(Span::styled(
+                    lang.t(Msg::EmptyCommandsCategory),
+                    Style::default().fg(pal.muted),
+                ))]
+            } else {
+                steps
+                    .iter()
+                    .enumerate()
+                    .map(|(i, step)| {
+                        let selected = i == app.commands_entry_index;
+                        let focused = selected && app.focus == PanelFocus::CommandsList;
+                        let mut style = row_style(pal, selected, focused);
+                        if !selected {
+                            style = style.fg(risk_color(pal, step.risk));
+                        }
+                        let st = app.checklist_step_state(step);
+                        let label = truncate(
+                            &format!(
+                                "{} {} · {}",
+                                st.marker(),
+                                step.title.pick(lang_id),
+                                step.risk.label(lang_id)
+                            ),
+                            area.width.saturating_sub(6) as usize,
+                        );
+                        list_row(selected, label, style)
+                    })
+                    .collect()
+            };
+            let title = format!(" {} ({}) ", lang.t(Msg::CommandsChecklistList), steps.len());
+            (title, items)
+        } else if app.commands_mode == CommandsBrowseMode::SystemPath {
             let ents = app.filtered_local_commands();
             let items = if ents.is_empty() {
                 vec![ListItem::new(Span::styled(
@@ -2175,12 +2218,15 @@ fn draw_commands_detail_panel(f: &mut Frame, app: &App, area: Rect) {
         Style::default().fg(pal.muted)
     };
     let lines = commands_detail_lines(app);
-    let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(border)
-            .title(format!(" {} ", lang.t(Msg::CommandsDetail))),
-    );
+    let detail = Paragraph::new(lines)
+        .wrap(Wrap { trim: false })
+        .scroll((app.commands_detail_scroll, 0))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(border)
+                .title(format!(" {} ", lang.t(Msg::CommandsDetail))),
+        );
     f.render_widget(detail, area);
 }
 
@@ -2192,11 +2238,14 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
     let lang = app.ui_lang();
     if app.commands_tab {
         let lines = commands_detail_lines(app);
-        let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
-            Block::default()
-                .borders(Borders::TOP)
-                .title(format!(" {} ", lang.t(Msg::CommandsDetail))),
-        );
+        let detail = Paragraph::new(lines)
+            .wrap(Wrap { trim: false })
+            .scroll((app.commands_detail_scroll, 0))
+            .block(
+                Block::default()
+                    .borders(Borders::TOP)
+                    .title(format!(" {} ", lang.t(Msg::CommandsDetail))),
+            );
         f.render_widget(detail, area);
         return;
     }
@@ -2216,11 +2265,17 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
-    use crate::commands::{CommandsSource, RiskLevel, VerificationStatus};
+    use crate::commands::{
+        command_os_fit, CommandsBrowseMode, CommandsSource, OsFit, RiskLevel, VerificationStatus,
+    };
     let lang = app.ui_lang();
     let lang_id = lang.id();
     let pal = palette(app);
     let mut lines = Vec::new();
+
+    if app.commands_mode == CommandsBrowseMode::ServerSecurity {
+        return checklist_detail_lines(app);
+    }
 
     if app.commands_list_shows_tasks() {
         let tasks = app.filtered_tasks();
@@ -2233,7 +2288,7 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
         };
         lines.push(Line::from(Span::styled(
             task.name.pick(lang_id).to_string(),
-            Style::default().add_modifier(Modifier::BOLD),
+            Style::default().add_modifier(Modifier::BOLD).fg(pal.accent),
         )));
         lines.push(Line::from(format!(
             "{} · {}",
@@ -2254,16 +2309,12 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
         if !summary.is_empty() {
             lines.push(Line::from(summary.to_string()));
         }
-        // Güvenli örnek: implementations içinden en düşük riskli.
         let mut best: Option<(&str, RiskLevel, &str, bool)> = None;
         for impl_ in &task.implementations {
             for ex in &impl_.examples {
                 let better = match best {
                     None => true,
-                    Some((_, r, _, _)) => {
-                        (ex.risk as u8) < (r as u8)
-                            || (r != RiskLevel::Safe && ex.risk == RiskLevel::Safe)
-                    }
+                    Some((_, r, _, _)) => (ex.risk as u8) < (r as u8),
                 };
                 if better {
                     let expl = ex.explanation.pick(lang_id);
@@ -2282,16 +2333,21 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 Style::default().add_modifier(Modifier::BOLD),
             )));
             lines.push(Line::from(Span::styled(
-                format!("  {cmd}"),
-                Style::default().fg(pal.accent),
+                format!("  $ {cmd}"),
+                Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
             )));
-            lines.push(Line::from(format!(
-                "  {} · {}",
-                lang.t(Msg::CommandsRisk),
-                risk.label(lang_id)
-            )));
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled(
+                    risk.label(lang_id).to_string(),
+                    Style::default().fg(risk_color(pal, risk)),
+                ),
+            ]));
             if elev {
-                lines.push(Line::from(lang.t(Msg::CommandsElevated).to_string()));
+                lines.push(Line::from(Span::styled(
+                    lang.t(Msg::CommandsElevated).to_string(),
+                    Style::default().fg(pal.warn),
+                )));
             }
             if !expl.is_empty() {
                 lines.push(Line::from(Span::styled(
@@ -2330,23 +2386,82 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
             } else {
                 ""
             };
+            // Güçlü başlık
             lines.push(Line::from(Span::styled(
                 format!("{fav}{}", cmd.name),
-                Style::default().add_modifier(Modifier::BOLD),
+                Style::default()
+                    .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
+                    .fg(pal.accent),
             )));
-            lines.push(Line::from(format!(
-                "{} · {} · {} · {}",
-                lang.bank_category(&cmd.category),
-                lang.t(Msg::CommandsRisk),
-                cmd.risk.label(lang_id),
-                cmd.verification.status.as_str()
+            // Rozetler: OS · shell · kategori · verification · risk (renk+metin)
+            let mut badges: Vec<Span<'static>> = Vec::new();
+            let os_label = if !cmd.operating_systems.is_empty() {
+                cmd.operating_systems.join("/")
+            } else if !cmd.platforms.is_empty() {
+                cmd.platforms.join("/")
+            } else {
+                "general".into()
+            };
+            badges.push(Span::styled(
+                format!("[{os_label}]"),
+                Style::default().fg(pal.muted),
+            ));
+            if !cmd.shells.is_empty() {
+                badges.push(Span::raw(" "));
+                badges.push(Span::styled(
+                    format!("[{}]", cmd.shells.join("/")),
+                    Style::default().fg(pal.search),
+                ));
+            }
+            badges.push(Span::raw(" "));
+            badges.push(Span::styled(
+                format!("[{}]", lang.bank_category(&cmd.category)),
+                Style::default().fg(pal.muted),
+            ));
+            badges.push(Span::raw(" "));
+            badges.push(Span::styled(
+                format!("[{}]", cmd.verification.status.as_str()),
+                Style::default().fg(if cmd.verification.status == VerificationStatus::Verified {
+                    pal.success
+                } else {
+                    pal.warn
+                }),
+            ));
+            badges.push(Span::raw(" "));
+            badges.push(Span::styled(
+                format!("[{}]", cmd.risk.label(lang_id)),
+                Style::default()
+                    .fg(risk_color(pal, cmd.risk))
+                    .add_modifier(Modifier::BOLD),
+            ));
+            lines.push(Line::from(badges));
+
+            // OS uyumu — sessizce native ima etme
+            let fit = command_os_fit(cmd);
+            let fit_msg = match fit {
+                OsFit::Native => lang.t(Msg::CommandsOsFitNative),
+                OsFit::General => lang.t(Msg::CommandsOsFitGeneral),
+                OsFit::OtherPlatform => lang.t(Msg::CommandsOsFitOther),
+                OsFit::NoEquivalent => lang.t(Msg::CommandsOsFitNone),
+            };
+            lines.push(Line::from(Span::styled(
+                fit_msg.to_string(),
+                Style::default().fg(match fit {
+                    OsFit::Native => pal.success,
+                    OsFit::General => pal.muted,
+                    OsFit::OtherPlatform | OsFit::NoEquivalent => pal.warn,
+                }),
             )));
+
             if cmd.verification.status == VerificationStatus::Draft {
                 lines.push(Line::from(Span::styled(
                     lang.t(Msg::CommandsDraftWarn).to_string(),
                     Style::default().fg(pal.warn),
                 )));
             }
+
+            // 1) Ne işe yarar? (kısa)
+            lines.push(Line::from(""));
             lines.push(Line::from(Span::styled(
                 format!("{}:", lang.t(Msg::CommandsPurpose)),
                 Style::default().add_modifier(Modifier::BOLD),
@@ -2356,64 +2471,221 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 lines.push(Line::from(summary.to_string()));
             }
             let desc = cmd.description.pick(lang_id);
-            if !desc.is_empty() {
-                lines.push(Line::from(desc.to_string()));
+            // Uzun açıklamayı aşağıda tut — üstte kısa kalsın
+            if !desc.is_empty() && desc != summary {
+                lines.push(Line::from(Span::styled(
+                    desc.to_string(),
+                    Style::default().fg(pal.muted),
+                )));
             }
+
+            // 2) Sözdizimi
+            lines.push(Line::from(""));
             lines.push(Line::from(Span::styled(
-                format!("{}:", lang.t(Msg::CommandsRiskWhyLabel)),
+                format!("{}:", lang.t(Msg::CommandsSyntax)),
                 Style::default().add_modifier(Modifier::BOLD),
             )));
-            let why = match cmd.risk {
-                RiskLevel::Safe => lang.t(Msg::CommandsRiskWhySafe),
-                RiskLevel::Caution => lang.t(Msg::CommandsRiskWhyCaution),
-                RiskLevel::Dangerous => lang.t(Msg::CommandsRiskWhyDangerous),
-                RiskLevel::Destructive => lang.t(Msg::CommandsRiskWhyDestructive),
-            };
-            lines.push(Line::from(format!("  {} — {why}", cmd.risk.label(lang_id))));
-            if cmd.requires_elevated {
-                lines.push(Line::from(Span::styled(
-                    format!("sudo: {}", lang.t(Msg::CommandsElevated)),
-                    Style::default().fg(pal.warn),
-                )));
+            let alias = if cmd.aliases.is_empty() {
+                String::new()
             } else {
-                lines.push(Line::from(lang.t(Msg::CommandsSudoNotNeeded).to_string()));
+                format!("  ({})", cmd.aliases.join(", "))
+            };
+            lines.push(Line::from(Span::styled(
+                format!("  $ {}{alias}", cmd.name),
+                Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
+            )));
+            if !cmd.aliases.is_empty() {
+                lines.push(Line::from(format!(
+                    "  {}: {}",
+                    lang.t(Msg::CommandsAliases),
+                    cmd.aliases.join(", ")
+                )));
             }
-            let safe_ex = cmd
+
+            // 3) Bayraklar
+            if !cmd.flags.is_empty() {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    format!("{}:", lang.t(Msg::CommandsFlags)),
+                    Style::default().add_modifier(Modifier::BOLD),
+                )));
+                for flag in cmd.flags.iter().take(12) {
+                    let meaning = flag.meaning.pick(lang_id);
+                    let ver = if flag.verified { " ✓" } else { "" };
+                    lines.push(Line::from(vec![
+                        Span::styled(format!("  {}", flag.flag), Style::default().fg(pal.accent)),
+                        Span::raw(format!("{ver} — {meaning}")),
+                    ]));
+                }
+                if cmd.flags.len() > 12 {
+                    lines.push(Line::from(Span::styled(
+                        format!("  … +{}", cmd.flags.len() - 12),
+                        Style::default().fg(pal.muted),
+                    )));
+                }
+            }
+
+            // 4) Örnekler kolay → ileri
+            if !cmd.examples.is_empty() {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    format!("{}:", lang.t(Msg::CommandsExamplesEasyAdv)),
+                    Style::default().add_modifier(Modifier::BOLD),
+                )));
+                let mut examples = cmd.examples.clone();
+                examples.sort_by_key(|ex| ex.risk as u8);
+                for ex in examples.iter().take(8) {
+                    let title = ex.title.pick(lang_id);
+                    let elev =
+                        if ex.requires_elevated || ex.privilege.as_deref() == Some("elevated") {
+                            " · sudo"
+                        } else {
+                            ""
+                        };
+                    if !title.is_empty() {
+                        lines.push(Line::from(format!(
+                            "  · {title} [{}{}]",
+                            ex.risk.label(lang_id),
+                            elev
+                        )));
+                    }
+                    lines.push(Line::from(Span::styled(
+                        format!("    $ {}", ex.command),
+                        Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
+                    )));
+                    let expl = ex.explanation.pick(lang_id);
+                    if !expl.is_empty() {
+                        lines.push(Line::from(Span::styled(
+                            format!("      {expl}"),
+                            Style::default().fg(pal.muted),
+                        )));
+                    }
+                    for w in &ex.warnings {
+                        let wt = w.pick(lang_id);
+                        if !wt.is_empty() {
+                            lines.push(Line::from(Span::styled(
+                                format!("      ! {wt}"),
+                                Style::default().fg(pal.warn),
+                            )));
+                        }
+                    }
+                }
+            }
+
+            // 5) Beklenen etki (ilk safe örnek açıklaması özeti)
+            if let Some(ex) = cmd
                 .examples
                 .iter()
                 .find(|ex| ex.risk == RiskLevel::Safe)
-                .or_else(|| cmd.examples.first());
-            if let Some(ex) = safe_ex {
-                lines.push(Line::from(Span::styled(
-                    format!("{}:", lang.t(Msg::CommandsSafeExample)),
-                    Style::default().add_modifier(Modifier::BOLD),
-                )));
-                let elev = if ex.requires_elevated { " · sudo" } else { "" };
-                let title = ex.title.pick(lang_id);
-                if !title.is_empty() {
-                    lines.push(Line::from(format!(
-                        "  · {title} [{}{}]",
-                        ex.risk.label(lang_id),
-                        elev
-                    )));
-                }
-                lines.push(Line::from(Span::styled(
-                    format!("    {}", ex.command),
-                    Style::default().fg(pal.accent),
-                )));
+                .or_else(|| cmd.examples.first())
+            {
                 let expl = ex.explanation.pick(lang_id);
-                lines.push(Line::from(Span::styled(
-                    format!("{}:", lang.t(Msg::CommandsExpectedEffect)),
-                    Style::default().add_modifier(Modifier::BOLD),
-                )));
                 if !expl.is_empty() {
+                    lines.push(Line::from(""));
+                    lines.push(Line::from(Span::styled(
+                        format!("{}:", lang.t(Msg::CommandsExpectedEffect)),
+                        Style::default().add_modifier(Modifier::BOLD),
+                    )));
                     lines.push(Line::from(format!("  {expl}")));
-                } else if !summary.is_empty() {
-                    lines.push(Line::from(format!("  {summary}")));
                 }
             }
+
+            // 6) Platformlar / kabuklar
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                format!("{}:", lang.t(Msg::CommandsPlatforms)),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!("  OS: {os_label}")));
+            if !cmd.shells.is_empty() {
+                lines.push(Line::from(format!(
+                    "  {}: {}",
+                    lang.t(Msg::CommandsShells),
+                    cmd.shells.join(", ")
+                )));
+            }
+
+            // 7) Yetki / risk / yan etki
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                format!("{}:", lang.t(Msg::CommandsSideEffects)),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled(
+                    cmd.risk.label(lang_id).to_string(),
+                    Style::default()
+                        .fg(risk_color(pal, cmd.risk))
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::raw(" — "),
+                Span::raw(
+                    match cmd.risk {
+                        RiskLevel::Safe => lang.t(Msg::CommandsRiskWhySafe),
+                        RiskLevel::Caution => lang.t(Msg::CommandsRiskWhyCaution),
+                        RiskLevel::Dangerous => lang.t(Msg::CommandsRiskWhyDangerous),
+                        RiskLevel::Destructive => lang.t(Msg::CommandsRiskWhyDestructive),
+                    }
+                    .to_string(),
+                ),
+            ]));
+            if cmd.requires_elevated {
+                lines.push(Line::from(Span::styled(
+                    format!("  sudo: {}", lang.t(Msg::CommandsElevated)),
+                    Style::default().fg(pal.warn),
+                )));
+            } else {
+                lines.push(Line::from(format!(
+                    "  {}",
+                    lang.t(Msg::CommandsSudoNotNeeded)
+                )));
+            }
+            let sec = cmd.security.notes.pick(lang_id);
+            if !sec.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    format!("  ! {sec}"),
+                    Style::default().fg(pal.warn),
+                )));
+            }
+            if cmd.security.requires_admin || cmd.security.uac_prompt {
+                lines.push(Line::from(Span::styled(
+                    "  admin/UAC",
+                    Style::default().fg(pal.warn),
+                )));
+            }
+
+            // 8) Yaygın hatalar
+            let mut mistakes: Vec<String> = cmd
+                .examples
+                .iter()
+                .flat_map(|ex| {
+                    ex.warnings
+                        .iter()
+                        .map(|w| w.pick(lang_id).to_string())
+                        .filter(|s| !s.is_empty())
+                })
+                .collect();
+            mistakes.sort();
+            mistakes.dedup();
+            if !mistakes.is_empty() {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    format!("{}:", lang.t(Msg::CommandsMistakes)),
+                    Style::default().add_modifier(Modifier::BOLD),
+                )));
+                for m in mistakes.iter().take(6) {
+                    lines.push(Line::from(Span::styled(
+                        format!("  • {m}"),
+                        Style::default().fg(pal.warn),
+                    )));
+                }
+            }
+
+            // Paketler
             let is_arch = crate::commands::host_is_arch();
             if cmd.has_package_hints() {
+                lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
                     format!("{}:", lang.t(Msg::CommandsPackages)),
                     Style::default().add_modifier(Modifier::BOLD),
@@ -2434,11 +2706,18 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     lang.t(Msg::CommandsInstallNotes)
                 )));
             }
-            if !cmd.related.is_empty() {
+
+            // 9) İlgili
+            let mut related = cmd.related.clone();
+            related.extend(cmd.see_also.iter().cloned());
+            related.sort();
+            related.dedup();
+            if !related.is_empty() {
+                lines.push(Line::from(""));
                 lines.push(Line::from(format!(
                     "{}: {}",
                     lang.t(Msg::CommandsRelated),
-                    cmd.related.join(", ")
+                    related.join(", ")
                 )));
             }
             if !cmd.nova.concepts.is_empty() {
@@ -2448,12 +2727,57 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     cmd.nova.concepts.join(", ")
                 )));
             }
+
+            // 10) Kaynak + doğrulama + inceleme tarihi
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                format!("{}:", lang.t(Msg::CommandsSources)),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            if cmd.verification.sources.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    "  —",
+                    Style::default().fg(pal.muted),
+                )));
+            } else {
+                for src in cmd.verification.sources.iter().take(4) {
+                    lines.push(Line::from(Span::styled(
+                        format!("  {src}"),
+                        Style::default().fg(pal.search),
+                    )));
+                }
+            }
+            lines.push(Line::from(format!(
+                "  {}: {}",
+                lang.t(Msg::CommandsVerification),
+                cmd.verification.status.as_str()
+            )));
+            if let Some(ref reviewed) = cmd.verification.last_reviewed {
+                lines.push(Line::from(format!(
+                    "  {}: {reviewed}",
+                    lang.t(Msg::CommandsReviewDate)
+                )));
+            }
+            if let Some(ref note) = cmd.verification.notes {
+                if !note.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        format!("  {note}"),
+                        Style::default().fg(pal.muted),
+                    )));
+                }
+            }
+
+            lines.push(Line::from(""));
             lines.push(Line::from(Span::styled(
                 lang.t(Msg::CommandsNeverAutorun).to_string(),
                 Style::default().fg(pal.muted),
             )));
             lines.push(Line::from(Span::styled(
                 lang.t(Msg::CommandsBankFooter).to_string(),
+                Style::default().fg(pal.muted),
+            )));
+            lines.push(Line::from(Span::styled(
+                lang.t(Msg::CommandsPathPresenceNote).to_string(),
                 Style::default().fg(pal.muted),
             )));
         }
@@ -2468,7 +2792,9 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
             };
             lines.push(Line::from(Span::styled(
                 ent.name.clone(),
-                Style::default().add_modifier(Modifier::BOLD),
+                Style::default()
+                    .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
+                    .fg(pal.accent),
             )));
             lines.push(Line::from(ent.path.clone()));
             lines.push(Line::from(Span::styled(
@@ -2500,6 +2826,10 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 }
             }
             lines.push(Line::from(Span::styled(
+                lang.t(Msg::CommandsPathPresenceNote).to_string(),
+                Style::default().fg(pal.warn),
+            )));
+            lines.push(Line::from(Span::styled(
                 lang.t(Msg::CommandsPathNeCatalog).to_string(),
                 Style::default().fg(pal.muted),
             )));
@@ -2509,6 +2839,146 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
             )));
         }
     }
+    lines
+}
+
+fn checklist_detail_lines(app: &App) -> Vec<Line<'static>> {
+    let lang = app.ui_lang();
+    let lang_id = lang.id();
+    let pal = palette(app);
+    let mut lines = Vec::new();
+    let steps = app.filtered_checklist_steps();
+    let Some(step) = steps
+        .get(app.commands_entry_index.min(steps.len().saturating_sub(1)))
+        .cloned()
+    else {
+        lines.push(Line::from(lang.t(Msg::EmptyCommandsCategory).to_string()));
+        return lines;
+    };
+    let st = app.checklist_step_state(&step);
+    lines.push(Line::from(Span::styled(
+        step.title.pick(lang_id).to_string(),
+        Style::default()
+            .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
+            .fg(pal.accent),
+    )));
+    lines.push(Line::from(vec![
+        Span::raw(format!("{} ", st.marker())),
+        Span::styled(
+            st.label(lang_id).to_string(),
+            Style::default().fg(pal.search),
+        ),
+        Span::raw(" · "),
+        Span::styled(
+            step.risk.label(lang_id).to_string(),
+            Style::default()
+                .fg(risk_color(pal, step.risk))
+                .add_modifier(Modifier::BOLD),
+        ),
+    ]));
+    lines.push(Line::from(Span::styled(
+        lang.t(Msg::CommandsChecklistNeverScan).to_string(),
+        Style::default().fg(pal.warn),
+    )));
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        format!("{}:", lang.t(Msg::CommandsPurpose)),
+        Style::default().add_modifier(Modifier::BOLD),
+    )));
+    let summary = step.summary.pick(lang_id);
+    if !summary.is_empty() {
+        lines.push(Line::from(summary.to_string()));
+    }
+
+    let diag = step.diagnosis.pick(lang_id);
+    if !diag.is_empty() {
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            format!("{}:", lang.t(Msg::CommandsDiagnosis)),
+            Style::default().add_modifier(Modifier::BOLD),
+        )));
+        lines.push(Line::from(format!("  {diag}")));
+    }
+
+    if let Some(ref ex) = step.example {
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            format!("{}:", lang.t(Msg::CommandsSafeExample)),
+            Style::default().add_modifier(Modifier::BOLD),
+        )));
+        let title = ex.title.pick(lang_id);
+        if !title.is_empty() {
+            lines.push(Line::from(format!("  · {title}")));
+        }
+        lines.push(Line::from(Span::styled(
+            format!("  $ {}", ex.command),
+            Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
+        )));
+        let expl = ex.explanation.pick(lang_id);
+        if !expl.is_empty() {
+            lines.push(Line::from(Span::styled(
+                format!("{}:", lang.t(Msg::CommandsExpectedEffect)),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!("  {expl}")));
+        }
+    }
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        format!("{}:", lang.t(Msg::CommandsSideEffects)),
+        Style::default().add_modifier(Modifier::BOLD),
+    )));
+    if step.requires_elevated {
+        lines.push(Line::from(Span::styled(
+            format!("  sudo: {}", lang.t(Msg::CommandsElevated)),
+            Style::default().fg(pal.warn),
+        )));
+    } else {
+        lines.push(Line::from(format!(
+            "  {}",
+            lang.t(Msg::CommandsSudoNotNeeded)
+        )));
+    }
+
+    let rb = step.rollback.pick(lang_id);
+    if !rb.is_empty() {
+        lines.push(Line::from(Span::styled(
+            format!("{}:", lang.t(Msg::CommandsRollback)),
+            Style::default().add_modifier(Modifier::BOLD),
+        )));
+        lines.push(Line::from(format!("  {rb}")));
+    }
+
+    if !step.related_commands.is_empty() {
+        lines.push(Line::from(format!(
+            "{}: {}",
+            lang.t(Msg::CommandsRelated),
+            step.related_commands.join(", ")
+        )));
+    }
+    if !step.operating_systems.is_empty() || !step.platforms.is_empty() {
+        let os = if step.operating_systems.is_empty() {
+            step.platforms.join("/")
+        } else {
+            step.operating_systems.join("/")
+        };
+        lines.push(Line::from(format!(
+            "{}: {os}",
+            lang.t(Msg::CommandsPlatforms)
+        )));
+    }
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        lang.t(Msg::CommandsChecklistHint).to_string(),
+        Style::default().fg(pal.muted),
+    )));
+    lines.push(Line::from(Span::styled(
+        lang.t(Msg::CommandsNeverAutorun).to_string(),
+        Style::default().fg(pal.muted),
+    )));
     lines
 }
 

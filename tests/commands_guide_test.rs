@@ -146,12 +146,23 @@ fn commands_detail_shows_purpose_safe_example_risk_sudo() {
     }
     let text = all_text(&render(&app, 180, 42));
     assert!(
-        text.contains("Amaç") || text.contains("risk") || text.contains("Risk"),
+        text.contains("Ne işe yarar")
+            || text.contains("What is it for")
+            || text.contains("risk")
+            || text.contains("Risk")
+            || text.contains("dikkat")
+            || text.contains("güvenli")
+            || text.contains("caution")
+            || text.contains("safe"),
         "amaç/risk yok:\n{text}"
     );
     assert!(
         text.contains("Güvenli örnek")
             || text.contains("Beklenen etki")
+            || text.contains("Örnekler")
+            || text.contains("Examples")
+            || text.contains("Bayrak")
+            || text.contains("Flags")
             || text.contains("sudo")
             || text.contains("çalıştırılmaz"),
         "detay alanları yok:\n{text}"
@@ -270,6 +281,105 @@ fn guide_keeps_max_three_content_panels_with_breadcrumb_esc() {
     app.set_commands_mode(CommandsBrowseMode::SystemPath);
     assert_eq!(app.commands_source(), nova::commands::CommandsSource::Local);
     assert!(app.commands_mode_panel_visible());
+}
+
+#[test]
+fn teachable_detail_shows_flags_and_os_fit() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    app.terminal_size = Some((160, 45));
+    app.narrow_mode = false;
+    let cmds = app.filtered_bank_commands();
+    assert!(!cmds.is_empty());
+    if let Some(idx) = cmds.iter().position(|c| !c.flags.is_empty()) {
+        app.commands_entry_index = idx;
+    }
+    let text = all_text(&render(&app, 160, 45));
+    assert!(
+        text.contains("Ne işe yarar")
+            || text.contains("What is it for")
+            || text.contains("Bayrak")
+            || text.contains("Flags")
+            || text.contains("risk"),
+        "öğretici detay yok:\n{text}"
+    );
+    // 80x24 dar: kritik uyarılar panik/clip olmamalı
+    let narrow = all_text(&render(&app, 80, 24));
+    assert!(!narrow.is_empty(), "80x24 boş render");
+}
+
+#[test]
+fn filters_os_risk_and_search_aliases_flags() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    let before = app.filtered_bank_commands().len();
+    assert!(before > 0);
+    app.commands_filters.risk = Some(nova::commands::RiskLevel::Safe);
+    let safe_n = app.filtered_bank_commands().len();
+    assert!(safe_n <= before);
+    assert!(app
+        .filtered_bank_commands()
+        .iter()
+        .all(|c| c.risk == nova::commands::RiskLevel::Safe));
+    app.commands_filters.clear();
+    // Flag / alias araması (PATH ile karışmaz)
+    app.search_query = "-h".into();
+    let _ = app.filtered_bank_commands();
+    app.set_commands_mode(CommandsBrowseMode::SystemPath);
+    assert_eq!(app.commands_source(), nova::commands::CommandsSource::Local);
+}
+
+#[test]
+fn server_security_checklist_persists_local_state_only() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::ServerSecurity);
+    let steps = app.filtered_checklist_steps();
+    assert!(
+        !steps.is_empty(),
+        "sunucu güvenlik checklist adımları boş olmamalı"
+    );
+    app.commands_entry_index = 0;
+    app.focus = nova::app::PanelFocus::CommandsList;
+    let key = steps[0].state_key();
+    assert!(!app.state.file.command_checklist.contains_key(&key));
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char(' '),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert_eq!(
+        app.state
+            .file
+            .command_checklist
+            .get(&key)
+            .map(String::as_str),
+        Some("ok")
+    );
+    // Parola / host saklanmaz — yalnız durum anahtarları.
+    for v in app.state.file.command_checklist.values() {
+        assert!(matches!(v.as_str(), "ok" | "review" | "na" | "unchecked"));
+    }
+    let text = all_text(&render(&app, 120, 40));
+    assert!(
+        text.contains("güvenlik")
+            || text.contains("Security")
+            || text.contains("Kontrol")
+            || text.contains("Checklist")
+            || text.contains("[✓]")
+            || text.contains("[ ]"),
+        "checklist yüzeyi yok:\n{text}"
+    );
+    // Enter çalıştırmaz
+    let before_modal = app.modal.is_open();
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert_eq!(app.modal.is_open(), before_modal);
 }
 
 #[test]

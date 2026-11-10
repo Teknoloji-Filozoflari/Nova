@@ -15,13 +15,23 @@
 //! <https://github.com/Teknoloji-Filozoflari/Nova-Commands/blob/main/docs/NOVA_INTEGRATION.md>
 
 pub mod bank;
+pub mod checklist;
+pub mod filters;
 pub mod loader;
 pub mod local;
 pub mod repo_sync;
 
 pub use bank::{
-    CommandBank, CommandEntry, ConceptEntry, LocalizedString, ProfileEntry, RiskLevel, TaskEntry,
-    VerificationStatus, BANK_KIND,
+    CommandBank, CommandEntry, ConceptEntry, GuideEntry, LocalizedString, ProfileEntry, RiskLevel,
+    TaskEntry, VerificationStatus, BANK_KIND,
+};
+pub use checklist::{
+    server_security_steps, server_security_title, ChecklistStepState, ChecklistStepView,
+    SERVER_SECURITY_GUIDE_ID,
+};
+pub use filters::{
+    bank_distro_values, bank_os_values, bank_shell_values, command_os_fit, cycle_optional,
+    cycle_risk, host_os_bank_id, CommandsFilters, LearningLevelFilter, OsFit,
 };
 pub use loader::{
     load_bank, load_bank_preferring_cache, load_manifest, load_search_index, CommandsManifest,
@@ -50,7 +60,7 @@ pub enum CommandsSource {
     Local,
 }
 
-/// Görev odaklı gezinme modu (Bilgi mimarisi 1–5).
+/// Görev odaklı gezinme modu (Bilgi mimarisi 1–6).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CommandsBrowseMode {
     /// 1 · Başlangıç — öğrenme sırası, düşük risk.
@@ -62,16 +72,19 @@ pub enum CommandsBrowseMode {
     Context,
     /// 4 · Tüm komutlar — teknik kategoriler (+ arama).
     AllCommands,
-    /// 5 · Sistemde bulunanlar — PATH stub (katalogdan ayrı).
+    /// 5 · Sunucu güvenlik kontrolü — sıralı checklist (çalıştırmaz).
+    ServerSecurity,
+    /// 6 · Sistemde bulunanlar — PATH stub (katalogdan ayrı).
     SystemPath,
 }
 
 impl CommandsBrowseMode {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::Start,
         Self::ByTask,
         Self::Context,
         Self::AllCommands,
+        Self::ServerSecurity,
         Self::SystemPath,
     ];
 
@@ -81,7 +94,8 @@ impl CommandsBrowseMode {
             Self::ByTask => 1,
             Self::Context => 2,
             Self::AllCommands => 3,
-            Self::SystemPath => 4,
+            Self::ServerSecurity => 4,
+            Self::SystemPath => 5,
         }
     }
 
@@ -108,6 +122,11 @@ impl CommandsBrowseMode {
     /// İkinci ikincil sütun (grup / profil / teknik kategori) gerekir mi?
     pub fn needs_group_column(self) -> bool {
         matches!(self, Self::ByTask | Self::Context | Self::AllCommands)
+    }
+
+    /// Checklist listesi mi (Sunucu güvenlik)?
+    pub fn is_checklist(self) -> bool {
+        matches!(self, Self::ServerSecurity)
     }
 }
 

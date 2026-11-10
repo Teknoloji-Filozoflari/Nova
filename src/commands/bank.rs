@@ -140,6 +140,20 @@ pub struct VerificationInfo {
     pub last_reviewed: Option<String>,
     #[serde(default)]
     pub reviewer: Option<String>,
+    /// Küratör notu (düz metin; çoğu kayıt agent-draft açıklaması).
+    #[serde(default)]
+    pub notes: Option<String>,
+}
+
+/// Komut güvenlik / yetki notları (Windows UAC vb.) — bankadan salt okuma.
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct CommandSecurity {
+    #[serde(default)]
+    pub notes: LocalizedString,
+    #[serde(default)]
+    pub requires_admin: bool,
+    #[serde(default)]
+    pub uac_prompt: bool,
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -168,6 +182,12 @@ pub struct CommandExample {
     /// v2 additive (`user` / `elevated` / …) — yoksa yok sayılır.
     #[serde(default)]
     pub privilege: Option<String>,
+    /// v2 additive — örnek platform kısıtı.
+    #[serde(default)]
+    pub platforms: Vec<String>,
+    /// Yaygın hatalar / uyarılar (öğretici).
+    #[serde(default)]
+    pub warnings: Vec<LocalizedString>,
 }
 
 /// Schema v2 paket eşlemesi (`metadata/package-managers.yaml` id + paket adı).
@@ -297,6 +317,12 @@ pub struct CommandEntry {
     /// v2 additive OS registry id'leri (`linux` / `macos` / `windows` / …).
     #[serde(default)]
     pub operating_systems: Vec<String>,
+    /// Desteklenen kabuklar (`bash` / `zsh` / `powershell` / …).
+    #[serde(default)]
+    pub shells: Vec<String>,
+    /// Alternatif adlar (PowerShell alias vb.).
+    #[serde(default)]
+    pub aliases: Vec<String>,
     #[serde(default)]
     pub packages: Packages,
     /// v2 tercih edilen paket eşlemesi; doluysa legacy `packages` yerine kullanılır.
@@ -310,6 +336,11 @@ pub struct CommandEntry {
     pub examples: Vec<CommandExample>,
     #[serde(default)]
     pub related: Vec<String>,
+    /// Man / docs çapraz referansları.
+    #[serde(default)]
+    pub see_also: Vec<String>,
+    #[serde(default)]
+    pub security: CommandSecurity,
     #[serde(default)]
     pub intent: IntentPhrases,
     #[serde(default)]
@@ -514,6 +545,58 @@ pub struct CommandBank {
     pub tasks: Vec<TaskEntry>,
     #[serde(default)]
     pub profiles: Vec<ProfileEntry>,
+    /// İsteğe bağlı rehberler (Sunucu güvenlik kontrolü vb.).
+    ///
+    /// Commands içeriği gelene kadar boş olabilir; Nova o zaman banka
+    /// görevlerinden türetilmiş adımları kullanır.
+    #[serde(default)]
+    pub guides: Vec<GuideEntry>,
+}
+
+/// Katalog rehberi (`kind: checklist` vb.).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct GuideEntry {
+    pub id: String,
+    #[serde(default)]
+    pub kind: Option<String>,
+    #[serde(default)]
+    pub name: LocalizedString,
+    #[serde(default)]
+    pub summary: LocalizedString,
+    #[serde(default)]
+    pub steps: Vec<GuideStep>,
+    #[serde(default)]
+    pub verification: VerificationInfo,
+    #[serde(default)]
+    pub tags: Vec<String>,
+}
+
+/// Rehber adımı — komut çalıştırmaz; salt öğretici.
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct GuideStep {
+    pub id: String,
+    #[serde(default)]
+    pub title: LocalizedString,
+    #[serde(default)]
+    pub summary: LocalizedString,
+    #[serde(default)]
+    pub diagnosis: LocalizedString,
+    #[serde(default)]
+    pub risk: RiskLevel,
+    #[serde(default)]
+    pub requires_elevated: bool,
+    #[serde(default)]
+    pub related_commands: Vec<String>,
+    #[serde(default)]
+    pub related_tasks: Vec<String>,
+    #[serde(default)]
+    pub example: Option<CommandExample>,
+    #[serde(default)]
+    pub rollback: LocalizedString,
+    #[serde(default)]
+    pub platforms: Vec<String>,
+    #[serde(default)]
+    pub operating_systems: Vec<String>,
 }
 
 impl CommandBank {

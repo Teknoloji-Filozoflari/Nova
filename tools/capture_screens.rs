@@ -33,6 +33,7 @@ fn main() {
     capture_ai_actions(&out);
     capture_commands_start(&out);
     capture_commands_task_detail(&out);
+    capture_commands_security_checklist(&out);
 
     eprintln!("frames → {}", out.display());
 }
@@ -202,6 +203,29 @@ fn capture_commands_task_detail(out: &Path) {
     app.status_message =
         "Göreve göre › Disk › Disk alanını kontrol et — ilgili komutlar; Enter çalıştırmaz.".into();
     dump(&mut app, 160, 42, out.join("06-commands-task-detail.json"));
+}
+
+/// Komut Rehberi · Sunucu güvenlik kontrolü (checklist; çalıştırmaz).
+fn capture_commands_security_checklist(out: &Path) {
+    let mut app = base_app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::ServerSecurity);
+    app.focus = PanelFocus::CommandsList;
+    app.commands_entry_index = 0;
+    if let Some(step) = app.filtered_checklist_steps().first() {
+        app.state
+            .file
+            .command_checklist
+            .insert(step.state_key(), "ok".into());
+    }
+    app.status_message =
+        "Sunucu güvenlik kontrolü — Space durum; tarama/çalıştırma yok; parola saklanmaz.".into();
+    dump(
+        &mut app,
+        160,
+        42,
+        out.join("07-commands-security-checklist.json"),
+    );
 }
 
 fn dump(app: &mut App, width: u16, height: u16, path: PathBuf) {
