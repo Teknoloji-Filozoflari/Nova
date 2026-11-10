@@ -1345,14 +1345,10 @@ mod tests {
     use std::cell::RefCell;
     use std::io::Write;
     use std::rc::Rc;
-    use std::sync::Mutex;
-
     /// PATH shim `HOME/.local/bin` yazar; paralel testler aynı `rg` adına
-    /// yarışmasın diye HOME değiştiren testler bu kilidi alır.
-    static SHIM_HOME_LOCK: Mutex<()> = Mutex::new(());
-
+    /// yarışmasın diye HOME değiştiren testler paylaşılan kilidi alır.
     fn with_isolated_home<F: FnOnce()>(f: F) {
-        let _guard = SHIM_HOME_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let _guard = crate::test_env::lock();
         let dir = temp_dir("shim-home");
         let old_home = std::env::var_os("HOME");
         std::env::set_var("HOME", &dir);

@@ -329,9 +329,6 @@ pub fn reject_broken_npm_cli(exe_name: &str, path: &Path) -> Result<(), InstallE
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Mutex;
-
-    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     fn sample_claude_entry() -> StoreEntry {
         StoreEntry {
@@ -363,7 +360,7 @@ mod tests {
     }
 
     fn with_temp_home<F: FnOnce(&Path)>(f: F) {
-        let _guard = ENV_LOCK.lock().unwrap();
+        let _guard = crate::test_env::lock();
         let dir = std::env::temp_dir().join(format!(
             "nova-native-cli-{}-{}",
             std::process::id(),

@@ -276,9 +276,6 @@ pub fn builtin_catalog_toml_for_tests() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Mutex;
-
-    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     fn fixture_dir() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/nova-store")
@@ -351,7 +348,7 @@ mod tests {
 
     #[test]
     fn remote_urls_honour_env_override() {
-        let _g = ENV_LOCK.lock().unwrap();
+        let _g = crate::test_env::lock();
         std::env::set_var("NOVA_STORE_CATALOG_URL", "https://example.org/c.toml");
         std::env::set_var(
             "NOVA_STORE_CATALOG_SIG_URL",
@@ -369,7 +366,7 @@ mod tests {
 
     #[test]
     fn refresh_disabled_by_env() {
-        let _g = ENV_LOCK.lock().unwrap();
+        let _g = crate::test_env::lock();
         std::env::set_var("NOVA_STORE_CATALOG_DISABLE_REMOTE", "1");
         let err = try_refresh_from_remote(None).unwrap_err();
         assert!(err.contains("kapalı"), "{err}");

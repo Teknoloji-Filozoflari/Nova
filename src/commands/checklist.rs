@@ -116,8 +116,21 @@ fn step_from_guide(step: &GuideStep) -> ChecklistStepView {
 
 /// Bankada `guides` yoksa güvenlik / sunucu görevlerinden sıralı adım üret.
 fn derived_steps(bank: &CommandBank) -> Vec<ChecklistStepView> {
-    // Homelab → salt okunur teşhis sırası (komut çalıştırılmaz).
-    const ORDER: &[&str] = &[
+    // Tercih: Commands `security-check-*` görevleri (Homelab related_tasks sırası).
+    // Yoksa eski salt-okunur teşhis görevlerine düş.
+    const SECURITY_CHECK_ORDER: &[&str] = &[
+        "security-check-os-accounts",
+        "security-check-updates",
+        "security-check-ssh",
+        "security-check-firewall-ports",
+        "security-check-users-sudo",
+        "security-check-docker",
+        "security-check-reverse-proxy-tls",
+        "security-check-dns-vpn",
+        "security-check-backup-restore",
+        "security-check-logs-incident",
+    ];
+    const FALLBACK_ORDER: &[&str] = &[
         "check-firewall-status",
         "check-open-ports",
         "list-running-services",
@@ -130,11 +143,30 @@ fn derived_steps(bank: &CommandBank) -> Vec<ChecklistStepView> {
         "update-system",
     ];
 
+    let mut order: Vec<String> = SECURITY_CHECK_ORDER
+        .iter()
+        .filter(|id| bank.find_task(id).is_some())
+        .map(|s| (*s).to_string())
+        .collect();
+    if let Some(profile) = bank.find_profile("homelab") {
+        for tid in &profile.related_tasks {
+            if tid.starts_with("security-check-")
+                && !order.iter().any(|x| x == tid)
+                && bank.find_task(tid).is_some()
+            {
+                order.push(tid.clone());
+            }
+        }
+    }
+    if order.is_empty() {
+        order = FALLBACK_ORDER.iter().map(|s| (*s).to_string()).collect();
+    }
+
     let mut out = Vec::new();
     let mut seen = std::collections::BTreeSet::new();
 
-    for tid in ORDER {
-        let Some(task) = bank.find_task(tid) else {
+    for tid in &order {
+        let Some(task) = bank.find_task(tid.as_str()) else {
             continue;
         };
         if !seen.insert(task.id.clone()) {

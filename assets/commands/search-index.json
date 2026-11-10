@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 315,
+  "entry_count": 338,
   "entries": [
     {
       "type": "command",
@@ -100,11 +100,15 @@
       "intent": {
         "tr": [
           "ubuntu paket kur",
-          "apt güncelle"
+          "apt güncelle",
+          "apt search",
+          "paket yükselt"
         ],
         "en": [
           "apt install",
-          "ubuntu upgrade"
+          "ubuntu upgrade",
+          "apt search",
+          "upgrade packages"
         ]
       },
       "concepts": [
@@ -222,6 +226,45 @@
       "concepts": [
         "cloud",
         "infrastructure-as-code"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "bash",
+      "name": "bash",
+      "category": "shell",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "shell",
+        "bash"
+      ],
+      "summary": {
+        "tr": "GNU Bourne-Again SHell.",
+        "en": "GNU Bourne-Again SHell."
+      },
+      "intent": {
+        "tr": [
+          "bash kabuğu",
+          "bash betik",
+          "login shell"
+        ],
+        "en": [
+          "bash shell",
+          "bash script",
+          "login shell"
+        ]
+      },
+      "concepts": [
+        "terminal-basics",
+        "shell-builtin",
+        "path"
       ]
     },
     {
@@ -350,11 +393,13 @@
       "intent": {
         "tr": [
           "borg yedek",
-          "borgbackup"
+          "borg list",
+          "arşiv listele"
         ],
         "en": [
           "borg backup",
-          "borgbackup"
+          "borg list",
+          "list archives"
         ]
       },
       "concepts": [
@@ -1236,11 +1281,14 @@
       "intent": {
         "tr": [
           "fedora paket kur",
-          "dnf güncelle"
+          "dnf güncelle",
+          "dnf search",
+          "fedora güncelle"
         ],
         "en": [
           "dnf install",
-          "fedora upgrade"
+          "fedora upgrade",
+          "dnf search"
         ]
       },
       "concepts": [
@@ -1295,7 +1343,9 @@
       "kind": "executable",
       "risk": "dangerous",
       "platforms": [
-        "linux"
+        "linux",
+        "macos",
+        "windows"
       ],
       "verification": "draft",
       "tags": [
@@ -1307,14 +1357,16 @@
       },
       "intent": {
         "tr": [
-          "docker konteyner",
           "docker ps",
-          "docker imaj"
+          "konteyner listele",
+          "docker imaj",
+          "konteyner log"
         ],
         "en": [
-          "docker containers",
           "docker ps",
-          "docker images"
+          "list containers",
+          "docker images",
+          "container logs"
         ]
       },
       "concepts": [
@@ -1376,11 +1428,15 @@
       "intent": {
         "tr": [
           "deb kur",
-          "dpkg sorgu"
+          "dpkg sorgu",
+          "dpkg -l",
+          "paket kim sahip"
         ],
         "en": [
           "install deb",
-          "dpkg query"
+          "dpkg query",
+          "dpkg -l",
+          "which package owns"
         ]
       },
       "concepts": [
@@ -1708,6 +1764,46 @@
       },
       "concepts": [
         "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "file",
+      "name": "file",
+      "category": "filesystem",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "files",
+        "forensics",
+        "mime"
+      ],
+      "summary": {
+        "tr": "Dosya türünü magic ile belirler.",
+        "en": "Determine file type via magic."
+      },
+      "intent": {
+        "tr": [
+          "dosya türü",
+          "mime bak",
+          "file komutu"
+        ],
+        "en": [
+          "file type",
+          "mime type",
+          "file command"
+        ]
+      },
+      "concepts": [
+        "files",
+        "terminal-basics",
+        "debugging"
       ]
     },
     {
@@ -2483,12 +2579,16 @@
         "tr": [
           "windows servis listele",
           "get-service",
-          "servis durumu"
+          "servis durumu",
+          "windows servis durumu",
+          "scm sorgu"
         ],
         "en": [
           "list windows services",
           "get-service",
-          "service status"
+          "service status",
+          "windows service status",
+          "scm query"
         ]
       },
       "concepts": [
@@ -2660,11 +2760,17 @@
       "intent": {
         "tr": [
           "git durum",
-          "commit geçmişi"
+          "commit geçmişi",
+          "repo klonla",
+          "git diff",
+          "dal listele"
         ],
         "en": [
           "git status",
-          "commit history"
+          "commit history",
+          "clone repo",
+          "git diff",
+          "list branches"
         ]
       },
       "concepts": [
@@ -3338,11 +3444,15 @@
       "intent": {
         "tr": [
           "ip adresi gör",
-          "ağ arayüzü"
+          "ağ arayüzü",
+          "rota tablosu",
+          "iproute2"
         ],
         "en": [
           "show ip address",
-          "list interfaces"
+          "list interfaces",
+          "routing table",
+          "iproute2"
         ]
       },
       "concepts": [
@@ -3514,11 +3624,15 @@
       "intent": {
         "tr": [
           "servis logları",
-          "journal oku"
+          "journal oku",
+          "systemd hata",
+          "boot log"
         ],
         "en": [
           "service logs",
-          "read journal"
+          "read journal",
+          "systemd errors",
+          "boot log"
         ]
       },
       "concepts": [
@@ -3635,6 +3749,46 @@
       "concepts": [
         "containers",
         "kubernetes"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "last",
+      "name": "last",
+      "category": "users",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "users",
+        "sessions",
+        "security",
+        "audit"
+      ],
+      "summary": {
+        "tr": "Son oturum açma kayıtlarını gösterir.",
+        "en": "Show recent login history."
+      },
+      "intent": {
+        "tr": [
+          "son girişler",
+          "login geçmişi",
+          "last"
+        ],
+        "en": [
+          "recent logins",
+          "login history",
+          "last"
+        ]
+      },
+      "concepts": [
+        "permissions",
+        "debugging"
       ]
     },
     {
@@ -4841,12 +4995,16 @@
         "tr": [
           "nix kur",
           "nix flake",
-          "nix search"
+          "nix search",
+          "nix profile",
+          "nixos değil"
         ],
         "en": [
           "nix profile install",
           "nix flake",
-          "nix search"
+          "nix search",
+          "nix profile",
+          "not nixos"
         ]
       },
       "concepts": [
@@ -5109,11 +5267,17 @@
       "intent": {
         "tr": [
           "sertifika incele",
-          "openssl hash"
+          "openssl hash",
+          "tls test",
+          "s_client",
+          "x509 tarih"
         ],
         "en": [
           "inspect certificate",
-          "openssl hash"
+          "openssl hash",
+          "tls test",
+          "s_client",
+          "x509 dates"
         ]
       },
       "concepts": [
@@ -5179,11 +5343,15 @@
       "intent": {
         "tr": [
           "arch paket kur",
-          "pacman güncelle"
+          "pacman güncelle",
+          "pacman ara",
+          "paket sahibi"
         ],
         "en": [
           "arch install package",
-          "pacman upgrade"
+          "pacman upgrade",
+          "pacman search",
+          "package owns file"
         ]
       },
       "concepts": [
@@ -6309,11 +6477,15 @@
       "intent": {
         "tr": [
           "restic yedek",
-          "şifreli yedek"
+          "şifreli yedek",
+          "snapshot listele",
+          "yedek doğrula"
         ],
         "en": [
           "restic backup",
-          "encrypted backup"
+          "encrypted backup",
+          "list snapshots",
+          "verify backup"
         ]
       },
       "concepts": [
@@ -6481,11 +6653,15 @@
       "intent": {
         "tr": [
           "rpm sorgu",
-          "rpm paket"
+          "rpm paket",
+          "rpm -qa",
+          "rpm dosya sahibi"
         ],
         "en": [
           "rpm query",
-          "rpm package"
+          "rpm package",
+          "rpm -qa",
+          "rpm file owner"
         ]
       },
       "concepts": [
@@ -7118,11 +7294,15 @@
       "intent": {
         "tr": [
           "ssh ile bağlan",
-          "uzak sunucu"
+          "uzak sunucu",
+          "ssh port",
+          "anahtar ile ssh"
         ],
         "en": [
           "ssh connect",
-          "remote shell"
+          "remote shell",
+          "ssh port",
+          "ssh with key"
         ]
       },
       "concepts": [
@@ -7238,6 +7418,46 @@
       "concepts": [
         "permissions",
         "ssh"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "sshd",
+      "name": "sshd",
+      "category": "security",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "ssh",
+        "security",
+        "server"
+      ],
+      "summary": {
+        "tr": "OpenSSH sunucu süreci / yapılandırma testi.",
+        "en": "OpenSSH server daemon / config test."
+      },
+      "intent": {
+        "tr": [
+          "sshd yapılandırma",
+          "ssh sunucu test",
+          "passwordauthentication"
+        ],
+        "en": [
+          "sshd config",
+          "ssh server test",
+          "passwordauthentication"
+        ]
+      },
+      "concepts": [
+        "ssh",
+        "permissions",
+        "networking-basics"
       ]
     },
     {
@@ -7378,6 +7598,44 @@
       },
       "concepts": [
         "debugging",
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "su",
+      "name": "su",
+      "category": "users",
+      "kind": "executable",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "users",
+        "privilege",
+        "security"
+      ],
+      "summary": {
+        "tr": "Başka kullanıcı kimliğine geç.",
+        "en": "Switch to another user id."
+      },
+      "intent": {
+        "tr": [
+          "kullanıcı değiştir",
+          "su root",
+          "kimlik değiştir"
+        ],
+        "en": [
+          "switch user",
+          "su root",
+          "change user id"
+        ]
+      },
+      "concepts": [
         "permissions"
       ]
     },
@@ -7543,11 +7801,15 @@
       "intent": {
         "tr": [
           "servis başlat",
-          "systemd durum"
+          "systemd durum",
+          "failed birim",
+          "servis enable"
         ],
         "en": [
           "start service",
-          "systemd status"
+          "systemd status",
+          "failed units",
+          "service enabled"
         ]
       },
       "concepts": [
@@ -7845,6 +8107,82 @@
     },
     {
       "type": "command",
+      "id": "timeout",
+      "name": "timeout",
+      "category": "processes",
+      "kind": "executable",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "process",
+        "automation"
+      ],
+      "summary": {
+        "tr": "Komutu süre dolunca sonlandır.",
+        "en": "Run a command with a time limit."
+      },
+      "intent": {
+        "tr": [
+          "komut zaman aşımı",
+          "timeout",
+          "süre sınırı"
+        ],
+        "en": [
+          "command timeout",
+          "time limit",
+          "timeout"
+        ]
+      },
+      "concepts": [
+        "debugging",
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "tmux",
+      "name": "tmux",
+      "category": "shell",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "shell",
+        "sessions",
+        "server"
+      ],
+      "summary": {
+        "tr": "Terminal çoklayıcı (oturum/pencere/panel).",
+        "en": "Terminal multiplexer (sessions/windows/panes)."
+      },
+      "intent": {
+        "tr": [
+          "tmux oturum",
+          "terminal çoklayıcı",
+          "ssh kalıcı"
+        ],
+        "en": [
+          "tmux session",
+          "terminal multiplexer",
+          "persistent ssh"
+        ]
+      },
+      "concepts": [
+        "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
       "id": "top",
       "name": "top",
       "category": "processes",
@@ -8018,6 +8356,46 @@
         "firewalls",
         "networking",
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "umask",
+      "name": "umask",
+      "category": "users",
+      "kind": "shell_builtin",
+      "risk": "caution",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "permissions",
+        "shell",
+        "security"
+      ],
+      "summary": {
+        "tr": "Dosya oluşturma izin maskesi.",
+        "en": "File-creation mode mask."
+      },
+      "intent": {
+        "tr": [
+          "umask gör",
+          "varsayılan izin",
+          "dosya maskesi"
+        ],
+        "en": [
+          "show umask",
+          "default permissions",
+          "file creation mask"
+        ]
+      },
+      "concepts": [
+        "permissions",
+        "terminal-basics",
+        "shell-builtin"
       ]
     },
     {
@@ -8367,6 +8745,44 @@
     },
     {
       "type": "command",
+      "id": "visudo",
+      "name": "visudo",
+      "category": "users",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "sudo",
+        "security",
+        "users"
+      ],
+      "summary": {
+        "tr": "sudoers dosyasını güvenli düzenler.",
+        "en": "Safely edit the sudoers file."
+      },
+      "intent": {
+        "tr": [
+          "sudoers düzenle",
+          "visudo kontrol",
+          "sudo yetki"
+        ],
+        "en": [
+          "edit sudoers",
+          "visudo check",
+          "sudo privileges"
+        ]
+      },
+      "concepts": [
+        "permissions"
+      ]
+    },
+    {
+      "type": "command",
       "id": "vmstat",
       "name": "vmstat",
       "category": "monitoring",
@@ -8601,6 +9017,45 @@
         "files",
         "shell-pipes-redirection",
         "path"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "who",
+      "name": "who",
+      "category": "users",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "users",
+        "sessions",
+        "security"
+      ],
+      "summary": {
+        "tr": "Oturum açmış kullanıcıları listeler.",
+        "en": "Show who is logged on."
+      },
+      "intent": {
+        "tr": [
+          "kim bağlı",
+          "oturum listele",
+          "who"
+        ],
+        "en": [
+          "who is logged in",
+          "list sessions",
+          "who"
+        ]
+      },
+      "concepts": [
+        "permissions",
+        "terminal-basics"
       ]
     },
     {
@@ -9064,6 +9519,46 @@
       },
       "concepts": [
         "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "zsh",
+      "name": "zsh",
+      "category": "shell",
+      "kind": "executable",
+      "risk": "safe",
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "shell",
+        "zsh",
+        "macos"
+      ],
+      "summary": {
+        "tr": "Z shell — güçlü etkileşimli kabuk.",
+        "en": "Z shell — powerful interactive shell."
+      },
+      "intent": {
+        "tr": [
+          "zsh kabuğu",
+          "macos kabuk",
+          "z shell"
+        ],
+        "en": [
+          "zsh shell",
+          "macos shell",
+          "z shell"
+        ]
+      },
+      "concepts": [
+        "terminal-basics",
+        "shell-builtin",
+        "path"
       ]
     },
     {
@@ -9574,6 +10069,50 @@
     },
     {
       "type": "concept",
+      "id": "server-security-checklist",
+      "difficulty": "intermediate",
+      "tags": [
+        "security",
+        "checklist",
+        "homelab",
+        "server"
+      ],
+      "title": {
+        "tr": "Sunucu güvenlik kontrolü",
+        "en": "Server security checklist"
+      },
+      "summary": {
+        "tr": "Homelab/sunucu için 10 aşamalı salt okunur güvenlik kontrol sırası.",
+        "en": "10-stage read-only security check sequence for homelab/servers."
+      },
+      "related_commands": [
+        "uname",
+        "who",
+        "last",
+        "pacman",
+        "apt",
+        "dnf",
+        "sshd",
+        "ssh",
+        "systemctl",
+        "ss",
+        "ufw",
+        "firewall-cmd",
+        "visudo",
+        "sudo",
+        "docker",
+        "nginx",
+        "caddy",
+        "openssl",
+        "resolvectl",
+        "dig",
+        "restic",
+        "borg",
+        "journalctl"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "shell-pipes-redirection",
       "difficulty": "beginner",
       "tags": [
@@ -10052,11 +10591,12 @@
       "tags": [
         "homelab",
         "server",
-        "self-hosted"
+        "self-hosted",
+        "security-checklist"
       ],
       "summary": {
-        "tr": "Ev laboratuvarı: Docker, reverse proxy, yedek, SSH ve temel ağ.",
-        "en": "Home lab: Docker, reverse proxy, backup, SSH, and basic networking."
+        "tr": "Ev laboratuvarı: Docker, reverse proxy, yedek, SSH, ağ + Sunucu güvenlik kontrolü aşamaları.",
+        "en": "Home lab: Docker, reverse proxy, backup, SSH, networking + Server security checklist stages."
       },
       "related_commands": [
         "docker",
@@ -10103,7 +10643,17 @@
         "transfer-files-ssh",
         "clone-git-repo",
         "find-files",
-        "list-hardware"
+        "list-hardware",
+        "security-check-os-accounts",
+        "security-check-updates",
+        "security-check-ssh",
+        "security-check-firewall-ports",
+        "security-check-users-sudo",
+        "security-check-docker",
+        "security-check-reverse-proxy-tls",
+        "security-check-dns-vpn",
+        "security-check-backup-restore",
+        "security-check-logs-incident"
       ]
     },
     {
@@ -10277,6 +10827,77 @@
         "compress-archive",
         "extract-archive",
         "find-files"
+      ]
+    },
+    {
+      "type": "profile",
+      "id": "server-security-checklist",
+      "name": {
+        "tr": "Sunucu güvenlik kontrolü",
+        "en": "Server security checklist"
+      },
+      "operating_systems": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "distributions": [],
+      "server_platforms": [
+        "docker-engine"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "homelab",
+        "server"
+      ],
+      "summary": {
+        "tr": "Homelab/sunucu için 10 aşamalı salt okunur güvenlik kontrol sırası. Otomatik çalışmaz; durum Nova’da yerel tutulur.",
+        "en": "10-stage read-only security check sequence for homelab/servers. Never auto-runs; states stay local in Nova."
+      },
+      "related_commands": [
+        "uname",
+        "hostnamectl",
+        "who",
+        "last",
+        "id",
+        "pacman",
+        "apt",
+        "dnf",
+        "sshd",
+        "ssh",
+        "systemctl",
+        "ss",
+        "ufw",
+        "firewall-cmd",
+        "visudo",
+        "sudo",
+        "docker",
+        "nginx",
+        "caddy",
+        "openssl",
+        "resolvectl",
+        "dig",
+        "restic",
+        "borg",
+        "journalctl",
+        "get-service",
+        "get-nettcpconnection",
+        "winget",
+        "softwareupdate"
+      ],
+      "related_tasks": [
+        "security-check-os-accounts",
+        "security-check-updates",
+        "security-check-ssh",
+        "security-check-firewall-ports",
+        "security-check-users-sudo",
+        "security-check-docker",
+        "security-check-reverse-proxy-tls",
+        "security-check-dns-vpn",
+        "security-check-backup-restore",
+        "security-check-logs-incident"
       ]
     },
     {
@@ -11307,6 +11928,427 @@
     },
     {
       "type": "task",
+      "id": "security-check-backup-restore",
+      "name": {
+        "tr": "9) Yedek ve geri yükleme tatbikatı",
+        "en": "9) Backup and restore drill"
+      },
+      "category": "backup",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "backup"
+      ],
+      "summary": {
+        "tr": "Yedek var mı / okunabilir mi — gerçek restore’u kontrollü ortamda planla.",
+        "en": "Do backups exist/read? Plan real restore in a controlled environment."
+      },
+      "intent": {
+        "tr": [
+          "güvenlik kontrol 9",
+          "sunucu güvenlik kontrolü",
+          "9) Yedek ve geri yükleme tatbikatı"
+        ],
+        "en": [
+          "security check 9",
+          "server security checklist",
+          "9) Backup and restore drill"
+        ]
+      },
+      "related_commands": [
+        "restic"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "security-check-dns-vpn",
+      "name": {
+        "tr": "8) DNS ve VPN yüzeyi",
+        "en": "8) DNS and VPN surface"
+      },
+      "category": "network",
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "dns",
+        "vpn"
+      ],
+      "summary": {
+        "tr": "Çözümleyici / DNS sağlığı; VPN araçları yoksa na (WireGuard bankası ayrı gap).",
+        "en": "Resolver / DNS health; mark VPN na if tooling absent (WireGuard still a gap)."
+      },
+      "intent": {
+        "tr": [
+          "güvenlik kontrol 8",
+          "sunucu güvenlik kontrolü",
+          "8) DNS ve VPN yüzeyi"
+        ],
+        "en": [
+          "security check 8",
+          "server security checklist",
+          "8) DNS and VPN surface"
+        ]
+      },
+      "related_commands": [
+        "dig",
+        "host",
+        "resolvectl",
+        "scutil"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "security-check-docker",
+      "name": {
+        "tr": "6) Docker / konteyner yüzeyi",
+        "en": "6) Docker / container surface"
+      },
+      "category": "containers",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "docker",
+        "containers"
+      ],
+      "summary": {
+        "tr": "Çalışan konteynerler, yayınlanan portlar, privileged bayrakları — yoksa na.",
+        "en": "Running containers, published ports, privileged flags — na if absent."
+      },
+      "intent": {
+        "tr": [
+          "güvenlik kontrol 6",
+          "sunucu güvenlik kontrolü",
+          "6) Docker / konteyner yüzeyi"
+        ],
+        "en": [
+          "security check 6",
+          "server security checklist",
+          "6) Docker / container surface"
+        ]
+      },
+      "related_commands": [
+        "docker",
+        "systemctl"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "security-check-firewall-ports",
+      "name": {
+        "tr": "4) Güvenlik duvarı ve dinleyen portlar",
+        "en": "4) Firewall and listening ports"
+      },
+      "category": "security",
+      "platforms": [
+        "bsd",
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "firewall",
+        "network"
+      ],
+      "summary": {
+        "tr": "Yerel dinleyen portlar + firewall durumu — kural silme/ekleme yok; uzak tarama yok.",
+        "en": "Local listening ports + firewall status — no rule add/delete; no remote scanning."
+      },
+      "intent": {
+        "tr": [
+          "güvenlik kontrol 4",
+          "sunucu güvenlik kontrolü",
+          "4) Güvenlik duvarı ve dinleyen portlar"
+        ],
+        "en": [
+          "security check 4",
+          "server security checklist",
+          "4) Firewall and listening ports"
+        ]
+      },
+      "related_commands": [
+        "firewall-cmd",
+        "get-nettcpconnection",
+        "netsh",
+        "netstat-bsd",
+        "pfctl",
+        "ss",
+        "ufw"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "security-check-logs-incident",
+      "name": {
+        "tr": "10) Loglar ve olay müdahalesi",
+        "en": "10) Logs and incident response"
+      },
+      "category": "monitoring",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "logs",
+        "incident"
+      ],
+      "summary": {
+        "tr": "Auth/servis hatalarını salt okunur tara; kanıtı not et — log silme yok.",
+        "en": "Read-only sweep of auth/service errors; note evidence — no log deletion."
+      },
+      "intent": {
+        "tr": [
+          "güvenlik kontrol 10",
+          "sunucu güvenlik kontrolü",
+          "10) Loglar ve olay müdahalesi"
+        ],
+        "en": [
+          "security check 10",
+          "server security checklist",
+          "10) Logs and incident response"
+        ]
+      },
+      "related_commands": [
+        "dmesg",
+        "get-winevent",
+        "journalctl",
+        "last"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "security-check-os-accounts",
+      "name": {
+        "tr": "1) OS ve hesap yüzeyi",
+        "en": "1) OS and account surface"
+      },
+      "category": "security",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "homelab",
+        "accounts"
+      ],
+      "summary": {
+        "tr": "Dağıtım/sürüm, hostname ve oturum yüzeyi — salt okunur kimlik tespiti.",
+        "en": "Distro/version, hostname, and session surface — read-only identity."
+      },
+      "intent": {
+        "tr": [
+          "güvenlik kontrol 1",
+          "sunucu güvenlik kontrolü",
+          "1) OS ve hesap yüzeyi"
+        ],
+        "en": [
+          "security check 1",
+          "server security checklist",
+          "1) OS and account surface"
+        ]
+      },
+      "related_commands": [
+        "get-computerinfo",
+        "hostnamectl",
+        "id",
+        "uname",
+        "who",
+        "whoami"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "security-check-reverse-proxy-tls",
+      "name": {
+        "tr": "7) Reverse proxy ve TLS",
+        "en": "7) Reverse proxy and TLS"
+      },
+      "category": "security",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "tls",
+        "proxy"
+      ],
+      "summary": {
+        "tr": "nginx/caddy config test + sertifika/TLS el sıkışma — reload zorunlu değil.",
+        "en": "nginx/caddy config test + certificate/TLS handshake — reload not required."
+      },
+      "intent": {
+        "tr": [
+          "güvenlik kontrol 7",
+          "sunucu güvenlik kontrolü",
+          "7) Reverse proxy ve TLS"
+        ],
+        "en": [
+          "security check 7",
+          "server security checklist",
+          "7) Reverse proxy and TLS"
+        ]
+      },
+      "related_commands": [
+        "caddy",
+        "curl",
+        "nginx",
+        "openssl",
+        "systemctl"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "security-check-ssh",
+      "name": {
+        "tr": "3) SSH yüzeyi",
+        "en": "3) SSH surface"
+      },
+      "category": "security",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "ssh"
+      ],
+      "summary": {
+        "tr": "sshd durumu ve etkili ayarlar — salt okunur; parola auth’u kör kapatma yok.",
+        "en": "sshd status and effective settings — read-only; no blind password-auth disable."
+      },
+      "intent": {
+        "tr": [
+          "güvenlik kontrol 3",
+          "sunucu güvenlik kontrolü",
+          "3) SSH yüzeyi"
+        ],
+        "en": [
+          "security check 3",
+          "server security checklist",
+          "3) SSH surface"
+        ]
+      },
+      "related_commands": [
+        "journalctl",
+        "ss",
+        "sshd",
+        "systemctl"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "security-check-updates",
+      "name": {
+        "tr": "2) Güncellemeler",
+        "en": "2) Updates"
+      },
+      "category": "packages",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "updates",
+        "packages"
+      ],
+      "summary": {
+        "tr": "Bekleyen güvenlik güncellemelerini salt okunur kontrol et (yükseltme zorunlu değil).",
+        "en": "Check pending security updates read-only (upgrade not required)."
+      },
+      "intent": {
+        "tr": [
+          "güvenlik kontrol 2",
+          "sunucu güvenlik kontrolü",
+          "2) Güncellemeler"
+        ],
+        "en": [
+          "security check 2",
+          "server security checklist",
+          "2) Updates"
+        ]
+      },
+      "related_commands": [
+        "apt",
+        "dnf",
+        "pacman",
+        "softwareupdate",
+        "winget"
+      ]
+    },
+    {
+      "type": "task",
+      "id": "security-check-users-sudo",
+      "name": {
+        "tr": "5) Kullanıcılar ve sudo",
+        "en": "5) Users and sudo"
+      },
+      "category": "security",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "security",
+        "checklist",
+        "sudo",
+        "users"
+      ],
+      "summary": {
+        "tr": "Kimler login/sudo hakkına sahip — salt okunur; sudoers’a kör yazma yok.",
+        "en": "Who can login/sudo — read-only; no blind sudoers writes."
+      },
+      "intent": {
+        "tr": [
+          "güvenlik kontrol 5",
+          "sunucu güvenlik kontrolü",
+          "5) Kullanıcılar ve sudo"
+        ],
+        "en": [
+          "security check 5",
+          "server security checklist",
+          "5) Users and sudo"
+        ]
+      },
+      "related_commands": [
+        "getent",
+        "id",
+        "last",
+        "sudo",
+        "visudo"
+      ]
+    },
+    {
+      "type": "task",
       "id": "show-local-ip",
       "name": {
         "tr": "Yerel IP adresini göster",
@@ -11482,10 +12524,10 @@
       ]
     }
   ],
-  "content_sha256": "e17437d67113603c4e7e7cd46b7b5ad1ebb1043d032b4a38b651c3cd189b8169",
-  "generated_at": "2026-11-09T18:08:02Z",
-  "command_count": 256,
-  "concept_count": 20,
-  "task_count": 26,
-  "profile_count": 13
+  "content_sha256": "406fe04002c47c592009c71f6d9dbb1f0ec7c9faa6c19165f58bebe29265b716",
+  "generated_at": "2026-11-10T21:03:47Z",
+  "command_count": 267,
+  "concept_count": 21,
+  "task_count": 36,
+  "profile_count": 14
 }

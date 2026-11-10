@@ -341,6 +341,11 @@ fn server_security_checklist_persists_local_state_only() {
         !steps.is_empty(),
         "sunucu güvenlik checklist adımları boş olmamalı"
     );
+    assert!(
+        steps.iter().any(|s| s.id.starts_with("security-check-")),
+        "Commands security-check-* görevleri checklist'te olmalı; ids={:?}",
+        steps.iter().map(|s| s.id.as_str()).collect::<Vec<_>>()
+    );
     app.commands_entry_index = 0;
     app.focus = nova::app::PanelFocus::CommandsList;
     let key = steps[0].state_key();
