@@ -133,6 +133,32 @@ pub enum Modal {
         /// Seçili satır: 0 = Kaldır, 1 = Güncelleme denetle.
         index: usize,
     },
+    /// Kurulu olmayan manuel / trust-D mağaza kaydı: yapılandırılmış
+    /// kurulum seçenekleri (Bun / brew / curl / kaynak). Nova komut
+    /// çalıştırmaz; uzun `install_notes` durum satırına dökülmez.
+    StoreManualMenu {
+        /// Mağaza kimliği.
+        id: String,
+        /// Görünen ad.
+        name: String,
+        /// Seçili satır.
+        index: usize,
+        /// Ayrıştırılmış seçenekler.
+        options: Vec<crate::store::manual_options::ManualInstallOption>,
+    },
+    /// Manuel seçenekten seçilen tek komutun okunabilir gösterimi.
+    StoreManualCommand {
+        /// Mağaza kimliği (Esc → menüye dönüş).
+        id: String,
+        /// Görünen ad.
+        name: String,
+        /// Seçenek etiketi.
+        label: String,
+        /// Upstream komut (Nova çalıştırmaz).
+        command: String,
+        /// Varsa kaynak / belge URL’si.
+        source_url: Option<String>,
+    },
     /// Kurulu AI aracı için aksiyon menüsü (Mağaza kurulu menüsü / onay
     /// modalı boyut ve görsel dilinde ortalanmış popup).
     ToolActionsMenu {

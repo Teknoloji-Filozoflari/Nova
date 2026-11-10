@@ -3175,7 +3175,7 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
     } else if entry.install_method.is_archive() {
         "Enter: kur (arşiv)   → detay: kaynak aç   U: denetle"
     } else {
-        "Enter: resmî talimat   → detay: kaynak aç   U: denetle"
+        "Enter: kurulum seçenekleri   → detay: kaynak aç   U: denetle"
     };
     lines.push(Line::from(Span::styled(
         hint,
