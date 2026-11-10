@@ -1,0 +1,312 @@
+//! Komut Rehberi süzgeçleri — OS / distro / shell / profil / seviye / risk.
+//!
+//! PATH keşfine uygulanmaz; yalnız banka komut listelerinde.
+
+use crate::commands::bank::{CommandEntry, RiskLevel};
+use crate::store::host::{detect_host_os, HostOs};
+
+/// Öğrenme seviyesi süzgeci (bankada ayrı alan yoksa risk + başlangıç yolu ile).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum LearningLevelFilter {
+    #[default]
+    All,
+    Beginner,
+    Intermediate,
+    Advanced,
+}
+
+impl LearningLevelFilter {
+    pub const ALL: [Self; 4] = [
+        Self::All,
+        Self::Beginner,
+        Self::Intermediate,
+        Self::Advanced,
+    ];
+
+    pub fn next(self) -> Self {
+        let i = Self::ALL.iter().position(|v| *v == self).unwrap_or(0);
+        Self::ALL[(i + 1) % Self::ALL.len()]
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::All => "all",
+            Self::Beginner => "beginner",
+            Self::Intermediate => "intermediate",
+            Self::Advanced => "advanced",
+        }
+    }
+}
+
+/// Aktif banka süzgeçleri (`None` / `All` = kısıt yok).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct CommandsFilters {
+    /// `linux` / `macos` / `windows` / `freebsd` …
+    pub os: Option<String>,
+    pub distro: Option<String>,
+    pub shell: Option<String>,
+    /// Profil id — `related_commands` kesişimi.
+    pub profile: Option<String>,
+    pub learning: LearningLevelFilter,
+    pub risk: Option<RiskLevel>,
+}
+
+impl CommandsFilters {
+    pub fn is_active(&self) -> bool {
+        self.os.is_some()
+            || self.distro.is_some()
+            || self.shell.is_some()
+            || self.profile.is_some()
+            || self.learning != LearningLevelFilter::All
+            || self.risk.is_some()
+    }
+
+    pub fn clear(&mut self) {
+        *self = Self::default();
+    }
+
+    /// Komut bu süzgeçlere uyar mı?
+    pub fn matches(
+        &self,
+        cmd: &CommandEntry,
+        start_ids: &std::collections::BTreeSet<&str>,
+    ) -> bool {
+        if let Some(ref risk) = self.risk {
+            if cmd.risk != *risk {
+                return false;
+            }
+        }
+        if let Some(ref os) = self.os {
+            if !command_covers_os(cmd, os) {
+                return false;
+            }
+        }
+        if let Some(ref distro) = self.distro {
+            if !command_covers_distro(cmd, distro) {
+                return false;
+            }
+        }
+        if let Some(ref shell) = self.shell {
+            if !command_covers_shell(cmd, shell) {
+                return false;
+            }
+        }
+        if let Some(ref profile) = self.profile {
+            // Profil süzgeci App tarafında related set ile de uygulanır;
+            // burada id etiketi tutarlılığı için no-op bırakılabilir.
+            let _ = profile;
+        }
+        match self.learning {
+            LearningLevelFilter::All => true,
+            LearningLevelFilter::Beginner => {
+                cmd.risk == RiskLevel::Safe
+                    || start_ids.contains(cmd.id.as_str())
+                    || start_ids.contains(cmd.name.as_str())
+            }
+            LearningLevelFilter::Intermediate => matches!(cmd.risk, RiskLevel::Caution),
+            LearningLevelFilter::Advanced => {
+                matches!(cmd.risk, RiskLevel::Dangerous | RiskLevel::Destructive)
+            }
+        }
+    }
+
+    /// Durum satırı özeti (kısa).
+    pub fn summary_chips(&self) -> Vec<String> {
+        let mut chips = Vec::new();
+        if let Some(ref os) = self.os {
+            chips.push(format!("os:{os}"));
+        }
+        if let Some(ref d) = self.distro {
+            chips.push(format!("distro:{d}"));
+        }
+        if let Some(ref s) = self.shell {
+            chips.push(format!("shell:{s}"));
+        }
+        if let Some(ref p) = self.profile {
+            chips.push(format!("profile:{p}"));
+        }
+        if self.learning != LearningLevelFilter::All {
+            chips.push(format!("level:{}", self.learning.as_str()));
+        }
+        if let Some(r) = self.risk {
+            chips.push(format!("risk:{}", r.as_str()));
+        }
+        chips
+    }
+}
+
+fn command_covers_os(cmd: &CommandEntry, os: &str) -> bool {
+    let os = os.to_ascii_lowercase();
+    let hay: Vec<String> = cmd
+        .operating_systems
+        .iter()
+        .chain(cmd.platforms.iter())
+        .map(|s| s.to_ascii_lowercase())
+        .collect();
+    if hay.is_empty() {
+        // Boş platform = genel / çapraz — süzgeçte göster (sessizce “native” deme).
+        return true;
+    }
+    hay.iter().any(|h| h == &os || h.contains(&os))
+}
+
+fn command_covers_distro(cmd: &CommandEntry, distro: &str) -> bool {
+    let d = distro.to_ascii_lowercase();
+    cmd.package_refs.iter().any(|r| {
+        r.distributions
+            .iter()
+            .any(|x| x.to_ascii_lowercase() == d || x.to_ascii_lowercase().contains(&d))
+    }) || cmd
+        .packages
+        .labeled_pairs(true)
+        .iter()
+        .any(|(label, _)| label.to_ascii_lowercase().contains(&d))
+}
+
+fn command_covers_shell(cmd: &CommandEntry, shell: &str) -> bool {
+    let s = shell.to_ascii_lowercase();
+    if cmd.shells.is_empty()
+        && cmd
+            .examples
+            .iter()
+            .all(|ex| ex.shell.as_ref().map(|x| x.is_empty()).unwrap_or(true))
+    {
+        // Kabuk belirtilmemiş = genel kabuk-agnostik.
+        return true;
+    }
+    cmd.shells
+        .iter()
+        .any(|x| x.to_ascii_lowercase() == s || x.to_ascii_lowercase().contains(&s))
+        || cmd.examples.iter().any(|ex| {
+            ex.shell
+                .as_ref()
+                .is_some_and(|x| x.to_ascii_lowercase() == s || x.to_ascii_lowercase().contains(&s))
+        })
+}
+
+/// Host OS → banka `operating_systems` id.
+pub fn host_os_bank_id() -> &'static str {
+    match detect_host_os() {
+        HostOs::Arch | HostOs::Linux => "linux",
+        HostOs::MacOs => "macos",
+        HostOs::Other => {
+            if cfg!(target_os = "windows") {
+                "windows"
+            } else if cfg!(target_os = "freebsd") {
+                "freebsd"
+            } else {
+                "other"
+            }
+        }
+    }
+}
+
+/// Komutun host OS ile ilişkisi — asla sessizce “yerel” ima etme.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OsFit {
+    /// Host OS listede.
+    Native,
+    /// Platform boş / genel.
+    General,
+    /// Başka OS için; eşdeğer bu host’ta yok sayılmamalı.
+    OtherPlatform,
+    /// Bilinçli olarak bu OS’ta karşılık yok (liste dolu, host yok).
+    NoEquivalent,
+}
+
+pub fn command_os_fit(cmd: &CommandEntry) -> OsFit {
+    let host = host_os_bank_id();
+    let oss: Vec<String> = cmd
+        .operating_systems
+        .iter()
+        .chain(cmd.platforms.iter())
+        .map(|s| s.to_ascii_lowercase())
+        .collect();
+    if oss.is_empty() {
+        return OsFit::General;
+    }
+    if oss.iter().any(|o| o == host || o.contains(host)) {
+        return OsFit::Native;
+    }
+    // "cross" / "any" işaretleri
+    if oss
+        .iter()
+        .any(|o| o == "any" || o == "all" || o == "cross" || o == "portable")
+    {
+        return OsFit::General;
+    }
+    if oss.len() == 1 {
+        OsFit::OtherPlatform
+    } else {
+        OsFit::NoEquivalent
+    }
+}
+
+/// Bankadan bilinen OS id’leri (süzgeç döngüsü).
+pub fn bank_os_values(commands: &[CommandEntry]) -> Vec<String> {
+    let mut v: Vec<String> = commands
+        .iter()
+        .flat_map(|c| c.operating_systems.iter().chain(c.platforms.iter()))
+        .map(|s| s.to_ascii_lowercase())
+        .collect();
+    v.sort_unstable();
+    v.dedup();
+    v
+}
+
+pub fn bank_shell_values(commands: &[CommandEntry]) -> Vec<String> {
+    let mut v: Vec<String> = commands
+        .iter()
+        .flat_map(|c| {
+            c.shells.iter().cloned().chain(
+                c.examples
+                    .iter()
+                    .filter_map(|ex| ex.shell.clone())
+                    .filter(|s| !s.is_empty()),
+            )
+        })
+        .map(|s| s.to_ascii_lowercase())
+        .collect();
+    v.sort_unstable();
+    v.dedup();
+    v
+}
+
+pub fn bank_distro_values(commands: &[CommandEntry]) -> Vec<String> {
+    let mut v: Vec<String> = commands
+        .iter()
+        .flat_map(|c| {
+            c.package_refs
+                .iter()
+                .flat_map(|r| r.distributions.iter().cloned())
+        })
+        .map(|s| s.to_ascii_lowercase())
+        .collect();
+    v.sort_unstable();
+    v.dedup();
+    v
+}
+
+/// `None` ↔ değerler arasında döngü.
+pub fn cycle_optional(current: &Option<String>, values: &[String]) -> Option<String> {
+    if values.is_empty() {
+        return None;
+    }
+    match current {
+        None => Some(values[0].clone()),
+        Some(cur) => match values.iter().position(|v| v == cur) {
+            Some(i) if i + 1 < values.len() => Some(values[i + 1].clone()),
+            _ => None,
+        },
+    }
+}
+
+pub fn cycle_risk(current: Option<RiskLevel>) -> Option<RiskLevel> {
+    match current {
+        None => Some(RiskLevel::Safe),
+        Some(RiskLevel::Safe) => Some(RiskLevel::Caution),
+        Some(RiskLevel::Caution) => Some(RiskLevel::Dangerous),
+        Some(RiskLevel::Dangerous) => Some(RiskLevel::Destructive),
+        Some(RiskLevel::Destructive) => None,
+    }
+}

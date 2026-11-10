@@ -269,12 +269,10 @@ fn create_symlink(source: &Path, shim: &Path) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Mutex;
-
-    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     fn with_temp_home<F: FnOnce(&Path)>(f: F) {
-        let _guard = ENV_LOCK.lock().unwrap();
+        // Paylaşılan kilit: install/native_cli/update HOME yarışını keser.
+        let _guard = crate::test_env::lock();
         let dir = std::env::temp_dir().join(format!(
             "nova-path-test-{}-{}",
             std::process::id(),
@@ -296,6 +294,12 @@ mod tests {
             let joined = std::env::join_paths(filtered).unwrap_or_default();
             std::env::set_var("PATH", joined);
         }
+        // Assert HOME gerçekten geçici dizine oturdu (yarış teşhisi).
+        assert_eq!(
+            std::env::var_os("HOME").as_deref(),
+            Some(dir.as_os_str()),
+            "HOME temp home’a set edilmedi"
+        );
         f(&dir);
         match old_home {
             Some(h) => std::env::set_var("HOME", h),

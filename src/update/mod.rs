@@ -959,6 +959,7 @@ mod tests {
 
     #[test]
     fn cargo_user_bin_dir_uses_cargo_home_not_local_bin() {
+        let _guard = crate::test_env::lock();
         let prev_cargo = std::env::var_os("CARGO_HOME");
         let prev_home = std::env::var_os("HOME");
         let root = std::env::temp_dir().join(format!(
@@ -1039,6 +1040,7 @@ mod tests {
 
     #[test]
     fn publish_cargo_nova_replaces_plain_local_bin_for_arch_path() {
+        let _guard = crate::test_env::lock();
         let prev_home = std::env::var_os("HOME");
         let root = std::env::temp_dir().join(format!(
             "nova-publish-cargo-{}-{}",

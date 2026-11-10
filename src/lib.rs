@@ -26,5 +26,7 @@ pub mod media_launcher;
 pub mod progress;
 pub mod store;
 pub mod terminal_guard;
+#[cfg(test)]
+pub mod test_env;
 pub mod ui;
 pub mod update;

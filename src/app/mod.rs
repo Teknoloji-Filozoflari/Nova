@@ -212,6 +212,10 @@ pub struct App {
     /// `false`: Mod + Grup + Liste (yan detay yok). `true`: Grup + Liste + Detay;
     /// Esc ile geri. Başlangıç / PATH her zaman içerik gösterir (commit gerekmez).
     pub commands_guide_committed: bool,
+    /// Banka süzgeçleri (OS/distro/shell/profil/seviye/risk) — PATH’e uygulanmaz.
+    pub commands_filters: commands::CommandsFilters,
+    /// Detay paneli dikey kaydırma (satır ofseti).
+    pub commands_detail_scroll: u16,
     /// Gömülü Nova-Commands bankası (`nova-commands-bank`).
     pub commands_bank: CommandBank,
     /// Gömülü arama indeksi (`nova-commands-search-index`) — banka ile ayrı kind.
@@ -377,6 +381,7 @@ impl App {
                         concepts: Vec::new(),
                         tasks: Vec::new(),
                         profiles: Vec::new(),
+                        guides: Vec::new(),
                     },
                     SearchIndex {
                         schema_version: 2,
@@ -411,6 +416,8 @@ impl App {
             commands_selected_profiles: std::collections::BTreeSet::new(),
             commands_task_drill: None,
             commands_guide_committed: false,
+            commands_filters: commands::CommandsFilters::default(),
+            commands_detail_scroll: 0,
             commands_bank,
             commands_search_index,
             commands_local: LocalCommandsSnapshot::empty_stub(),
@@ -988,7 +995,46 @@ impl App {
                 }
             }
             KeyCode::Char(' ') if self.commands_tab => {
-                self.toggle_commands_profile_or_noop();
+                if self.commands_mode == CommandsBrowseMode::ServerSecurity {
+                    self.cycle_selected_checklist_state();
+                } else {
+                    self.toggle_commands_profile_or_noop();
+                }
+            }
+            KeyCode::PageUp if self.commands_tab && self.focus == PanelFocus::CommandsDetail => {
+                self.commands_detail_scroll = self.commands_detail_scroll.saturating_sub(3);
+            }
+            KeyCode::PageDown if self.commands_tab && self.focus == PanelFocus::CommandsDetail => {
+                self.commands_detail_scroll = self.commands_detail_scroll.saturating_add(3);
+            }
+            KeyCode::Char('o') | KeyCode::Char('O') if self.commands_tab => {
+                self.cycle_commands_os_filter();
+            }
+            KeyCode::Char('i') | KeyCode::Char('I') if self.commands_tab => {
+                self.cycle_commands_distro_filter();
+            }
+            KeyCode::Char('s') | KeyCode::Char('S') if self.commands_tab => {
+                self.cycle_commands_shell_filter();
+            }
+            KeyCode::Char('y') | KeyCode::Char('Y') if self.commands_tab => {
+                self.cycle_commands_learning_filter();
+            }
+            KeyCode::Char('r') | KeyCode::Char('R') if self.commands_tab => {
+                self.cycle_commands_risk_filter();
+            }
+            KeyCode::Char('p') | KeyCode::Char('P')
+                if self.commands_tab && self.commands_mode != CommandsBrowseMode::Context =>
+            {
+                self.cycle_commands_profile_filter();
+            }
+            KeyCode::Char('x') | KeyCode::Char('X') if self.commands_tab => {
+                self.commands_filters.clear();
+                self.commands_entry_index = 0;
+                self.commands_detail_scroll = 0;
+                self.status_message = self
+                    .ui_lang()
+                    .t(crate::i18n::Msg::CommandsFilterCleared)
+                    .to_string();
             }
             KeyCode::Char('q') => {
                 self.running = false;
@@ -1347,7 +1393,9 @@ impl App {
                 }
             }
             PanelFocus::ToolDetail => self.move_tool_detail_focus(1),
-            PanelFocus::CommandsDetail => {}
+            PanelFocus::CommandsDetail => {
+                self.commands_detail_scroll = self.commands_detail_scroll.saturating_add(1);
+            }
             PanelFocus::ToolActions => {
                 let max = self.selected_tool_actions_len().saturating_sub(1);
                 self.tool_action_index = (self.tool_action_index + 1).min(max);
@@ -1382,6 +1430,7 @@ impl App {
                 self.commands_category_index = (self.commands_category_index + 1).min(max);
                 self.commands_entry_index = 0;
                 self.commands_task_drill = None;
+                self.commands_detail_scroll = 0;
             }
             PanelFocus::CommandsList => {
                 let n = self.commands_list_len();
@@ -1390,6 +1439,7 @@ impl App {
                 }
                 self.commands_entry_index =
                     (self.commands_entry_index + 1).min(n.saturating_sub(1));
+                self.commands_detail_scroll = 0;
             }
             PanelFocus::ThemePicker => {
                 let max = crate::ui::UiTheme::all().len().saturating_sub(1);
@@ -1418,7 +1468,9 @@ impl App {
                 }
             }
             PanelFocus::ToolDetail => self.move_tool_detail_focus(-1),
-            PanelFocus::CommandsDetail => {}
+            PanelFocus::CommandsDetail => {
+                self.commands_detail_scroll = self.commands_detail_scroll.saturating_sub(1);
+            }
             PanelFocus::ToolActions => {
                 // ↑ ilk aksiyondayken araç listesine döner.
                 if self.tool_action_index == 0 {
@@ -1445,9 +1497,11 @@ impl App {
                 self.commands_category_index = self.commands_category_index.saturating_sub(1);
                 self.commands_entry_index = 0;
                 self.commands_task_drill = None;
+                self.commands_detail_scroll = 0;
             }
             PanelFocus::CommandsList => {
                 self.commands_entry_index = self.commands_entry_index.saturating_sub(1);
+                self.commands_detail_scroll = 0;
             }
             PanelFocus::ThemePicker => {
                 self.theme_picker_index = self.theme_picker_index.saturating_sub(1);
@@ -1665,6 +1719,7 @@ impl App {
         self.commands_entry_index = 0;
         self.commands_task_drill = None;
         self.commands_guide_committed = false;
+        self.commands_detail_scroll = 0;
         if mode == CommandsBrowseMode::SystemPath {
             self.refresh_local_commands_stub();
         }
@@ -1745,10 +1800,12 @@ impl App {
         }
     }
 
-    /// Liste satır sayısı (görev / komut / PATH).
+    /// Liste satır sayısı (görev / komut / checklist / PATH).
     pub fn commands_list_len(&self) -> usize {
         if self.commands_mode == CommandsBrowseMode::SystemPath {
             self.filtered_local_commands().len()
+        } else if self.commands_mode == CommandsBrowseMode::ServerSecurity {
+            self.filtered_checklist_steps().len()
         } else if self.commands_list_shows_tasks() {
             self.filtered_tasks().len()
         } else {
@@ -1759,6 +1816,158 @@ impl App {
     /// Liste şu an görev satırları mı gösteriyor?
     pub fn commands_list_shows_tasks(&self) -> bool {
         self.commands_mode == CommandsBrowseMode::ByTask && self.commands_task_drill.is_none()
+    }
+
+    /// Sunucu güvenlik kontrol listesi adımları.
+    pub fn filtered_checklist_steps(&self) -> Vec<commands::ChecklistStepView> {
+        let mut steps = commands::server_security_steps(&self.commands_bank);
+        if self.search_query.is_empty() {
+            return steps;
+        }
+        let q = self.search_query.to_ascii_lowercase();
+        let lang = self.ui_lang().id();
+        steps.retain(|s| {
+            s.id.to_ascii_lowercase().contains(&q)
+                || s.title.pick(lang).to_ascii_lowercase().contains(&q)
+                || s.summary.pick(lang).to_ascii_lowercase().contains(&q)
+                || s.related_commands
+                    .iter()
+                    .any(|c| c.to_ascii_lowercase().contains(&q))
+        });
+        steps
+    }
+
+    /// Checklist adım durumu (yerel state; yoksa unchecked).
+    pub fn checklist_step_state(
+        &self,
+        step: &commands::ChecklistStepView,
+    ) -> commands::ChecklistStepState {
+        use commands::ChecklistStepState;
+        match self
+            .state
+            .file
+            .command_checklist
+            .get(&step.state_key())
+            .map(|s| s.as_str())
+        {
+            Some("ok") => ChecklistStepState::Ok,
+            Some("review") => ChecklistStepState::Review,
+            Some("na") => ChecklistStepState::Na,
+            _ => ChecklistStepState::Unchecked,
+        }
+    }
+
+    fn cycle_selected_checklist_state(&mut self) {
+        let steps = self.filtered_checklist_steps();
+        let Some(step) = steps
+            .get(self.commands_entry_index.min(steps.len().saturating_sub(1)))
+            .cloned()
+        else {
+            self.status_message = "Kontrol listesi boş.".into();
+            return;
+        };
+        let next = self.checklist_step_state(&step).next();
+        let key = step.state_key();
+        if next == commands::ChecklistStepState::Unchecked {
+            self.state.file.command_checklist.remove(&key);
+        } else {
+            self.state
+                .file
+                .command_checklist
+                .insert(key, next.as_str().to_string());
+        }
+        let lang = self.ui_lang().id();
+        let _ = self.persist_state();
+        self.status_message = format!(
+            "{}: {} → {}",
+            self.ui_lang().t(crate::i18n::Msg::CommandsChecklistStatus),
+            step.title.pick(lang),
+            next.label(lang)
+        );
+    }
+
+    fn cycle_commands_os_filter(&mut self) {
+        if self.commands_mode == CommandsBrowseMode::SystemPath {
+            self.status_message = "OS süzgeci yalnız bankada (PATH değil).".into();
+            return;
+        }
+        let values = commands::bank_os_values(&self.commands_bank.commands);
+        self.commands_filters.os = commands::cycle_optional(&self.commands_filters.os, &values);
+        self.after_commands_filter_change();
+    }
+
+    fn cycle_commands_distro_filter(&mut self) {
+        if self.commands_mode == CommandsBrowseMode::SystemPath {
+            self.status_message = "Distro süzgeci yalnız bankada.".into();
+            return;
+        }
+        let values = commands::bank_distro_values(&self.commands_bank.commands);
+        self.commands_filters.distro =
+            commands::cycle_optional(&self.commands_filters.distro, &values);
+        self.after_commands_filter_change();
+    }
+
+    fn cycle_commands_shell_filter(&mut self) {
+        if self.commands_mode == CommandsBrowseMode::SystemPath {
+            self.status_message = "Shell süzgeci yalnız bankada.".into();
+            return;
+        }
+        let values = commands::bank_shell_values(&self.commands_bank.commands);
+        self.commands_filters.shell =
+            commands::cycle_optional(&self.commands_filters.shell, &values);
+        self.after_commands_filter_change();
+    }
+
+    fn cycle_commands_learning_filter(&mut self) {
+        if self.commands_mode == CommandsBrowseMode::SystemPath {
+            self.status_message = "Seviye süzgeci yalnız bankada.".into();
+            return;
+        }
+        self.commands_filters.learning = self.commands_filters.learning.next();
+        self.after_commands_filter_change();
+    }
+
+    fn cycle_commands_risk_filter(&mut self) {
+        if self.commands_mode == CommandsBrowseMode::SystemPath {
+            self.status_message = "Risk süzgeci yalnız bankada.".into();
+            return;
+        }
+        self.commands_filters.risk = commands::cycle_risk(self.commands_filters.risk);
+        self.after_commands_filter_change();
+    }
+
+    fn cycle_commands_profile_filter(&mut self) {
+        if self.commands_mode == CommandsBrowseMode::SystemPath {
+            self.status_message = "Profil süzgeci yalnız bankada.".into();
+            return;
+        }
+        let values: Vec<String> = self
+            .commands_bank
+            .profiles
+            .iter()
+            .map(|p| p.id.clone())
+            .collect();
+        self.commands_filters.profile =
+            commands::cycle_optional(&self.commands_filters.profile, &values);
+        self.after_commands_filter_change();
+    }
+
+    fn after_commands_filter_change(&mut self) {
+        self.commands_entry_index = 0;
+        self.commands_detail_scroll = 0;
+        let chips = self.commands_filters.summary_chips();
+        if chips.is_empty() {
+            self.status_message = self
+                .ui_lang()
+                .t(crate::i18n::Msg::CommandsFilterCleared)
+                .to_string();
+        } else {
+            self.status_message = format!(
+                "{} · {}",
+                self.ui_lang().t(crate::i18n::Msg::CommandsFilterHint),
+                chips.join(" ")
+            );
+        }
     }
 
     /// Banka komutları — moda göre süzülür; Local ile birleştirilmez.
@@ -1795,20 +2004,49 @@ impl App {
             .copied()
             .unwrap_or("");
 
+        // Öğrenme süzgeci için başlangıç yolu id kümesi.
+        let learning_ids_owned = commands::start_learning_command_ids(&self.commands_bank);
+        let learning_ids: std::collections::BTreeSet<&str> =
+            learning_ids_owned.iter().map(|s| s.as_str()).collect();
+
+        let profile_filter_ids: std::collections::BTreeSet<&str> =
+            if let Some(ref pid) = self.commands_filters.profile {
+                self.commands_bank
+                    .find_profile(pid)
+                    .map(|p| p.related_commands.iter().map(|s| s.as_str()).collect())
+                    .unwrap_or_default()
+            } else {
+                std::collections::BTreeSet::new()
+            };
+
         let mut cmds: Vec<&commands::CommandEntry> = self
             .commands_bank
             .commands
             .iter()
             .filter(|c| {
+                if mode == CommandsBrowseMode::ServerSecurity
+                    || mode == CommandsBrowseMode::SystemPath
+                {
+                    return false;
+                }
                 if self.command_favorite_only && !self.is_command_favorite(&c.id) {
+                    return false;
+                }
+                if !self.commands_filters.matches(c, &learning_ids) {
+                    return false;
+                }
+                if !profile_filter_ids.is_empty()
+                    && !profile_filter_ids.contains(c.id.as_str())
+                    && !profile_filter_ids.contains(c.name.as_str())
+                {
                     return false;
                 }
                 if !self.matches_command_search(c) {
                     return false;
                 }
                 if searching {
-                    // Arama: katalog genelinde (PATH değil).
-                    return mode != CommandsBrowseMode::SystemPath;
+                    // Arama: katalog genelinde (PATH / checklist değil).
+                    return true;
                 }
                 match mode {
                     CommandsBrowseMode::Start => {
@@ -1824,7 +2062,7 @@ impl App {
                             || profile_cmd_ids.contains(c.name.as_str())
                     }
                     CommandsBrowseMode::AllCommands => c.category == cat,
-                    CommandsBrowseMode::SystemPath => false,
+                    CommandsBrowseMode::ServerSecurity | CommandsBrowseMode::SystemPath => false,
                 }
             })
             .collect();
@@ -1934,14 +2172,47 @@ impl App {
             || cmd.verification.status.as_str().contains(&q)
             || cmd.tags.iter().any(|t| t.to_ascii_lowercase().contains(&q))
             || cmd
+                .aliases
+                .iter()
+                .any(|a| a.to_ascii_lowercase().contains(&q))
+            || cmd.flags.iter().any(|f| {
+                f.flag.to_ascii_lowercase().contains(&q)
+                    || f.meaning.pick(lang).to_ascii_lowercase().contains(&q)
+            })
+            || cmd
+                .nova
+                .concepts
+                .iter()
+                .any(|c| c.to_ascii_lowercase().contains(&q))
+            || cmd
                 .intent
                 .all_for_lang(lang)
                 .iter()
                 .any(|p| p.to_ascii_lowercase().contains(&q))
-            || cmd
-                .examples
-                .iter()
-                .any(|ex| ex.command.to_ascii_lowercase().contains(&q))
+            || cmd.examples.iter().any(|ex| {
+                ex.command.to_ascii_lowercase().contains(&q)
+                    || ex.title.pick(lang).to_ascii_lowercase().contains(&q)
+                    || ex.explanation.pick(lang).to_ascii_lowercase().contains(&q)
+            })
+            || self.commands_bank.tasks.iter().any(|t| {
+                t.related_commands
+                    .iter()
+                    .any(|id| id == &cmd.id || id == &cmd.name)
+                    && (t.id.to_ascii_lowercase().contains(&q)
+                        || t.name.pick(lang).to_ascii_lowercase().contains(&q)
+                        || t.intent
+                            .all_for_lang(lang)
+                            .iter()
+                            .any(|p| p.to_ascii_lowercase().contains(&q)))
+            })
+            || self.commands_bank.concepts.iter().any(|c| {
+                c.related_commands
+                    .iter()
+                    .any(|id| id == &cmd.id || id == &cmd.name)
+                    && (c.id.to_ascii_lowercase().contains(&q)
+                        || c.title.pick(lang).to_ascii_lowercase().contains(&q)
+                        || c.summary.pick(lang).to_ascii_lowercase().contains(&q))
+            })
         {
             return true;
         }
@@ -2530,6 +2801,26 @@ impl App {
 
     /// Liste satırında Enter: görev drill veya bilgi (asla çalıştırmaz).
     fn activate_commands_list_item(&mut self) {
+        if self.commands_mode == CommandsBrowseMode::ServerSecurity {
+            let steps = self.filtered_checklist_steps();
+            let Some(step) =
+                steps.get(self.commands_entry_index.min(steps.len().saturating_sub(1)))
+            else {
+                self.status_message = "Kontrol listesi boş.".into();
+                return;
+            };
+            let lang = self.ui_lang().id();
+            let st = self.checklist_step_state(step);
+            self.status_message = format!(
+                "{} · {} · {} — {}",
+                step.title.pick(lang),
+                st.label(lang),
+                step.risk.label(lang),
+                self.ui_lang()
+                    .t(crate::i18n::Msg::CommandsChecklistNeverScan)
+            );
+            return;
+        }
         if self.commands_list_shows_tasks() {
             let (task_id, task_name) = {
                 let tasks = self.filtered_tasks();

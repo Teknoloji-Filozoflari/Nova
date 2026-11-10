@@ -10,7 +10,8 @@ Headless ortamda gerçek bir PTY / Konsole yok; bunun yerine uygulamadaki
 `TestBackend` yolunu (entegrasyon testleriyle aynı) kullanıyoruz:
 
 1. `tools/capture_screens.rs` — `App` durumunu ana liste / Mağaza / Ayarlar /
-   Kurulu AI aksiyon modalı / Komut Rehberi (Başlangıç + görev detayı)
+   Kurulu AI aksiyon modalı / Komut Rehberi (Başlangıç + görev detayı +
+   sunucu güvenlik checklist)
    ekranlarına getirir, `ui::draw` ile çizer, hücreleri JSON’a yazar.
 2. `docs/screenshots/render_frames.py` — JSON hücrelerini monospace PNG’ye
    rasterize eder (DejaVu Sans Mono).
@@ -28,6 +29,7 @@ python3 docs/screenshots/render_frames.py docs/screenshots/frames docs/screensho
 | `ai-actions.png` | Kurulu AI · Enter aksiyon modalı |
 | `commands-start.png` | Komut Rehberi · Başlangıç (Mod+Liste+Detay) |
 | `commands-task-detail.png` | Komut Rehberi · görev drill + yan detay (Grup+Liste+Detay) |
+| `commands-security-checklist.png` | Komut Rehberi · Sunucu güvenlik kontrolü |
 
 Komut Rehberi kareleri **en fazla 3 içerik paneli** kuralına uyar (#62): eski
 Mod+Grup+Liste+Detay (4 sütun) düzeni yakalanmaz. Commit sonrası breadcrumb

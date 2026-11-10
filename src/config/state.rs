@@ -15,7 +15,7 @@
 //!    itilir, sonra `rename` ile yerine konur.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -72,6 +72,12 @@ pub struct StateFile {
     /// kayıtları. Yerel PATH keşfi (`nova-local-commands`) burada tutulmaz.
     #[serde(default)]
     pub command_favorites: BTreeSet<String>,
+    /// Sunucu güvenlik kontrolü adım durumları.
+    ///
+    /// Anahtar: `server-security-check::<step_id>`. Değer: `unchecked` /
+    /// `ok` / `review` / `na`. Parola, anahtar, token, host/IP **yazılmaz**.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub command_checklist: BTreeMap<String, String>,
     /// Son kullanılanlar, **en yeni önce**.
     #[serde(default)]
     pub recents: Vec<RecentEntry>,

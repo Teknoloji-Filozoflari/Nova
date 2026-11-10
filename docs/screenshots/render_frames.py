@@ -87,6 +87,7 @@ def main() -> int:
         "04-ai-actions.json": "ai-actions.png",
         "05-commands-start.json": "commands-start.png",
         "06-commands-task-detail.json": "commands-task-detail.png",
+        "07-commands-security-checklist.json": "commands-security-checklist.png",
     }
     for src_name, dst_name in mapping.items():
         src = frames_dir / src_name

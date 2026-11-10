@@ -122,6 +122,10 @@ Onay pencerelerinde `Enter` onaylar, `Esc` vazgeçer.
   <img alt="Nova Komut Rehberi görev detayı" src="docs/screenshots/commands-task-detail.png" width="820">
 </p>
 
+<p align="center">
+  <img alt="Nova Komut Rehberi sunucu güvenlik kontrolü" src="docs/screenshots/commands-security-checklist.png" width="820">
+</p>
+
 ## Kurulu uygulamalar vs Mağaza
 
 Nova’da **iki katalog** vardır; karıştırmayın:
