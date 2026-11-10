@@ -208,6 +208,10 @@ impl RepoUpdatePlan {
 ///
 /// Kullanıcı onayı alınmış olmalıdır. `sudo` kullanılmaz. stdout/stderr
 /// yakalanır — ham derleme çıktısı TUI’ye dökülmez.
+///
+/// Kurulum hedefi **`cargo` bin dizinidir** (`$CARGO_HOME/bin` / `~/.cargo/bin`),
+/// Releases yolundaki `~/.local/bin` değil. Yanlış dizine bakmak (#57 sonrası
+/// kaynak güncellemesinde) otomatik yeniden başlatmayı düşürürdü.
 pub fn install_nova_from_git(plan: &RepoUpdatePlan) -> Result<UpdateOutcome, String> {
     install_nova_from_git_with_progress(plan, &mut |_| {})
 }
@@ -228,31 +232,98 @@ pub fn install_nova_from_git_with_progress(
         "--locked".into(),
     ];
     on_line(&format!("$ {}", plan.command_display));
-    crate::progress::run_command_streaming("cargo", &args, &[], on_line)
-        .map_err(|e| format!("{e}. Ağ / toolchain / derleme hatası olabilir."))?;
+    let mut installed_from_log: Option<PathBuf> = None;
+    {
+        let mut capture = |line: &str| {
+            if let Some(path) = parse_cargo_installing_nova_path(line) {
+                installed_from_log = Some(path);
+            }
+            on_line(line);
+        };
+        crate::progress::run_command_streaming("cargo", &args, &[], &mut capture)
+            .map_err(|e| format!("{e}. Ağ / toolchain / derleme hatası olabilir."))?;
+    }
     let version = Version::parse(env!("CARGO_PKG_VERSION")).unwrap_or_default();
-    let bin_dir = crate::store::path::user_local_bin_dir()
-        .or_else(|| {
-            std::env::var_os("CARGO_HOME")
-                .map(PathBuf::from)
-                .map(|p| p.join("bin"))
-        })
-        .unwrap_or_else(|| {
-            std::env::var_os("HOME")
-                .map(PathBuf::from)
-                .unwrap_or_else(|| PathBuf::from("."))
-                .join(".cargo/bin")
-        });
-    let binary_path = bin_dir.join("nova");
+    let cargo_nova = resolve_cargo_nova_binary(installed_from_log.as_deref())?;
+    // Arch: `~/.local/bin` PATH’te önde gelir; eski Releases düz dosyası varsa
+    // güncel cargo ikilisine bağla. Yeniden başlatma yolu her zaman cargo ikilisi.
+    let binary_path = publish_cargo_nova_for_restart(&cargo_nova);
+    let install_dir = binary_path
+        .parent()
+        .map(Path::to_path_buf)
+        .unwrap_or_else(cargo_user_bin_dir);
     Ok(UpdateOutcome {
         version,
-        install_dir: bin_dir,
-        binary_path,
+        install_dir,
+        binary_path: binary_path.clone(),
         summary: format!(
-            "Nova kaynak güncellemesi tamamlandı (`{}`). Uygulama yeni ikiliyle yeniden başlatılacak.",
-            plan.command_display
+            "Nova kaynak güncellemesi tamamlandı (`{}` → {}). Uygulama yeni ikiliyle yeniden başlatılacak.",
+            plan.command_display,
+            binary_path.display()
         ),
     })
+}
+
+/// `cargo install` hedef dizini (`$CARGO_HOME/bin` veya `~/.cargo/bin`).
+///
+/// Releases self-update `~/.local/bin` kullanır; kaynak güncellemesi buraya yazmaz.
+pub fn cargo_user_bin_dir() -> PathBuf {
+    if let Some(home) = std::env::var_os("CARGO_HOME").filter(|h| !h.is_empty()) {
+        return PathBuf::from(home).join("bin");
+    }
+    std::env::var_os("HOME")
+        .filter(|h| !h.is_empty())
+        .map(|h| PathBuf::from(h).join(".cargo").join("bin"))
+        .unwrap_or_else(|| PathBuf::from(".cargo/bin"))
+}
+
+/// `cargo` çıktısındaki `Installing /path/to/nova` satırından ikili yolunu çıkarır.
+pub fn parse_cargo_installing_nova_path(line: &str) -> Option<PathBuf> {
+    let t = line.trim();
+    let rest = t.strip_prefix("Installing ")?;
+    let path = PathBuf::from(rest.trim());
+    if path.file_name().and_then(|n| n.to_str()) == Some("nova") && path.is_absolute() {
+        Some(path)
+    } else {
+        None
+    }
+}
+
+/// Kaynak güncellemesi sonrası çalıştırılacak `nova` ikilisini seçer.
+fn resolve_cargo_nova_binary(from_log: Option<&Path>) -> Result<PathBuf, String> {
+    if let Some(path) = from_log {
+        if path.is_file() {
+            return Ok(path.to_path_buf());
+        }
+    }
+    let candidate = cargo_user_bin_dir().join("nova");
+    if candidate.is_file() {
+        return Ok(candidate);
+    }
+    Err(format!(
+        "cargo install tamamlandı ama nova ikilisi bulunamadı ({}). \
+         CARGO_HOME/bin veya ~/.cargo/bin PATH’te olmalı.",
+        candidate.display()
+    ))
+}
+
+/// Arch PATH uyumu: `~/.local/bin/nova` → cargo ikilisi; restart yolu cargo ikilisi.
+///
+/// Önceki Releases kurulumu `~/.local/bin/nova` düz dosyası bıraktıysa mağaza
+/// shim koruması onu olduğu gibi bırakırdı; Nova self-update’te bilinçli olarak
+/// symlink ile değiştirilir ki PATH eski ikiliyi seçmesin.
+fn publish_cargo_nova_for_restart(cargo_nova: &Path) -> PathBuf {
+    if let Some(local_bin) = crate::store::path::user_local_bin_dir() {
+        let shim = local_bin.join("nova");
+        if let Ok(meta) = std::fs::symlink_metadata(&shim) {
+            if meta.file_type().is_file() {
+                // Düz dosya (Releases ikilisi) — üzerine symlink yazılabilsin.
+                let _ = std::fs::remove_file(&shim);
+            }
+        }
+        let _ = crate::store::path::ensure_path_shim("nova", cargo_nova);
+    }
+    cargo_nova.to_path_buf()
 }
 
 fn which_cargo() -> Result<PathBuf, String> {
@@ -884,5 +955,134 @@ mod tests {
         let ok = validate_restart_binary(&bin).unwrap();
         assert_eq!(ok, bin);
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn cargo_user_bin_dir_uses_cargo_home_not_local_bin() {
+        let prev_cargo = std::env::var_os("CARGO_HOME");
+        let prev_home = std::env::var_os("HOME");
+        let root = std::env::temp_dir().join(format!(
+            "nova-cargo-home-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        let cargo_home = root.join("cargo-home");
+        let fake_home = root.join("home");
+        std::fs::create_dir_all(&cargo_home).unwrap();
+        std::fs::create_dir_all(fake_home.join(".local/bin")).unwrap();
+        std::env::set_var("CARGO_HOME", &cargo_home);
+        std::env::set_var("HOME", &fake_home);
+        let dir = cargo_user_bin_dir();
+        assert_eq!(dir, cargo_home.join("bin"));
+        assert!(
+            !dir.ends_with(".local/bin"),
+            "kaynak güncellemesi ~/.local/bin seçmemeli: {}",
+            dir.display()
+        );
+        match prev_cargo {
+            Some(v) => std::env::set_var("CARGO_HOME", v),
+            None => std::env::remove_var("CARGO_HOME"),
+        }
+        match prev_home {
+            Some(v) => std::env::set_var("HOME", v),
+            None => std::env::remove_var("HOME"),
+        }
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn parse_cargo_installing_nova_path_extracts_absolute() {
+        assert_eq!(
+            parse_cargo_installing_nova_path("  Installing /home/x/.cargo/bin/nova"),
+            Some(PathBuf::from("/home/x/.cargo/bin/nova"))
+        );
+        assert_eq!(
+            parse_cargo_installing_nova_path("   Compiling nova v0.1.0"),
+            None
+        );
+        assert_eq!(
+            parse_cargo_installing_nova_path("  Installing relative/nova"),
+            None
+        );
+    }
+
+    #[test]
+    fn resolve_cargo_nova_binary_prefers_log_path() {
+        let dir = std::env::temp_dir().join(format!(
+            "nova-resolve-cargo-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let bin = dir.join("nova");
+        std::fs::write(&bin, b"#!/bin/sh\necho nova\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&bin).unwrap().permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(&bin, perms).unwrap();
+        }
+        let resolved = resolve_cargo_nova_binary(Some(&bin)).unwrap();
+        assert_eq!(resolved, bin);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn publish_cargo_nova_replaces_plain_local_bin_for_arch_path() {
+        let prev_home = std::env::var_os("HOME");
+        let root = std::env::temp_dir().join(format!(
+            "nova-publish-cargo-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&root);
+        let home = root.join("home");
+        let cargo_bin = root.join("cargo/bin");
+        let local_bin = home.join(".local/bin");
+        std::fs::create_dir_all(&cargo_bin).unwrap();
+        std::fs::create_dir_all(&local_bin).unwrap();
+        let cargo_nova = cargo_bin.join("nova");
+        std::fs::write(&cargo_nova, b"#!/bin/sh\necho cargo-nova\n").unwrap();
+        let stale = local_bin.join("nova");
+        std::fs::write(&stale, b"#!/bin/sh\necho stale-releases\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            for p in [&cargo_nova, &stale] {
+                let mut perms = std::fs::metadata(p).unwrap().permissions();
+                perms.set_mode(0o755);
+                std::fs::set_permissions(p, perms).unwrap();
+            }
+        }
+        std::env::set_var("HOME", &home);
+        let restart = publish_cargo_nova_for_restart(&cargo_nova);
+        assert_eq!(restart, cargo_nova);
+        #[cfg(unix)]
+        {
+            let meta = std::fs::symlink_metadata(&stale).unwrap();
+            assert!(
+                meta.file_type().is_symlink(),
+                "Arch PATH için düz Releases dosyası symlink olmalı"
+            );
+            assert_eq!(std::fs::read_link(&stale).unwrap(), cargo_nova);
+        }
+        match prev_home {
+            Some(v) => std::env::set_var("HOME", v),
+            None => std::env::remove_var("HOME"),
+        }
+        let _ = std::fs::remove_dir_all(&root);
     }
 }
