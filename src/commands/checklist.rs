@@ -561,7 +561,8 @@ pub fn server_security_title(bank: &CommandBank, lang: &str) -> String {
 /// OS / distro / shell süzgecine uyan checklist örnekleri.
 ///
 /// Eşleşme yoksa boş döner — başka platform komutu **sessizce** seçilmez.
-/// Distro süzgeci yokken Linux paket yöneticisi örnekleri yarışırsa Arch/pacman tercih edilir.
+/// Distro süzgeci yokken **tüm** distro varyantları kalır (sessiz Arch çökertmesi yok);
+/// host Arch ise yalnız sıralamada pacman/Arch öne alınabilir.
 pub fn select_checklist_examples<'a>(
     examples: &'a [ChecklistExampleView],
     filters: &CommandsFilters,
@@ -571,14 +572,21 @@ pub fn select_checklist_examples<'a>(
         .filter(|ex| example_matches_filters(ex, filters))
         .collect();
 
-    if filters.distro.is_none() {
-        matched = prefer_arch_among_distro_variants(matched);
-    }
-
-    // Aynı platformda birden fazla örnek: düşük risk önce.
+    // Aynı platformda birden fazla örnek: düşük risk önce; Arch host’ta Arch önce (eleme yok).
+    let arch_host = crate::commands::host_is_arch() && filters.distro.is_none();
     matched.sort_by(|a, b| {
-        (a.example.risk as u8)
-            .cmp(&(b.example.risk as u8))
+        let arch_rank = |e: &ChecklistExampleView| -> u8 {
+            if arch_host && distributions_cover(&e.distributions, "arch") {
+                0
+            } else if e.distributions.is_empty() {
+                1
+            } else {
+                2
+            }
+        };
+        arch_rank(a)
+            .cmp(&arch_rank(b))
+            .then_with(|| (a.example.risk as u8).cmp(&(b.example.risk as u8)))
             .then_with(|| a.implementation_id.cmp(&b.implementation_id))
             .then_with(|| a.example.command.cmp(&b.example.command))
     });
@@ -674,26 +682,6 @@ fn distro_aliases(want: &str) -> Vec<&str> {
         "rhel" | "centos" | "rocky" | "alma" => vec!["rhel", "centos", "fedora", "dnf"],
         other => vec![other],
     }
-}
-
-/// Linux paket yöneticisi yarışında Arch/pacman tercih et; distro-agnostik örnekleri koru.
-fn prefer_arch_among_distro_variants(
-    examples: Vec<&ChecklistExampleView>,
-) -> Vec<&ChecklistExampleView> {
-    let any_tagged = examples.iter().any(|e| !e.distributions.is_empty());
-    if !any_tagged {
-        return examples;
-    }
-    let has_arch = examples
-        .iter()
-        .any(|e| distributions_cover(&e.distributions, "arch"));
-    if !has_arch {
-        return examples;
-    }
-    examples
-        .into_iter()
-        .filter(|e| e.distributions.is_empty() || distributions_cover(&e.distributions, "arch"))
-        .collect()
 }
 
 fn infer_distributions(impl_: &TaskImplementation) -> Vec<String> {
@@ -956,7 +944,7 @@ mod tests {
     }
 
     #[test]
-    fn checklist_linux_prefers_arch_pacman_over_debian() {
+    fn checklist_linux_keeps_all_distro_variants_no_arch_collapse() {
         let bank = bank_with(vec![updates_task()]);
         let steps = server_security_steps(&bank);
         let step = steps
@@ -968,20 +956,15 @@ mod tests {
             ..Default::default()
         };
         let matched = select_checklist_examples(&step.examples, &filters);
+        let cmds: Vec<_> = matched.iter().map(|m| m.example.command.as_str()).collect();
         assert!(
-            matched.iter().any(|m| m.example.command.contains("pacman")
-                || m.example.command.contains("checkupdates")),
-            "arch/pacman preferred: {:?}",
-            matched
-                .iter()
-                .map(|m| m.example.command.as_str())
-                .collect::<Vec<_>>()
+            cmds.iter()
+                .any(|c| c.contains("pacman") || c.contains("checkupdates")),
+            "arch/pacman kalmalı: {cmds:?}"
         );
         assert!(
-            matched
-                .iter()
-                .all(|m| !m.example.command.contains("apt list")),
-            "debian must not win when arch competes"
+            cmds.iter().any(|c| c.contains("apt")),
+            "debian/apt distro süzgeci yokken sessizce düşmemeli: {cmds:?}"
         );
     }
 

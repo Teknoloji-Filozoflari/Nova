@@ -2316,8 +2316,8 @@ fn push_wrapped(lines: &mut Vec<Line<'static>>, text: &str, width: usize, style:
 
 fn commands_detail_lines(app: &App, wrap_w: usize) -> Vec<Line<'static>> {
     use crate::commands::{
-        command_os_fit, package_lines_for_filter, CommandsBrowseMode, CommandsSource, OsFit,
-        RiskLevel, VerificationStatus,
+        command_os_fit, package_lines_for_filter, select_command_examples, CommandsBrowseMode,
+        CommandsSource, OsFit, RiskLevel, VerificationStatus,
     };
     let lang = app.ui_lang();
     let lang_id = lang.id();
@@ -2700,52 +2700,61 @@ fn commands_detail_lines(app: &App, wrap_w: usize) -> Vec<Line<'static>> {
                 }
             }
 
-            // 4) Örnekler kolay → ileri (kopyalanabilir)
+            // 4) Örnekler kolay → ileri (kopyalanabilir) — aktif OS/shell süzgecine dürüst
             if !cmd.examples.is_empty() {
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
                     format!("{}:", lang.t(Msg::CommandsExamplesEasyAdv)),
                     Style::default().add_modifier(Modifier::BOLD),
                 )));
-                let mut examples = cmd.examples.clone();
-                crate::commands::sort_examples_by_difficulty(&mut examples);
-                for ex in examples.iter().take(8) {
-                    let title = ex.title.pick(lang_id);
-                    let elev =
-                        if ex.requires_elevated || ex.privilege.as_deref() == Some("elevated") {
+                let filtered = select_command_examples(&cmd.examples, &app.commands_filters);
+                if filtered.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        format!("  {}", lang.t(Msg::CommandsFilterNoMatch)),
+                        Style::default().fg(pal.warn),
+                    )));
+                } else {
+                    let mut examples: Vec<_> = filtered.into_iter().cloned().collect();
+                    crate::commands::sort_examples_by_difficulty(&mut examples);
+                    for ex in examples.iter().take(8) {
+                        let title = ex.title.pick(lang_id);
+                        let elev = if ex.requires_elevated
+                            || ex.privilege.as_deref() == Some("elevated")
+                        {
                             " · sudo"
                         } else {
                             ""
                         };
-                    if !title.is_empty() {
-                        lines.push(Line::from(format!(
-                            "  · {title} [{}{}]",
-                            ex.risk.label(lang_id),
-                            elev
+                        if !title.is_empty() {
+                            lines.push(Line::from(format!(
+                                "  · {title} [{}{}]",
+                                ex.risk.label(lang_id),
+                                elev
+                            )));
+                        }
+                        lines.push(Line::from(Span::styled(
+                            format!("    $ {}", ex.command),
+                            Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
                         )));
-                    }
-                    lines.push(Line::from(Span::styled(
-                        format!("    $ {}", ex.command),
-                        Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
-                    )));
-                    let expl = ex.explanation.pick(lang_id);
-                    if !expl.is_empty() {
-                        push_wrapped(
-                            &mut lines,
-                            &format!("      {expl}"),
-                            wrap_w,
-                            Style::default().fg(pal.muted),
-                        );
-                    }
-                    for w in &ex.warnings {
-                        let wt = w.pick(lang_id);
-                        if !wt.is_empty() {
+                        let expl = ex.explanation.pick(lang_id);
+                        if !expl.is_empty() {
                             push_wrapped(
                                 &mut lines,
-                                &format!("      ! {wt}"),
+                                &format!("      {expl}"),
                                 wrap_w,
-                                Style::default().fg(pal.warn),
+                                Style::default().fg(pal.muted),
                             );
+                        }
+                        for w in &ex.warnings {
+                            let wt = w.pick(lang_id);
+                            if !wt.is_empty() {
+                                push_wrapped(
+                                    &mut lines,
+                                    &format!("      ! {wt}"),
+                                    wrap_w,
+                                    Style::default().fg(pal.warn),
+                                );
+                            }
                         }
                     }
                 }

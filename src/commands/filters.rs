@@ -3,7 +3,7 @@
 //! PATH keşfine uygulanmaz; yalnız banka komut listelerinde.
 //! `learning_level` riskten bağımsızdır; belirtilmemiş seviye risk ile doldurulmaz.
 
-use crate::commands::bank::{CommandEntry, LearningLevel, RiskLevel};
+use crate::commands::bank::{CommandEntry, CommandExample, LearningLevel, RiskLevel};
 use crate::store::host::{detect_host_os, HostOs};
 
 /// Öğrenme seviyesi süzgeci — yalnız banka `learning_level` alanına bakar.
@@ -181,6 +181,53 @@ fn command_covers_distro(cmd: &CommandEntry, distro: &str) -> bool {
             false
         }
     }
+}
+
+/// Banka komut örneklerini aktif OS/shell süzgecine göre seç (ikame yok).
+///
+/// Distro süzgeci örneklerde ayrı alan olmadığı için komut düzeyinde kalır;
+/// örnek `platforms` / `shell` boşsa genel kabul edilir.
+pub fn select_command_examples<'a>(
+    examples: &'a [CommandExample],
+    filters: &CommandsFilters,
+) -> Vec<&'a CommandExample> {
+    examples
+        .iter()
+        .filter(|ex| command_example_matches_filters(ex, filters))
+        .collect()
+}
+
+fn command_example_matches_filters(ex: &CommandExample, filters: &CommandsFilters) -> bool {
+    if let Some(ref os) = filters.os {
+        let os = os.to_ascii_lowercase();
+        if !ex.platforms.is_empty() {
+            let hit = ex.platforms.iter().any(|p| {
+                let p = p.to_ascii_lowercase();
+                p == os
+                    || p.contains(&os)
+                    || os.contains(&p)
+                    || p == "any"
+                    || p == "all"
+                    || p == "cross"
+                    || p == "portable"
+            });
+            if !hit {
+                return false;
+            }
+        }
+    }
+    if let Some(ref shell) = filters.shell {
+        let s = shell.to_ascii_lowercase();
+        if let Some(ref ex_shell) = ex.shell {
+            if !ex_shell.is_empty() {
+                let h = ex_shell.to_ascii_lowercase();
+                if !(h == s || h.contains(&s) || s.contains(&h)) {
+                    return false;
+                }
+            }
+        }
+    }
+    true
 }
 
 /// Aktif distro süzgecine uyan paket satırları — eşleşme yoksa boş (ikame yok).
@@ -684,6 +731,45 @@ mod tests {
             empty.is_empty(),
             "distro=arch iken debian paketi ikame edilmemeli: {empty:?}"
         );
+    }
+
+    #[test]
+    fn command_examples_filter_by_os_without_substitute() {
+        let linux = CommandExample {
+            command: "ss -tuln".into(),
+            platforms: vec!["linux".into()],
+            ..Default::default()
+        };
+        let windows = CommandExample {
+            command: "Get-NetTCPConnection".into(),
+            platforms: vec!["windows".into()],
+            shell: Some("powershell".into()),
+            ..Default::default()
+        };
+        let general = CommandExample {
+            command: "echo hi".into(),
+            ..Default::default()
+        };
+        let examples = vec![linux, windows, general];
+        let win = CommandsFilters {
+            os: Some("windows".into()),
+            ..Default::default()
+        };
+        let matched = select_command_examples(&examples, &win);
+        let cmds: Vec<_> = matched.iter().map(|e| e.command.as_str()).collect();
+        assert!(cmds.contains(&"Get-NetTCPConnection"));
+        assert!(cmds.contains(&"echo hi"), "platform boş = genel kalır");
+        assert!(
+            !cmds.contains(&"ss -tuln"),
+            "windows süzgeci linux örneğini ikame etmemeli"
+        );
+        let none = CommandsFilters {
+            os: Some("plan9".into()),
+            ..Default::default()
+        };
+        let only_general = select_command_examples(&examples, &none);
+        assert_eq!(only_general.len(), 1);
+        assert_eq!(only_general[0].command, "echo hi");
     }
 
     #[test]

@@ -1370,6 +1370,49 @@ fn bank_filter_no_match_does_not_substitute_other_os() {
 }
 
 #[test]
+fn bank_detail_examples_respect_os_filter_no_cross_os_surface() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.commands_filters.clear();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    let cat = app
+        .commands_bank_categories()
+        .first()
+        .copied()
+        .unwrap_or("files")
+        .to_string();
+    app.commands_bank.commands.push(
+        serde_json::from_value(serde_json::json!({
+            "id": "nv122-ex-filter",
+            "name": "nv122-ex-filter",
+            "category": cat,
+            "platforms": ["linux", "windows"],
+            "risk": "safe",
+            "examples": [
+                {"command": "ss -tuln", "platforms": ["linux"], "risk": "safe"},
+                {"command": "Get-NetTCPConnection", "platforms": ["windows"], "shell": "powershell", "risk": "safe"}
+            ]
+        }))
+        .unwrap(),
+    );
+    app.search_query = "nv122-ex-filter".into();
+    app.commands_filters.os = Some("windows".into());
+    app.commit_commands_guide();
+    app.commands_entry_index = 0;
+    app.terminal_size = Some((160, 48));
+    app.narrow_mode = false;
+    let text = all_text(&render(&app, 160, 48));
+    assert!(
+        text.contains("Get-NetTCPConnection"),
+        "windows süzgeci windows örneğini göstermeli:\n{text}"
+    );
+    assert!(
+        !text.contains("ss -tuln"),
+        "windows süzgeci linux örneğini detayda yüzeylememeli:\n{text}"
+    );
+}
+
+#[test]
 fn distro_filter_no_arch_collapse_on_debian_only_package() {
     let mut app = app();
     app.select_commands_tab();

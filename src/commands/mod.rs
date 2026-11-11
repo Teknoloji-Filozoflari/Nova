@@ -36,8 +36,8 @@ pub use checklist::{
 };
 pub use filters::{
     bank_distro_values, bank_os_values, bank_shell_values, command_os_fit, cycle_optional,
-    cycle_risk, host_filter_defaults, host_os_bank_id, package_lines_for_filter, CommandsFilters,
-    LearningLevelFilter, OsFit,
+    cycle_risk, host_filter_defaults, host_os_bank_id, package_lines_for_filter,
+    select_command_examples, CommandsFilters, LearningLevelFilter, OsFit,
 };
 pub use loader::{
     load_bank, load_bank_preferring_cache, load_manifest, load_search_index, CommandsManifest,
