@@ -190,6 +190,7 @@ fn derived_steps(bank: &CommandBank) -> Vec<ChecklistStepView> {
                         shell: ex.shell.clone(),
                         privilege: ex.privilege.clone(),
                         platforms: impl_.platforms.clone(),
+                        difficulty: None,
                         warnings: Vec::new(),
                     });
                 }

@@ -1,11 +1,12 @@
 //! Komut Rehberi süzgeçleri — OS / distro / shell / profil / seviye / risk.
 //!
 //! PATH keşfine uygulanmaz; yalnız banka komut listelerinde.
+//! `learning_level` riskten bağımsızdır; belirtilmemiş seviye risk ile doldurulmaz.
 
-use crate::commands::bank::{CommandEntry, RiskLevel};
+use crate::commands::bank::{CommandEntry, LearningLevel, RiskLevel};
 use crate::store::host::{detect_host_os, HostOs};
 
-/// Öğrenme seviyesi süzgeci (bankada ayrı alan yoksa risk + başlangıç yolu ile).
+/// Öğrenme seviyesi süzgeci — yalnız banka `learning_level` alanına bakar.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum LearningLevelFilter {
     #[default]
@@ -13,14 +14,17 @@ pub enum LearningLevelFilter {
     Beginner,
     Intermediate,
     Advanced,
+    /// Bankada `learning_level` yok / belirtilmemiş.
+    Unspecified,
 }
 
 impl LearningLevelFilter {
-    pub const ALL: [Self; 4] = [
+    pub const ALL: [Self; 5] = [
         Self::All,
         Self::Beginner,
         Self::Intermediate,
         Self::Advanced,
+        Self::Unspecified,
     ];
 
     pub fn next(self) -> Self {
@@ -34,6 +38,17 @@ impl LearningLevelFilter {
             Self::Beginner => "beginner",
             Self::Intermediate => "intermediate",
             Self::Advanced => "advanced",
+            Self::Unspecified => "unspecified",
+        }
+    }
+
+    fn matches_level(self, level: LearningLevel) -> bool {
+        match self {
+            Self::All => true,
+            Self::Beginner => level == LearningLevel::Beginner,
+            Self::Intermediate => level == LearningLevel::Intermediate,
+            Self::Advanced => level == LearningLevel::Advanced,
+            Self::Unspecified => level == LearningLevel::Unspecified,
         }
     }
 }
@@ -66,11 +81,10 @@ impl CommandsFilters {
     }
 
     /// Komut bu süzgeçlere uyar mı?
-    pub fn matches(
-        &self,
-        cmd: &CommandEntry,
-        start_ids: &std::collections::BTreeSet<&str>,
-    ) -> bool {
+    ///
+    /// Seviye ve risk bağımsızdır: `safe` + `advanced` advanced süzgecinde görünür;
+    /// yalnız `dangerous` advanced sayılmaz.
+    pub fn matches(&self, cmd: &CommandEntry) -> bool {
         if let Some(ref risk) = self.risk {
             if cmd.risk != *risk {
                 return false;
@@ -96,18 +110,7 @@ impl CommandsFilters {
             // burada id etiketi tutarlılığı için no-op bırakılabilir.
             let _ = profile;
         }
-        match self.learning {
-            LearningLevelFilter::All => true,
-            LearningLevelFilter::Beginner => {
-                cmd.risk == RiskLevel::Safe
-                    || start_ids.contains(cmd.id.as_str())
-                    || start_ids.contains(cmd.name.as_str())
-            }
-            LearningLevelFilter::Intermediate => matches!(cmd.risk, RiskLevel::Caution),
-            LearningLevelFilter::Advanced => {
-                matches!(cmd.risk, RiskLevel::Dangerous | RiskLevel::Destructive)
-            }
-        }
+        self.learning.matches_level(cmd.learning_level)
     }
 
     /// Durum satırı özeti (kısa).
@@ -308,5 +311,135 @@ pub fn cycle_risk(current: Option<RiskLevel>) -> Option<RiskLevel> {
         Some(RiskLevel::Caution) => Some(RiskLevel::Dangerous),
         Some(RiskLevel::Dangerous) => Some(RiskLevel::Destructive),
         Some(RiskLevel::Destructive) => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::bank::{sort_examples_by_difficulty, CommandExample};
+
+    fn cmd(risk: RiskLevel, learning: LearningLevel) -> CommandEntry {
+        serde_json::from_value(serde_json::json!({
+            "id": "demo",
+            "name": "demo",
+            "risk": risk.as_str(),
+            "learning_level": learning.as_str(),
+        }))
+        .expect("command fixture")
+    }
+
+    #[test]
+    fn learning_filter_ignores_risk_and_excludes_unspecified() {
+        let advanced_safe = cmd(RiskLevel::Safe, LearningLevel::Advanced);
+        let dangerous_unset = cmd(RiskLevel::Dangerous, LearningLevel::Unspecified);
+        let dangerous_advanced = cmd(RiskLevel::Dangerous, LearningLevel::Advanced);
+        let beginner_caution = cmd(RiskLevel::Caution, LearningLevel::Beginner);
+
+        let mut f = CommandsFilters {
+            learning: LearningLevelFilter::Advanced,
+            ..CommandsFilters::default()
+        };
+        assert!(
+            f.matches(&advanced_safe),
+            "safe-but-advanced advanced süzgecinde olmalı"
+        );
+        assert!(
+            !f.matches(&dangerous_unset),
+            "dangerous + belirtilmemiş advanced sayılmamalı"
+        );
+        assert!(f.matches(&dangerous_advanced));
+        assert!(!f.matches(&beginner_caution));
+
+        f.learning = LearningLevelFilter::Beginner;
+        assert!(f.matches(&beginner_caution));
+        assert!(!f.matches(&advanced_safe));
+        assert!(
+            !f.matches(&dangerous_unset),
+            "belirtilmemiş beginner uydurulmamalı"
+        );
+
+        f.learning = LearningLevelFilter::Unspecified;
+        assert!(f.matches(&dangerous_unset));
+        assert!(!f.matches(&advanced_safe));
+    }
+
+    #[test]
+    fn risk_filter_independent_of_learning_level() {
+        let advanced_safe = cmd(RiskLevel::Safe, LearningLevel::Advanced);
+        let advanced_dangerous = cmd(RiskLevel::Dangerous, LearningLevel::Advanced);
+        let mut f = CommandsFilters {
+            risk: Some(RiskLevel::Safe),
+            learning: LearningLevelFilter::Advanced,
+            ..CommandsFilters::default()
+        };
+        assert!(f.matches(&advanced_safe));
+        assert!(!f.matches(&advanced_dangerous));
+
+        f.risk = Some(RiskLevel::Dangerous);
+        assert!(!f.matches(&advanced_safe));
+        assert!(f.matches(&advanced_dangerous));
+
+        f.learning = LearningLevelFilter::All;
+        f.risk = Some(RiskLevel::Dangerous);
+        let dangerous_unset = cmd(RiskLevel::Dangerous, LearningLevel::Unspecified);
+        assert!(f.matches(&dangerous_unset));
+    }
+
+    #[test]
+    fn example_order_uses_difficulty_never_risk() {
+        let mut examples = vec![
+            CommandExample {
+                command: "risky-easy".into(),
+                risk: RiskLevel::Dangerous,
+                difficulty: Some(LearningLevel::Beginner),
+                ..Default::default()
+            },
+            CommandExample {
+                command: "safe-hard".into(),
+                risk: RiskLevel::Safe,
+                difficulty: Some(LearningLevel::Advanced),
+                ..Default::default()
+            },
+            CommandExample {
+                command: "mid".into(),
+                risk: RiskLevel::Caution,
+                difficulty: Some(LearningLevel::Intermediate),
+                ..Default::default()
+            },
+        ];
+        sort_examples_by_difficulty(&mut examples);
+        assert_eq!(examples[0].command, "risky-easy");
+        assert_eq!(examples[1].command, "mid");
+        assert_eq!(examples[2].command, "safe-hard");
+
+        // Difficulty yoksa risk ile sıralama yok — katalog sırası korunur.
+        let mut no_diff = vec![
+            CommandExample {
+                command: "b".into(),
+                risk: RiskLevel::Destructive,
+                ..Default::default()
+            },
+            CommandExample {
+                command: "a".into(),
+                risk: RiskLevel::Safe,
+                ..Default::default()
+            },
+        ];
+        sort_examples_by_difficulty(&mut no_diff);
+        assert_eq!(no_diff[0].command, "b");
+        assert_eq!(no_diff[1].command, "a");
+    }
+
+    #[test]
+    fn learning_filter_cycle_includes_unspecified() {
+        let mut v = LearningLevelFilter::All;
+        let mut seen = Vec::new();
+        for _ in 0..LearningLevelFilter::ALL.len() {
+            v = v.next();
+            seen.push(v);
+        }
+        assert!(seen.contains(&LearningLevelFilter::Unspecified));
+        assert_eq!(v, LearningLevelFilter::All);
     }
 }

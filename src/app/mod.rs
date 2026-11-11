@@ -2004,11 +2004,6 @@ impl App {
             .copied()
             .unwrap_or("");
 
-        // Öğrenme süzgeci için başlangıç yolu id kümesi.
-        let learning_ids_owned = commands::start_learning_command_ids(&self.commands_bank);
-        let learning_ids: std::collections::BTreeSet<&str> =
-            learning_ids_owned.iter().map(|s| s.as_str()).collect();
-
         let profile_filter_ids: std::collections::BTreeSet<&str> =
             if let Some(ref pid) = self.commands_filters.profile {
                 self.commands_bank
@@ -2032,7 +2027,7 @@ impl App {
                 if self.command_favorite_only && !self.is_command_favorite(&c.id) {
                     return false;
                 }
-                if !self.commands_filters.matches(c, &learning_ids) {
+                if !self.commands_filters.matches(c) {
                     return false;
                 }
                 if !profile_filter_ids.is_empty()
@@ -2169,6 +2164,8 @@ impl App {
             || cmd.summary.pick(lang).to_ascii_lowercase().contains(&q)
             || cmd.description.pick(lang).to_ascii_lowercase().contains(&q)
             || cmd.risk.as_str().contains(&q)
+            || cmd.learning_level.as_str().contains(&q)
+            || cmd.learning_level.label(lang).contains(&q)
             || cmd.verification.status.as_str().contains(&q)
             || cmd.tags.iter().any(|t| t.to_ascii_lowercase().contains(&q))
             || cmd
