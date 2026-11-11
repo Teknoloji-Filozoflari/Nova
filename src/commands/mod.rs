@@ -27,8 +27,9 @@ pub use bank::{
     BANK_KIND,
 };
 pub use checklist::{
-    select_checklist_examples, server_security_steps, server_security_title, ChecklistExampleView,
-    ChecklistStepState, ChecklistStepView, SERVER_SECURITY_GUIDE_ID,
+    checklist_progress_key, migrate_checklist_progress, select_checklist_examples,
+    server_security_steps, server_security_title, ChecklistExampleView, ChecklistStepState,
+    ChecklistStepView, CHECKLIST_DEFAULT_TARGET, SERVER_SECURITY_GUIDE_ID,
 };
 pub use filters::{
     bank_distro_values, bank_os_values, bank_shell_values, command_os_fit, cycle_optional,

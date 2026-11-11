@@ -74,8 +74,11 @@ pub struct StateFile {
     pub command_favorites: BTreeSet<String>,
     /// Sunucu güvenlik kontrolü adım durumları.
     ///
-    /// Anahtar: `server-security-check::<step_id>`. Değer: `unchecked` /
-    /// `ok` / `review` / `na`. Parola, anahtar, token, host/IP **yazılmaz**.
+    /// Anahtar: `server-security-check::<target>::<step_id>` (hedefler
+    /// birbirinden yalıtılır). Eski `server-security-check::<step_id>` /
+    /// çıplak adım id kayıtları yüklemede `local` hedefine taşınır.
+    /// Değer: `unchecked` / `ok` / `review` / `na`. Parola, anahtar, token,
+    /// host/IP **yazılmaz**.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub command_checklist: BTreeMap<String, String>,
     /// Son kullanılanlar, **en yeni önce**.
