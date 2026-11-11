@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-10T21:03:47Z",
-  "content_sha256": "406fe04002c47c592009c71f6d9dbb1f0ec7c9faa6c19165f58bebe29265b716",
+  "generated_at": "2026-11-11T14:13:37Z",
+  "content_sha256": "d4ade2d8bff0291d9a15fdb6db894229d7bccd2f00c0b506bedbc7ff9ec45afe",
   "command_count": 267,
   "concept_count": 21,
   "task_count": 36,
@@ -29,6 +29,7 @@
         "iac"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -147,6 +148,7 @@
         "alpine"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -229,6 +231,7 @@
             "en": "Refreshes indexes and upgrades packages."
           },
           "risk": "dangerous",
+          "difficulty": "intermediate",
           "requires_elevated": true
         },
         {
@@ -242,6 +245,7 @@
             "en": "Installs curl."
           },
           "risk": "caution",
+          "difficulty": "intermediate",
           "requires_elevated": true
         },
         {
@@ -255,6 +259,7 @@
             "en": "Search repositories."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -268,6 +273,7 @@
             "en": "Checks whether curl is installed."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         }
       ],
@@ -323,6 +329,7 @@
         "debian"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -470,6 +477,7 @@
         "text"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -693,7 +701,8 @@
           "cloud",
           "infrastructure-as-code"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -783,7 +792,8 @@
           "cloud",
           "infrastructure-as-code"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -808,6 +818,7 @@
         "bash"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -1050,7 +1061,8 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/bcdedit"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -1071,6 +1083,7 @@
         "storage"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -1209,6 +1222,7 @@
         "efi"
       ],
       "risk": "dangerous",
+      "learning_level": "advanced",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -1476,7 +1490,8 @@
           "backup",
           "storage"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -1498,6 +1513,7 @@
         "homebrew"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "macos"
@@ -1670,6 +1686,7 @@
         "server"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -1774,6 +1791,7 @@
         "packages"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -1908,6 +1926,7 @@
         "view"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -2026,6 +2045,7 @@
         "shell"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -2118,6 +2138,7 @@
         "permissions"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -2308,7 +2329,8 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/chkdsk"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -2329,6 +2351,7 @@
         "permissions"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -2456,6 +2479,7 @@
         "permissions"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux",
@@ -2572,6 +2596,7 @@
         "c"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -2734,6 +2759,7 @@
         "copy"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -2970,7 +2996,8 @@
           "containers",
           "kubernetes"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -2991,6 +3018,7 @@
         "http"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -3149,6 +3177,7 @@
         "fields"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -3282,6 +3311,7 @@
         "time"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -3400,6 +3430,7 @@
         "image"
       ],
       "risk": "destructive",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux",
@@ -3494,6 +3525,7 @@
             "en": "10 MiB zero file; safe /tmp target."
           },
           "risk": "caution",
+          "difficulty": "intermediate",
           "requires_elevated": false
         },
         {
@@ -3507,6 +3539,7 @@
             "en": "Wrong of= wipes a disk; verify with lsblk."
           },
           "risk": "destructive",
+          "difficulty": "advanced",
           "requires_elevated": true,
           "warnings": [
             {
@@ -3612,7 +3645,8 @@
           "man 1 defaults"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -3632,6 +3666,7 @@
         "disk"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -3749,6 +3784,7 @@
         "text"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -3865,6 +3901,7 @@
         "dns"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -4084,7 +4121,8 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/diskpart"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -4106,6 +4144,7 @@
         "apfs"
       ],
       "risk": "destructive",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "macos"
@@ -4271,7 +4310,8 @@
           "https://learn.microsoft.com/windows-hardware/manufacture/desktop/what-is-dism"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -4292,6 +4332,7 @@
         "kernel"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -4403,6 +4444,7 @@
         "fedora"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -4543,6 +4585,7 @@
         "security"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "bsd",
@@ -4643,6 +4686,7 @@
         "containers"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -4687,7 +4731,8 @@
             "tr": "Çalışan konteynerler.",
             "en": "Running containers."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -4699,7 +4744,8 @@
             "tr": "Durmuş olanlar dahil listeler.",
             "en": "Lists containers including stopped."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -4711,7 +4757,8 @@
             "tr": "Yerel imaj listesi.",
             "en": "Local image list."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -4723,7 +4770,8 @@
             "tr": "Konteyner günlüklerini takip eder.",
             "en": "Follows container logs."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -4735,7 +4783,8 @@
             "tr": "Geçici Alpine kabuğu; --rm çıkınca siler. İmaj çeker (ağ).",
             "en": "Ephemeral Alpine shell; --rm removes on exit. May pull (network)."
           },
-          "risk": "caution"
+          "risk": "caution",
+          "difficulty": "intermediate"
         },
         {
           "title": {
@@ -4747,7 +4796,8 @@
             "tr": "Çalışan konteyneri durdurur.",
             "en": "Stops a running container."
           },
-          "risk": "caution"
+          "risk": "caution",
+          "difficulty": "intermediate"
         }
       ],
       "related": [
@@ -4855,6 +4905,7 @@
         "docker"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -4915,7 +4966,8 @@
             "tr": "Eklenti sözdizimi; dizininde compose.yaml olmalı.",
             "en": "Plugin syntax; needs compose.yaml in cwd."
           },
-          "risk": "dangerous"
+          "risk": "dangerous",
+          "difficulty": "intermediate"
         },
         {
           "title": {
@@ -4927,7 +4979,8 @@
             "tr": "Proje konteynerleri.",
             "en": "Project containers."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -4939,7 +4992,8 @@
             "tr": "Kapsayıcıları durdurur; volume politikasına dikkat.",
             "en": "Stops containers; mind volume policy."
           },
-          "risk": "dangerous"
+          "risk": "dangerous",
+          "difficulty": "intermediate"
         }
       ],
       "related": [
@@ -4989,6 +5043,7 @@
         "debian"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -5064,6 +5119,7 @@
             "en": "Installed packages matching curl*."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -5077,6 +5133,7 @@
             "en": "Package that owns a file."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -5090,6 +5147,7 @@
             "en": "May need apt -f install for deps."
           },
           "risk": "dangerous",
+          "difficulty": "intermediate",
           "requires_elevated": true
         }
       ],
@@ -5199,7 +5257,8 @@
           "man 1 dscl"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -5219,6 +5278,7 @@
         "disk"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -5360,6 +5420,7 @@
         "shell"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -5630,7 +5691,8 @@
           "package-managers-comparison",
           "nix-guix"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -5651,6 +5713,7 @@
         "environment"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -5886,7 +5949,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -5909,6 +5973,7 @@
         "server"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -6014,6 +6079,7 @@
         "environment"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -6093,6 +6159,7 @@
         "storage"
       ],
       "risk": "destructive",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -6227,6 +6294,7 @@
         "mime"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -6393,6 +6461,7 @@
         "files"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -6538,6 +6607,7 @@
         "mount"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -6696,6 +6766,7 @@
         "network"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -6783,6 +6854,7 @@
             "en": "Prints running when active."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -6796,6 +6868,7 @@
             "en": "Active zone rules."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": true
         },
         {
@@ -6809,6 +6882,7 @@
             "en": "Runtime only; may vanish on reload/reboot."
           },
           "risk": "dangerous",
+          "difficulty": "intermediate",
           "requires_elevated": true
         }
       ],
@@ -6865,6 +6939,7 @@
         "desktop"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -6951,7 +7026,8 @@
             "tr": "Kurulu flatpak’ler.",
             "en": "Installed flatpaks."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -6963,7 +7039,8 @@
             "tr": "Remote’larda GIMP ara.",
             "en": "Search remotes for GIMP."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -6975,7 +7052,8 @@
             "tr": "Flathub’dan kurar (onay ister).",
             "en": "Installs from Flathub (prompts)."
           },
-          "risk": "caution"
+          "risk": "caution",
+          "difficulty": "intermediate"
         }
       ],
       "related": [
@@ -7032,6 +7110,7 @@
         "memory"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -7224,7 +7303,8 @@
         "concepts": [
           "packages"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -7247,6 +7327,7 @@
         "repair"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -7413,6 +7494,7 @@
         "build"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -7640,7 +7722,8 @@
           "cloud",
           "infrastructure-as-code"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -7667,6 +7750,7 @@
         "filesystem"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -7769,6 +7853,7 @@
         "discovery"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -7894,6 +7979,7 @@
         "inventory"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -7972,6 +8058,7 @@
         "text"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -8123,7 +8210,8 @@
           "https://learn.microsoft.com/powershell/module/storage/get-disk"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -8201,7 +8289,8 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.security/get-executionpolicy"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -8227,6 +8316,7 @@
         "help"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -8326,6 +8416,7 @@
         "filesystem"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -8401,6 +8492,7 @@
         "registry"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -8482,6 +8574,7 @@
         "network"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -8557,6 +8650,7 @@
         "tcp"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -8652,6 +8746,7 @@
         "processes"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -8812,7 +8907,8 @@
           "https://learn.microsoft.com/powershell/module/scheduledtasks/get-scheduledtask"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -8841,6 +8937,7 @@
         "services"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -9013,7 +9110,8 @@
           "https://learn.microsoft.com/powershell/module/storage/get-volume"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -9124,7 +9222,8 @@
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.diagnostics/get-winevent"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -9145,6 +9244,7 @@
         "nss"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -9276,6 +9376,7 @@
         "git"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -9396,6 +9497,7 @@
         "vcs"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -9504,6 +9606,7 @@
             "en": "Tracked/untracked changes."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "privilege": "none"
         },
         {
@@ -9517,6 +9620,7 @@
             "en": "Last 10 commits summary."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "privilege": "none"
         },
         {
@@ -9530,6 +9634,7 @@
             "en": "Unstaged differences."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "privilege": "none"
         },
         {
@@ -9543,6 +9648,7 @@
             "en": "Clones repo into a new directory (network)."
           },
           "risk": "caution",
+          "difficulty": "beginner",
           "privilege": "user"
         },
         {
@@ -9556,6 +9662,7 @@
             "en": "Local branches with tracking info."
           },
           "risk": "safe",
+          "difficulty": "intermediate",
           "privilege": "none"
         }
       ],
@@ -9627,6 +9734,7 @@
         "crypto"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -9730,6 +9838,7 @@
         "text"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -9896,6 +10005,7 @@
         "permissions"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -10188,7 +10298,8 @@
         ],
         "ui_priority": 65,
         "favorite_eligible": true
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -10209,6 +10320,7 @@
         "compress"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -10332,6 +10444,7 @@
         "text"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -10536,7 +10649,8 @@
           "kubernetes",
           "infrastructure-as-code"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -10556,6 +10670,7 @@
         "shell"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -10630,6 +10745,7 @@
         "dns"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -10768,6 +10884,7 @@
         "system"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -10874,6 +10991,7 @@
         "systemd"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -10986,6 +11104,7 @@
         "monitoring"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -11154,7 +11273,8 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/icacls"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -11174,6 +11294,7 @@
         "users"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -11278,6 +11399,7 @@
         "interfaces"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "bsd",
@@ -11479,7 +11601,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -11501,6 +11624,7 @@
         "sysstat"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -11644,6 +11768,7 @@
         "top"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -11791,6 +11916,7 @@
         "network"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -11986,6 +12112,7 @@
         "network"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -12096,6 +12223,7 @@
         "legacy"
       ],
       "risk": "destructive",
+      "learning_level": "advanced",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -12297,7 +12425,8 @@
         "concepts": [
           "containers"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -12390,7 +12519,8 @@
         "concepts": [
           "containers"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -12412,6 +12542,7 @@
         "systemd"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -12623,6 +12754,7 @@
         "data"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -12794,6 +12926,7 @@
         "process"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -12935,6 +13068,7 @@
         "orchestration"
       ],
       "risk": "dangerous",
+      "learning_level": "advanced",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -12983,7 +13117,8 @@
             "tr": "İstemci sürümü (küme gerekmez).",
             "en": "Client version (no cluster required)."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -12995,7 +13130,8 @@
             "tr": "Tüm namespace’lerde pod’lar (küme erişimi gerekir).",
             "en": "Pods across namespaces (needs cluster access)."
           },
-          "risk": "caution"
+          "risk": "caution",
+          "difficulty": "intermediate"
         },
         {
           "title": {
@@ -13007,7 +13143,8 @@
             "tr": "kubeconfig bağlamlarını listeler.",
             "en": "Lists kubeconfig contexts."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         }
       ],
       "intent": {
@@ -13078,6 +13215,7 @@
         "audit"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -13225,6 +13363,7 @@
         "launchd"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "macos"
@@ -13314,6 +13453,7 @@
         "pager"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -13426,6 +13566,7 @@
         "symlink"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -13564,6 +13705,7 @@
         "search"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -13738,7 +13880,8 @@
           "https://developer.apple.com/documentation/os/logging"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -13760,6 +13903,7 @@
         "session"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -13836,7 +13980,8 @@
             "tr": "Aktif oturum kimlikleri.",
             "en": "Active session ids."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -13848,7 +13993,8 @@
             "tr": "Mevcut kullanıcı oturum özeti.",
             "en": "Current user session summary."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -13860,7 +14006,8 @@
             "tr": "Belirtilen oturumu bitirir — veri kaybı riski.",
             "en": "Ends a session — risk of data loss."
           },
-          "risk": "dangerous"
+          "risk": "dangerous",
+          "difficulty": "intermediate"
         }
       ],
       "related": [
@@ -13911,6 +14058,7 @@
         "list"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -14093,6 +14241,7 @@
         "disk"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -14245,6 +14394,7 @@
         "cpu"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -14345,6 +14495,7 @@
         "network"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -14500,6 +14651,7 @@
         "hardware"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -14620,6 +14772,7 @@
         "hardware"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -14722,6 +14875,7 @@
         "build"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -14829,6 +14983,7 @@
         "directory"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -14974,6 +15129,7 @@
         "format"
       ],
       "risk": "destructive",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -15141,6 +15297,7 @@
         "format"
       ],
       "risk": "destructive",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -15311,6 +15468,7 @@
         "format"
       ],
       "risk": "destructive",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -15493,6 +15651,7 @@
         "format"
       ],
       "risk": "destructive",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -15664,6 +15823,7 @@
         "format"
       ],
       "risk": "destructive",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -15836,6 +15996,7 @@
         "mount"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux",
@@ -15996,6 +16157,7 @@
         "latency"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -16130,6 +16292,7 @@
         "rename"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -16374,7 +16537,8 @@
         "concepts": [
           "databases"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -16395,6 +16559,7 @@
         "debug"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -16630,7 +16795,8 @@
           "containers",
           "kubernetes"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -16714,7 +16880,8 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/netsh"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -16736,6 +16903,7 @@
         "tcp"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -16837,6 +17005,7 @@
         "sockets"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "bsd",
@@ -17036,7 +17205,8 @@
           "https://ss64.com/mac/networksetup.html"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -17135,7 +17305,8 @@
           "https://man.openbsd.org/newsyslog.8"
         ],
         "notes": "Agent-authored Faz 6 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -17157,6 +17328,7 @@
         "network"
       ],
       "risk": "destructive",
+      "learning_level": "advanced",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -17307,6 +17479,7 @@
         "http"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux",
@@ -17454,6 +17627,7 @@
         "processes"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -17763,7 +17937,8 @@
       "purpose": {
         "tr": "Nix paket yöneticisi — NixOS değildir; macOS/Linux’ta da çalışır.",
         "en": "Nix package manager — not NixOS; also runs on other Linux and macOS."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -17881,7 +18056,8 @@
           "package-managers-comparison",
           "nix-guix"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -18004,7 +18180,8 @@
           "package-managers-comparison",
           "nix-guix"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -18118,7 +18295,8 @@
           "package-managers-comparison",
           "nix-guix"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -18260,7 +18438,8 @@
           "package-managers-comparison",
           "nix-guix"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -18283,6 +18462,7 @@
         "server"
       ],
       "risk": "caution",
+      "learning_level": "advanced",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -18432,6 +18612,7 @@
         "wifi"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -18511,6 +18692,7 @@
             "en": "Overall NetworkManager status."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -18524,6 +18706,7 @@
             "en": "Interfaces and their state."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -18537,6 +18720,7 @@
             "en": "Visible SSIDs."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -18550,6 +18734,7 @@
             "en": "Avoid passwords on argv; they land in shell history."
           },
           "risk": "dangerous",
+          "difficulty": "intermediate",
           "requires_elevated": false
         }
       ],
@@ -18607,6 +18792,7 @@
         "certificates"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -18733,6 +18919,7 @@
             "en": "Installed OpenSSL version."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "privilege": "none"
         },
         {
@@ -18746,6 +18933,7 @@
             "en": "Subject and dates from a PEM cert."
           },
           "risk": "safe",
+          "difficulty": "intermediate",
           "privilege": "none"
         },
         {
@@ -18759,6 +18947,7 @@
             "en": "File digest."
           },
           "risk": "safe",
+          "difficulty": "intermediate",
           "privilege": "none"
         },
         {
@@ -18772,6 +18961,7 @@
             "en": "Shows remote TLS chain (network). Expect certificate chain + Verify return code."
           },
           "risk": "caution",
+          "difficulty": "advanced",
           "privilege": "none"
         }
       ],
@@ -18973,7 +19163,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -18994,6 +19185,7 @@
         "arch"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -19071,6 +19263,7 @@
             "en": "Upgrades all packages."
           },
           "risk": "dangerous",
+          "difficulty": "intermediate",
           "requires_elevated": true
         },
         {
@@ -19084,6 +19277,7 @@
             "en": "Installs curl."
           },
           "risk": "caution",
+          "difficulty": "intermediate",
           "requires_elevated": true
         },
         {
@@ -19097,6 +19291,7 @@
             "en": "Searches repos for ripgrep."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -19110,6 +19305,7 @@
             "en": "Which package owns a file."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         }
       ],
@@ -19183,6 +19379,7 @@
         "partition"
       ],
       "risk": "destructive",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -19435,7 +19632,8 @@
           "arch",
           "package-managers"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -19456,6 +19654,7 @@
         "password"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -19540,7 +19739,8 @@
             "tr": "Etkileşimli parola değişimi.",
             "en": "Interactive password change."
           },
-          "risk": "caution"
+          "risk": "caution",
+          "difficulty": "intermediate"
         },
         {
           "title": {
@@ -19552,7 +19752,8 @@
             "tr": "alice parola durumu (root gerekebilir).",
             "en": "alice password status (may need root)."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -19565,6 +19766,7 @@
             "en": "Root sets alice's password."
           },
           "risk": "dangerous",
+          "difficulty": "intermediate",
           "requires_elevated": true
         }
       ],
@@ -19617,6 +19819,7 @@
         "vcs"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -19776,6 +19979,7 @@
         "pf"
       ],
       "risk": "dangerous",
+      "learning_level": "advanced",
       "requires_elevated": true,
       "platforms": [
         "bsd",
@@ -19901,6 +20105,7 @@
         "search"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -20014,6 +20219,7 @@
         "network"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -20136,6 +20342,7 @@
         "pkg"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "bsd",
@@ -20423,7 +20630,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -20570,7 +20778,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -20674,7 +20883,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -20695,6 +20905,7 @@
         "process"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -20898,7 +21109,8 @@
           "man 1 plutil"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -20963,7 +21175,8 @@
           "man 1 pmset"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -20983,6 +21196,7 @@
         "containers"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -21182,7 +21396,8 @@
           "packages",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -21309,7 +21524,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -21376,7 +21592,8 @@
           "man 1 profiles"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -21396,6 +21613,7 @@
         "process"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -21535,6 +21753,7 @@
         "postgresql"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -21699,6 +21918,7 @@
         "shell"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -21805,6 +22025,7 @@
         "language"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -21891,7 +22112,8 @@
             "tr": "Kurulu Python sürümü.",
             "en": "Installed Python version."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -21903,7 +22125,8 @@
             "tr": "Basit HTTP dosya sunucusu (ağ açar).",
             "en": "Simple HTTP file server (opens a network port)."
           },
-          "risk": "caution"
+          "risk": "caution",
+          "difficulty": "intermediate"
         },
         {
           "title": {
@@ -21915,7 +22138,8 @@
             "tr": "Kısa ifade çalıştırır.",
             "en": "Runs a short expression."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         }
       ],
       "related": [
@@ -22063,7 +22287,8 @@
           "virtualization",
           "storage"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -22194,7 +22419,8 @@
         "concepts": [
           "systemd"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -22318,7 +22544,8 @@
           "backup",
           "storage"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -22432,7 +22659,8 @@
         "concepts": [
           "databases"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -22535,7 +22763,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -22557,6 +22786,7 @@
         "process"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -22712,6 +22942,7 @@
         "systemd"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -22790,7 +23021,8 @@
             "tr": "Resolver ve arayüz DNS özeti.",
             "en": "Resolver and per-link DNS summary."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -22802,7 +23034,8 @@
             "tr": "resolved üzerinden ad çözümler.",
             "en": "Resolves via systemd-resolved."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -22814,7 +23047,8 @@
             "tr": "DNS önbelleğini temizler.",
             "en": "Flushes DNS caches."
           },
-          "risk": "caution"
+          "risk": "caution",
+          "difficulty": "intermediate"
         }
       ],
       "related": [
@@ -22871,6 +23105,7 @@
         "admin"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "windows"
@@ -22958,6 +23193,7 @@
         "server"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -23027,6 +23263,7 @@
             "en": "restic version."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "privilege": "none"
         },
         {
@@ -23040,6 +23277,7 @@
             "en": "Lists repo snapshots (needs RESTIC_PASSWORD; path placeholder)."
           },
           "risk": "caution",
+          "difficulty": "intermediate",
           "privilege": "user"
         },
         {
@@ -23053,6 +23291,7 @@
             "en": "Repo integrity check (non-writing; may take time)."
           },
           "risk": "caution",
+          "difficulty": "intermediate",
           "privilege": "user"
         }
       ],
@@ -23142,6 +23381,7 @@
         "ripgrep"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -23325,6 +23565,7 @@
         "delete"
       ],
       "risk": "destructive",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -23502,6 +23743,7 @@
         "copy"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -23600,6 +23842,7 @@
         "routing"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -23706,6 +23949,7 @@
         "rhel"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -23785,6 +24029,7 @@
             "en": "Version or not installed."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -23798,6 +24043,7 @@
             "en": "RPM that owns a file."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -23811,6 +24057,7 @@
             "en": "Prefer dnf for dependencies."
           },
           "risk": "dangerous",
+          "difficulty": "intermediate",
           "requires_elevated": true
         }
       ],
@@ -24015,7 +24262,8 @@
           "package-managers-comparison",
           "nix-guix"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -24037,6 +24285,7 @@
         "copy"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -24138,7 +24387,8 @@
             "tr": "Ne kopyalanacağını silmeden gösterir.",
             "en": "Shows what would copy without writing."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -24150,7 +24400,8 @@
             "tr": "Dizin içeriğini arşiv modunda eşitler.",
             "en": "Syncs directory contents in archive mode."
           },
-          "risk": "caution"
+          "risk": "caution",
+          "difficulty": "intermediate"
         },
         {
           "title": {
@@ -24162,7 +24413,8 @@
             "tr": "Uzak yedek; --delete kullanmadan önce dry-run.",
             "en": "Remote backup; dry-run before --delete."
           },
-          "risk": "dangerous"
+          "risk": "dangerous",
+          "difficulty": "intermediate"
         }
       ],
       "related": [
@@ -24219,6 +24471,7 @@
         "admin"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "windows"
@@ -24363,7 +24616,8 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/schtasks"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -24385,6 +24639,7 @@
         "network"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -24589,7 +24844,8 @@
           "man 8 scutil"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -24656,7 +24912,8 @@
           "man 1 security"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -24676,6 +24933,7 @@
         "text"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -24820,6 +25078,7 @@
         "services"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "bsd",
@@ -24945,6 +25204,7 @@
         "admin"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "windows"
@@ -25110,7 +25370,8 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/sfc"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -25132,6 +25393,7 @@
         "network"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -25416,7 +25678,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -25509,7 +25772,8 @@
           "https://support.apple.com/guide/terminal/update-software-apd3c5f3772/mac"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -25529,6 +25793,7 @@
         "text"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -25671,6 +25936,7 @@
         "data"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -25838,6 +26104,7 @@
         "ports"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -25985,6 +26252,7 @@
         "network"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -26182,6 +26450,7 @@
         "ssh"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -26329,6 +26598,7 @@
         "ssh"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -26470,6 +26740,7 @@
         "ssh"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -26608,6 +26879,7 @@
         "server"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux",
@@ -26773,6 +27045,7 @@
         "admin"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "windows"
@@ -26859,6 +27132,7 @@
         "metadata"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -26992,6 +27266,7 @@
         "admin"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "windows"
@@ -27079,6 +27354,7 @@
         "trace"
       ],
       "risk": "caution",
+      "learning_level": "advanced",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -27236,6 +27512,7 @@
         "security"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -27368,6 +27645,7 @@
         "privilege"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -27513,6 +27791,7 @@
         "storage"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -27708,7 +27987,8 @@
         "concepts": [
           "systemd"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -27775,7 +28055,8 @@
           "man 8 system_profiler"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -27797,6 +28078,7 @@
         "service"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -27924,6 +28206,7 @@
             "en": "sshd unit status (name may be ssh/sshd)."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "privilege": "none",
           "requires_elevated": false
         },
@@ -27938,6 +28221,7 @@
             "en": "Failed units."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "privilege": "none"
         },
         {
@@ -27951,6 +28235,7 @@
             "en": "enabled/disabled/static…"
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "privilege": "none"
         },
         {
@@ -27964,6 +28249,7 @@
             "en": "Restarts nginx (brief outage)."
           },
           "risk": "dangerous",
+          "difficulty": "intermediate",
           "requires_elevated": true,
           "privilege": "elevated"
         }
@@ -28028,6 +28314,7 @@
         "boot"
       ],
       "risk": "safe",
+      "learning_level": "advanced",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -28178,6 +28465,7 @@
         "log"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -28371,7 +28659,8 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/takeown"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -28391,6 +28680,7 @@
         "archive"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -28565,6 +28855,7 @@
         "server"
       ],
       "risk": "caution",
+      "learning_level": "advanced",
       "requires_elevated": true,
       "platforms": [
         "linux",
@@ -28715,6 +29006,7 @@
         "pipe"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -28832,6 +29124,7 @@
         "cloud"
       ],
       "risk": "dangerous",
+      "learning_level": "advanced",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -28855,7 +29148,8 @@
             "tr": "Terraform sürümü.",
             "en": "Terraform version."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -28867,7 +29161,8 @@
             "tr": "Çalışma dizinindeki yapılandırmayı doğrular (uygulamaz).",
             "en": "Validates config in the working directory (does not apply)."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -28879,7 +29174,8 @@
             "tr": "Değişiklik planı (uygulamaz). Provider kimliği gerekir.",
             "en": "Change plan (does not apply). Needs provider credentials."
           },
-          "risk": "caution"
+          "risk": "caution",
+          "difficulty": "intermediate"
         }
       ],
       "intent": {
@@ -28950,6 +29246,7 @@
         "time"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -29033,6 +29330,7 @@
             "en": "Clock, timezone, NTP state."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         },
         {
@@ -29046,6 +29344,7 @@
             "en": "Sets timezone."
           },
           "risk": "caution",
+          "difficulty": "intermediate",
           "requires_elevated": true
         },
         {
@@ -29059,6 +29358,7 @@
             "en": "Enables network time sync."
           },
           "risk": "caution",
+          "difficulty": "intermediate",
           "requires_elevated": true
         }
       ],
@@ -29110,6 +29410,7 @@
         "automation"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -29255,6 +29556,7 @@
         "server"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -29427,6 +29729,7 @@
         "monitor"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -29528,6 +29831,7 @@
         "files"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -29667,6 +29971,7 @@
         "diagnostics"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -29814,6 +30119,7 @@
         "directory"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -29941,6 +30247,7 @@
         "security"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -30091,6 +30398,7 @@
         "security"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -30136,6 +30444,7 @@
             "en": "Prints octal mask."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "privilege": "none"
         },
         {
@@ -30149,6 +30458,7 @@
             "en": "Prints symbolic form like u=rwx,g=rx,o=rx."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "privilege": "none"
         },
         {
@@ -30162,6 +30472,7 @@
             "en": "New files deny group/other (session)."
           },
           "risk": "caution",
+          "difficulty": "intermediate",
           "privilege": "user",
           "warnings": [
             {
@@ -30223,6 +30534,7 @@
         "storage"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux",
@@ -30360,6 +30672,7 @@
         "info"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -30477,6 +30790,7 @@
         "text"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -30592,6 +30906,7 @@
         "archive"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -30778,7 +31093,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -30798,6 +31114,7 @@
         "system"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -30901,6 +31218,7 @@
         "accounts"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -31061,6 +31379,7 @@
         "accounts"
       ],
       "risk": "destructive",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -31200,6 +31519,7 @@
         "accounts"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -31442,7 +31762,8 @@
         "concepts": [
           "virtualization"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -31464,6 +31785,7 @@
         "users"
       ],
       "risk": "dangerous",
+      "learning_level": "advanced",
       "requires_elevated": true,
       "platforms": [
         "linux",
@@ -31622,6 +31944,7 @@
         "memory"
       ],
       "risk": "safe",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -31734,6 +32057,7 @@
         "monitoring"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -31865,6 +32189,7 @@
         "count"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -32058,7 +32383,8 @@
           "https://learn.microsoft.com/windows-server/administration/windows-commands/wevtutil"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -32079,6 +32405,7 @@
         "download"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -32191,6 +32518,7 @@
         "search"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux"
@@ -32292,6 +32620,7 @@
         "path"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -32401,6 +32730,7 @@
         "security"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -32574,6 +32904,7 @@
         "users"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -32678,6 +33009,7 @@
         "winget"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "windows"
@@ -32850,6 +33182,7 @@
         "signature"
       ],
       "risk": "destructive",
+      "learning_level": "advanced",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -33021,6 +33354,7 @@
         "find"
       ],
       "risk": "caution",
+      "learning_level": "intermediate",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -33280,7 +33614,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -33422,7 +33757,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -33547,7 +33883,8 @@
           "package-managers",
           "package-managers-comparison"
         ]
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -33614,7 +33951,8 @@
           "man 1 xcode-select"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -33680,7 +34018,8 @@
           "man 1 xcrun"
         ],
         "notes": "Agent-authored Faz 5 draft from official docs; not human-verified."
-      }
+      },
+      "learning_level": "unspecified"
     },
     {
       "schema_version": 2,
@@ -33701,6 +34040,7 @@
         "compression"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -33849,6 +34189,7 @@
         "storage"
       ],
       "risk": "dangerous",
+      "learning_level": "advanced",
       "requires_elevated": true,
       "platforms": [
         "bsd",
@@ -33968,6 +34309,7 @@
         "archive"
       ],
       "risk": "caution",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -34074,6 +34416,7 @@
         "storage"
       ],
       "risk": "dangerous",
+      "learning_level": "advanced",
       "requires_elevated": true,
       "platforms": [
         "bsd",
@@ -34198,6 +34541,7 @@
         "macos"
       ],
       "risk": "safe",
+      "learning_level": "beginner",
       "requires_elevated": false,
       "platforms": [
         "linux",
@@ -34362,6 +34706,7 @@
         "rpm"
       ],
       "risk": "dangerous",
+      "learning_level": "intermediate",
       "requires_elevated": true,
       "platforms": [
         "linux"
@@ -34446,6 +34791,7 @@
             "en": "Refreshes repository metadata."
           },
           "risk": "caution",
+          "difficulty": "intermediate",
           "requires_elevated": true
         },
         {
@@ -34459,6 +34805,7 @@
             "en": "Installs the curl package."
           },
           "risk": "caution",
+          "difficulty": "intermediate",
           "requires_elevated": true
         },
         {
@@ -34472,6 +34819,7 @@
             "en": "Package updates on Leap (not dup)."
           },
           "risk": "dangerous",
+          "difficulty": "intermediate",
           "requires_elevated": true
         },
         {
@@ -34485,6 +34833,7 @@
             "en": "Tumbleweed distribution upgrade — use carefully."
           },
           "risk": "dangerous",
+          "difficulty": "advanced",
           "requires_elevated": true
         },
         {
@@ -34498,6 +34847,7 @@
             "en": "Searches repos for ripgrep."
           },
           "risk": "safe",
+          "difficulty": "beginner",
           "requires_elevated": false
         }
       ],

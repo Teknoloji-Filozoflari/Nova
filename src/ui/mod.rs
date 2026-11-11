@@ -2428,18 +2428,8 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 }),
             ));
             badges.push(Span::raw(" "));
-            let level_label = match cmd.learning_level {
-                Some(level) => level.label(lang_id),
-                None => {
-                    if lang_id.to_ascii_lowercase().starts_with("en") {
-                        "unspecified"
-                    } else {
-                        "belirtilmedi"
-                    }
-                }
-            };
             badges.push(Span::styled(
-                format!("[{level_label}]"),
+                format!("[{}]", cmd.learning_level.label(lang_id)),
                 Style::default().fg(pal.search),
             ));
             badges.push(Span::raw(" "));

@@ -22,13 +22,15 @@ pub(crate) fn validate_bank_schema_version(version: u32) -> Result<(), String> {
 
 /// Öğrenme seviyesi — riskten bağımsız (`learning_level`).
 ///
-/// Bankada yoksa `None` (belirtilmemiş); risk ile doldurulmaz.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+/// Bankada yoksa / `unspecified` → belirtilmemiş; risk ile doldurulmaz.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum LearningLevel {
     Beginner,
     Intermediate,
     Advanced,
+    #[default]
+    Unspecified,
 }
 
 impl LearningLevel {
@@ -37,6 +39,7 @@ impl LearningLevel {
             Self::Beginner => "beginner",
             Self::Intermediate => "intermediate",
             Self::Advanced => "advanced",
+            Self::Unspecified => "unspecified",
         }
     }
 
@@ -50,7 +53,14 @@ impl LearningLevel {
             (Self::Intermediate, true) => "intermediate",
             (Self::Advanced, false) => "ileri",
             (Self::Advanced, true) => "advanced",
+            (Self::Unspecified, false) => "belirtilmedi",
+            (Self::Unspecified, true) => "unspecified",
         }
+    }
+
+    /// Açık beginner/intermediate/advanced mi?
+    pub fn is_specified(self) -> bool {
+        !matches!(self, Self::Unspecified)
     }
 
     /// Sıralama anahtarı (kolay → ileri). Yalnız açık seviye için.
@@ -59,6 +69,7 @@ impl LearningLevel {
             Self::Beginner => 0,
             Self::Intermediate => 1,
             Self::Advanced => 2,
+            Self::Unspecified => u8::MAX,
         }
     }
 }
@@ -228,7 +239,7 @@ pub struct CommandExample {
     /// v2 additive — örnek platform kısıtı.
     #[serde(default)]
     pub platforms: Vec<String>,
-    /// Açık örnek zorluğu (kolay → ileri). Yoksa risk ile uydurulmaz.
+    /// Açık örnek zorluğu (kolay → ileri). Yoksa / unspecified → risk ile uydurulmaz.
     #[serde(default)]
     pub difficulty: Option<LearningLevel>,
     /// Yaygın hatalar / uyarılar (öğretici).
@@ -238,13 +249,17 @@ pub struct CommandExample {
 
 /// Örnekleri yalnız açık `difficulty` ile sırala; risk asla anahtar değildir.
 ///
-/// Hiçbir örnekte difficulty yoksa katalog sırası korunur (kararlı).
+/// Hiçbir örnekte belirtilmiş difficulty yoksa katalog sırası korunur (kararlı).
 pub fn sort_examples_by_difficulty(examples: &mut [CommandExample]) {
-    if !examples.iter().any(|ex| ex.difficulty.is_some()) {
+    if !examples
+        .iter()
+        .any(|ex| ex.difficulty.is_some_and(LearningLevel::is_specified))
+    {
         return;
     }
     examples.sort_by_key(|ex| {
         ex.difficulty
+            .filter(|d| d.is_specified())
             .map(LearningLevel::sort_key)
             .unwrap_or(u8::MAX)
     });
@@ -370,9 +385,9 @@ pub struct CommandEntry {
     pub tags: Vec<String>,
     #[serde(default)]
     pub risk: RiskLevel,
-    /// Öğrenme seviyesi — riskten ayrı; yoksa belirtilmemiş.
+    /// Öğrenme seviyesi — riskten ayrı; yoksa / `unspecified` = belirtilmemiş.
     #[serde(default)]
-    pub learning_level: Option<LearningLevel>,
+    pub learning_level: LearningLevel,
     #[serde(default)]
     pub requires_elevated: bool,
     #[serde(default)]

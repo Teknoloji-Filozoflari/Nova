@@ -42,13 +42,13 @@ impl LearningLevelFilter {
         }
     }
 
-    fn matches_level(self, level: Option<LearningLevel>) -> bool {
+    fn matches_level(self, level: LearningLevel) -> bool {
         match self {
             Self::All => true,
-            Self::Beginner => level == Some(LearningLevel::Beginner),
-            Self::Intermediate => level == Some(LearningLevel::Intermediate),
-            Self::Advanced => level == Some(LearningLevel::Advanced),
-            Self::Unspecified => level.is_none(),
+            Self::Beginner => level == LearningLevel::Beginner,
+            Self::Intermediate => level == LearningLevel::Intermediate,
+            Self::Advanced => level == LearningLevel::Advanced,
+            Self::Unspecified => level == LearningLevel::Unspecified,
         }
     }
 }
@@ -319,22 +319,22 @@ mod tests {
     use super::*;
     use crate::commands::bank::{sort_examples_by_difficulty, CommandExample};
 
-    fn cmd(risk: RiskLevel, learning: Option<LearningLevel>) -> CommandEntry {
+    fn cmd(risk: RiskLevel, learning: LearningLevel) -> CommandEntry {
         serde_json::from_value(serde_json::json!({
             "id": "demo",
             "name": "demo",
             "risk": risk.as_str(),
-            "learning_level": learning.map(|l| l.as_str()),
+            "learning_level": learning.as_str(),
         }))
         .expect("command fixture")
     }
 
     #[test]
     fn learning_filter_ignores_risk_and_excludes_unspecified() {
-        let advanced_safe = cmd(RiskLevel::Safe, Some(LearningLevel::Advanced));
-        let dangerous_unset = cmd(RiskLevel::Dangerous, None);
-        let dangerous_advanced = cmd(RiskLevel::Dangerous, Some(LearningLevel::Advanced));
-        let beginner_caution = cmd(RiskLevel::Caution, Some(LearningLevel::Beginner));
+        let advanced_safe = cmd(RiskLevel::Safe, LearningLevel::Advanced);
+        let dangerous_unset = cmd(RiskLevel::Dangerous, LearningLevel::Unspecified);
+        let dangerous_advanced = cmd(RiskLevel::Dangerous, LearningLevel::Advanced);
+        let beginner_caution = cmd(RiskLevel::Caution, LearningLevel::Beginner);
 
         let mut f = CommandsFilters {
             learning: LearningLevelFilter::Advanced,
@@ -366,8 +366,8 @@ mod tests {
 
     #[test]
     fn risk_filter_independent_of_learning_level() {
-        let advanced_safe = cmd(RiskLevel::Safe, Some(LearningLevel::Advanced));
-        let advanced_dangerous = cmd(RiskLevel::Dangerous, Some(LearningLevel::Advanced));
+        let advanced_safe = cmd(RiskLevel::Safe, LearningLevel::Advanced);
+        let advanced_dangerous = cmd(RiskLevel::Dangerous, LearningLevel::Advanced);
         let mut f = CommandsFilters {
             risk: Some(RiskLevel::Safe),
             learning: LearningLevelFilter::Advanced,
@@ -382,7 +382,7 @@ mod tests {
 
         f.learning = LearningLevelFilter::All;
         f.risk = Some(RiskLevel::Dangerous);
-        let dangerous_unset = cmd(RiskLevel::Dangerous, None);
+        let dangerous_unset = cmd(RiskLevel::Dangerous, LearningLevel::Unspecified);
         assert!(f.matches(&dangerous_unset));
     }
 

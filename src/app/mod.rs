@@ -2164,10 +2164,8 @@ impl App {
             || cmd.summary.pick(lang).to_ascii_lowercase().contains(&q)
             || cmd.description.pick(lang).to_ascii_lowercase().contains(&q)
             || cmd.risk.as_str().contains(&q)
-            || match cmd.learning_level {
-                Some(level) => level.as_str().contains(&q),
-                None => q == "unspecified" || q == "belirtilmedi",
-            }
+            || cmd.learning_level.as_str().contains(&q)
+            || cmd.learning_level.label(lang).contains(&q)
             || cmd.verification.status.as_str().contains(&q)
             || cmd.tags.iter().any(|t| t.to_ascii_lowercase().contains(&q))
             || cmd
