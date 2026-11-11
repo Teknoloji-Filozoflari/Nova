@@ -34,6 +34,8 @@ fn main() {
     capture_commands_start(&out);
     capture_commands_task_detail(&out);
     capture_commands_security_checklist(&out);
+    capture_topic_guide_wide(&out);
+    capture_topic_guide_learning(&out);
 
     eprintln!("frames → {}", out.display());
 }
@@ -226,6 +228,96 @@ fn capture_commands_security_checklist(out: &Path) {
         42,
         out.join("07-commands-security-checklist.json"),
     );
+}
+
+/// Terminal temelleri — geniş yan detay: Alt konular + komut tablosu (ellipsis yok).
+fn capture_topic_guide_wide(out: &Path) {
+    let mut app = base_app();
+    select_topic_guide(&mut app, "terminal-basics");
+    widen_commands_detail(&mut app);
+    app.focus = PanelFocus::CommandsDetail;
+    // Öğrenme sırası uzun — Alt konular + komut tablosunu çerçeveye al.
+    let wrap_w = 100usize;
+    let concept = app
+        .commands_bank
+        .concepts
+        .iter()
+        .find(|c| c.id == "terminal-basics")
+        .expect("terminal-basics");
+    let lines = nova::ui::guide_detail::topic_guide_lines(&app, concept, wrap_w);
+    let scroll = lines
+        .iter()
+        .position(|l| {
+            let t: String = l.spans.iter().map(|s| s.content.as_ref()).collect();
+            t.trim() == "Alt konular:" || t.trim() == "Subtopics:"
+        })
+        .unwrap_or(0) as u16;
+    app.commands_detail_scroll = scroll.saturating_sub(1);
+    app.status_message =
+        "Konu Rehberi · Terminal temelleri — geniş detay; Alt konular + komut tablosu okunur."
+            .into();
+    dump(
+        &mut app,
+        180,
+        46,
+        out.join("preview-topic-guide-wide.json"),
+    );
+}
+
+/// Aynı konu — Öğrenme bölümüne kaydırılmış (paragraf boşlukları).
+fn capture_topic_guide_learning(out: &Path) {
+    let mut app = base_app();
+    select_topic_guide(&mut app, "terminal-basics");
+    widen_commands_detail(&mut app);
+    app.focus = PanelFocus::CommandsDetail;
+    let wrap_w = 100usize;
+    let concept = app
+        .commands_bank
+        .concepts
+        .iter()
+        .find(|c| c.id == "terminal-basics")
+        .expect("terminal-basics");
+    let lines = nova::ui::guide_detail::topic_guide_lines(&app, concept, wrap_w);
+    // "Öğrenme:" gövde başlığı — "Öğrenme sırası" ile karışmasın.
+    let scroll = lines
+        .iter()
+        .position(|l| {
+            let t: String = l.spans.iter().map(|s| s.content.as_ref()).collect();
+            let t = t.trim();
+            t == "Öğrenme:" || t == "Learning:"
+        })
+        .unwrap_or(0) as u16;
+    app.commands_detail_scroll = scroll;
+    app.status_message =
+        "Konu Rehberi · Öğrenme — paragraflı düzen; sıkışık duvar metin değil.".into();
+    dump(
+        &mut app,
+        180,
+        46,
+        out.join("preview-topic-guide-learning.json"),
+    );
+}
+
+fn select_topic_guide(app: &mut App, concept_id: &str) {
+    app.select_commands_tab();
+    assert_eq!(app.commands_mode, CommandsBrowseMode::Start);
+    app.commands_filters.clear();
+    let idx = app
+        .filtered_concepts()
+        .iter()
+        .position(|c| c.id == concept_id)
+        .unwrap_or_else(|| panic!("konu yok: {concept_id}"));
+    app.commands_entry_index = idx;
+    app.focus = PanelFocus::CommandsList;
+}
+
+fn widen_commands_detail(app: &mut App) {
+    use nova::config::state::UiScreen;
+    let sizes = app.state.file.prefs.pane_sizes.get_mut(UiScreen::Commands);
+    sizes.detail_width = Some(nova::ui::DETAIL_PANEL_WIDTH_MAX);
+    sizes.list = Some(22);
+    sizes.secondary = Some(16);
+    sizes.tabs = Some(14);
 }
 
 fn dump(app: &mut App, width: u16, height: u16, path: PathBuf) {

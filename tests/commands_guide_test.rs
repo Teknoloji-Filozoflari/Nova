@@ -1684,3 +1684,174 @@ fn topic_additive_fields_render_when_present() {
         "next bölümü yok:\n{text}"
     );
 }
+
+fn topic_lines_text(app: &App, concept_id: &str, wrap_w: usize) -> String {
+    let concept = app
+        .commands_bank
+        .concepts
+        .iter()
+        .find(|c| c.id == concept_id)
+        .unwrap_or_else(|| panic!("concept {concept_id}"));
+    let lines = nova::ui::guide_detail::topic_guide_lines(app, concept, wrap_w);
+    lines
+        .iter()
+        .map(|l| {
+            l.spans
+                .iter()
+                .map(|s| s.content.as_ref())
+                .collect::<String>()
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+#[test]
+fn topic_guide_wide_pane_shows_full_titles_no_id_risk_ellipsis() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.commands_filters.clear();
+
+    // En zengin topic-guide kaydı (subtopics + command_table).
+    let id = app
+        .commands_bank
+        .concepts
+        .iter()
+        .find(|c| !c.subtopics.is_empty() && !c.command_table.is_empty())
+        .map(|c| c.id.clone())
+        .expect("subtopics+command_table’lı konu");
+
+    let concept = app
+        .commands_bank
+        .concepts
+        .iter()
+        .find(|c| c.id == id)
+        .unwrap();
+    let sub_title = concept.subtopics[0].title.pick("tr").to_string();
+    let sub_sum = concept.subtopics[0].summary.pick("tr").to_string();
+    assert!(!sub_title.is_empty(), "alt konu başlığı boş");
+
+    // Geniş detay paneli (yan yerleşim ~100+ iç sütun)
+    let wide = topic_lines_text(&app, &id, 100);
+    assert!(
+        wide.contains(&sub_title),
+        "geniş panelde alt konu başlığı kırpılmamalı:\n{wide}"
+    );
+    if !sub_sum.is_empty() {
+        assert!(
+            wide.contains(&sub_sum)
+                || wide.contains(sub_sum.split_whitespace().next().unwrap_or("")),
+            "geniş panelde alt konu açıklaması görünmeli:\n{wide}"
+        );
+    }
+    // Sabit id/risk sütunu ellipsis’i (eski hata: shell… / güven…)
+    assert!(
+        !wide.contains("güven…")
+            && !wide.contains("güven..")
+            && !wide.contains("shell…")
+            && !wide.contains("shell..")
+            && !wide.contains("path.."),
+        "id/risk ellipsis olmamalı:\n{wide}"
+    );
+    for row in &concept.command_table {
+        let name = app
+            .commands_bank
+            .commands
+            .iter()
+            .find(|c| c.id == row.id)
+            .map(|c| c.name.as_str())
+            .unwrap_or(row.id.as_str());
+        assert!(
+            wide.contains(name),
+            "komut tablosu adı tam görünmeli ({name}):\n{wide}"
+        );
+        let purpose = row.purpose.pick("tr");
+        if !purpose.is_empty() {
+            assert!(
+                wide.contains(purpose),
+                "komut amacı kırpılmamalı ({purpose}):\n{wide}"
+            );
+        }
+    }
+    // Öğrenme paragraf boşluğu
+    if !concept.body.pick("tr").is_empty() {
+        assert!(
+            wide.contains("Öğrenme") || wide.contains("Learning"),
+            "öğrenme bölümü:\n{wide}"
+        );
+        assert!(
+            !wide.contains("**"),
+            "öğrenme md ** işaretleri yutulmalı:\n{wide}"
+        );
+    }
+
+    // Paint: geniş terminal + yan detay
+    if let Some(idx) = app.filtered_concepts().iter().position(|c| c.id == id) {
+        app.commands_entry_index = idx;
+    }
+    app.terminal_size = Some((160, 42));
+    let painted = all_text(&render(&app, 160, 42));
+    assert!(
+        painted.contains("Konu Rehberi") || painted.contains("Topic Guide"),
+        "panel:\n{painted}"
+    );
+    // Enter hâlâ çalıştırmaz
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(app.install_job.is_none() && app.pending_tty_pm.is_none());
+    assert!(!app.modal.is_open());
+}
+
+#[test]
+fn topic_guide_readable_at_80x24_and_preserves_stack_on_resize_width() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.commands_filters.clear();
+    let id = app
+        .commands_bank
+        .concepts
+        .iter()
+        .find(|c| !c.command_table.is_empty() || !c.related_commands.is_empty())
+        .map(|c| c.id.clone())
+        .expect("komutlu konu");
+
+    // 80 sütun iç genişlik (klasik terminal) — kart veya yığın, ellipsis tuzağı yok
+    let classic = topic_lines_text(&app, &id, 80);
+    assert!(
+        !classic.contains("güven…")
+            && !classic.contains("güven..")
+            && !classic.contains("shell…")
+            && !classic.contains("shell.."),
+        "80 genişlikte id/risk ellipsis yok:\n{classic}"
+    );
+    assert!(
+        classic.contains("Komut tablosu")
+            || classic.contains("Command table")
+            || classic.contains("Öğrenme")
+            || classic.contains("Learning")
+            || classic.contains("Giriş")
+            || classic.contains("Intro"),
+        "80’de bölüm başlıkları:\n{classic}"
+    );
+
+    // Dar → kart
+    let narrow = topic_lines_text(&app, &id, 36);
+    assert!(
+        narrow.contains('┌') || narrow.contains('·'),
+        "dar panelde kart/yığın beklenir:\n{narrow}"
+    );
+
+    // 80x24 paint (küçük terminal)
+    if let Some(idx) = app.filtered_concepts().iter().position(|c| c.id == id) {
+        app.commands_entry_index = idx;
+    }
+    app.terminal_size = Some((80, 24));
+    let painted = all_text(&render(&app, 80, 24));
+    assert!(
+        painted.contains("Komut Rehberi") || painted.contains("Konu") || painted.contains("Topic"),
+        "80x24 çizim:\n{painted}"
+    );
+    assert!(app.install_job.is_none());
+}

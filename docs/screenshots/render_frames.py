@@ -88,13 +88,27 @@ def main() -> int:
         "05-commands-start.json": "commands-start.png",
         "06-commands-task-detail.json": "commands-task-detail.png",
         "07-commands-security-checklist.json": "commands-security-checklist.png",
+        # PR önizleme kareleri (isteğe bağlı; yoksa atlanır)
+        "preview-topic-guide-wide.json": "preview-topic-guide-wide.png",
+        "preview-topic-guide-learning.json": "preview-topic-guide-learning.png",
     }
-    for src_name, dst_name in mapping.items():
+    required = {
+        k: v
+        for k, v in mapping.items()
+        if not k.startswith("preview-")
+    }
+    for src_name, dst_name in required.items():
         src = frames_dir / src_name
         if not src.exists():
             print(f"missing {src}", file=sys.stderr)
             return 1
         render_frame(json.loads(src.read_text()), out_dir / dst_name)
+    for src_name, dst_name in mapping.items():
+        if not src_name.startswith("preview-"):
+            continue
+        src = frames_dir / src_name
+        if src.exists():
+            render_frame(json.loads(src.read_text()), out_dir / dst_name)
     return 0
 
 

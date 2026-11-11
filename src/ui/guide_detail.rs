@@ -12,7 +12,7 @@ use crate::app::App;
 use crate::commands::{
     command_os_fit, package_lines_for_filter, select_command_examples, sort_examples_by_difficulty,
     CommandEntry, CommandExample, CommandsFilters, ConceptEntry, LearningLevel, OsFit, RiskLevel,
-    VerificationStatus,
+    TopicLearningStep, VerificationStatus,
 };
 use crate::i18n::Msg;
 use crate::ui::theme::ThemePalette;
@@ -53,6 +53,66 @@ fn push_heading(lines: &mut Vec<Line<'static>>, title: &str) {
         format!("{title}:"),
         Style::default().add_modifier(Modifier::BOLD),
     )));
+    // Kısa nefes — başlık ile içerik arası sıkışmasın.
+    lines.push(Line::from(""));
+}
+
+/// Paragraf boşluklarını koruyarak sar; `**…**` işaretlerini TUI’de yut (düzen).
+fn push_learning_paragraphs(
+    lines: &mut Vec<Line<'static>>,
+    body: &str,
+    wrap_w: usize,
+    text: Style,
+    accent: Style,
+) {
+    let trimmed = body.trim();
+    if trimmed.is_empty() {
+        return;
+    }
+    let mut first = true;
+    for raw in trimmed.split("\n\n") {
+        let para = raw
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty())
+            .collect::<Vec<_>>()
+            .join(" ");
+        if para.is_empty() {
+            continue;
+        }
+        if !first {
+            lines.push(Line::from(""));
+        }
+        first = false;
+        // `**Başlık:** kalan…` → başlık satırı + gövde
+        if let Some((label, rest)) = split_leading_md_bold_label(&para) {
+            lines.push(Line::from(Span::styled(
+                label,
+                accent.add_modifier(Modifier::BOLD),
+            )));
+            if !rest.is_empty() {
+                push_wrapped(lines, &strip_md_bold(rest), wrap_w, text);
+            }
+        } else {
+            push_wrapped(lines, &strip_md_bold(&para), wrap_w, text);
+        }
+    }
+}
+
+fn strip_md_bold(s: &str) -> String {
+    s.replace("**", "")
+}
+
+/// `**Etiket:**` veya `**Etiket**` ile başlayan paragrafı ayır.
+fn split_leading_md_bold_label(para: &str) -> Option<(String, &str)> {
+    let rest = para.strip_prefix("**")?;
+    let end = rest.find("**")?;
+    let label = rest[..end].trim();
+    if label.is_empty() {
+        return None;
+    }
+    let after = rest[end + 2..].trim_start();
+    Some((label.to_string(), after))
 }
 
 /// Kenarlıklı kod satırı (`$ cmd`).
@@ -81,7 +141,7 @@ pub fn push_code_block(
     lines.push(Line::from(Span::styled(bot, muted)));
 }
 
-/// İpucu / risk / uyarı / draft callout.
+/// İpucu / risk / uyarı / draft callout — kompakt blok, bölümler arası nefes.
 pub fn push_callout(
     lines: &mut Vec<Line<'static>>,
     kind: CalloutKind,
@@ -98,6 +158,26 @@ pub fn push_callout(
         CalloutKind::Tip => "·",
         CalloutKind::Risk | CalloutKind::Warn | CalloutKind::Draft => "!",
     };
+    // Tip: tek satırlı hafif işaret (iç içe kutu yığını azalt).
+    if matches!(kind, CalloutKind::Tip) {
+        let head = if label.is_empty() {
+            format!("{marker} ")
+        } else {
+            format!("{marker} {label}: ")
+        };
+        let inner = wrap_w.saturating_sub(head.chars().count()).max(8);
+        let mut parts = wrap_text(body, inner).into_iter();
+        if let Some(first) = parts.next() {
+            lines.push(Line::from(vec![
+                Span::styled(head, style.add_modifier(Modifier::BOLD)),
+                Span::styled(first, style),
+            ]));
+        }
+        for part in parts {
+            lines.push(Line::from(Span::styled(format!("  {part}"), style)));
+        }
+        return;
+    }
     let head = format!("╭ {marker} {label}");
     lines.push(Line::from(Span::styled(
         head,
@@ -113,10 +193,13 @@ pub fn push_callout(
     lines.push(Line::from(Span::styled("╰".to_string(), muted)));
 }
 
-/// Geniş: tablo satırları; dar: kartlar. Boş `rows` → hiçbir şey.
+/// Okunur yığın: başlık + satır-içi rozet + saran açıklama.
+/// Dar (< [`NARROW_TABLE_WIDTH`]): kenarlıklı kart.
+/// Geniş: esnek yığın — sabit dar id/risk sütunu yok, ellipsis yok (yer yettiğince).
+/// `headers` geriye dönük API için tutulur; geniş düzende kullanılmaz.
 pub fn push_table_or_cards(
     lines: &mut Vec<Line<'static>>,
-    headers: &[&str],
+    _headers: &[&str],
     rows: &[(String, String, String)],
     wrap_w: usize,
     text: Style,
@@ -126,71 +209,75 @@ pub fn push_table_or_cards(
     if rows.is_empty() {
         return;
     }
-    if wrap_w < NARROW_TABLE_WIDTH {
-        for (a, b, c) in rows {
+    let narrow = wrap_w < NARROW_TABLE_WIDTH;
+    for (i, (title, detail, badge)) in rows.iter().enumerate() {
+        if i > 0 {
+            lines.push(Line::from(""));
+        }
+        if narrow {
+            let head = if badge.is_empty() {
+                title.clone()
+            } else {
+                format!("{title}  · {badge}")
+            };
             lines.push(Line::from(Span::styled(
-                format!("┌ {a}"),
+                format!("┌ {head}"),
                 accent.add_modifier(Modifier::BOLD),
             )));
-            if !b.is_empty() {
-                push_wrapped(lines, &format!("│ {b}"), wrap_w, text);
-            }
-            if !c.is_empty() {
-                lines.push(Line::from(Span::styled(format!("│ {c}"), muted)));
+            if !detail.is_empty() {
+                let inner = wrap_w.saturating_sub(2).max(8);
+                for part in wrap_text(detail, inner) {
+                    lines.push(Line::from(vec![
+                        Span::styled("│ ".to_string(), muted),
+                        Span::styled(part, text),
+                    ]));
+                }
             }
             lines.push(Line::from(Span::styled("└".to_string(), muted)));
+            continue;
         }
-        return;
-    }
-    // Basit sabit sütun tablosu
-    let w0 = headers
-        .first()
-        .map(|h| h.chars().count().max(10))
-        .unwrap_or(10)
-        .min(18);
-    let w2 = headers
-        .get(2)
-        .map(|h| h.chars().count().max(6))
-        .unwrap_or(8)
-        .min(12);
-    let w1 = wrap_w.saturating_sub(w0 + w2 + 4).max(12);
-    let hdr = format!(
-        "{:<w0$}  {:<w1$}  {}",
-        headers.first().copied().unwrap_or(""),
-        headers.get(1).copied().unwrap_or(""),
-        headers.get(2).copied().unwrap_or(""),
-        w0 = w0,
-        w1 = w1
-    );
-    lines.push(Line::from(Span::styled(
-        hdr,
-        muted.add_modifier(Modifier::BOLD),
-    )));
-    lines.push(Line::from(Span::styled("─".repeat(wrap_w.min(64)), muted)));
-    for (a, b, c) in rows {
-        let a_t = truncate_chars(a, w0);
-        let b_t = truncate_chars(b, w1);
-        let c_t = truncate_chars(c, w2);
-        lines.push(Line::from(format!(
-            "{a_t:<w0$}  {b_t:<w1$}  {c_t}",
-            w0 = w0,
-            w1 = w1
-        )));
+        // Geniş: tam başlık + rozet; açıklama alt satırda sarılır.
+        push_title_with_badge(lines, title, badge, wrap_w, accent, muted);
+        if !detail.is_empty() {
+            let inner = wrap_w.saturating_sub(2).max(8);
+            for part in wrap_text(detail, inner) {
+                lines.push(Line::from(Span::styled(format!("  {part}"), text)));
+            }
+        }
     }
 }
 
-fn truncate_chars(s: &str, max: usize) -> String {
-    let n = s.chars().count();
-    if n <= max {
-        return s.to_string();
+fn push_title_with_badge(
+    lines: &mut Vec<Line<'static>>,
+    title: &str,
+    badge: &str,
+    wrap_w: usize,
+    accent: Style,
+    muted: Style,
+) {
+    let title = title.trim();
+    let badge = badge.trim();
+    if badge.is_empty() {
+        push_wrapped(lines, title, wrap_w, accent.add_modifier(Modifier::BOLD));
+        return;
     }
-    if max <= 1 {
-        return "…".to_string();
+    let badge_bit = format!("  · {badge}");
+    let budget = wrap_w.saturating_sub(badge_bit.chars().count()).max(8);
+    let mut title_parts = wrap_text(title, budget).into_iter();
+    if let Some(first) = title_parts.next() {
+        lines.push(Line::from(vec![
+            Span::styled(first, accent.add_modifier(Modifier::BOLD)),
+            Span::styled(badge_bit, muted),
+        ]));
+    } else {
+        lines.push(Line::from(Span::styled(format!("· {badge}"), muted)));
     }
-    let take = max.saturating_sub(1);
-    let mut out: String = s.chars().take(take).collect();
-    out.push('…');
-    out
+    for part in title_parts {
+        lines.push(Line::from(Span::styled(
+            part,
+            accent.add_modifier(Modifier::BOLD),
+        )));
+    }
 }
 
 fn risk_color(pal: ThemePalette, risk: RiskLevel) -> ratatui::style::Color {
@@ -203,6 +290,33 @@ fn risk_color(pal: ThemePalette, risk: RiskLevel) -> ratatui::style::Color {
 
 fn bank_cmd<'a>(app: &'a App, id: &str) -> Option<&'a CommandEntry> {
     app.commands_bank.commands.iter().find(|c| c.id == id)
+}
+
+fn bank_concept<'a>(app: &'a App, id: &str) -> Option<&'a ConceptEntry> {
+    app.commands_bank.concepts.iter().find(|c| c.id == id)
+}
+
+/// `learning_path` ref → komut adı veya konu başlığı (id ham gösterilmez).
+fn resolve_learning_ref(app: &App, step: &TopicLearningStep, lang_id: &str) -> String {
+    let kind = step.kind.as_deref().unwrap_or("").to_ascii_lowercase();
+    if kind == "concept" || kind == "topic" {
+        if let Some(c) = bank_concept(app, &step.r#ref) {
+            let t = c.title.pick(lang_id);
+            if !t.is_empty() {
+                return t.to_string();
+            }
+        }
+    }
+    if let Some(cmd) = bank_cmd(app, &step.r#ref) {
+        return cmd.name.clone();
+    }
+    if let Some(c) = bank_concept(app, &step.r#ref) {
+        let t = c.title.pick(lang_id);
+        if !t.is_empty() {
+            return t.to_string();
+        }
+    }
+    step.r#ref.clone()
 }
 
 fn beginner_example<'a>(
@@ -271,24 +385,28 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
     let intro_body = if !intro.is_empty() { intro } else { summary };
     if !intro_body.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicIntro));
-        push_wrapped(&mut lines, intro_body, wrap_w, text);
+        push_learning_paragraphs(&mut lines, intro_body, wrap_w, text, accent);
     }
 
-    // Order — `learning_path`
+    // Order — `learning_path` (ref → komut/konu başlığı)
     if !concept.learning_path.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicOrder));
         for (i, step) in concept.learning_path.iter().enumerate() {
+            let label = resolve_learning_ref(app, step, lang_id);
             let note = step.note.pick(lang_id);
-            let line = if note.is_empty() {
-                format!("  {}. {}", i + 1, step.r#ref)
+            if note.is_empty() {
+                push_wrapped(&mut lines, &format!("{}. {label}", i + 1), wrap_w, text);
             } else {
-                format!("  {}. {} — {note}", i + 1, step.r#ref)
-            };
-            push_wrapped(&mut lines, &line, wrap_w, text);
+                lines.push(Line::from(Span::styled(
+                    format!("{}. {label}", i + 1),
+                    accent.add_modifier(Modifier::BOLD),
+                )));
+                push_wrapped(&mut lines, &format!("   {note}"), wrap_w, text);
+            }
         }
     }
 
-    // Subtopics — structured; fallback related_concepts ids
+    // Subtopics — tam başlık + açıklama; id sütunu yok (ellipsis tuzağı)
     if !concept.subtopics.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicSubtopics));
         let rows: Vec<(String, String, String)> = concept
@@ -298,7 +416,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                 (
                     s.title.pick(lang_id).to_string(),
                     s.summary.pick(lang_id).to_string(),
-                    s.id.clone(),
+                    String::new(),
                 )
             })
             .collect();
@@ -307,7 +425,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
             &[
                 lang.t(Msg::CommandsTopicSubtopics),
                 lang.t(Msg::CommandsTopicIntro),
-                "id",
+                "",
             ],
             &rows,
             wrap_w,
@@ -335,7 +453,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                     .find(|c| c.id == *id)
                     .map(|c| c.summary.pick(lang_id).to_string())
                     .unwrap_or_default();
-                (title, summ, id.clone())
+                (title, summ, String::new())
             })
             .collect();
         push_table_or_cards(
@@ -343,7 +461,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
             &[
                 lang.t(Msg::CommandsTopicSubtopics),
                 lang.t(Msg::CommandsTopicIntro),
-                "id",
+                "",
             ],
             &rows,
             wrap_w,
@@ -353,32 +471,38 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         );
     }
 
-    // Command table — bank `command_table` preferred; else related_commands
+    // Command table — risk/seviye satır-içi rozet; sabit id/risk sütunu yok
     if !concept.command_table.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicCmdTable));
         let rows: Vec<(String, String, String)> = concept
             .command_table
             .iter()
             .map(|row| {
-                let name = bank_cmd(app, &row.id)
+                let cmd = bank_cmd(app, &row.id);
+                let name = cmd
                     .map(|c| c.name.clone())
                     .unwrap_or_else(|| row.id.clone());
-                let purpose = row.purpose.pick(lang_id).to_string();
-                let level = if row.learning_level.is_specified() {
+                let purpose = {
+                    let p = row.purpose.pick(lang_id);
+                    if !p.is_empty() {
+                        p.to_string()
+                    } else {
+                        cmd.map(|c| c.summary.pick(lang_id).to_string())
+                            .unwrap_or_default()
+                    }
+                };
+                let badge = if row.learning_level.is_specified() {
                     row.learning_level.label(lang_id).to_string()
                 } else {
-                    String::new()
+                    cmd.map(|c| c.risk.label(lang_id).to_string())
+                        .unwrap_or_default()
                 };
-                (name, purpose, level)
+                (name, purpose, badge)
             })
             .collect();
         push_table_or_cards(
             &mut lines,
-            &[
-                lang.t(Msg::CommandsList),
-                lang.t(Msg::CommandsPurpose),
-                "lvl",
-            ],
+            &[lang.t(Msg::CommandsList), lang.t(Msg::CommandsPurpose), ""],
             &rows,
             wrap_w,
             text,
@@ -431,11 +555,11 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         }
     }
 
-    // Learning body — intro’dan ayrı, doluysa
+    // Learning body — paragraflı, sıkışık duvar değil
     let body = concept.body.pick(lang_id);
     if !body.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicLearning));
-        push_wrapped(&mut lines, body, wrap_w, text);
+        push_learning_paragraphs(&mut lines, body, wrap_w, text, accent);
     }
 
     // Examples — graded_examples, else related beginner
@@ -453,18 +577,21 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
             push_heading(&mut lines, lang.t(Msg::CommandsExamples));
             let mut exs: Vec<_> = filtered.into_iter().cloned().collect();
             sort_examples_by_difficulty(&mut exs);
-            for ex in exs.iter().take(6) {
+            for (i, ex) in exs.iter().take(6).enumerate() {
+                if i > 0 {
+                    lines.push(Line::from(""));
+                }
                 let title = ex.title.pick(lang_id);
                 if !title.is_empty() {
                     lines.push(Line::from(format!(
-                        "  · {title} [{}]",
+                        "· {title}  · {}",
                         ex.risk.label(lang_id)
                     )));
                 }
                 push_code_block(&mut lines, &ex.command, wrap_w, accent, muted);
                 let expl = ex.explanation.pick(lang_id);
                 if !expl.is_empty() {
-                    push_wrapped(&mut lines, &format!("  {expl}"), wrap_w, muted);
+                    push_wrapped(&mut lines, expl, wrap_w, muted);
                 }
                 shown_examples += 1;
             }
@@ -484,12 +611,15 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         }
         if !collected.is_empty() {
             push_heading(&mut lines, lang.t(Msg::CommandsExamples));
-            for (name, ex) in collected {
-                lines.push(Line::from(Span::styled(format!("  · {name}"), muted)));
+            for (i, (name, ex)) in collected.into_iter().enumerate() {
+                if i > 0 {
+                    lines.push(Line::from(""));
+                }
+                lines.push(Line::from(Span::styled(format!("· {name}"), muted)));
                 push_code_block(&mut lines, &ex.command, wrap_w, accent, muted);
                 let expl = ex.explanation.pick(lang_id);
                 if !expl.is_empty() {
-                    push_wrapped(&mut lines, &format!("  {expl}"), wrap_w, muted);
+                    push_wrapped(&mut lines, expl, wrap_w, muted);
                 }
             }
         }
@@ -511,41 +641,50 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         .collect();
     if !tips.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicTips));
-        for tip in tips {
+        for (i, tip) in tips.into_iter().enumerate() {
             let t = tip.text.pick(lang_id);
-            if !t.is_empty() {
-                push_callout(
-                    &mut lines,
-                    CalloutKind::Tip,
-                    lang.t(Msg::CommandsTopicTips),
-                    t,
-                    wrap_w,
-                    Style::default().fg(pal.success),
-                    muted,
-                );
+            if t.is_empty() {
+                continue;
             }
+            if i > 0 {
+                lines.push(Line::from(""));
+            }
+            // Bölüm başlığı zaten var — tekrar "İpuçları:" etiketi yok.
+            push_callout(
+                &mut lines,
+                CalloutKind::Tip,
+                "",
+                t,
+                wrap_w,
+                Style::default().fg(pal.success),
+                muted,
+            );
         }
     }
     if !warns.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicWarnings));
-        for w in warns {
+        for (i, w) in warns.into_iter().enumerate() {
             let wt = w.text.pick(lang_id);
-            if !wt.is_empty() {
-                let kind = if w.kind.eq_ignore_ascii_case("risk") {
-                    CalloutKind::Risk
-                } else {
-                    CalloutKind::Warn
-                };
-                push_callout(
-                    &mut lines,
-                    kind,
-                    lang.t(Msg::CommandsTopicWarnings),
-                    wt,
-                    wrap_w,
-                    warn,
-                    muted,
-                );
+            if wt.is_empty() {
+                continue;
             }
+            if i > 0 {
+                lines.push(Line::from(""));
+            }
+            let kind = if w.kind.eq_ignore_ascii_case("risk") {
+                CalloutKind::Risk
+            } else {
+                CalloutKind::Warn
+            };
+            push_callout(
+                &mut lines,
+                kind,
+                lang.t(Msg::CommandsTopicWarnings),
+                wt,
+                wrap_w,
+                warn,
+                muted,
+            );
         }
     }
 
@@ -594,21 +733,17 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         push_wrapped(&mut lines, &format!("  {}", names.join(", ")), wrap_w, text);
     }
 
-    // Next steps
+    // Next steps — başlık + not; id sütunu yok
     if !concept.next_steps.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicNext));
         let rows: Vec<(String, String, String)> = concept
             .next_steps
             .iter()
             .map(|n| {
-                let title = app
-                    .commands_bank
-                    .concepts
-                    .iter()
-                    .find(|c| c.id == n.id)
+                let title = bank_concept(app, &n.id)
                     .map(|c| c.title.pick(lang_id).to_string())
                     .unwrap_or_else(|| n.id.clone());
-                (title, n.note.pick(lang_id).to_string(), n.id.clone())
+                (title, n.note.pick(lang_id).to_string(), String::new())
             })
             .collect();
         push_table_or_cards(
@@ -616,7 +751,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
             &[
                 lang.t(Msg::CommandsTopicNext),
                 lang.t(Msg::CommandsTopicIntro),
-                "id",
+                "",
             ],
             &rows,
             wrap_w,
@@ -1073,11 +1208,32 @@ mod tests {
         assert!(text.contains("$ ls -la"), "{text}");
     }
 
+    fn lines_text(lines: &[Line<'static>]) -> String {
+        lines
+            .iter()
+            .map(|l| {
+                l.spans
+                    .iter()
+                    .map(|s| s.content.as_ref())
+                    .collect::<String>()
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
     #[test]
-    fn table_becomes_cards_when_narrow() {
+    fn table_stacks_when_wide_and_cards_when_narrow() {
         let rows = vec![
-            ("restic".into(), "backup".into(), "caution".into()),
-            ("borg".into(), "archive".into(), "caution".into()),
+            (
+                "PATH ve konum".into(),
+                "Ortam değişkeni ve arama yolu.".into(),
+                String::new(),
+            ),
+            (
+                "shell-builtin".into(),
+                "Kabuk yerleşikleri.".into(),
+                "güvenli".into(),
+            ),
         ];
         let mut wide = Vec::new();
         push_table_or_cards(
@@ -1089,17 +1245,17 @@ mod tests {
             Style::default(),
             Style::default(),
         );
-        let wide_t: String = wide
-            .iter()
-            .map(|l| {
-                l.spans
-                    .iter()
-                    .map(|s| s.content.as_ref())
-                    .collect::<String>()
-            })
-            .collect::<Vec<_>>()
-            .join("\n");
-        assert!(wide_t.contains("cmd"), "{wide_t}");
+        let wide_t = lines_text(&wide);
+        assert!(wide_t.contains("PATH ve konum"), "{wide_t}");
+        assert!(
+            wide_t.contains("Ortam değişkeni ve arama yolu."),
+            "{wide_t}"
+        );
+        assert!(wide_t.contains("güvenli"), "rozet kırpılmamalı: {wide_t}");
+        assert!(
+            !wide_t.contains('…') && !wide_t.contains("güven..") && !wide_t.contains("shell.."),
+            "geniş panelde ellipsis olmamalı: {wide_t}"
+        );
         assert!(!wide_t.contains('┌'), "wide should not card: {wide_t}");
 
         let mut narrow = Vec::new();
@@ -1112,18 +1268,41 @@ mod tests {
             Style::default(),
             Style::default(),
         );
-        let narrow_t: String = narrow
-            .iter()
-            .map(|l| {
-                l.spans
-                    .iter()
-                    .map(|s| s.content.as_ref())
-                    .collect::<String>()
-            })
-            .collect::<Vec<_>>()
-            .join("\n");
+        let narrow_t = lines_text(&narrow);
         assert!(narrow_t.contains('┌'), "{narrow_t}");
-        assert!(narrow_t.contains("restic"), "{narrow_t}");
+        assert!(narrow_t.contains("PATH ve konum"), "{narrow_t}");
+        assert!(narrow_t.contains("güvenli"), "{narrow_t}");
+    }
+
+    #[test]
+    fn wide_table_does_not_pad_tiny_id_risk_columns() {
+        let rows = vec![(
+            "pwd".into(),
+            "Çalışma dizinini yazdırır.".into(),
+            "güvenli".into(),
+        )];
+        let mut lines = Vec::new();
+        push_table_or_cards(
+            &mut lines,
+            &["Bank Komutları", "Giriş", "risk"],
+            &rows,
+            100,
+            Style::default(),
+            Style::default(),
+            Style::default(),
+        );
+        let text = lines_text(&lines);
+        // Eski hata: sağda `güven…` + ortada boşluk dolgusu.
+        assert!(text.contains("güvenli"), "{text}");
+        assert!(
+            !text.contains("güven…") && !text.contains("güven.."),
+            "{text}"
+        );
+        let longest = text.lines().map(|l| l.chars().count()).max().unwrap_or(0);
+        assert!(
+            longest < 60,
+            "sabit sütun dolgusu olmamalı (satır {longest}): {text}"
+        );
     }
 
     #[test]
@@ -1139,5 +1318,25 @@ mod tests {
             Style::default(),
         );
         assert!(lines.is_empty());
+    }
+
+    #[test]
+    fn learning_paragraphs_keep_gaps_and_strip_md() {
+        let mut lines = Vec::new();
+        push_learning_paragraphs(
+            &mut lines,
+            "**İstem (prompt):** Kabuk hazır.\n\n**Çıkış kodu:** 0 başarı.",
+            40,
+            Style::default(),
+            Style::default(),
+        );
+        let text = lines_text(&lines);
+        assert!(text.contains("İstem (prompt)"), "{text}");
+        assert!(text.contains("Çıkış kodu"), "{text}");
+        assert!(!text.contains("**"), "md işaretleri yutulmalı: {text}");
+        assert!(
+            text.contains("\n\n"),
+            "paragraflar arası boşluk beklenir: {text:?}"
+        );
     }
 }
