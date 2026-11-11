@@ -2393,7 +2393,7 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
                     .fg(pal.accent),
             )));
-            // Rozetler: OS · shell · kategori · verification · risk (renk+metin)
+            // Rozetler: OS · shell · kategori · verification · learning_level · risk
             let mut badges: Vec<Span<'static>> = Vec::new();
             let os_label = if !cmd.operating_systems.is_empty() {
                 cmd.operating_systems.join("/")
@@ -2426,6 +2426,21 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 } else {
                     pal.warn
                 }),
+            ));
+            badges.push(Span::raw(" "));
+            let level_label = match cmd.learning_level {
+                Some(level) => level.label(lang_id),
+                None => {
+                    if lang_id.to_ascii_lowercase().starts_with("en") {
+                        "unspecified"
+                    } else {
+                        "belirtilmedi"
+                    }
+                }
+            };
+            badges.push(Span::styled(
+                format!("[{level_label}]"),
+                Style::default().fg(pal.search),
             ));
             badges.push(Span::raw(" "));
             badges.push(Span::styled(
@@ -2533,7 +2548,7 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     Style::default().add_modifier(Modifier::BOLD),
                 )));
                 let mut examples = cmd.examples.clone();
-                examples.sort_by_key(|ex| ex.risk as u8);
+                crate::commands::sort_examples_by_difficulty(&mut examples);
                 for ex in examples.iter().take(8) {
                     let title = ex.title.pick(lang_id);
                     let elev =

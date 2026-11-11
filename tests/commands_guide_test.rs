@@ -2,7 +2,9 @@
 
 use nova::app::App;
 use nova::catalog::Catalog;
-use nova::commands::{CommandsBrowseMode, BANK_KIND, LOCAL_KIND};
+use nova::commands::{
+    CommandsBrowseMode, LearningLevel, LearningLevelFilter, RiskLevel, BANK_KIND, LOCAL_KIND,
+};
 use ratatui::{backend::TestBackend, Terminal};
 
 fn app() -> App {
@@ -329,6 +331,125 @@ fn filters_os_risk_and_search_aliases_flags() {
     let _ = app.filtered_bank_commands();
     app.set_commands_mode(CommandsBrowseMode::SystemPath);
     assert_eq!(app.commands_source(), nova::commands::CommandsSource::Local);
+}
+
+#[test]
+fn risk_filter_independent_of_learning_level() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    app.commands_category_index = 0;
+    let cat = app
+        .commands_bank_categories()
+        .first()
+        .copied()
+        .unwrap_or("files")
+        .to_string();
+
+    // Geçici: safe-but-advanced ve dangerous-unspecified enjekte et (revendor öncesi).
+    app.commands_bank.commands.push(
+        serde_json::from_value(serde_json::json!({
+            "id": "test-safe-advanced",
+            "name": "test-safe-advanced",
+            "category": cat,
+            "risk": "safe",
+            "learning_level": "advanced",
+        }))
+        .expect("fixture"),
+    );
+    app.commands_bank.commands.push(
+        serde_json::from_value(serde_json::json!({
+            "id": "test-dangerous-unset",
+            "name": "test-dangerous-unset",
+            "category": cat,
+            "risk": "dangerous",
+        }))
+        .expect("fixture"),
+    );
+
+    app.commands_filters.risk = Some(RiskLevel::Safe);
+    let risk_ids: Vec<_> = app
+        .filtered_bank_commands()
+        .iter()
+        .map(|c| c.id.as_str())
+        .collect();
+    assert!(
+        risk_ids.contains(&"test-safe-advanced"),
+        "risk=safe advanced komutu göstermeli: {risk_ids:?}"
+    );
+    assert!(
+        !risk_ids.contains(&"test-dangerous-unset"),
+        "risk=safe dangerous'ı elemmeli"
+    );
+    app.commands_filters.clear();
+
+    app.commands_filters.learning = LearningLevelFilter::Advanced;
+    let level_ids: Vec<_> = app
+        .filtered_bank_commands()
+        .iter()
+        .map(|c| c.id.as_str())
+        .collect();
+    assert!(
+        level_ids.contains(&"test-safe-advanced"),
+        "safe-but-advanced advanced süzgecinde: {level_ids:?}"
+    );
+    assert!(
+        !level_ids.contains(&"test-dangerous-unset"),
+        "dangerous + belirtilmemiş advanced sayılmamalı: {level_ids:?}"
+    );
+}
+
+#[test]
+fn learning_level_filter_excludes_unspecified_honestly() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    let before = app.filtered_bank_commands().len();
+    assert!(before > 0);
+
+    // Vendor bankasında henüz learning_level yoksa hepsi belirtilmemiş.
+    let unspecified_n = app
+        .commands_bank
+        .commands
+        .iter()
+        .filter(|c| c.learning_level.is_none())
+        .count();
+    assert!(unspecified_n > 0);
+
+    app.commands_filters.learning = LearningLevelFilter::Beginner;
+    assert!(
+        app.filtered_bank_commands()
+            .iter()
+            .all(|c| c.learning_level == Some(LearningLevel::Beginner)),
+        "beginner süzgeci yalnız açık beginner; risk ile uydurma yok"
+    );
+
+    app.commands_filters.learning = LearningLevelFilter::Intermediate;
+    assert!(app
+        .filtered_bank_commands()
+        .iter()
+        .all(|c| c.learning_level == Some(LearningLevel::Intermediate)));
+
+    app.commands_filters.learning = LearningLevelFilter::Advanced;
+    assert!(app
+        .filtered_bank_commands()
+        .iter()
+        .all(|c| c.learning_level == Some(LearningLevel::Advanced)));
+
+    app.commands_filters.learning = LearningLevelFilter::Unspecified;
+    let unset = app.filtered_bank_commands();
+    assert!(!unset.is_empty());
+    assert!(unset.iter().all(|c| c.learning_level.is_none()));
+
+    // UI: belirtilmemiş rozeti risk rozetiyle birlikte.
+    app.commands_filters.clear();
+    app.terminal_size = Some((160, 45));
+    app.narrow_mode = false;
+    let text = all_text(&render(&app, 160, 45));
+    assert!(
+        text.contains("belirtilmedi") || text.contains("unspecified"),
+        "öğrenme seviyesi belirtilmemiş gösterilmeli:\n{text}"
+    );
 }
 
 #[test]

@@ -22,8 +22,9 @@ pub mod local;
 pub mod repo_sync;
 
 pub use bank::{
-    CommandBank, CommandEntry, ConceptEntry, GuideEntry, LocalizedString, ProfileEntry, RiskLevel,
-    TaskEntry, VerificationStatus, BANK_KIND,
+    sort_examples_by_difficulty, CommandBank, CommandEntry, ConceptEntry, GuideEntry,
+    LearningLevel, LocalizedString, ProfileEntry, RiskLevel, TaskEntry, VerificationStatus,
+    BANK_KIND,
 };
 pub use checklist::{
     server_security_steps, server_security_title, ChecklistStepState, ChecklistStepView,
