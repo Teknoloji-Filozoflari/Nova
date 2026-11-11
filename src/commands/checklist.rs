@@ -77,6 +77,12 @@ pub const SERVER_SECURITY_GUIDE_ID: &str = "server-security-check";
 /// Farklı hedefler birbirine sızmaz.
 pub const CHECKLIST_DEFAULT_TARGET: &str = "local";
 
+/// Varsayılan hedefin Türkçe görünen adı (“Bu cihaz”).
+pub const CHECKLIST_DEFAULT_TARGET_NAME_TR: &str = "Bu cihaz";
+
+/// Varsayılan hedefin İngilizce görünen adı (“This device”).
+pub const CHECKLIST_DEFAULT_TARGET_NAME_EN: &str = "This device";
+
 /// Checklist adımına bağlı tek örnek — TaskImplementation alanları korunur.
 #[derive(Debug, Clone)]
 pub struct ChecklistExampleView {
@@ -184,13 +190,79 @@ pub fn checklist_progress_key(target: &str, step_id: &str) -> String {
     format!("{SERVER_SECURITY_GUIDE_ID}::{target}::{step_id}")
 }
 
-fn normalize_checklist_target(target: &str) -> String {
+/// Hedef id’sini normalize et (trim; boş → `local`; ascii lowercase).
+pub fn normalize_checklist_target(target: &str) -> String {
     let t = target.trim();
     if t.is_empty() {
         CHECKLIST_DEFAULT_TARGET.to_string()
     } else {
         t.to_ascii_lowercase()
     }
+}
+
+/// Dil koduna göre varsayılan hedef görünen adı.
+pub fn default_checklist_target_name(lang: &str) -> &'static str {
+    if lang.to_ascii_lowercase().starts_with("en") {
+        CHECKLIST_DEFAULT_TARGET_NAME_EN
+    } else {
+        CHECKLIST_DEFAULT_TARGET_NAME_TR
+    }
+}
+
+/// Görünen adın hâlâ “Bu cihaz” / “This device” varsayılanı olup olmadığı.
+pub fn is_default_checklist_target_name(name: &str) -> bool {
+    let n = name.trim();
+    n.eq_ignore_ascii_case(CHECKLIST_DEFAULT_TARGET_NAME_TR)
+        || n.eq_ignore_ascii_case(CHECKLIST_DEFAULT_TARGET_NAME_EN)
+        || n.is_empty()
+}
+
+/// Görünen addan kararlı hedef id öner (çakışmada `-2`, `-3`, …).
+///
+/// Yalnızca `[a-z0-9-]` üretir; `local` ayrılmış kimliğe çarpmaz.
+pub fn suggest_checklist_target_id(name: &str, taken: &[&str]) -> String {
+    let mut base: String = name
+        .trim()
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() {
+                c.to_ascii_lowercase()
+            } else {
+                '-'
+            }
+        })
+        .collect();
+    while base.contains("--") {
+        base = base.replace("--", "-");
+    }
+    base = base.trim_matches('-').to_string();
+    if base.is_empty() || base == CHECKLIST_DEFAULT_TARGET {
+        base = "target".into();
+    }
+    let mut candidate = base.clone();
+    let mut n = 2u32;
+    while taken.contains(&candidate.as_str()) {
+        candidate = format!("{base}-{n}");
+        n += 1;
+    }
+    candidate
+}
+
+/// Görünen adı doğrula — boş / aşırı uzun / `::` reddedilir.
+///
+/// IP/parola/SSH anahtarı **istenmez**; bu alan yalnızca etiket.
+pub fn validate_checklist_target_name(raw: &str) -> Result<String, String> {
+    let name = raw.trim().to_string();
+    if name.is_empty() {
+        return Err("Hedef adı boş olamaz.".into());
+    }
+    if name.len() > 64 {
+        return Err("Hedef adı en fazla 64 karakter olabilir.".into());
+    }
+    if name.contains("::") {
+        return Err("Hedef adında '::' kullanılamaz.".into());
+    }
+    Ok(name)
 }
 
 /// Eski `command_checklist` kayıtlarını hedef-kapsamlı anahtarlara taşı.
@@ -948,6 +1020,26 @@ mod tests {
         assert!(matched
             .iter()
             .all(|m| m.example.command.contains("Get-NetTCPConnection")));
+    }
+
+    #[test]
+    fn suggest_checklist_target_id_slug_and_collision() {
+        assert_eq!(
+            suggest_checklist_target_id("Staging Lab", &[]),
+            "staging-lab"
+        );
+        assert_eq!(
+            suggest_checklist_target_id("local", &[]),
+            "target",
+            "reserved id çarpışmamalı"
+        );
+        assert_eq!(
+            suggest_checklist_target_id("Staging", &["staging"]),
+            "staging-2"
+        );
+        assert!(validate_checklist_target_name("  ").is_err());
+        assert!(validate_checklist_target_name("a::b").is_err());
+        assert_eq!(validate_checklist_target_name("  Prod  ").unwrap(), "Prod");
     }
 
     #[test]

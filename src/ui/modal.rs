@@ -49,6 +49,12 @@ pub fn draw(f: &mut Frame, app: &App) {
         Modal::ToolReview { valid, .. } => draw_review(f, area, valid, app.ui_lang()),
         Modal::ProjectPicker { index } => draw_picker(f, area, app, *index),
         Modal::ProjectAdd { input, error } => draw_project_add(f, area, input, error.as_deref()),
+        Modal::ChecklistTargetPicker { index } => {
+            draw_checklist_target_picker(f, area, app, *index)
+        }
+        Modal::ChecklistTargetAdd { input, error } => {
+            draw_checklist_target_add(f, area, app, input, error.as_deref())
+        }
         Modal::History => draw_history(f, area, app),
         Modal::Settings {
             preferred_terminal,
@@ -1287,6 +1293,114 @@ fn draw_project_add(f: &mut Frame, screen: Rect, input: &str, error: Option<&str
     )));
     let area = modal_area(screen, width, lines.len() as u16);
     let inner = frame(f, area, "Proje dizini ekle");
+    f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
+}
+
+fn draw_checklist_target_picker(f: &mut Frame, screen: Rect, app: &App, index: usize) {
+    use crate::i18n::Msg;
+    let lang = app.ui_lang();
+    let width = 60.min(screen.width.saturating_sub(MODAL_MARGIN * 2));
+    let inner_w = width.saturating_sub(2);
+    let targets = app.state.checklist_targets();
+    let mut lines = Vec::new();
+    if targets.is_empty() {
+        lines.push(Line::from(Span::styled(
+            lang.t(Msg::CommandsChecklistTargetEmpty),
+            Style::default().fg(Color::Yellow),
+        )));
+    }
+    for (i, target) in targets.iter().enumerate() {
+        let active = target.id == app.checklist_target;
+        let marker = if i == index { "> " } else { "  " };
+        let mark = if active { "● " } else { "  " };
+        let label = if target.id == crate::commands::CHECKLIST_DEFAULT_TARGET
+            && crate::commands::is_default_checklist_target_name(&target.name)
+        {
+            lang.t(Msg::CommandsChecklistTargetThisDevice).to_string()
+        } else {
+            target.name.clone()
+        };
+        let style = if i == index {
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::Gray)
+        };
+        lines.push(Line::from(Span::styled(
+            format!(
+                "{marker}{mark}{}",
+                truncate(&label, inner_w.saturating_sub(6) as usize)
+            ),
+            style,
+        )));
+    }
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        format!(
+            "{}: {}",
+            lang.t(Msg::CommandsChecklistTargetActive),
+            truncate(
+                &app.checklist_target_display_name(),
+                inner_w.saturating_sub(18) as usize
+            )
+        ),
+        Style::default().fg(Color::Green),
+    )));
+    lines.push(Line::from(Span::styled(
+        lang.t(Msg::CommandsChecklistTargetPrivacy).to_string(),
+        Style::default().fg(Color::DarkGray),
+    )));
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        lang.t(Msg::CommandsChecklistTargetHint).to_string(),
+        Style::default().fg(Color::DarkGray),
+    )));
+    let area = modal_area(screen, width, lines.len() as u16);
+    let inner = frame(f, area, lang.t(Msg::CommandsChecklistTargetTitle));
+    f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
+}
+
+fn draw_checklist_target_add(
+    f: &mut Frame,
+    screen: Rect,
+    app: &App,
+    input: &str,
+    error: Option<&str>,
+) {
+    use crate::i18n::Msg;
+    let lang = app.ui_lang();
+    let width = 58.min(screen.width.saturating_sub(MODAL_MARGIN * 2));
+    let inner_w = width.saturating_sub(2);
+    let mut lines = vec![Line::from(vec![
+        Span::styled(
+            format!("{}: ", lang.t(Msg::CommandsChecklistTargetNameField)),
+            Style::default().fg(Color::Gray),
+        ),
+        Span::styled(input.to_string(), Style::default().fg(Color::White)),
+        Span::styled("▏", Style::default().fg(Color::Cyan)),
+    ])];
+    if let Some(err) = error {
+        lines.push(Line::from(Span::styled(
+            format!("✗ {}", truncate(err, inner_w.saturating_sub(4) as usize)),
+            Style::default().fg(Color::Red),
+        )));
+    }
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        lang.t(Msg::CommandsChecklistTargetAddHint).to_string(),
+        Style::default().fg(Color::DarkGray),
+    )));
+    lines.push(Line::from(Span::styled(
+        lang.t(Msg::CommandsChecklistTargetPrivacy).to_string(),
+        Style::default().fg(Color::Yellow),
+    )));
+    lines.push(Line::from(Span::styled(
+        "Enter: ekle   Esc: geri",
+        Style::default().fg(Color::DarkGray),
+    )));
+    let area = modal_area(screen, width, lines.len() as u16);
+    let inner = frame(f, area, lang.t(Msg::CommandsChecklistTargetAddTitle));
     f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 

@@ -1382,7 +1382,12 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
                     })
                     .collect()
             };
-            let title = format!(" {} ({}) ", lang.t(Msg::CommandsChecklistList), steps.len());
+            let title = format!(
+                " {} · {} ({}) ",
+                lang.t(Msg::CommandsChecklistList),
+                truncate(&app.checklist_target_display_name(), 18),
+                steps.len()
+            );
             (title, items)
         } else if app.commands_mode == CommandsBrowseMode::SystemPath {
             let ents = app.filtered_local_commands();
@@ -2881,6 +2886,14 @@ fn checklist_detail_lines(app: &App) -> Vec<Line<'static>> {
                 .add_modifier(Modifier::BOLD),
         ),
     ]));
+    lines.push(Line::from(Span::styled(
+        format!(
+            "{}: {}",
+            lang.t(Msg::CommandsChecklistTargetActive),
+            app.checklist_target_display_name()
+        ),
+        Style::default().fg(pal.muted),
+    )));
     lines.push(Line::from(Span::styled(
         lang.t(Msg::CommandsChecklistNeverScan).to_string(),
         Style::default().fg(pal.warn),

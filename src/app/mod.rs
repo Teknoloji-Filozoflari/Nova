@@ -351,6 +351,15 @@ impl App {
         }
         // Eski `guide::step` / çıplak adım anahtarlarını hedef-kapsamlı forma taşı.
         let _ = commands::migrate_checklist_progress(&mut state.file.command_checklist);
+        // Varsayılan “Bu cihaz” hedefi + son seçili id.
+        let lang_hint = state
+            .file
+            .prefs
+            .language
+            .clone()
+            .unwrap_or_else(|| "tr".into());
+        state.ensure_checklist_targets(&lang_hint);
+        let checklist_target = state.resolve_checklist_target_id();
         // Nova içinde eklenen araçlar katalogda hazır değildir; durum
         // dosyasından geri yüklenir. Zaten katalogda olan bir kimlik (ör.
         // kullanıcı sonradan aynı aracı `config.toml`'a da yazdıysa)
@@ -424,7 +433,7 @@ impl App {
             commands_task_drill: None,
             commands_guide_committed: false,
             commands_filters: commands::CommandsFilters::default(),
-            checklist_target: commands::CHECKLIST_DEFAULT_TARGET.to_string(),
+            checklist_target,
             commands_detail_scroll: 0,
             commands_bank,
             commands_search_index,
@@ -1008,6 +1017,12 @@ impl App {
                 } else {
                     self.toggle_commands_profile_or_noop();
                 }
+            }
+            KeyCode::Char('t') | KeyCode::Char('T')
+                if self.commands_tab
+                    && self.commands_mode == CommandsBrowseMode::ServerSecurity =>
+            {
+                self.open_checklist_target_picker();
             }
             KeyCode::PageUp if self.commands_tab && self.focus == PanelFocus::CommandsDetail => {
                 self.commands_detail_scroll = self.commands_detail_scroll.saturating_sub(3);
@@ -1891,6 +1906,59 @@ impl App {
             self.ui_lang().t(crate::i18n::Msg::CommandsChecklistStatus),
             step.title.pick(lang),
             next.label(lang)
+        );
+    }
+
+    /// Etkin checklist hedefinin görünen adı (varsayılan dil ile yerelleşir).
+    pub fn checklist_target_display_name(&self) -> String {
+        let lang = self.ui_lang();
+        match self.state.checklist_target_by_id(&self.checklist_target) {
+            Some(t)
+                if t.id == commands::CHECKLIST_DEFAULT_TARGET
+                    && commands::is_default_checklist_target_name(&t.name) =>
+            {
+                lang.t(crate::i18n::Msg::CommandsChecklistTargetThisDevice)
+                    .to_string()
+            }
+            Some(t) => t.name.clone(),
+            None if self.checklist_target == commands::CHECKLIST_DEFAULT_TARGET => lang
+                .t(crate::i18n::Msg::CommandsChecklistTargetThisDevice)
+                .to_string(),
+            None => self.checklist_target.clone(),
+        }
+    }
+
+    fn checklist_target_cursor(&self) -> usize {
+        self.state
+            .checklist_targets()
+            .iter()
+            .position(|t| t.id == self.checklist_target)
+            .unwrap_or(0)
+    }
+
+    fn open_checklist_target_picker(&mut self) {
+        self.state.ensure_checklist_targets(self.ui_lang().id());
+        self.modal = modal::Modal::ChecklistTargetPicker {
+            index: self.checklist_target_cursor(),
+        };
+    }
+
+    fn activate_checklist_target_at(&mut self, index: usize) {
+        let Some(target) = self.state.checklist_targets().get(index).cloned() else {
+            self.status_message = self
+                .ui_lang()
+                .t(crate::i18n::Msg::CommandsChecklistTargetEmpty)
+                .to_string();
+            return;
+        };
+        self.checklist_target = target.id.clone();
+        self.state.set_prefs_checklist_target(&target.id);
+        let _ = self.persist_state();
+        self.status_message = format!(
+            "{}: {}",
+            self.ui_lang()
+                .t(crate::i18n::Msg::CommandsChecklistTargetActive),
+            self.checklist_target_display_name()
         );
     }
 
@@ -4956,6 +5024,75 @@ impl App {
                 KeyCode::Char(c) if !c.is_control() => input.push(c),
                 _ => {}
             },
+            modal::Modal::ChecklistTargetPicker { index } => match code {
+                KeyCode::Esc => take(modal::Modal::None),
+                KeyCode::Up | KeyCode::Char('k') => *index = index.saturating_sub(1),
+                KeyCode::Down | KeyCode::Char('j') => {
+                    let max = self.state.checklist_targets().len().saturating_sub(1);
+                    *index = (*index + 1).min(max);
+                }
+                KeyCode::Enter => {
+                    let i = *index;
+                    self.activate_checklist_target_at(i);
+                    take(modal::Modal::None);
+                }
+                KeyCode::Char('a') | KeyCode::Char('A') => take(modal::Modal::ChecklistTargetAdd {
+                    input: String::new(),
+                    error: None,
+                }),
+                KeyCode::Char('d') | KeyCode::Char('D') => {
+                    let targets = self.state.checklist_targets();
+                    if let Some(t) = targets.get(*index) {
+                        if t.id == commands::CHECKLIST_DEFAULT_TARGET {
+                            self.status_message = self
+                                .ui_lang()
+                                .t(crate::i18n::Msg::CommandsChecklistTargetKeepDefault)
+                                .to_string();
+                        } else {
+                            take(modal::Modal::Confirm {
+                                question: format!(
+                                    "'{}' listeden çıkarılsın mı? İlerleme kayıtları silinmez.",
+                                    t.name
+                                ),
+                                action: modal::ConfirmAction::RemoveChecklistTarget {
+                                    id: t.id.clone(),
+                                    name: t.name.clone(),
+                                },
+                            });
+                        }
+                    }
+                }
+                _ => {}
+            },
+            modal::Modal::ChecklistTargetAdd { input, error } => match code {
+                KeyCode::Esc => take(modal::Modal::ChecklistTargetPicker {
+                    index: self.checklist_target_cursor(),
+                }),
+                KeyCode::Backspace => {
+                    input.pop();
+                    *error = None;
+                }
+                KeyCode::Enter => {
+                    let name = input.clone();
+                    match self.state.add_checklist_target(&name) {
+                        Ok(entry) => {
+                            let _ = self.persist_state();
+                            self.status_message =
+                                format!("'{}' eklendi — Enter ile etkin yap.", entry.name);
+                            let index = self
+                                .state
+                                .checklist_targets()
+                                .iter()
+                                .position(|t| t.id == entry.id)
+                                .unwrap_or(0);
+                            take(modal::Modal::ChecklistTargetPicker { index });
+                        }
+                        Err(e) => *error = Some(e),
+                    }
+                }
+                KeyCode::Char(c) if !c.is_control() => input.push(c),
+                _ => {}
+            },
             modal::Modal::History => match code {
                 KeyCode::Esc => take(modal::Modal::None),
                 KeyCode::Char('x') | KeyCode::Char('X') => take(modal::Modal::Confirm {
@@ -5642,6 +5779,32 @@ impl App {
                         ),
                         Err(e) => format!("Hata: liste kaydedilemedi: {e}"),
                     };
+                }
+            }
+            modal::ConfirmAction::RemoveChecklistTarget { id, name } => {
+                if let Some(pos) = self
+                    .state
+                    .checklist_targets()
+                    .iter()
+                    .position(|t| t.id == id)
+                {
+                    match self.state.remove_checklist_target(pos) {
+                        Ok(_) => {
+                            if self.checklist_target == id {
+                                self.checklist_target =
+                                    commands::CHECKLIST_DEFAULT_TARGET.to_string();
+                                self.state
+                                    .set_prefs_checklist_target(commands::CHECKLIST_DEFAULT_TARGET);
+                            }
+                            self.status_message = match self.persist_state() {
+                                Ok(()) => format!(
+                                    "✓ '{name}' listeden çıkarıldı (ilerleme kayıtları duruyor)."
+                                ),
+                                Err(e) => format!("Hata: liste kaydedilemedi: {e}"),
+                            };
+                        }
+                        Err(e) => self.status_message = e,
+                    }
                 }
             }
             modal::ConfirmAction::CreateDir { path, tool_id } => {
