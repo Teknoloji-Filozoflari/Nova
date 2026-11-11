@@ -242,11 +242,11 @@ mod tests {
             bank.command_count.unwrap_or(bank.commands.len()),
             bank.commands.len()
         );
-        // Canlı banka schema v2 + beklenen digest (Nova-Commands #40 / NV-123 @ eb15d7f8…).
+        // Canlı banka schema v2 + beklenen digest (Nova-Commands #41 / NV-129 @ e6466b7f…).
         assert_eq!(bank.schema_version, 2);
         assert_eq!(
             man.content_sha256,
-            "eb15d7f851993865a70094a66d8d08df3f9f230738d24efcca5b4e86c9d31844"
+            "e6466b7f777fe49019c2cc7d6d4bcf279857d76a209e7ca68b7292f5f945ec06"
         );
         assert!(
             bank.concepts.iter().any(|c| !c.learning_path.is_empty()

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 349,
+  "entry_count": 350,
   "entries": [
     {
       "type": "command",
@@ -714,7 +714,8 @@
         ]
       },
       "concepts": [
-        "permissions"
+        "permissions",
+        "linux-directory-structure"
       ]
     },
     {
@@ -1553,7 +1554,8 @@
         ]
       },
       "concepts": [
-        "storage"
+        "storage",
+        "linux-directory-structure"
       ]
     },
     {
@@ -4159,8 +4161,9 @@
       "concepts": [
         "files",
         "terminal-basics",
-        "finding-files",
-        "permissions"
+        "linux-directory-structure",
+        "permissions",
+        "finding-files"
       ]
     },
     {
@@ -8683,7 +8686,8 @@
       },
       "concepts": [
         "files",
-        "terminal-basics"
+        "terminal-basics",
+        "linux-directory-structure"
       ]
     },
     {
@@ -9155,7 +9159,8 @@
         ]
       },
       "concepts": [
-        "permissions"
+        "permissions",
+        "server-security-checklist"
       ]
     },
     {
@@ -10467,6 +10472,43 @@
     },
     {
       "type": "concept",
+      "id": "linux-directory-structure",
+      "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "filesystem"
+      ],
+      "platforms": [
+        "linux"
+      ],
+      "tags": [
+        "filesystem",
+        "fhs",
+        "directories",
+        "beginner"
+      ],
+      "title": {
+        "tr": "Linux dizin yapısı",
+        "en": "Linux directory structure"
+      },
+      "summary": {
+        "tr": "FHS haritası — /, /etc, /home, /var, /usr, /tmp, /opt, /dev, /proc ve gezinme.",
+        "en": "FHS map — /, /etc, /home, /var, /usr, /tmp, /opt, /dev, /proc, and navigation."
+      },
+      "related_commands": [
+        "pwd",
+        "ls",
+        "cd",
+        "tree",
+        "file",
+        "stat",
+        "find",
+        "du",
+        "df"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "monitoring-and-logs",
       "difficulty": "intermediate",
       "format": "topic-guide",
@@ -10757,25 +10799,29 @@
         "permissions",
         "users",
         "sudo",
-        "chmod"
+        "chmod",
+        "umask"
       ],
       "title": {
         "tr": "Kullanıcılar, gruplar ve izinler",
         "en": "Users, groups, and permissions"
       },
       "summary": {
-        "tr": "id/chmod/chown/sudo ile kim neyi yapabilir — temel model.",
-        "en": "Who can do what with id/chmod/chown/sudo — the basic model."
+        "tr": "Kimlik, rwx/oktal mantık, chmod/chown/chgrp/umask/visudo ve güvenli sudo.",
+        "en": "Identity, rwx/octal logic, chmod/chown/chgrp/umask/visudo, and safe sudo."
       },
       "related_commands": [
-        "id",
         "whoami",
-        "stat",
+        "id",
         "groups",
+        "ls",
+        "stat",
         "chmod",
         "chown",
         "chgrp",
+        "umask",
         "sudo",
+        "visudo",
         "passwd",
         "useradd",
         "usermod",
@@ -11055,22 +11101,24 @@
       "tags": [
         "shell",
         "beginner",
-        "cli"
+        "cli",
+        "prompt"
       ],
       "title": {
         "tr": "Terminal temelleri",
         "en": "Terminal basics"
       },
       "summary": {
-        "tr": "Kabuk, istem (prompt), komut satırı ve çıkış kodları.",
-        "en": "Shell, prompt, command line, and exit statuses."
+        "tr": "Kabuk, istem, komut anatomisi, çıkış kodları, yardım ve temel gezinme.",
+        "en": "Shell, prompt, command anatomy, exit codes, help, and basic navigation."
       },
       "related_commands": [
         "pwd",
         "ls",
         "cd",
         "echo",
-        "history"
+        "history",
+        "which"
       ]
     },
     {
@@ -13473,10 +13521,10 @@
       ]
     }
   ],
-  "content_sha256": "eb15d7f851993865a70094a66d8d08df3f9f230738d24efcca5b4e86c9d31844",
-  "generated_at": "2026-11-11T19:28:26Z",
+  "content_sha256": "e6466b7f777fe49019c2cc7d6d4bcf279857d76a209e7ca68b7292f5f945ec06",
+  "generated_at": "2026-11-11T20:13:35Z",
   "command_count": 270,
-  "concept_count": 29,
+  "concept_count": 30,
   "task_count": 36,
   "profile_count": 14
 }

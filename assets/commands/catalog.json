@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-11T19:28:26Z",
-  "content_sha256": "eb15d7f851993865a70094a66d8d08df3f9f230738d24efcca5b4e86c9d31844",
+  "generated_at": "2026-11-11T20:13:35Z",
+  "content_sha256": "e6466b7f777fe49019c2cc7d6d4bcf279857d76a209e7ca68b7292f5f945ec06",
   "command_count": 270,
-  "concept_count": 29,
+  "concept_count": 30,
   "task_count": 36,
   "profile_count": 14,
   "commands": [
@@ -2309,13 +2309,32 @@
           "man 1 chgrp"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-coverage"
+        "reviewer": "nova-commands-coverage",
+        "notes": "PDF-depth teachable fields."
       },
       "nova": {
         "concepts": [
           "permissions"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "Yalnız grup sahipliğini değiştirmek (chown :grup alternatifi).",
+        "en": "Change group ownership only (alternative to chown :group)."
+      },
+      "syntax": "chgrp [OPTION]... GROUP FILE...",
+      "expected_effect": {
+        "tr": "Grup alanını günceller; sahibi ve kip aynı kalır.",
+        "en": "Updates the group field; owner and mode stay the same."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Üye olmadığınız gruba yazmayı beklemek.",
+          "en": "Expecting write access to a group you do not belong to."
+        }
+      ],
+      "related_topics": [
+        "permissions"
+      ]
     },
     {
       "schema_version": 2,
@@ -2501,6 +2520,32 @@
             "en": "Owner read/write only (typical for SSH keys)."
           },
           "risk": "caution"
+        },
+        {
+          "title": {
+            "tr": "755 betik/klasör",
+            "en": "755 script/dir"
+          },
+          "command": "chmod 755 script.sh",
+          "explanation": {
+            "tr": "rwxr-xr-x — sahip yazar; diğerleri okur/çalıştırır.",
+            "en": "rwxr-xr-x — owner writes; others read/execute."
+          },
+          "risk": "caution",
+          "difficulty": "beginner"
+        },
+        {
+          "title": {
+            "tr": "go-w",
+            "en": "go-w"
+          },
+          "command": "chmod go-w file.txt",
+          "explanation": {
+            "tr": "Grup ve diğerlerinden yazmayı kaldırır.",
+            "en": "Removes write from group and others."
+          },
+          "risk": "caution",
+          "difficulty": "intermediate"
         }
       ],
       "related": [
@@ -2524,7 +2569,7 @@
         ],
         "last_reviewed": "2026-11-02",
         "reviewer": "nova-commands-bootstrap",
-        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics). PDF-depth teachable fields."
       },
       "nova": {
         "concepts": [
@@ -2532,13 +2577,13 @@
         ]
       },
       "when_to_use": {
-        "tr": "Dosya veya dizin izin bitlerini değiştirmek.",
-        "en": "Change permission bits on files or directories."
+        "tr": "Dosya veya dizin izin bitlerini (rwx / oktal) değiştirmek.",
+        "en": "Change permission bits (rwx / octal) on files or directories."
       },
       "syntax": "chmod [OPTION]... MODE[,MODE]... FILE...",
       "expected_effect": {
-        "tr": "Hedeflerin modunu günceller; içerikleri değiştirmez.",
-        "en": "Updates modes on targets; does not change file contents."
+        "tr": "Hedeflerin kipini günceller; içerikleri değiştirmez. ls -l ile doğrulayın.",
+        "en": "Updates modes on targets; does not change contents. Verify with ls -l."
       },
       "common_mistakes": [
         {
@@ -2548,10 +2593,15 @@
         {
           "tr": "777’yi “çözüm” sanmak.",
           "en": "Treating 777 as a “fix”."
+        },
+        {
+          "tr": "Dizinde x bitini kaldırıp traverse’i kırmak.",
+          "en": "Removing directory x and breaking traverse."
         }
       ],
       "related_topics": [
-        "permissions"
+        "permissions",
+        "linux-directory-structure"
       ]
     },
     {
@@ -2644,7 +2694,9 @@
         }
       ],
       "related": [
-        "chmod"
+        "chmod",
+        "chgrp",
+        "ls"
       ],
       "intent": {
         "tr": [
@@ -2662,13 +2714,36 @@
           "man 1 chown"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "PDF-depth teachable fields."
       },
       "nova": {
         "concepts": [
           "permissions"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "Dosya/dizin sahibi (ve isteğe bağlı grubu) değiştirmek; genelde root.",
+        "en": "Change file/directory owner (and optional group); usually root."
+      },
+      "syntax": "chown [OPTION]... [OWNER][:[GROUP]] FILE...",
+      "expected_effect": {
+        "tr": "Sahip/grup alanını günceller; kip bitlerini değiştirmez.",
+        "en": "Updates owner/group fields; does not change mode bits."
+      },
+      "common_mistakes": [
+        {
+          "tr": "chown -R ile sistem dizinlerini yanlışlıkla sahiplenmek.",
+          "en": "Recursively reclaiming system dirs by mistake."
+        },
+        {
+          "tr": "Grup sözdizimini (kullanıcı:grup) karıştırmak.",
+          "en": "Confusing user:group syntax."
+        }
+      ],
+      "related_topics": [
+        "permissions"
+      ]
     },
     {
       "schema_version": 2,
@@ -5595,10 +5670,15 @@
       },
       "nova": {
         "concepts": [
-          "storage"
+          "storage",
+          "linux-directory-structure"
         ],
         "favorite_eligible": true
-      }
+      },
+      "related_topics": [
+        "linux-directory-structure",
+        "storage"
+      ]
     },
     {
       "schema_version": 2,
@@ -14597,7 +14677,9 @@
         "ui_priority": 90,
         "concepts": [
           "files",
-          "terminal-basics"
+          "terminal-basics",
+          "linux-directory-structure",
+          "permissions"
         ]
       },
       "when_to_use": {
@@ -14622,7 +14704,8 @@
       "related_topics": [
         "terminal-basics",
         "finding-files",
-        "permissions"
+        "permissions",
+        "linux-directory-structure"
       ]
     },
     {
@@ -31213,10 +31296,15 @@
       "nova": {
         "concepts": [
           "files",
-          "terminal-basics"
+          "terminal-basics",
+          "linux-directory-structure"
         ],
         "favorite_eligible": true
-      }
+      },
+      "related_topics": [
+        "linux-directory-structure",
+        "terminal-basics"
+      ]
     },
     {
       "schema_version": 2,
@@ -31496,7 +31584,7 @@
           "bash help umask",
           "man 2 umask"
         ],
-        "notes": "Agent-authored 2026-11-10 from bash help umask."
+        "notes": "Agent-authored 2026-11-10 from bash help umask. PDF-depth teachable fields."
       },
       "nova": {
         "concepts": [
@@ -31504,7 +31592,30 @@
           "terminal-basics",
           "shell-builtin"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "Yeni dosya/dizinlerin varsayılan izin maskesini görmek veya oturumda ayarlamak.",
+        "en": "Show or set the file-creation mode mask for new files/dirs."
+      },
+      "syntax": "umask [-p] [-S] [mode]",
+      "expected_effect": {
+        "tr": "Maskeyi basar veya geçerli kabuk oturumu için ayarlar; mevcut dosyaları değiştirmez.",
+        "en": "Prints or sets the mask for this shell session; does not change existing files."
+      },
+      "common_mistakes": [
+        {
+          "tr": "umask’ı chmod sanmak (mevcut dosyayı değiştirmez).",
+          "en": "Treating umask like chmod (it does not change existing files)."
+        },
+        {
+          "tr": "Oturum umask’ını kalıcı sanmak.",
+          "en": "Assuming a session umask persists forever."
+        }
+      ],
+      "related_topics": [
+        "permissions",
+        "terminal-basics"
+      ]
     },
     {
       "schema_version": 2,
@@ -32907,14 +33018,37 @@
           "visudo --help",
           "man 8 visudo"
         ],
-        "notes": "Agent-authored 2026-11-10 from visudo --help."
+        "notes": "Agent-authored 2026-11-10 from visudo --help. PDF-depth teachable fields."
       },
       "nova": {
         "concepts": [
           "permissions"
         ],
         "ui_priority": 70
-      }
+      },
+      "when_to_use": {
+        "tr": "sudoers’ı sözdizimi denetimiyle düzenlemek veya kontrol etmek.",
+        "en": "Edit or check sudoers with syntax validation."
+      },
+      "syntax": "visudo [-c] [-f sudoers] [-s]",
+      "expected_effect": {
+        "tr": "-c yalnız kontrol eder; düzenleme modu kilitli güvenli kayıt yapar.",
+        "en": "-c checks only; edit mode writes a locked, validated file."
+      },
+      "common_mistakes": [
+        {
+          "tr": "sudoers’ı düz nano/vim ile düzenleyip sözdizimini bozmak.",
+          "en": "Editing sudoers with plain nano/vim and breaking syntax."
+        },
+        {
+          "tr": "NOPASSWD ALL’ı “kolaylık” diye eklemek.",
+          "en": "Adding NOPASSWD ALL for “convenience”."
+        }
+      ],
+      "related_topics": [
+        "permissions",
+        "server-security-checklist"
+      ]
     },
     {
       "schema_version": 2,
@@ -35895,8 +36029,8 @@
         "en": "Archive and extract; wrong -C or overwrites can lose data."
       },
       "body": {
-        "tr": "`tar -czf` sıkıştırılmış arşiv oluşturur; `tar -tzf` içeriği listeler; `tar -xzf` çıkarır.\nÖnce listeleyin (`-t`), sonra çıkarın. `unzip -l` benzer şekilde listeler.\n\nWindows’ta Expand-Archive / tar (bsdtar) farklılıkları için bank kayıtlarına bakın.",
-        "en": "`tar -czf` creates a compressed archive; `tar -tzf` lists; `tar -xzf` extracts.\nList first (`-t`), then extract. `unzip -l` likewise lists.\n\nOn Windows, see bank records for Expand-Archive / tar (bsdtar) differences."
+        "tr": "## tar temeli\n\n`tar -czf arsiv.tar.gz dizin` oluşturur. `tar -tzf arsiv.tar.gz` listeler. `tar -xzf arsiv.tar.gz` çıkarır.\n\nSıra: önce `-t` ile listeleyin, sonra çıkarın. `-C /tmp` hedef dizin seçer.\n\n## gzip / xz / zip\n\n`gzip` / `gunzip` tek dosya; `xz` benzer. `zip -r` / `unzip -l` ZIP dünyası içindir.\n\n## Risk\n\nÇıkarma üzerine yazabilir. Öğrenme için `/tmp` veya `~/pratik` kullanın.\n",
+        "en": "## tar basics\n\n`tar -czf archive.tar.gz dir` creates. `tar -tzf archive.tar.gz` lists. `tar -xzf archive.tar.gz` extracts.\n\nOrder: list with `-t` first, then extract. `-C /tmp` chooses the target directory.\n\n## gzip / xz / zip\n\n`gzip` / `gunzip` for single files; `xz` similar. `zip -r` / `unzip -l` for ZIP.\n\n## Risk\n\nExtraction can overwrite. Practice under `/tmp` or `~/practice`.\n"
       },
       "difficulty": "beginner",
       "categories": [
@@ -35999,18 +36133,52 @@
       "graded_examples": [
         {
           "title": {
+            "tr": "Oluştur ve listele",
+            "en": "Create and list"
+          },
+          "command": "mkdir -p /tmp/nova-arc/demo && echo x > /tmp/nova-arc/demo/a.txt && tar -czf /tmp/nova-arc/demo.tar.gz -C /tmp/nova-arc demo && tar -tzf /tmp/nova-arc/demo.tar.gz",
+          "explanation": {
+            "tr": "Küçük bir ağaç arşivleyip üyeleri listeler.",
+            "en": "Archives a tiny tree and lists members."
+          },
+          "difficulty": "beginner",
+          "risk": "caution",
+          "related_commands": [
+            "tar",
+            "mkdir"
+          ]
+        },
+        {
+          "title": {
             "tr": "İçerik listele",
             "en": "List contents"
           },
-          "command": "tar -tzf archive.tar.gz | head",
+          "command": "tar -tzf /tmp/nova-arc/demo.tar.gz | head",
           "explanation": {
-            "tr": "Arşiv üyelerini listeler (dosya varsa).",
-            "en": "Lists archive members (when the file exists)."
+            "tr": "Var olan demo arşivini açmadan listeler.",
+            "en": "Lists the demo archive without extracting."
           },
           "difficulty": "beginner",
           "risk": "safe",
           "related_commands": [
             "tar"
+          ]
+        },
+        {
+          "title": {
+            "tr": "/tmp içine çıkar",
+            "en": "Extract into /tmp"
+          },
+          "command": "mkdir -p /tmp/nova-arc/out && tar -xzf /tmp/nova-arc/demo.tar.gz -C /tmp/nova-arc/out && ls /tmp/nova-arc/out",
+          "explanation": {
+            "tr": "-C ile hedef seçerek çıkarır; ev dizinine dağılmaz.",
+            "en": "Extracts with an explicit -C target; does not litter home."
+          },
+          "difficulty": "intermediate",
+          "risk": "caution",
+          "related_commands": [
+            "tar",
+            "ls"
           ]
         }
       ],
@@ -36021,6 +36189,13 @@
             "tr": "Çıkarma mevcut dosyaların üzerine yazabilir.",
             "en": "Extraction can overwrite existing files."
           }
+        },
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "Önce tar -tzf ile bakın; sonra -xzf.",
+            "en": "List with tar -tzf first; then -xzf."
+          }
         }
       ],
       "safe_exercises": [
@@ -36030,12 +36205,27 @@
             "en": "List first"
           },
           "prompt": {
-            "tr": "Elinizde bir .tar.gz varsa tar -tzf ile listeleyin; çıkarmayın.",
-            "en": "If you have a .tar.gz, list with tar -tzf; do not extract yet."
+            "tr": "Bir .tar.gz oluşturup tar -tzf ile listeleyin; çıkarmadan önce üyeleri okuyun.",
+            "en": "Create a .tar.gz and list with tar -tzf; read members before extracting."
           },
-          "risk": "safe",
+          "risk": "caution",
           "related_commands": [
             "tar"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Güvenli çıkarım",
+            "en": "Safe extract"
+          },
+          "prompt": {
+            "tr": "tar -xzf ... -C /tmp/hedef ile çıkarın; ls ile doğrulayın.",
+            "en": "Extract with tar -xzf ... -C /tmp/target; verify with ls."
+          },
+          "risk": "caution",
+          "related_commands": [
+            "tar",
+            "ls"
           ]
         }
       ],
@@ -36068,7 +36258,7 @@
           "man tar",
           "man gzip"
         ],
-        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
+        "notes": "PDF-depth archives; original wording; stays draft."
       }
     },
     {
@@ -37294,8 +37484,8 @@
         "en": "Find files by name, type, and time; be careful with broad find expressions."
       },
       "body": {
-        "tr": "`find` ağaçta arar; `locate` (varsa) önceden indekslenmiş veritabanına bakar.\nBaşlarken `find . -name '*.txt'` gibi dar kalıplar kullanın. `-delete` ve `-exec rm`\ntehlikeli olabilir — bu rehberde salt listeleme tercih edilir.\n\nWindows’ta `Get-ChildItem -Recurse` benzer işi görür; bank kaydına bakın.",
-        "en": "`find` walks trees; `locate` (when present) queries a prebuilt database.\nStart with narrow patterns like `find . -name '*.txt'`. `-delete` and `-exec rm`\ncan be dangerous — this guide prefers listing only.\n\nOn Windows, `Get-ChildItem -Recurse` covers similar jobs; see the bank record."
+        "tr": "## find ile ağaç araması\n\n`find` dizin ağacını gezer. Başlarken dar kalıplar kullanın: `find . -name '*.txt'`, `find /tmp -maxdepth 2 -type f`.\n\n## İsim, tür, zaman\n\n`-name` / `-iname` isim; `-type f|d` tür; `-mtime -30` son 30 günde değişenler. Hata gürültüsü için `2>/dev/null` (öğrenme) kullanılabilir.\n\n## locate\n\n`locate` (varsa) indeks kullanır — hızlıdır ama güncel olmayabilir. `updatedb` root ister.\n\n## Güvenlik\n\n`-delete` ve `-exec rm` tehlikelidir. Bu rehber salt listelemeyi öğretir. Windows’ta `Get-ChildItem -Recurse` ayrı modeldir.\n",
+        "en": "## Searching with find\n\n`find` walks a directory tree. Start narrow: `find . -name '*.txt'`, `find /tmp -maxdepth 2 -type f`.\n\n## Name, type, time\n\n`-name` / `-iname` for names; `-type f|d` for type; `-mtime -30` for files changed in 30 days. You may silence noise with `2>/dev/null` while learning.\n\n## locate\n\n`locate` (when present) uses an index — fast, possibly stale. `updatedb` needs root.\n\n## Safety\n\n`-delete` and `-exec rm` are dangerous. This guide teaches listing only. On Windows, `Get-ChildItem -Recurse` is a different model.\n"
       },
       "difficulty": "beginner",
       "categories": [
@@ -37410,6 +37600,73 @@
           "related_commands": [
             "find"
           ]
+        },
+        {
+          "title": {
+            "tr": "Yalnız dizinler",
+            "en": "Directories only"
+          },
+          "command": "find ~ -maxdepth 1 -type d",
+          "explanation": {
+            "tr": "Ev altında birinci seviye dizinleri listeler.",
+            "en": "Lists first-level directories under home."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "find"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Yapılandırma adları",
+            "en": "Config names"
+          },
+          "command": "find /etc -maxdepth 1 -name '*.conf' 2>/dev/null | head",
+          "explanation": {
+            "tr": "/etc üstündeki .conf adlarını salt okuma listeler.",
+            "en": "Read-only list of top-level .conf names under /etc."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "find",
+            "head"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Son 7 gün",
+            "en": "Last 7 days"
+          },
+          "command": "find ~ -maxdepth 2 -type f -mtime -7 2>/dev/null | head",
+          "explanation": {
+            "tr": "Evde son 7 günde değişen dosyalara dar bakış.",
+            "en": "Narrow peek at files changed in the last 7 days under home."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "related_commands": [
+            "find"
+          ]
+        },
+        {
+          "title": {
+            "tr": "which ile komut yolu",
+            "en": "Command path via which"
+          },
+          "command": "which find; which ls",
+          "explanation": {
+            "tr": "Arama araçlarının PATH konumunu görün.",
+            "en": "See PATH locations of search tools."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "which",
+            "find",
+            "ls"
+          ]
         }
       ],
       "callouts": [
@@ -37418,6 +37675,20 @@
           "text": {
             "tr": "Kökten (`/`) geniş find yavaş ve gürültülüdür; maxdepth kullanın.",
             "en": "Broad find from `/` is slow and noisy; use maxdepth."
+          }
+        },
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "Önce find . -name 'kalıp' | head ile sınırlayın; sonra genişletin.",
+            "en": "Start with find . -name 'pattern' | head; then widen."
+          }
+        },
+        {
+          "kind": "warning",
+          "text": {
+            "tr": "-delete / -exec rm öğrenme aşamasında kullanmayın.",
+            "en": "Do not use -delete / -exec rm while learning."
           }
         }
       ],
@@ -37435,6 +37706,34 @@
           "related_commands": [
             "find"
           ]
+        },
+        {
+          "title": {
+            "tr": "conf listesi",
+            "en": "conf list"
+          },
+          "prompt": {
+            "tr": "find /etc -maxdepth 1 -name '*.conf' 2>/dev/null | head çıktısını yorumlayın.",
+            "en": "Interpret find /etc -maxdepth 1 -name '*.conf' 2>/dev/null | head."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "find"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Zaman filtresi",
+            "en": "Time filter"
+          },
+          "prompt": {
+            "tr": "find ~ -maxdepth 2 -type f -mtime -30 2>/dev/null | head — bu ay değişenler.",
+            "en": "find ~ -maxdepth 2 -type f -mtime -30 2>/dev/null | head — changed this month."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "find"
+          ]
         }
       ],
       "next_steps": [
@@ -37443,6 +37742,9 @@
         },
         {
           "id": "permissions"
+        },
+        {
+          "id": "linux-directory-structure"
         },
         {
           "id": "storage"
@@ -37469,7 +37771,7 @@
           "man find",
           "man locate"
         ],
-        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
+        "notes": "PDF-depth examples for search topic; original wording; stays draft."
       }
     },
     {
@@ -38519,6 +38821,566 @@
       ]
     },
     {
+      "id": "linux-directory-structure",
+      "kind": "nova-commands-concept",
+      "format": "topic-guide",
+      "title": {
+        "tr": "Linux dizin yapısı",
+        "en": "Linux directory structure"
+      },
+      "summary": {
+        "tr": "FHS haritası — /, /etc, /home, /var, /usr, /tmp, /opt, /dev, /proc ve gezinme.",
+        "en": "FHS map — /, /etc, /home, /var, /usr, /tmp, /opt, /dev, /proc, and navigation."
+      },
+      "difficulty": "beginner",
+      "categories": [
+        "filesystem"
+      ],
+      "platforms": [
+        "linux"
+      ],
+      "tags": [
+        "filesystem",
+        "fhs",
+        "directories",
+        "beginner"
+      ],
+      "related_commands": [
+        "pwd",
+        "ls",
+        "cd",
+        "tree",
+        "file",
+        "stat",
+        "find",
+        "du",
+        "df"
+      ],
+      "related_concepts": [
+        "terminal-basics",
+        "path",
+        "permissions",
+        "storage",
+        "finding-files"
+      ],
+      "see_also": [
+        "man hier",
+        "man 7 file-hierarchy",
+        "https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html",
+        "man pwd",
+        "man ls"
+      ],
+      "intro": {
+        "tr": "Linux’ta her şey tek bir ağaçtır; kök `/` dir. Bu rehber önemli dizinleri, mutlak/göreli yolu ve güvenli keşif komutlarını öğretir.",
+        "en": "On Linux everything hangs from one tree rooted at `/`. This guide teaches key directories, absolute/relative paths, and safe exploration commands."
+      },
+      "body": {
+        "tr": "## Tek ağaç, kök `/`\n\nWindows’taki `C:`, `D:` sürücü harfleri yoktur. Diskler ve aygıtlar ağacın bir dalına **bağlanır** (`mount`). Önce haritayı öğrenin; sonra komutlarla güvenli şekilde dolaşın.\n\n## Önemli dizinler\n\n| Dizin | İçeriği |\n|-------|---------|\n| `/` | Kök. Her şey bunun altındadır. |\n| `/home` | Kullanıcı evleri (`/home/ayse`). Kişisel dosya ve ayarlar. |\n| `/root` | root kullanıcısının evi ( `/home` altında değildir). |\n| `/etc` | Sistem ve servis yapılandırması (`passwd`, `fstab`, `hostname` …). |\n| `/bin`, `/sbin` | Temel kullanıcı ve yönetim komutları; birçok dağıtımda `/usr/bin` ve `/usr/sbin` bağlarıdır. |\n| `/usr` | Kurulu programlar, kütüphaneler, belgeler (`bin`, `lib`, `share`). |\n| `/var` | Değişen veri: günlükler (`/var/log`), önbellek, posta, veritabanı dosyaları. |\n| `/tmp` | Geçici dosyalar; yeniden başlatmada silinebilir. |\n| `/opt` | Üçüncü taraf / isteğe bağlı yazılımlar. |\n| `/dev` | Aygıt düğümleri (`/dev/sda`, `/dev/tty`, `/dev/null`). |\n| `/proc`, `/sys` | Çekirdek ve süreçlerin canlı görünümü; gerçek diskte yer tutmaz. |\n| `/boot` | Önyükleyici ve çekirdek dosyaları. |\n| `/mnt`, `/media` | Geçici bağlama noktaları (USB, ISO, …). |\n\nDağıtıma göre birleşme noktaları (usr-merge) değişebilir; emin değilseniz `ls -ld` ve `man hier` ile bakın.\n\n## Yol kavramları\n\n| Gösterim | Anlamı |\n|----------|--------|\n| `/etc/passwd` | Mutlak yol — nerede olursanız olun aynı hedef. |\n| `belgeler/not.txt` | Göreli yol — çalışma dizinine göre. |\n| `.` | Bulunduğunuz dizin. |\n| `..` | Bir üst dizin. |\n| `~` | Ev dizininiz. |\n| `cd -` | Bir önceki çalışma dizinine dönüş. |\n\n## Keşif komutları\n\n`pwd` konumu yazar. `ls`, `ls -la`, `ls -lh` listeler. `cd` dizin değiştirir. `tree -L 2` (kuruluysa) ağacı çizer. `file` tür söyler; `stat` ayrıntı verir. `find` dar kalıpla arar; `du -sh` dizin özeti, `df -h` dosya sistemi doluluğu gösterir.\n\n## Güvenli pratik\n\nDenemeleri `~/pratik` veya `/tmp` altında yapın. Sistem dizinlerinde (`/etc`, `/boot`, `/usr`) yazmayın; salt okuma ile keşfedin. `rm -rf /` veya yanlış boşluklu silme felakettir — bu rehber silme öğretmez.\n",
+        "en": "## One tree, root `/`\n\nThere are no Windows-style `C:` / `D:` drive letters. Disks and devices are **mounted** onto a branch of the tree. Learn the map first; then explore with safe commands.\n\n## Important directories\n\n| Directory | Contents |\n|-----------|----------|\n| `/` | Root of everything. |\n| `/home` | User homes (`/home/ada`). Personal files and settings. |\n| `/root` | root’s home (not under `/home`). |\n| `/etc` | System and service configuration (`passwd`, `fstab`, `hostname`, …). |\n| `/bin`, `/sbin` | Essential user and admin commands; often merged into `/usr/bin` and `/usr/sbin`. |\n| `/usr` | Installed programs, libraries, docs (`bin`, `lib`, `share`). |\n| `/var` | Variable data: logs (`/var/log`), caches, mail, database files. |\n| `/tmp` | Temporary files; may be cleared on reboot. |\n| `/opt` | Optional / third-party software. |\n| `/dev` | Device nodes (`/dev/sda`, `/dev/tty`, `/dev/null`). |\n| `/proc`, `/sys` | Live kernel/process views; not real on-disk storage. |\n| `/boot` | Bootloader and kernel files. |\n| `/mnt`, `/media` | Temporary mount points (USB, ISO, …). |\n\nMerge layouts (usr-merge) vary by distro; when unsure, check `ls -ld` and `man hier`.\n\n## Path concepts\n\n| Form | Meaning |\n|------|---------|\n| `/etc/passwd` | Absolute — same target from anywhere. |\n| `docs/note.txt` | Relative — from the working directory. |\n| `.` | Current directory. |\n| `..` | Parent directory. |\n| `~` | Your home directory. |\n| `cd -` | Return to the previous working directory. |\n\n## Exploration commands\n\n`pwd` prints location. `ls`, `ls -la`, `ls -lh` list. `cd` changes directory. `tree -L 2` (if installed) draws a tree. `file` reports type; `stat` shows detail. `find` searches with narrow patterns; `du -sh` summarizes a directory; `df -h` shows filesystem free space.\n\n## Safe practice\n\nPractice under `~/practice` or `/tmp`. Do not write into system dirs (`/etc`, `/boot`, `/usr`); explore read-only. This guide does not teach destructive deletes.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man hier",
+          "man 7 file-hierarchy",
+          "https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html",
+          "man pwd",
+          "man ls",
+          "man du"
+        ],
+        "notes": "New topic guide mapped to PDF “Dizin Yapısı ve Gezinme”; original wording; FHS/man-oriented. Stays draft."
+      },
+      "learning_path": [
+        {
+          "ref": "pwd",
+          "kind": "command",
+          "note": {
+            "tr": "Nerede olduğunuzu görün.",
+            "en": "See where you are."
+          }
+        },
+        {
+          "ref": "ls",
+          "kind": "command",
+          "note": {
+            "tr": "Dizin içeriğini okuyun.",
+            "en": "Read directory contents."
+          }
+        },
+        {
+          "ref": "cd",
+          "kind": "command",
+          "note": {
+            "tr": "Mutlak ve göreli gezinme.",
+            "en": "Absolute and relative navigation."
+          }
+        },
+        {
+          "ref": "tree",
+          "kind": "command",
+          "note": {
+            "tr": "Ağacı görselleştirin (paket gerekebilir).",
+            "en": "Visualize the tree (may need a package)."
+          }
+        },
+        {
+          "ref": "file",
+          "kind": "command",
+          "note": {
+            "tr": "Dosya türünü içeriğe göre söyleyin.",
+            "en": "Report file type from content."
+          }
+        },
+        {
+          "ref": "find",
+          "kind": "command",
+          "note": {
+            "tr": "Dar kalıpla arayın.",
+            "en": "Search with a narrow pattern."
+          }
+        },
+        {
+          "ref": "du",
+          "kind": "command",
+          "note": {
+            "tr": "Dizin boyut özeti.",
+            "en": "Directory size summary."
+          }
+        },
+        {
+          "ref": "df",
+          "kind": "command",
+          "note": {
+            "tr": "Dosya sistemi doluluğu.",
+            "en": "Filesystem free space."
+          }
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "fhs-map",
+          "title": {
+            "tr": "FHS haritası",
+            "en": "FHS map"
+          },
+          "summary": {
+            "tr": "/, /etc, /home, /var, /usr, /tmp, /opt, /dev, /proc ne işe yarar?",
+            "en": "What are /, /etc, /home, /var, /usr, /tmp, /opt, /dev, /proc for?"
+          },
+          "related_commands": [
+            "ls",
+            "pwd"
+          ]
+        },
+        {
+          "id": "path-forms",
+          "title": {
+            "tr": "Mutlak ve göreli yol",
+            "en": "Absolute and relative paths"
+          },
+          "summary": {
+            "tr": "/, ., .., ~ ve cd - anlamları.",
+            "en": "Meanings of /, ., .., ~, and cd -."
+          },
+          "related_commands": [
+            "cd",
+            "pwd"
+          ]
+        },
+        {
+          "id": "listing",
+          "title": {
+            "tr": "Listeleme ve ağaç",
+            "en": "Listing and tree"
+          },
+          "summary": {
+            "tr": "ls -la/-lh ve tree -L ile keşif.",
+            "en": "Explore with ls -la/-lh and tree -L."
+          },
+          "related_commands": [
+            "ls",
+            "tree"
+          ]
+        },
+        {
+          "id": "inspect",
+          "title": {
+            "tr": "Tür ve meta veri",
+            "en": "Type and metadata"
+          },
+          "summary": {
+            "tr": "file ve stat ile dosyayı tanıyın.",
+            "en": "Identify files with file and stat."
+          },
+          "related_commands": [
+            "file",
+            "stat"
+          ]
+        },
+        {
+          "id": "size-search",
+          "title": {
+            "tr": "Boyut ve arama",
+            "en": "Size and search"
+          },
+          "summary": {
+            "tr": "du/df özeti; find ile dar arama.",
+            "en": "du/df summaries; narrow find searches."
+          },
+          "related_commands": [
+            "du",
+            "df",
+            "find"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "pwd",
+          "purpose": {
+            "tr": "Çalışma dizinini yazdırır.",
+            "en": "Print working directory."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "ls",
+          "purpose": {
+            "tr": "Dizin içeriğini listeler (-l/-a/-h sık kullanılır).",
+            "en": "List directory contents (-l/-a/-h common)."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "cd",
+          "purpose": {
+            "tr": "Çalışma dizinini değiştirir.",
+            "en": "Change the working directory."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "tree",
+          "purpose": {
+            "tr": "Dizin ağacını görsel listeler (ayrı paket olabilir).",
+            "en": "List contents as a tree (may be a separate package)."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "file",
+          "purpose": {
+            "tr": "Dosya türünü içeriğine bakarak söyler.",
+            "en": "Determine file type from contents."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "stat",
+          "purpose": {
+            "tr": "Boyut, izin, sahip ve zaman damgalarını gösterir.",
+            "en": "Show size, mode, owner, and timestamps."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "find",
+          "purpose": {
+            "tr": "Ağaçta isim/tür ile dosya arar.",
+            "en": "Search a tree by name/type."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "du",
+          "purpose": {
+            "tr": "Dizin disk kullanımını özetler.",
+            "en": "Summarize directory disk usage."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "df",
+          "purpose": {
+            "tr": "Dosya sistemi boş alanını gösterir.",
+            "en": "Report filesystem disk space usage."
+          },
+          "learning_level": "beginner"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Konum ve ev",
+            "en": "Location and home"
+          },
+          "command": "pwd; ls -la ~",
+          "explanation": {
+            "tr": "Çalışma dizinini ve evinizdeki (gizli dahil) girdileri görün.",
+            "en": "See the working directory and home entries including hidden ones."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "pwd",
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "/etc’ye bak (yazmadan)",
+            "en": "Peek at /etc (read-only)"
+          },
+          "command": "ls -lh /etc | head",
+          "explanation": {
+            "tr": "Yapılandırma dizininin üstünü okunur boyutlarla listeler; hiçbir dosyayı düzenlemez.",
+            "en": "Lists the top of the config directory with human sizes; edits nothing."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "ls",
+            "head"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Üst dizin ve geri dönüş",
+            "en": "Parent dir and return"
+          },
+          "command": "cd /tmp && pwd && cd - && pwd",
+          "explanation": {
+            "tr": "/tmp’ye gidip cd - ile önceki dizine dönün; - anlamını pekiştirir.",
+            "en": "Go to /tmp then return with cd -; reinforces the dash meaning."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "cd",
+            "pwd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Ağaç (kuruluysa)",
+            "en": "Tree (if installed)"
+          },
+          "command": "tree -L 2 /usr 2>/dev/null || ls -la /usr",
+          "explanation": {
+            "tr": "tree yoksa ls yedek planıdır. /usr altında iki seviye keşif.",
+            "en": "Falls back to ls if tree is missing. Two-level peek under /usr."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "tree",
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Tür ve stat",
+            "en": "Type and stat"
+          },
+          "command": "file /bin/ls; stat -c '%A %U %G %n' /etc/hostname 2>/dev/null || stat /etc/hostname",
+          "explanation": {
+            "tr": "file uzantıya güvenmez; stat izin/sahip özetler. GNU -c yoksa düz stat kullanın.",
+            "en": "file does not trust extensions; stat summarizes mode/owner. Use plain stat if GNU -c is absent."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "file",
+            "stat"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Dar find + du",
+            "en": "Narrow find + du"
+          },
+          "command": "find /etc -maxdepth 1 -name '*.conf' 2>/dev/null | head; du -sh /var/log 2>/dev/null || du -sh /tmp",
+          "explanation": {
+            "tr": "Kökten geniş tarama yok; maxdepth ile conf’lara bakın. du ile log/tmp özeti (izin hatası olabilir — normal).",
+            "en": "No broad scan from root; list conf files with maxdepth. du summarizes log/tmp (permission errors are normal)."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "find",
+            "du"
+          ]
+        },
+        {
+          "title": {
+            "tr": "df ile doluluk",
+            "en": "Free space with df"
+          },
+          "command": "df -h",
+          "explanation": {
+            "tr": "Bağlı dosya sistemlerinin boyut ve kullanımını okunur biçimde gösterir.",
+            "en": "Shows size and use of mounted filesystems in human-readable form."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "df"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "Önce harita, sonra komut: /etc yapılandırma, /var değişen veri, /home sizin alanınız, /tmp oyun alanı.",
+            "en": "Map first, commands second: /etc config, /var variable data, /home your space, /tmp playground."
+          }
+        },
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "tree çoğu dağıtımda ayrı pakettir. Yoksa ls -R veya find . -maxdepth 2 kullanın.",
+            "en": "tree is often a separate package. If missing, use ls -R or find . -maxdepth 2."
+          }
+        },
+        {
+          "kind": "warning",
+          "text": {
+            "tr": "/etc, /boot, /usr altına yazmayın. Keşif salt okuma olsun. rm denemelerini yalnız ~/pratik veya /tmp’de yapın.",
+            "en": "Do not write under /etc, /boot, or /usr. Keep exploration read-only. Practice rm only under ~/practice or /tmp."
+          }
+        },
+        {
+          "kind": "caution",
+          "text": {
+            "tr": "/proc ve /sys sanalır; binlerce girdi vardır. ls /proc | head ile sınırlayın; rastgele yazmayın.",
+            "en": "/proc and /sys are virtual and huge. Limit with ls /proc | head; never write at random."
+          }
+        },
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Bu rehber Linux FHS odaklıdır. macOS/BSD benzer hiyerarşi kullanır ama yollar birebir aynı değildir; Windows sürücü harfli ayrı modeldir.",
+            "en": "This guide is Linux FHS-oriented. macOS/BSD are similar but not identical; Windows drive letters are a different model."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Haritayı ezberleme",
+            "en": "Learn the map"
+          },
+          "prompt": {
+            "tr": "ls / çıktısında gördüğünüz her üst dizini (home, etc, var, usr, tmp, opt, dev, proc …) kendi cümlenizle bir cümlede açıklayın.",
+            "en": "For each top-level name you see in ls / (home, etc, var, usr, tmp, opt, dev, proc, …) write one sentence explaining it."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Güvenli oyun alanı",
+            "en": "Safe playground"
+          },
+          "prompt": {
+            "tr": "mkdir -p ~/pratik/dizinler && cd ~/pratik/dizinler && pwd && ls -la. Tüm denemeleri burada tutun.",
+            "en": "mkdir -p ~/practice/dirs && cd ~/practice/dirs && pwd && ls -la. Keep all experiments here."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "mkdir",
+            "cd",
+            "pwd",
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "tree veya find",
+            "en": "tree or find"
+          },
+          "prompt": {
+            "tr": "tree -L 2 ~/pratik 2>/dev/null || find ~/pratik -maxdepth 2 -print. Çıktıyı yorumlayın.",
+            "en": "tree -L 2 ~/practice 2>/dev/null || find ~/practice -maxdepth 2 -print. Interpret the output."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "tree",
+            "find"
+          ]
+        },
+        {
+          "title": {
+            "tr": "du ve df",
+            "en": "du and df"
+          },
+          "prompt": {
+            "tr": "du -sh ~ /tmp; df -h. Ev ve /tmp özetini dosya sistemi doluluğuyla karşılaştırın (yazmadan).",
+            "en": "du -sh ~ /tmp; df -h. Compare home and /tmp summaries with filesystem free space (read-only)."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "du",
+            "df"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "path",
+          "note": {
+            "tr": "Kabuk komutları PATH’te nasıl bulunur?",
+            "en": "How does the shell find commands on PATH?"
+          }
+        },
+        {
+          "id": "permissions",
+          "note": {
+            "tr": "Dizinlerde x ve tipik kipler.",
+            "en": "Directory x bit and common modes."
+          }
+        },
+        {
+          "id": "finding-files",
+          "note": {
+            "tr": "Ağaçta isimle arama.",
+            "en": "Search the tree by name."
+          }
+        },
+        {
+          "id": "storage",
+          "note": {
+            "tr": "Bağlama noktaları ve diskler.",
+            "en": "Mount points and disks."
+          }
+        }
+      ]
+    },
+    {
       "id": "monitoring-and-logs",
       "kind": "nova-commands-concept",
       "format": "topic-guide",
@@ -38800,7 +39662,7 @@
           "man systemd-resolved / resolvectl",
           "https://wiki.archlinux.org/title/Network_configuration"
         ],
-        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified. PDF-depth networking examples added; stays draft."
       },
       "format": "topic-guide",
       "categories": [
@@ -38944,6 +39806,65 @@
           "related_commands": [
             "ping"
           ]
+        },
+        {
+          "title": {
+            "tr": "Ping sınaması",
+            "en": "Ping check"
+          },
+          "command": "ping -c 3 127.0.0.1",
+          "explanation": {
+            "tr": "Yerel döngüye 3 paket; ağ yığını ayakta mı bakın.",
+            "en": "Three packets to loopback; checks the local stack."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "ping"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Adresler",
+            "en": "Addresses"
+          },
+          "command": "ip -br addr",
+          "explanation": {
+            "tr": "Kısa arayüz/adres özeti (iproute2).",
+            "en": "Brief interface/address summary (iproute2)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "ip"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Dinleyen soketler",
+            "en": "Listening sockets"
+          },
+          "command": "ss -tuln | head",
+          "explanation": {
+            "tr": "Dinleyen TCP/UDP soketlerine bakış (salt okuma).",
+            "en": "Read-only peek at listening TCP/UDP sockets."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "ss"
+          ]
         }
       ],
       "callouts": [
@@ -38959,6 +39880,13 @@
           "text": {
             "tr": "Ağ tarama / saldırı adımları bu rehberde yoktur.",
             "en": "Network scanning / attack steps are not part of this guide."
+          }
+        },
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "'İnternet yok' sırası: ping 127.0.0.1 → ping bilinen bir IP → DNS (dig/host) → ip route / ip addr.",
+            "en": "No-internet order: ping 127.0.0.1 → ping a known IP → DNS (dig/host) → ip route / ip addr."
           }
         }
       ],
@@ -39973,6 +40901,7 @@
       ],
       "related_concepts": [
         "terminal-basics",
+        "linux-directory-structure",
         "package-managers",
         "shell-builtin"
       ],
@@ -39981,8 +40910,8 @@
         "docs/local-discovery-contract.md (Nova local discovery)"
       ],
       "body": {
-        "tr": "**`PATH`**, kabuğun harici programları aradığı dizinlerin `:` ile ayrılmış\nlistesidir (ör. `/usr/local/bin:/usr/bin:/bin`). Bir komut adı yazdığınızda\nkabuk önce yerleşik mi diye bakar; değilse `PATH` sırasıyla eşleşen çalıştırılabilir\ndosyayı arar.\n\n**Görme / denetleme:**\n- `echo \"$PATH\"` — arama yolları.\n- `type ls` / `command -v ls` — kabuğun ne bulduğunu gösterir (yerleşik, alias, yol).\n- `which ls` — sıkça ilk eşleşen yolu basar (kabuk/yerleşik farkları için `type` daha nettir).\n\n**Güncelleme:** `export PATH=\"$HOME/.local/bin:$PATH\"` oturuma ekler; kalıcılık için\nkabuk başlangıç dosyalarına (`~/.bashrc`, `~/.zshrc`, …) yazılır. Yanlış `PATH`\n“command not found” üretir veya istenmeyen ikiliyi seçtirir.\n\n**Nova:** “Sistemimde bulunan komutlar” istemci tarafında PATH/keşif ile üretilir\n(`kind: nova-local-commands`). Bu, kürate bankanın `verified` durumunu miras almaz.\nAyrıntı: `docs/local-discovery-contract.md`.\n",
-        "en": "**`PATH`** is a colon-separated list of directories where the shell searches for\nexternal programs (e.g. `/usr/local/bin:/usr/bin:/bin`). On a bare name, the shell\nchecks builtins/aliases/functions first, then walks `PATH` for an executable.\n\n**Inspect:**\n- `echo \"$PATH\"` — search directories.\n- `type ls` / `command -v ls` — what the shell would run (builtin vs path).\n- `which ls` — often prints the first matching path (`type` is clearer for builtins).\n\n**Update:** `export PATH=\"$HOME/.local/bin:$PATH\"` for the session; persist via shell\nstartup files (`~/.bashrc`, `~/.zshrc`, …). A broken `PATH` causes “command not found”\nor picks the wrong binary.\n\n**Nova:** Local “commands on this system” come from client-side PATH discovery\n(`kind: nova-local-commands`) and must not inherit bank `verified` status.\nSee `docs/local-discovery-contract.md`.\n"
+        "tr": "## PATH nedir?\n\n`PATH`, kabuğun harici programları aradığı dizinlerin `:` ile ayrılmış listesidir. Yerleşikler önce gelir; sonra PATH soldan sağa taranır.\n\n## Görme\n\n- `echo \"$PATH\"` — arama yolları\n- `which ls` — sıkça ilk eşleşen yol\n- `type ls` / `command -v ls` — yerleşik/alias/yol ayrımı (type bankada yok; kabuk yerleşiğidir)\n\n## Güncelleme\n\n`export PATH=\"$HOME/.local/bin:$PATH\"` oturuma ekler. Kalıcılık için `~/.bashrc` / `~/.zshrc`. Yanlış PATH “command not found” üretir.\n\n## Nova\n\nPATH keşfi kürate bankanın `verified` durumunu miras almaz.\n",
+        "en": "## What is PATH?\n\n`PATH` is a colon-separated list of directories where the shell searches for external programs. Builtins win first; then PATH is scanned left to right.\n\n## Inspect\n\n- `echo \"$PATH\"` — search directories\n- `which ls` — often the first matching path\n- `type ls` / `command -v ls` — builtin/alias/path (type is a shell builtin, not a bank row)\n\n## Update\n\n`export PATH=\"$HOME/.local/bin:$PATH\"` for the session. Persist via `~/.bashrc` / `~/.zshrc`. A broken PATH yields “command not found”.\n\n## Nova\n\nPATH discovery does not inherit bank `verified` status.\n"
       },
       "verification": {
         "status": "draft",
@@ -39990,7 +40919,7 @@
           "man environ / POSIX PATH",
           "man bash (COMMAND EXECUTION)"
         ],
-        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+        "notes": "PDF-adjacent PATH depth; original wording; stays draft."
       },
       "format": "topic-guide",
       "categories": [
@@ -40109,6 +41038,39 @@
           "related_commands": [
             "echo"
           ]
+        },
+        {
+          "title": {
+            "tr": "env PATH satırı",
+            "en": "env PATH line"
+          },
+          "command": "env | grep -E \"^PATH=\" | head",
+          "explanation": {
+            "tr": "Ortamda PATH’in nasıl göründüğüne bakış.",
+            "en": "See how PATH appears in the environment."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "env",
+            "grep"
+          ]
+        },
+        {
+          "title": {
+            "tr": "which karşılaştırması",
+            "en": "Compare which"
+          },
+          "command": "which ls; which pwd || true",
+          "explanation": {
+            "tr": "Harici ls yolu; pwd yerleşik olabilir.",
+            "en": "External ls path; pwd may be a builtin."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "related_commands": [
+            "which"
+          ]
         }
       ],
       "callouts": [
@@ -40117,6 +41079,13 @@
           "text": {
             "tr": "which ile type farklıdır: type kabuk yerleşiklerini de gösterir.",
             "en": "which differs from type: type also reveals shell builtins."
+          }
+        },
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "İlk eşleşme kazanır. Aynı adlı iki ikili varsa PATH sırası kritiktir.",
+            "en": "First match wins. PATH order matters when two binaries share a name."
           }
         }
       ],
@@ -40134,9 +41103,28 @@
           "related_commands": [
             "which"
           ]
+        },
+        {
+          "title": {
+            "tr": "type vs which",
+            "en": "type vs which"
+          },
+          "prompt": {
+            "tr": "type ls; which ls; type cd çıktılarını yazıp farkı açıklayın.",
+            "en": "Run type ls; which ls; type cd and explain the difference."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "which",
+            "ls",
+            "cd"
+          ]
         }
       ],
       "next_steps": [
+        {
+          "id": "linux-directory-structure"
+        },
         {
           "id": "shell-pipes-redirection"
         },
@@ -40148,59 +41136,16 @@
     {
       "id": "permissions",
       "kind": "nova-commands-concept",
+      "format": "topic-guide",
       "title": {
         "tr": "Kullanıcılar, gruplar ve izinler",
         "en": "Users, groups, and permissions"
       },
       "summary": {
-        "tr": "id/chmod/chown/sudo ile kim neyi yapabilir — temel model.",
-        "en": "Who can do what with id/chmod/chown/sudo — the basic model."
+        "tr": "Kimlik, rwx/oktal mantık, chmod/chown/chgrp/umask/visudo ve güvenli sudo.",
+        "en": "Identity, rwx/octal logic, chmod/chown/chgrp/umask/visudo, and safe sudo."
       },
       "difficulty": "beginner",
-      "tags": [
-        "permissions",
-        "users",
-        "sudo",
-        "chmod"
-      ],
-      "related_commands": [
-        "id",
-        "whoami",
-        "stat",
-        "groups",
-        "chmod",
-        "chown",
-        "chgrp",
-        "sudo",
-        "passwd",
-        "useradd",
-        "usermod",
-        "getent"
-      ],
-      "related_concepts": [
-        "terminal-basics",
-        "path",
-        "files"
-      ],
-      "see_also": [
-        "man 1 chmod",
-        "man 8 sudo",
-        "Arch Wiki: Users and groups"
-      ],
-      "body": {
-        "tr": "Linux erişim modeli kabaca **kullanıcı + grup + diğerleri** ve her biri için\nokuma/yazma/çalıştırma bitleridir. Modern sistemlerde ACL’ler de olabilir; bu\nyazı klasik `chmod`/`chown` odaklıdır.\n\n**Kimsin?** `id`, `whoami`, `groups` — sayısal uid/gid ve üyelikler.\n**Dosya izni:** `ls -l`, `stat`, `chmod` (sembolik `u+x` veya sekizlik `755`).\n**Sahiplik:** `chown kullanıcı:grup`; genelde root ister.\n**Yükseltme:** `sudo` — yapılandırma `/etc/sudoers` (+ drop-in’ler); yanlışlıkla\ngeniş sudo tehlikelidir.\n\n**Dizin vs dosya:** Dizinde `x` “içine girebilme”; dosyada `x` “çalıştırma”.\nPaylaşılan dizinlerde `chmod`/sticky bit (`/tmp`) incelenir.\n\nBankada birçok kullanıcı/izin komutu `caution` veya `dangerous` işaretlidir;\nörnekleri körü körüne kopyalamayın. `verified` durumu insan onayına bağlıdır.\n",
-        "en": "Linux access is roughly **user + group + other** with read/write/execute bits.\nACLs exist on modern systems; this article focuses on classic `chmod`/`chown`.\n\n**Who am I?** `id`, `whoami`, `groups` — numeric uid/gid and memberships.\n**File mode:** `ls -l`, `stat`, `chmod` (symbolic `u+x` or octal `755`).\n**Ownership:** `chown user:group`; usually needs root.\n**Elevation:** `sudo` — config in `/etc/sudoers` (+ drop-ins); overly broad sudo\nis dangerous.\n\n**Directory vs file:** directory `x` means “traverse”; file `x` means “execute”.\nShared dirs involve sticky bits (e.g. `/tmp`).\n\nMany user/permission entries in the bank are `caution` or `dangerous`; do not\ncopy examples blindly. `verified` still requires a human.\n"
-      },
-      "verification": {
-        "status": "draft",
-        "sources": [
-          "man 1 chmod",
-          "man 8 sudo",
-          "https://wiki.archlinux.org/title/Users_and_groups"
-        ],
-        "notes": "Agent-authored; registry id already existed — article added this phase. NV-123 topic-guide structure; agent-authored; needs human review before verified."
-      },
-      "format": "topic-guide",
       "categories": [
         "users"
       ],
@@ -40209,34 +41154,138 @@
         "macos",
         "bsd"
       ],
+      "tags": [
+        "permissions",
+        "users",
+        "sudo",
+        "chmod",
+        "umask"
+      ],
+      "related_commands": [
+        "whoami",
+        "id",
+        "groups",
+        "ls",
+        "stat",
+        "chmod",
+        "chown",
+        "chgrp",
+        "umask",
+        "sudo",
+        "visudo",
+        "passwd",
+        "useradd",
+        "usermod",
+        "getent"
+      ],
+      "related_concepts": [
+        "terminal-basics",
+        "linux-directory-structure",
+        "path",
+        "server-security-checklist"
+      ],
+      "see_also": [
+        "man 1 chmod",
+        "man 1 chown",
+        "man 1 chgrp",
+        "man 2 umask",
+        "man 8 sudo",
+        "man 8 visudo",
+        "Arch Wiki: Users and groups"
+      ],
       "intro": {
-        "tr": "Unix izinleri kullanıcı/grup/diğer ve rwx bitleriyle dosya erişimini denetler.",
-        "en": "Unix permissions control access via user/group/other and rwx bits."
+        "tr": "Linux çok kullanıcılıdır. Her dosyanın sahibi, grubu ve üç sınıf (u/g/o) için rwx bitleri vardır; chmod/chown/umask bu modeli yönetir.",
+        "en": "Linux is multi-user. Every file has an owner, a group, and rwx bits for three classes (u/g/o); chmod/chown/umask manage that model."
+      },
+      "body": {
+        "tr": "## Kimlik: kimim?\n\nÇok kullanıcılı sistemde önce kendinizi görün. `whoami` etkili kullanıcı adını basar. `id` uid, gid ve üye olduğunuz grupları listeler. `groups` yalnız grup adlarını verir.\n\nKullanıcı satırları `/etc/passwd` içindedir; parola özetleri `/etc/shadow` (yalnız root okur); gruplar `/etc/group` dosyasındadır. `getent passwd kullanıcı` bu kaynaklardan sorgu yapar.\n\n## İzin bitleri: r, w, x\n\nHer sınıf için üç hak vardır:\n\n| Hak | Anlam (dosya) | Anlam (dizin) | Sayı |\n|-----|---------------|---------------|------|\n| r | okuma | içeriği listeleme | 4 |\n| w | yazma | oluşturma/silme (x ile) | 2 |\n| x | çalıştırma | dizine girme / traverse | 1 |\n\nHaklar toplanır: `rwx = 7`, `rw- = 6`, `r-x = 5`, `r-- = 4`, `--- = 0`. Üç hane sırasıyla **sahip · grup · diğerleri** içindir. Örnek: `755` → sahip 7, grup 5, diğerleri 5 → `rwxr-xr-x`.\n\n`ls -l` sol sütunu okuyun: ilk karakter tür (`-` dosya, `d` dizin, `l` bağ); sonraki dokuz karakter üçer üçer u/g/o izinleridir.\n\n## Tipik oktal değerler\n\n| Sayı | Gösterim | Tipik kullanım |\n|------|----------|----------------|\n| 755 | rwxr-xr-x | Çalıştırılabilir dosya ve klasörler (herkes çalıştırır/girer; yalnız sahip yazar) |\n| 644 | rw-r--r-- | Normal dosyalar (herkes okur; yalnız sahip yazar) |\n| 600 | rw------- | Özel dosyalar (SSH anahtarı gibi; yalnız sahip) |\n| 700 | rwx------ | Özel klasörler |\n| 777 | rwxrwxrwx | Herkese tam yetki — güvenlik açığıdır, kaçının |\n\n## chmod (sayısal ve sembolik)\n\n`chmod` kip bitlerini değiştirir. Sayısal: `chmod 755 betik.sh`. Sembolik: `u` sahip, `g` grup, `o` diğer, `a` hepsi; `+` ekle, `-` kaldır, `=` ata.\n\nÖrnekler: `chmod u+x betik.sh`, `chmod go-w gizli.txt`, `chmod -R 750 proje/` (özyinelemeli — dar kapsam!). Betiği çalıştırmak için x gerekir: `chmod +x betik.sh` sonra `./betik.sh`. Dizinde x “içine girebilme” demektir.\n\n## chown, chgrp, umask, visudo\n\n`chown` sahibi (ve istenirse grubu) değiştirir; genelde root ister: `sudo chown ayse dosya`, `sudo chown ayse:dev dosya`. `chgrp` yalnız grubu değiştirir. `umask` yeni dosya/dizinlerin varsayılan izinlerinden çıkarılacak maskeyi gösterir veya ayarlar (`umask`, `umask 022`). `visudo` sudoers’ı sözdizimi denetimiyle düzenler — düz metin editörü yerine bunu kullanın.\n\n## Yükseltme ve risk\n\n`sudo` komutu geçici olarak başka kullanıcı (çoğunlukla root) olarak çalıştırır. Yanlış `chmod -R 777` veya kökte `chown -R` sistemi bozabilir. Bankada birçok izin komutu `caution` / `dangerous` işaretlidir; örnekleri körü körüne kopyalamayın.\n",
+        "en": "## Identity: who am I?\n\nOn a multi-user system, start with yourself. `whoami` prints the effective user name. `id` lists uid, gid, and group memberships. `groups` prints group names only.\n\nAccount lines live in `/etc/passwd`; password hashes in `/etc/shadow` (root-readable); groups in `/etc/group`. `getent passwd user` queries these sources.\n\n## Permission bits: r, w, x\n\nEach class has three rights:\n\n| Right | Meaning (file) | Meaning (directory) | Value |\n|-------|----------------|---------------------|-------|\n| r | read | list contents | 4 |\n| w | write | create/remove (with x) | 2 |\n| x | execute | enter / traverse | 1 |\n\nRights sum: `rwx = 7`, `rw- = 6`, `r-x = 5`, `r-- = 4`, `--- = 0`. The three digits are **owner · group · others**. Example: `755` → owner 7, group 5, others 5 → `rwxr-xr-x`.\n\nRead `ls -l`: first character is type (`-` file, `d` dir, `l` link); the next nine are u/g/o permissions in threes.\n\n## Typical octal modes\n\n| Mode | Symbolic | Typical use |\n|------|----------|-------------|\n| 755 | rwxr-xr-x | Executables and folders (everyone runs/enters; only owner writes) |\n| 644 | rw-r--r-- | Normal files (everyone reads; only owner writes) |\n| 600 | rw------- | Private files (SSH keys; owner only) |\n| 700 | rwx------ | Private directories |\n| 777 | rwxrwxrwx | World-writable — a security hole; avoid |\n\n## chmod (numeric and symbolic)\n\n`chmod` changes mode bits. Numeric: `chmod 755 script.sh`. Symbolic: `u` owner, `g` group, `o` others, `a` all; `+` add, `-` remove, `=` set.\n\nExamples: `chmod u+x script.sh`, `chmod go-w secret.txt`, `chmod -R 750 project/` (recursive — keep scope narrow!). Scripts need x: `chmod +x script.sh` then `./script.sh`. On directories, x means “can enter”.\n\n## chown, chgrp, umask, visudo\n\n`chown` changes owner (and optionally group); usually needs root: `sudo chown ada file`, `sudo chown ada:dev file`. `chgrp` changes group only. `umask` shows or sets bits cleared from default modes of new files (`umask`, `umask 022`). `visudo` edits sudoers with syntax checking — use it instead of a plain editor.\n\n## Elevation and risk\n\n`sudo` runs a command as another user (usually root). Blind `chmod -R 777` or `chown -R` on system roots can break the host. Many permission entries in the bank are `caution` / `dangerous`; do not copy examples blindly.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man 1 chmod",
+          "man 1 chown",
+          "man 1 chgrp",
+          "man 2 umask",
+          "man 8 sudo",
+          "man 8 visudo",
+          "https://wiki.archlinux.org/title/Users_and_groups"
+        ],
+        "notes": "PDF-depth rewrite (original wording; man-verified patterns). Agent-authored; stays draft until human review."
       },
       "learning_path": [
         {
           "ref": "whoami",
-          "kind": "command"
+          "kind": "command",
+          "note": {
+            "tr": "Etkili kullanıcı adını görün.",
+            "en": "See the effective user name."
+          }
         },
         {
           "ref": "id",
-          "kind": "command"
+          "kind": "command",
+          "note": {
+            "tr": "uid/gid ve grupları okuyun.",
+            "en": "Read uid/gid and groups."
+          }
         },
         {
           "ref": "ls",
-          "kind": "command"
+          "kind": "command",
+          "note": {
+            "tr": "ls -l ile kip sütununu okuyun.",
+            "en": "Read the mode column with ls -l."
+          }
         },
         {
           "ref": "chmod",
-          "kind": "command"
+          "kind": "command",
+          "note": {
+            "tr": "Sayısal ve sembolik kip.",
+            "en": "Numeric and symbolic modes."
+          }
         },
         {
           "ref": "chown",
-          "kind": "command"
+          "kind": "command",
+          "note": {
+            "tr": "Sahip/grup değişimi (root).",
+            "en": "Owner/group change (root)."
+          }
+        },
+        {
+          "ref": "chgrp",
+          "kind": "command",
+          "note": {
+            "tr": "Yalnız grup.",
+            "en": "Group only."
+          }
+        },
+        {
+          "ref": "umask",
+          "kind": "command",
+          "note": {
+            "tr": "Varsayılan oluşturma maskesi.",
+            "en": "Default creation mask."
+          }
         },
         {
           "ref": "sudo",
-          "kind": "command"
+          "kind": "command",
+          "note": {
+            "tr": "Geçici yükseltme.",
+            "en": "Temporary elevation."
+          }
+        },
+        {
+          "ref": "visudo",
+          "kind": "command",
+          "note": {
+            "tr": "sudoers’ı güvenli düzenleyin.",
+            "en": "Edit sudoers safely."
+          }
         }
       ],
       "subtopics": [
@@ -40247,27 +41296,102 @@
             "en": "Identity"
           },
           "summary": {
-            "tr": "whoami / id ile kullanıcı ve grupları görün.",
-            "en": "See user and groups with whoami / id."
+            "tr": "whoami, id, groups ile kullanıcı ve üyelikleri görün.",
+            "en": "See user and memberships with whoami, id, groups."
           },
           "related_commands": [
             "whoami",
-            "id"
+            "id",
+            "groups"
           ]
         },
         {
-          "id": "mode-bits",
+          "id": "rwx-math",
           "title": {
-            "tr": "Mod bitleri",
-            "en": "Mode bits"
+            "tr": "rwx ve oktal aritmetik",
+            "en": "rwx and octal arithmetic"
           },
           "summary": {
-            "tr": "ls -l sol sütun; chmod sembolik veya oktal.",
-            "en": "ls -l left column; chmod symbolic or octal."
+            "tr": "r=4 w=2 x=1; üç hane sahip/grup/diğer.",
+            "en": "r=4 w=2 x=1; three digits owner/group/other."
           },
           "related_commands": [
             "ls",
+            "stat",
             "chmod"
+          ]
+        },
+        {
+          "id": "common-modes",
+          "title": {
+            "tr": "Tipik kipler (755/644/600/700)",
+            "en": "Common modes (755/644/600/700)"
+          },
+          "summary": {
+            "tr": "Günlük dosya ve dizinler için güvenli varsayılanlar; 777’den kaçının.",
+            "en": "Safe defaults for everyday files and dirs; avoid 777."
+          },
+          "related_commands": [
+            "chmod"
+          ]
+        },
+        {
+          "id": "chmod-symbolic",
+          "title": {
+            "tr": "chmod sembolik biçim",
+            "en": "chmod symbolic form"
+          },
+          "summary": {
+            "tr": "u/g/o/a ile + - =; örnek u+x, go-w.",
+            "en": "u/g/o/a with + - =; e.g. u+x, go-w."
+          },
+          "related_commands": [
+            "chmod"
+          ]
+        },
+        {
+          "id": "ownership",
+          "title": {
+            "tr": "Sahiplik (chown/chgrp)",
+            "en": "Ownership (chown/chgrp)"
+          },
+          "summary": {
+            "tr": "Sahip ve grup değişimi; çoğu zaman sudo gerekir.",
+            "en": "Change owner and group; often needs sudo."
+          },
+          "related_commands": [
+            "chown",
+            "chgrp"
+          ]
+        },
+        {
+          "id": "umask-defaults",
+          "title": {
+            "tr": "umask varsayılanları",
+            "en": "umask defaults"
+          },
+          "summary": {
+            "tr": "Yeni dosya/dizinlerden çıkarılan bitler; oturum etkisi.",
+            "en": "Bits cleared from new files/dirs; session-scoped."
+          },
+          "related_commands": [
+            "umask",
+            "touch"
+          ]
+        },
+        {
+          "id": "sudo-visudo",
+          "title": {
+            "tr": "sudo ve visudo",
+            "en": "sudo and visudo"
+          },
+          "summary": {
+            "tr": "Yükseltme ile sudoers’ı sözdizimi denetimli düzenleme.",
+            "en": "Elevation and syntax-checked sudoers edits."
+          },
+          "related_commands": [
+            "sudo",
+            "visudo"
           ]
         }
       ],
@@ -40289,18 +41413,42 @@
           "learning_level": "beginner"
         },
         {
+          "id": "groups",
+          "purpose": {
+            "tr": "Üye olunan grupları listeler.",
+            "en": "List group memberships."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "ls",
+          "purpose": {
+            "tr": "İzin sütunu için ls -l / ls -ld.",
+            "en": "ls -l / ls -ld for the mode column."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "stat",
+          "purpose": {
+            "tr": "Kip, sahip ve zaman damgalarını ayrıntılı gösterir.",
+            "en": "Detailed mode, owner, and timestamps."
+          },
+          "learning_level": "beginner"
+        },
+        {
           "id": "chmod",
           "purpose": {
-            "tr": "Dosya kipini (izinlerini) değiştirir.",
-            "en": "Change file mode bits."
+            "tr": "İzinleri sayısal veya sembolik (u/g/o/a) değiştirir.",
+            "en": "Change permissions numerically or symbolically (u/g/o/a)."
           },
           "learning_level": "intermediate"
         },
         {
           "id": "chown",
           "purpose": {
-            "tr": "Dosya sahibini değiştirir.",
-            "en": "Change file owner and group."
+            "tr": "Dosya sahibini (ve isteğe bağlı grubu) değiştirir; genelde root.",
+            "en": "Change file owner (and optional group); usually root."
           },
           "learning_level": "intermediate"
         },
@@ -40313,6 +41461,14 @@
           "learning_level": "intermediate"
         },
         {
+          "id": "umask",
+          "purpose": {
+            "tr": "Yeni dosyaların varsayılan izin maskesini gösterir veya ayarlar.",
+            "en": "Show or set the file-creation mode mask."
+          },
+          "learning_level": "intermediate"
+        },
+        {
           "id": "sudo",
           "purpose": {
             "tr": "Komutu başka kullanıcı olarak çalıştırır (genelde root).",
@@ -40321,10 +41477,26 @@
           "learning_level": "intermediate"
         },
         {
+          "id": "visudo",
+          "purpose": {
+            "tr": "sudoers’ı sözdizimi denetimiyle güvenle düzenler.",
+            "en": "Safely edit sudoers with syntax checking."
+          },
+          "learning_level": "advanced"
+        },
+        {
           "id": "passwd",
           "purpose": {
-            "tr": "Kullanıcı parola değiştirir.",
+            "tr": "Kullanıcı parolasını değiştirir.",
             "en": "Change user password."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "getent",
+          "purpose": {
+            "tr": "passwd/group veritabanından kayıt sorguar.",
+            "en": "Query passwd/group databases."
           },
           "learning_level": "intermediate"
         }
@@ -40332,76 +41504,336 @@
       "graded_examples": [
         {
           "title": {
-            "tr": "Kimim?",
-            "en": "Who am I?"
+            "tr": "Kimim ve hangi gruplardayım?",
+            "en": "Who am I and which groups?"
           },
-          "command": "id",
+          "command": "id; groups",
           "explanation": {
-            "tr": "uid/gid ve grupları listeler.",
-            "en": "Lists uid/gid and groups."
+            "tr": "uid/gid ve grup üyeliklerini birlikte okuyun; henüz hiçbir şeyi değiştirmeyin.",
+            "en": "Read uid/gid and group memberships together; change nothing yet."
           },
           "difficulty": "beginner",
           "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
           "related_commands": [
-            "id"
+            "id",
+            "groups"
           ]
         },
         {
           "title": {
-            "tr": "Özel dosya modu",
-            "en": "Private file mode"
+            "tr": "Ev ve /tmp kiplerini oku",
+            "en": "Read home and /tmp modes"
           },
-          "command": "chmod 600 /tmp/nova-private-demo",
+          "command": "ls -ld ~ /tmp",
           "explanation": {
-            "tr": "Sahibe rw; gruba/diğerine yok. Önce dokunun; gerçek gizli dosyalarda dikkat.",
-            "en": "Owner rw; none for group/other. Touch first; be careful with real secrets."
+            "tr": "Sol sütundaki d ve rwx alanlarını yorumlayın; /tmp’de sticky bit (t) sık görülür.",
+            "en": "Interpret the d and rwx fields; /tmp often shows the sticky bit (t)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Özel dosya 600",
+            "en": "Private file 600"
+          },
+          "command": "touch /tmp/nova-private-demo && chmod 600 /tmp/nova-private-demo && ls -l /tmp/nova-private-demo",
+          "explanation": {
+            "tr": "Sahibe rw; grup/diğer yok. Gerçek gizli dosyalarda (SSH anahtarı) aynı mantık.",
+            "en": "Owner rw; none for group/other. Same idea for real secrets (SSH keys)."
+          },
+          "difficulty": "beginner",
+          "risk": "caution",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "chmod",
+            "touch",
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Betiğe u+x",
+            "en": "Add u+x to a script"
+          },
+          "command": "echo 'echo selam' > /tmp/nova-s.sh && chmod u+x /tmp/nova-s.sh && /tmp/nova-s.sh",
+          "explanation": {
+            "tr": "Sembolik u+x sahip çalıştırmayı ekler; ardından doğrudan yol ile çalıştırın.",
+            "en": "Symbolic u+x adds owner execute; then run via absolute path."
+          },
+          "difficulty": "beginner",
+          "risk": "caution",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "chmod",
+            "echo"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Normal dosya 644",
+            "en": "Normal file 644"
+          },
+          "command": "touch /tmp/nova-notes.txt && chmod 644 /tmp/nova-notes.txt && ls -l /tmp/nova-notes.txt",
+          "explanation": {
+            "tr": "Tipik metin dosyası: herkes okur, yalnız sahip yazar (rw-r--r--).",
+            "en": "Typical text file: everyone reads, only owner writes (rw-r--r--)."
+          },
+          "difficulty": "beginner",
+          "risk": "caution",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "chmod"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Klasör 755",
+            "en": "Directory 755"
+          },
+          "command": "mkdir -p /tmp/nova-demo-dir && chmod 755 /tmp/nova-demo-dir && ls -ld /tmp/nova-demo-dir",
+          "explanation": {
+            "tr": "Herkes girebilir/listeleyebilir; yalnız sahip içerik yazar — klasörler için yaygın kip.",
+            "en": "Everyone can enter/list; only owner writes content — common for directories."
           },
           "difficulty": "intermediate",
           "risk": "caution",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "chmod",
+            "mkdir"
+          ]
+        },
+        {
+          "title": {
+            "tr": "go-w ile yazmayı kapat",
+            "en": "Drop write with go-w"
+          },
+          "command": "chmod go-w /tmp/nova-notes.txt && ls -l /tmp/nova-notes.txt",
+          "explanation": {
+            "tr": "Grup ve diğerlerinden yazmayı kaldırır; sayı ezberlemeden ince ayar.",
+            "en": "Removes write from group and others; fine-tune without memorizing octal."
+          },
+          "difficulty": "intermediate",
+          "risk": "caution",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
           "related_commands": [
             "chmod"
+          ]
+        },
+        {
+          "title": {
+            "tr": "umask gör",
+            "en": "Show umask"
+          },
+          "command": "umask; umask -S",
+          "explanation": {
+            "tr": "Sekizlik ve sembolik maske. Yeni touch dosyalarının varsayılanını anlamak için bakın; kalıcı profil yazmayın.",
+            "en": "Octal and symbolic mask. Use it to understand defaults for new touch files; do not edit profiles here."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "umask"
+          ]
+        },
+        {
+          "title": {
+            "tr": "visudo kontrol (yazmadan)",
+            "en": "visudo check (no write)"
+          },
+          "command": "sudo visudo -c",
+          "explanation": {
+            "tr": "sudoers sözdizimini doğrular; dosyayı düzenlemez. Düzenleme için sudo visudo (ayrı, dikkatli oturum).",
+            "en": "Validates sudoers syntax; does not edit. Use sudo visudo to edit (separate, careful session)."
+          },
+          "difficulty": "advanced",
+          "risk": "caution",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "visudo",
+            "sudo"
+          ],
+          "warnings": [
+            {
+              "tr": "Gerçek sudoers düzenlemesini yedek/second oturum olmadan yapmayın.",
+              "en": "Do not edit real sudoers without a backup/second session."
+            }
           ]
         }
       ],
       "callouts": [
         {
+          "kind": "tip",
+          "text": {
+            "tr": "rwx aritmetiği: r=4, w=2, x=1. rwx=7, r-x=5, rw-=6, r--=4. Üç hane = sahip, grup, diğerleri.",
+            "en": "rwx math: r=4, w=2, x=1. rwx=7, r-x=5, rw-=6, r--=4. Three digits = owner, group, others."
+          }
+        },
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "Betik çalıştırma: chmod +x betik.sh ardından ./betik.sh. Klasörde x = içine girebilme.",
+            "en": "Run a script: chmod +x script.sh then ./script.sh. On directories, x means enter/traverse."
+          }
+        },
+        {
           "kind": "warning",
           "text": {
-            "tr": "chmod -R ve chown -R geri dönüşü zor hatalar üretebilir; önce dar kapsam.",
-            "en": "chmod -R and chown -R can cause hard-to-undo mistakes; keep scope narrow first."
+            "tr": "777 (rwxrwxrwx) herkese tam yetki verir — güvenlik açığıdır, kaçının. “Çalışmıyor” diye 777 uygulamayın.",
+            "en": "777 (rwxrwxrwx) grants everyone full access — a security hole; avoid it. Do not “fix” breakage with 777."
+          }
+        },
+        {
+          "kind": "warning",
+          "text": {
+            "tr": "chmod -R ve chown -R geri dönüşü zor hatalar üretebilir; önce dar kapsam, sonra ls -ld ile doğrulayın.",
+            "en": "chmod -R and chown -R can cause hard-to-undo mistakes; keep scope narrow, then verify with ls -ld."
           }
         },
         {
           "kind": "caution",
           "text": {
-            "tr": "sudo her sorunu çözmez; yanlış sudo daha büyük zarar verir.",
-            "en": "sudo does not fix everything; wrong sudo causes larger damage."
+            "tr": "sudo her sorunu çözmez; yanlış sudo daha büyük zarar verir. sudoers için visudo kullanın.",
+            "en": "sudo does not fix everything; wrong sudo causes larger damage. Use visudo for sudoers."
+          }
+        },
+        {
+          "kind": "note",
+          "text": {
+            "tr": "macOS/BSD’de aynı rwx modeli vardır; bazı yönetim araçları ve yollar farklıdır. Windows ACL’leri (icacls) ayrı bir modeldir.",
+            "en": "macOS/BSD share the rwx model; some admin tools and paths differ. Windows ACLs (icacls) are a different model."
           }
         }
       ],
       "safe_exercises": [
         {
           "title": {
-            "tr": "id ve ls -l",
-            "en": "id and ls -l"
+            "tr": "id ve ls -l okuma",
+            "en": "Read id and ls -l"
           },
           "prompt": {
-            "tr": "id; ls -ld ~ /tmp çıktılarını okuyun (değiştirmeyin).",
-            "en": "Run id; ls -ld ~ /tmp and read the modes (do not change)."
+            "tr": "id; groups; ls -ld ~ /tmp çalıştırıp kip ve sahip alanlarını kendi cümlenizle açıklayın (değiştirmeyin).",
+            "en": "Run id; groups; ls -ld ~ /tmp and explain mode/owner fields in your own words (do not change them)."
           },
           "risk": "safe",
           "related_commands": [
             "id",
+            "groups",
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "600 doğrulama",
+            "en": "Verify 600"
+          },
+          "prompt": {
+            "tr": "/tmp içinde touch gizli-demo.txt; chmod 600; ls -l ile rw------- gördüğünüzü doğrulayın. İş bitince dosyayı silin.",
+            "en": "In /tmp, touch a demo file; chmod 600; confirm rw------- with ls -l. Delete the file when done."
+          },
+          "risk": "caution",
+          "related_commands": [
+            "chmod",
+            "touch",
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "İlk çalıştırılabilir",
+            "en": "First executable"
+          },
+          "prompt": {
+            "tr": "/tmp içinde echo 'echo selam' > s.sh; chmod u+x s.sh; ./s.sh (veya /tmp/s.sh) ile çalıştırın.",
+            "en": "In /tmp, echo 'echo hi' > s.sh; chmod u+x s.sh; run ./s.sh (or /tmp/s.sh)."
+          },
+          "risk": "caution",
+          "related_commands": [
+            "chmod",
+            "echo"
+          ]
+        },
+        {
+          "title": {
+            "tr": "umask gözlemi",
+            "en": "Observe umask"
+          },
+          "prompt": {
+            "tr": "umask ve umask -S çıktısını not edin. touch ile /tmp’de bir dosya oluşturup ls -l ile varsayılan kipi umask ile ilişkilendirin (umask değerini kalıcı değiştirmeyin).",
+            "en": "Note umask and umask -S. Create a /tmp file with touch and relate its ls -l mode to umask (do not persist umask changes)."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "umask",
+            "touch",
             "ls"
           ]
         }
       ],
       "next_steps": [
         {
-          "id": "processes"
+          "id": "linux-directory-structure",
+          "note": {
+            "tr": "Dizin ağacında izinlerin nerede kritik olduğunu görün.",
+            "en": "See where permissions matter in the directory tree."
+          }
         },
         {
-          "id": "server-security-checklist"
+          "id": "processes",
+          "note": {
+            "tr": "Süreçler hangi kullanıcıyla çalışır?",
+            "en": "Which user do processes run as?"
+          }
+        },
+        {
+          "id": "server-security-checklist",
+          "note": {
+            "tr": "Sunucu hesap ve sudo kontrolleri.",
+            "en": "Server account and sudo checks."
+          }
         }
       ]
     },
@@ -40422,8 +41854,8 @@
         "en": "See running processes and send signals safely."
       },
       "body": {
-        "tr": "`ps` anlık liste; `top`/`htop` canlı görünüm. `kill` varsayılan SIGTERM gönderir;\n`kill -9` (SIGKILL) son çaredir. Yanlış PID başka süreci öldürür.\n\nWindows’ta `Get-Process` / `Stop-Process` ayrı modeldir — Linux alias’ı değildir.",
-        "en": "`ps` is a snapshot; `top`/`htop` are live views. `kill` defaults to SIGTERM;\n`kill -9` (SIGKILL) is a last resort. The wrong PID kills the wrong process.\n\nOn Windows, `Get-Process` / `Stop-Process` are a different model — not Linux aliases."
+        "tr": "## Süreç nedir?\n\nÇalışan her program bir **süreçtir** ve bir **PID** taşır. Donma veya aşırı kaynak kullanımında süreci bulup sinyal göndermeyi bilmek gerekir.\n\n## Listeleme\n\n`ps` anlık görüntü verir (`ps aux`, `ps -ef`). `top` / `htop` canlı izler. `pgrep -l ad` ada göre PID bulur.\n\n## Sinyaller\n\n`kill PID` varsayılan SIGTERM (15) gönderir — nazikçe sonlandır. Olmazsa `kill -9 PID` (SIGKILL) son çaredir. Yanlış PID başka süreci öldürür.\n\n## İş kontrolü\n\n`komut &` arka plan; `jobs`, `bg`, `fg`; Ctrl+Z durdurur. Windows’ta Get-Process / Stop-Process ayrı modeldir.\n",
+        "en": "## What is a process?\n\nEvery running program is a **process** with a **PID**. When something hangs or burns CPU, you need to find it and signal it.\n\n## Listing\n\n`ps` is a snapshot (`ps aux`, `ps -ef`). `top` / `htop` are live. `pgrep -l name` finds PIDs by name.\n\n## Signals\n\n`kill PID` defaults to SIGTERM (15) — polite stop. If needed, `kill -9 PID` (SIGKILL) is last resort. The wrong PID kills the wrong process.\n\n## Job control\n\n`cmd &` backgrounds; `jobs`, `bg`, `fg`; Ctrl+Z suspends. On Windows, Get-Process / Stop-Process are a different model.\n"
       },
       "difficulty": "beginner",
       "categories": [
@@ -40567,6 +41999,91 @@
           "related_commands": [
             "ps"
           ]
+        },
+        {
+          "title": {
+            "tr": "aux özeti",
+            "en": "aux snapshot"
+          },
+          "command": "ps aux | head",
+          "explanation": {
+            "tr": "Geniş anlık liste; head ile sınırlayın.",
+            "en": "Wide snapshot; limit with head."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "ps",
+            "head"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Ada göre PID",
+            "en": "PID by name"
+          },
+          "command": "pgrep -l bash | head",
+          "explanation": {
+            "tr": "bash ile eşleşen süreç ad/PID (ortama göre).",
+            "en": "Name/PID matches for bash (environment-dependent)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "pgrep"
+          ]
+        },
+        {
+          "title": {
+            "tr": "sleep ve jobs",
+            "en": "sleep and jobs"
+          },
+          "command": "sleep 30 & jobs",
+          "explanation": {
+            "tr": "Kısa arka plan işi oluşturup jobs ile görün; sonra fg/kill ile temizleyin.",
+            "en": "Start a short background job and list it with jobs; clean up with fg/kill."
+          },
+          "difficulty": "intermediate",
+          "risk": "caution",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "ps"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Sinyal listesi",
+            "en": "Signal list"
+          },
+          "command": "kill -l | head",
+          "explanation": {
+            "tr": "Bilinen sinyal adlarını gösterir; henüz kimseyi öldürmez.",
+            "en": "Shows known signal names; kills nothing yet."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "kill"
+          ]
         }
       ],
       "callouts": [
@@ -40575,6 +42092,20 @@
           "text": {
             "tr": "pkill kalıbı birden fazla sürece isabet edebilir.",
             "en": "pkill patterns can hit multiple processes."
+          }
+        },
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "Donmuş süreç sırası: önce kill PID, olmazsa kill -9 PID. PID’yi pgrep veya ps ile bulun.",
+            "en": "Hung process order: kill PID first, then kill -9 PID. Find the PID with pgrep or ps."
+          }
+        },
+        {
+          "kind": "caution",
+          "text": {
+            "tr": "kill -9 son çaredir; süreç temiz kapanamayabilir.",
+            "en": "kill -9 is last resort; the process may not shut down cleanly."
           }
         }
       ],
@@ -40591,6 +42122,35 @@
           "risk": "safe",
           "related_commands": [
             "ps"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Arka plan lab",
+            "en": "Background lab"
+          },
+          "prompt": {
+            "tr": "sleep 60 & çalıştırın; jobs ve ps ile bulun; kill ile sonlandırın (yalnız bu sleep).",
+            "en": "Run sleep 60 &; find with jobs/ps; kill only that sleep."
+          },
+          "risk": "caution",
+          "related_commands": [
+            "ps",
+            "kill"
+          ]
+        },
+        {
+          "title": {
+            "tr": "top gözlemi",
+            "en": "Observe top"
+          },
+          "prompt": {
+            "tr": "top açıp en çok CPU kullanan satırı okuyun; q ile çıkın (sinyal göndermeyin).",
+            "en": "Open top, read the top CPU row, quit with q (send no signals)."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "top"
           ]
         }
       ],
@@ -40625,7 +42185,7 @@
           "man ps",
           "man kill"
         ],
-        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
+        "notes": "PDF-depth process guide; original wording; stays draft."
       }
     },
     {
@@ -41205,8 +42765,8 @@
         "POSIX pipelines"
       ],
       "body": {
-        "tr": "Her süreç üç standart akışla başlar: **stdin** (0), **stdout** (1), **stderr** (2).\nKabuk bunları dosyalara veya başka süreçlere bağlayabilir.\n\n**Yönlendirme:**\n- `komut > dosya` — stdout’u dosyaya yazar (üzerine yazar).\n- `komut >> dosya` — stdout’u dosyanın sonuna ekler.\n- `komut < dosya` — stdin’i dosyadan okur.\n- `komut 2> hata.log` — stderr’i ayırır; `2>&1` stderr’i stdout’a birleştirir.\n\n**Boru (`|`):** Sol komutun stdout’u sağ komutun stdin’ine bağlanır.\nÖrnek: `ps aux | grep ssh | head`. Boru hattında ara dosya gerekmez; bellek/buffer\nile akar. Hata mesajları (stderr) varsayılan olarak boruya girmez.\n\n**`tee`:** stdout’u hem dosyaya hem sonraki boruya kopyalar (`… | tee out.txt | …`).\n\n**`xargs`:** stdin’deki satır/sözcükleri sonraki komutun argümanına çevirir\n(`find … -print0 | xargs -0 …` boşluk/newline güvenliği için).\n\n**Dikkat:** `>` mevcut dosyayı sessizce bozar. Yanlışlıkla `>` yerine `>>`\nveya önce yedek düşünün. Bu bankada yıkıcı örnekler `destructive` /\n`dangerous` riskiyle işaretlenir; doğrulama için yıkıcı komutlar çalıştırılmaz.\n",
-        "en": "Processes start with three standard streams: **stdin** (0), **stdout** (1),\n**stderr** (2). The shell can attach them to files or other processes.\n\n**Redirection:**\n- `cmd > file` — write stdout (truncate/overwrite).\n- `cmd >> file` — append stdout.\n- `cmd < file` — read stdin from a file.\n- `cmd 2> err.log` — capture stderr; `2>&1` merges stderr into stdout.\n\n**Pipe (`|`):** Connects the left command’s stdout to the right command’s stdin.\nExample: `ps aux | grep ssh | head`. Data flows without intermediate files.\nstderr does not enter the pipe by default.\n\n**`tee`:** Copies stdout both to a file and further down the pipeline.\n\n**`xargs`:** Turns stdin tokens into arguments for another command\n(`find … -print0 | xargs -0 …` for whitespace-safe lists).\n\n**Caution:** `>` silently overwrites files. Prefer `>>` or backups when unsure.\nDestructive examples in this bank are labeled `dangerous`/`destructive`; do not\nrun destructive commands just to validate catalog entries.\n"
+        "tr": "## Üç standart akış\n\nHer süreç **stdin (0)**, **stdout (1)** ve **stderr (2)** ile başlar. Kabuk bunları dosyalara veya başka süreçlere bağlar.\n\n## Yönlendirme\n\n| Operatör | Anlamı |\n|----------|--------|\n| `>` | stdout’u dosyaya yazar (üzerine yazar) |\n| `>>` | stdout’u sona ekler |\n| `<` | stdin’i dosyadan okur |\n| `2>` | stderr’i dosyaya yazar |\n| `2>&1` | stderr’i stdout’a birleştirir |\n\n## Boru (`|`)\n\nSol komutun stdout’u sağın stdin’ine bağlanır. Ara dosya gerekmez. stderr varsayılan olarak boruya girmez.\n\nÖrnek: `cut -d: -f7 /etc/passwd | sort | uniq -c | sort -nr`\n\n## tee ve xargs\n\n`tee` hem dosyaya hem boruya kopyalar. `xargs` stdin’i argümana çevirir.\n",
+        "en": "## Three standard streams\n\nProcesses start with **stdin (0)**, **stdout (1)**, and **stderr (2)**. The shell attaches them to files or other processes.\n\n## Redirection\n\n| Operator | Meaning |\n|----------|---------|\n| `>` | write stdout (truncate) |\n| `>>` | append stdout |\n| `<` | read stdin from a file |\n| `2>` | write stderr to a file |\n| `2>&1` | merge stderr into stdout |\n\n## Pipes (`|`)\n\nConnect left stdout to right stdin. No intermediate file. stderr does not enter the pipe by default.\n\nExample: `cut -d: -f7 /etc/passwd | sort | uniq -c | sort -nr`\n\n## tee and xargs\n\n`tee` copies to a file and downstream. `xargs` turns stdin into arguments.\n"
       },
       "verification": {
         "status": "draft",
@@ -41214,7 +42774,7 @@
           "man bash (REDIRECTION, PIPES)",
           "POSIX shell redirection"
         ],
-        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+        "notes": "PDF-depth pipes/redirection; original wording; stays draft."
       },
       "format": "topic-guide",
       "categories": [
@@ -41389,8 +42949,8 @@
           },
           "command": "echo hello > /tmp/nova-guide-demo.txt",
           "explanation": {
-            "tr": "> hedefi üzerine yazar; mevcut dosyayı siler. Öğrenme için /tmp kullanın.",
-            "en": "> overwrites the target; destroys existing content. Use /tmp while learning."
+            "tr": "'> hedefi üzerine yazar; mevcut dosyayı siler. Öğrenme için /tmp kullanın.",
+            "en": "'> overwrites the target; destroys existing content. Use /tmp while learning."
           },
           "difficulty": "intermediate",
           "risk": "caution",
@@ -41402,6 +42962,59 @@
               "tr": "> mevcut dosyayı siler; kritik yollarda kullanmayın.",
               "en": "> truncates existing files; avoid critical paths."
             }
+          ]
+        },
+        {
+          "title": {
+            "tr": "Ekleme >>",
+            "en": "Append >>"
+          },
+          "command": "echo bir > /tmp/nova-a.txt; echo iki >> /tmp/nova-a.txt; cat /tmp/nova-a.txt",
+          "explanation": {
+            "tr": "> ilk satırı yazar; >> ikinciyi ekler.",
+            "en": "> writes the first line; >> appends the second."
+          },
+          "difficulty": "beginner",
+          "risk": "caution",
+          "related_commands": [
+            "echo",
+            "cat"
+          ]
+        },
+        {
+          "title": {
+            "tr": "stderr ayır",
+            "en": "Split stderr"
+          },
+          "command": "ls /tmp /yok-xyz 2> /tmp/nova-err.txt; wc -l /tmp/nova-err.txt",
+          "explanation": {
+            "tr": "Hata satırlarını ayrı dosyaya gönderir; stdout ekranda kalabilir.",
+            "en": "Sends error lines to a separate file; stdout may still show."
+          },
+          "difficulty": "intermediate",
+          "risk": "caution",
+          "related_commands": [
+            "ls",
+            "wc"
+          ]
+        },
+        {
+          "title": {
+            "tr": "passwd kabuk sayımı",
+            "en": "Shell counts from passwd"
+          },
+          "command": "cut -d: -f7 /etc/passwd | sort | uniq -c | sort -nr | head",
+          "explanation": {
+            "tr": "Sistemdeki kabuk yollarının kullanım sıklığına bakış (salt okuma).",
+            "en": "Read-only view of shell-path frequencies on the system."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "related_commands": [
+            "cut",
+            "sort",
+            "uniq",
+            "head"
           ]
         }
       ],
@@ -41416,8 +43029,15 @@
         {
           "kind": "tip",
           "text": {
-            "tr": "Önce komutu tek başına çalıştırıp çıktıyı görün; sonra boru ekleyin.",
-            "en": "Run each stage alone first, then add the pipe."
+            "tr": "Boru hatlarını adım adım kurun: önce ilk komut, sonra | ekleyin.",
+            "en": "Build pipelines step by step: first command alone, then add |."
+          }
+        },
+        {
+          "kind": "note",
+          "text": {
+            "tr": "stderr varsayılan olarak boruya girmez; 2>&1 ile birleştirilir.",
+            "en": "stderr does not enter pipes by default; merge with 2>&1."
           }
         }
       ],
@@ -41435,6 +43055,37 @@
           "related_commands": [
             "sort",
             "uniq"
+          ]
+        },
+        {
+          "title": {
+            "tr": "> vs >>",
+            "en": "> vs >>"
+          },
+          "prompt": {
+            "tr": "/tmp’de > ve >> farkını iki echo ile gösterip cat ile doğrulayın.",
+            "en": "Demonstrate > vs >> with two echoes in /tmp and verify with cat."
+          },
+          "risk": "caution",
+          "related_commands": [
+            "echo",
+            "cat"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Zincir",
+            "en": "Chain"
+          },
+          "prompt": {
+            "tr": "mkdir -p /tmp/nova-pipe && cd /tmp/nova-pipe && pwd zincirini çalıştırın.",
+            "en": "Run mkdir -p /tmp/nova-pipe && cd /tmp/nova-pipe && pwd."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "mkdir",
+            "cd",
+            "pwd"
           ]
         }
       ],
@@ -42037,49 +43688,16 @@
     {
       "id": "terminal-basics",
       "kind": "nova-commands-concept",
+      "format": "topic-guide",
       "title": {
         "tr": "Terminal temelleri",
         "en": "Terminal basics"
       },
       "summary": {
-        "tr": "Kabuk, istem (prompt), komut satırı ve çıkış kodları.",
-        "en": "Shell, prompt, command line, and exit statuses."
+        "tr": "Kabuk, istem, komut anatomisi, çıkış kodları, yardım ve temel gezinme.",
+        "en": "Shell, prompt, command anatomy, exit codes, help, and basic navigation."
       },
       "difficulty": "beginner",
-      "tags": [
-        "shell",
-        "beginner",
-        "cli"
-      ],
-      "related_commands": [
-        "pwd",
-        "ls",
-        "cd",
-        "echo",
-        "history"
-      ],
-      "related_concepts": [
-        "path",
-        "shell-pipes-redirection",
-        "shell-builtin"
-      ],
-      "see_also": [
-        "POSIX shell overview",
-        "man bash / man zsh (interactive shells)"
-      ],
-      "body": {
-        "tr": "Terminal, metin tabanlı bir arayüzdür; yazdığınız satırı bir *kabuk* (bash, zsh, fish, …)\nyorumlar. Tipik bir satır: `komut [bayraklar…] [argümanlar…]`.\n\n**İstem (prompt):** Kabuk hazır olduğunu gösterir; satırı Enter ile gönderirsiniz.\nÇoğu Linux sisteminde varsayılan etkileşimli kabuk bash veya zsh’dir; betikler için\n`#!/bin/sh` sıkça POSIX uyumlu bir kabuğu hedefler.\n\n**Argümanlar ve tırnak:** Boşluk içeren yolları tırnak içine alın\n(`cd \"My Documents\"`). Tek tırnak çoğu kabukta genişletmeyi kapatır; çift tırnak\ndeğişkenleri genişletebilir.\n\n**Çıkış kodu:** Başarılı komutlar genelde `0` döner; sıfır dışı hata demektir.\nSon komutun kodunu `echo $?` ile görebilirsiniz. Betiklerde `set -e` hataları\nerken durdurmak için kullanılır (kabuğa göre nüansları vardır).\n\n**Yardım:** `man komut`, `komut --help` (GNU araçlarında yaygındır), `info` (bazı\nGNU paketleri). Bu bankadaki komut kayıtları man/`--help` ile çapraz kontrol\nedilmeden `verified` yapılmamalıdır.\n\n**Nova ayrımı:** Bilgi bankası (kürate YAML) ile “sistemimde bulunan komutlar”\n(PATH keşfi) farklıdır; PATH’te olmak doğrulanmış içerik anlamına gelmez.\n",
-        "en": "A terminal is a text interface; a *shell* (bash, zsh, fish, …) interprets each line.\nTypical form: `command [flags…] [arguments…]`.\n\n**Prompt:** Shows the shell is ready; press Enter to run the line. Interactive\ndefaults are often bash or zsh; scripts frequently use `#!/bin/sh` for a\nPOSIX-oriented shell.\n\n**Arguments and quoting:** Quote paths with spaces (`cd \"My Documents\"`). Single\nquotes usually disable expansion; double quotes may expand variables.\n\n**Exit status:** Success is usually `0`; non-zero means failure. Inspect the last\nstatus with `echo $?`. Scripts may use `set -e` to stop early on errors (shell-specific\nnuances apply).\n\n**Help:** `man command`, `command --help` (common on GNU tools), and sometimes `info`.\nCatalog entries must not be marked `verified` without checking man/`--help`.\n\n**Nova dual concept:** The curated bank is not the same as “commands found on PATH”;\npresence on PATH does not verify bank content.\n"
-      },
-      "verification": {
-        "status": "draft",
-        "sources": [
-          "POSIX.1 shell command language (overview)",
-          "man bash (INVOCATION, SHELL GRAMMAR)"
-        ],
-        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
-      },
-      "format": "topic-guide",
       "categories": [
         "shell",
         "filesystem"
@@ -42089,9 +43707,48 @@
         "macos",
         "bsd"
       ],
+      "tags": [
+        "shell",
+        "beginner",
+        "cli",
+        "prompt"
+      ],
+      "related_commands": [
+        "pwd",
+        "ls",
+        "cd",
+        "echo",
+        "history",
+        "which"
+      ],
+      "related_concepts": [
+        "linux-directory-structure",
+        "path",
+        "shell-pipes-redirection",
+        "shell-builtin"
+      ],
+      "see_also": [
+        "POSIX shell overview",
+        "man bash",
+        "man zsh",
+        "help cd"
+      ],
       "intro": {
-        "tr": "Terminal, kabuk istemi, komut satırı biçimi ve çıkış kodları — Komut Rehberi’ne giriş.",
-        "en": "Terminal, shell prompt, command-line form, and exit statuses — entry to the Command Guide."
+        "tr": "Terminal metni alır; kabuk yorumlar; komut işi yapar. Bu rehber istem, satır biçimi, çıkış kodu ve ilk güvenli komutları öğretir.",
+        "en": "The terminal takes text; the shell interprets it; commands do the work. This guide teaches the prompt, line form, exit status, and first safe commands."
+      },
+      "body": {
+        "tr": "## Terminal, kabuk, komut\n\n**Terminal** (gnome-terminal, konsole, Windows Terminal, …) klavyeyi kabuğa iletir ve çıktıyı gösterir; komutu yorumlamaz.\n\n**Kabuk** (bash, zsh, fish, sh, …) yazdığınız satırı yorumlar, yerleşik mi diye bakar, değilse PATH’te program arar.\n\n**Komut / araç** kabuğun çalıştırdığı programdır (`ls`, `mkdir`, …).\n\n## Komut anatomisi\n\nBiçim: `komut [seçenekler] [argümanlar]`.\n\nÖrnek: `ls -l /etc` → komut `ls`, seçenek `-l`, argüman `/etc`. Kısa seçenekler birleşebilir: `ls -lah`. Büyük/küçük harf önemlidir: `LS` çalışmaz.\n\n## İstem (prompt)\n\nTipik istem `kullanıcı@makine:dizin$` şeklindedir. `~` ev dizinidir. Satır sonundaki `$` normal kullanıcıyı, `#` çoğu sistemde root’u gösterir. Örneklerdeki `$` işaretini yazmayın — yalnızca istemdir.\n\n## Dahili ve harici\n\n`cd`, `echo`, `pwd`, `history` çoğu kabukta **yerleşiktir**. `ls`, `grep` gibi araçlar **harici** programlardır. `type cd` / `type ls` farkı gösterir. Harici yoksa “command not found” görürsünüz.\n\n## Çıkış kodu\n\nBaşarı genelde `0`; sıfır dışı hata demektir. Son kod: `echo $?`. `true` → 0, `false` → sıfır dışı.\n\n## Argümanlar ve tırnak\n\nBoşluklu yolları tırnaklayın: `cd \"My Documents\"`. Tek tırnak genişletmeyi kapatır; çift tırnak değişkenleri açabilir (`echo \"$HOME\"`).\n\n## Yardım\n\n`man komut`, `komut --help`, yerleşikler için `help cd`. Hiç kimse her bayrağı ezberlemez; nereye bakacağını bilmek yeter.\n\n## Nova ayrımı\n\nKürate banka ile “PATH’te bulunan komutlar” farklıdır. PATH’te olmak `verified` demek değildir.\n",
+        "en": "## Terminal, shell, command\n\nThe **terminal** (gnome-terminal, konsole, Windows Terminal, …) forwards keystrokes to the shell and shows output; it does not interpret commands.\n\nThe **shell** (bash, zsh, fish, sh, …) parses the line, checks builtins, then searches PATH for a program.\n\nA **command / tool** is what the shell runs (`ls`, `mkdir`, …).\n\n## Command anatomy\n\nForm: `command [options] [arguments]`.\n\nExample: `ls -l /etc` → command `ls`, option `-l`, argument `/etc`. Short options may combine: `ls -lah`. Case matters: `LS` fails.\n\n## Prompt\n\nA typical prompt looks like `user@host:dir$`. `~` is home. Trailing `$` usually means a normal user; `#` often means root. Do not type the example `$` — it is only the prompt.\n\n## Builtin vs external\n\n`cd`, `echo`, `pwd`, `history` are usually **builtins**. Tools like `ls` and `grep` are **external**. `type cd` / `type ls` shows the difference. Missing externals yield “command not found”.\n\n## Exit status\n\nSuccess is usually `0`; non-zero means failure. Last status: `echo $?`. `true` → 0, `false` → non-zero.\n\n## Arguments and quoting\n\nQuote paths with spaces: `cd \"My Documents\"`. Single quotes disable most expansion; double quotes may expand variables (`echo \"$HOME\"`).\n\n## Help\n\n`man command`, `command --help`, and `help cd` for builtins. Nobody memorizes every flag; knowing where to look is enough.\n\n## Nova dual concept\n\nThe curated bank is not “commands found on PATH”. Presence on PATH does not mean `verified`.\n"
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "POSIX.1 shell command language (overview)",
+          "man bash (INVOCATION, SHELL GRAMMAR)",
+          "help cd"
+        ],
+        "notes": "PDF-depth rewrite for Terminal temelleri; original wording; paragraph-friendly sections. Stays draft."
       },
       "learning_path": [
         {
@@ -42122,8 +43779,8 @@
           "ref": "echo",
           "kind": "command",
           "note": {
-            "tr": "Metin ve değişkenleri yazdırın.",
-            "en": "Print text and variables."
+            "tr": "Metin ve $? yazdırın.",
+            "en": "Print text and $?."
           }
         },
         {
@@ -42133,9 +43790,45 @@
             "tr": "Önceki satırları gözden geçirin.",
             "en": "Review previous lines."
           }
+        },
+        {
+          "ref": "which",
+          "kind": "command",
+          "note": {
+            "tr": "Harici komut yolunu görün.",
+            "en": "See an external command path."
+          }
         }
       ],
       "subtopics": [
+        {
+          "id": "terminal-vs-shell",
+          "title": {
+            "tr": "Terminal ve kabuk",
+            "en": "Terminal vs shell"
+          },
+          "summary": {
+            "tr": "Terminal iletir; kabuk yorumlar; komut işi yapar.",
+            "en": "Terminal forwards; shell interprets; command does the work."
+          },
+          "related_commands": [
+            "echo"
+          ]
+        },
+        {
+          "id": "anatomy",
+          "title": {
+            "tr": "Komut anatomisi",
+            "en": "Command anatomy"
+          },
+          "summary": {
+            "tr": "komut [seçenek] [argüman]; ls -lah birleşik seçenek.",
+            "en": "command [option] [argument]; ls -lah combines options."
+          },
+          "related_commands": [
+            "ls"
+          ]
+        },
         {
           "id": "prompt-and-line",
           "title": {
@@ -42143,12 +43836,27 @@
             "en": "Prompt and line"
           },
           "summary": {
-            "tr": "Kabuk hazır olduğunu gösterir; Enter satırı gönderir.",
-            "en": "Shell shows readiness; Enter sends the line."
+            "tr": "$ istemdir; Enter satırı gönderir; ~ evdir.",
+            "en": "$ is the prompt; Enter sends the line; ~ is home."
           },
           "related_commands": [
             "echo",
             "history"
+          ]
+        },
+        {
+          "id": "builtin-external",
+          "title": {
+            "tr": "Dahili ve harici",
+            "en": "Builtin vs external"
+          },
+          "summary": {
+            "tr": "type ile cd (yerleşik) ve ls (harici) farkı.",
+            "en": "type shows cd (builtin) vs ls (external)."
+          },
+          "related_commands": [
+            "cd",
+            "ls"
           ]
         },
         {
@@ -42168,15 +43876,16 @@
         {
           "id": "help",
           "title": {
-            "tr": "Yardım",
-            "en": "Help"
+            "tr": "Yardım alma",
+            "en": "Getting help"
           },
           "summary": {
-            "tr": "man ve --help bank doğrulamasından önce kaynak kabul edilir.",
-            "en": "man and --help are sources before bank verification."
+            "tr": "man, --help ve help yerleşikleri.",
+            "en": "man, --help, and help for builtins."
           },
           "related_commands": [
-            "ls"
+            "ls",
+            "which"
           ]
         }
       ],
@@ -42208,8 +43917,8 @@
         {
           "id": "echo",
           "purpose": {
-            "tr": "Argümanları yazar.",
-            "en": "Display a line of text."
+            "tr": "Argümanları ve değişkenleri yazar.",
+            "en": "Display arguments and variables."
           },
           "learning_level": "beginner"
         },
@@ -42220,9 +43929,38 @@
             "en": "Display command history (builtin)."
           },
           "learning_level": "beginner"
+        },
+        {
+          "id": "which",
+          "purpose": {
+            "tr": "Harici komutun PATH üzerindeki yolunu gösterir.",
+            "en": "Show the PATH location of an external command."
+          },
+          "learning_level": "beginner"
         }
       ],
       "graded_examples": [
+        {
+          "title": {
+            "tr": "Merhaba",
+            "en": "Hello"
+          },
+          "command": "echo Merhaba",
+          "explanation": {
+            "tr": "Kabuğun argümanı ekrana yazdığını görün. $ yazmayın.",
+            "en": "See the shell print the argument. Do not type a leading $."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "echo"
+          ]
+        },
         {
           "title": {
             "tr": "Konum + liste",
@@ -42247,13 +43985,13 @@
         },
         {
           "title": {
-            "tr": "Gizli dosyalar",
-            "en": "Hidden files"
+            "tr": "Ayrıntılı ve gizli",
+            "en": "Long and hidden"
           },
-          "command": "ls -la",
+          "command": "ls -lah",
           "explanation": {
-            "tr": "Uzun biçim ve gizli girdiler (nokta ile başlayanlar).",
-            "en": "Long format including hidden (dot) entries."
+            "tr": "Uzun biçim, gizli girdiler, okunur boyutlar bir arada.",
+            "en": "Long format, hidden entries, and human-readable sizes together."
           },
           "difficulty": "beginner",
           "risk": "safe",
@@ -42268,15 +44006,37 @@
         },
         {
           "title": {
-            "tr": "Son çıkış kodu",
-            "en": "Last exit status"
+            "tr": "Ev ve /tmp",
+            "en": "Home and /tmp"
           },
-          "command": "false; echo $?",
+          "command": "cd ~ && pwd; cd /tmp && pwd; cd - && pwd",
           "explanation": {
-            "tr": "false başarısız olur; $? genelde 1 gösterir.",
-            "en": "false fails; $? usually shows 1."
+            "tr": "Ev, /tmp ve cd - ile önceki dizine dönüş.",
+            "en": "Home, /tmp, and returning with cd -."
           },
-          "difficulty": "intermediate",
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "cd",
+            "pwd"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Kabuk ve HOME",
+            "en": "Shell and HOME"
+          },
+          "command": "echo \"$SHELL\"; echo \"$HOME\"",
+          "explanation": {
+            "tr": "Çift tırnakla değişken genişlemesini görün.",
+            "en": "See variable expansion with double quotes."
+          },
+          "difficulty": "beginner",
           "risk": "safe",
           "platforms": [
             "linux",
@@ -42286,21 +44046,101 @@
           "related_commands": [
             "echo"
           ]
+        },
+        {
+          "title": {
+            "tr": "Son çıkış kodu",
+            "en": "Last exit status"
+          },
+          "command": "echo ok; echo $?; ls /yok-olmayan-yol-xyz; echo $?",
+          "explanation": {
+            "tr": "Başarılı echo sonrası $? genelde 0; başarısız ls sonrası sıfır dışı.",
+            "en": "After a successful echo, $? is usually 0; after a failing ls, non-zero."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "echo",
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Geçmişten birkaç satır",
+            "en": "A few history lines"
+          },
+          "command": "history | tail -n 5",
+          "explanation": {
+            "tr": "Son komutları numaralı listeler (yerleşik + boru).",
+            "en": "Lists recent commands with numbers (builtin + pipe)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "history",
+            "tail"
+          ]
+        },
+        {
+          "title": {
+            "tr": "which ile yol",
+            "en": "Path via which"
+          },
+          "command": "which ls; which pwd || true",
+          "explanation": {
+            "tr": "Harici ls yolunu görün. pwd yerleşik olabilir; which boş/ hata verebilir — type ile karşılaştırın.",
+            "en": "See the external ls path. pwd may be a builtin; which can be empty/error — compare with type."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "which",
+            "ls"
+          ]
         }
       ],
       "callouts": [
         {
           "kind": "tip",
           "text": {
-            "tr": "Boşluk içeren yolları tırnaklayın: cd \"My Documents\".",
-            "en": "Quote paths with spaces: cd \"My Documents\"."
+            "tr": "Boşluk içeren yolları tırnaklayın: cd \"My Documents\". Tab ile tamamlayın; iki Tab aday listeler.",
+            "en": "Quote paths with spaces: cd \"My Documents\". Use Tab to complete; double-Tab lists candidates."
+          }
+        },
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "Örneklerdeki $ yalnızca istemdir; yazmayın. Ctrl+C çalışan komutu durdurur; Ctrl+L ekranı temizler.",
+            "en": "The $ in examples is only the prompt; do not type it. Ctrl+C stops a running command; Ctrl+L clears the screen."
+          }
+        },
+        {
+          "kind": "note",
+          "text": {
+            "tr": "type cd ve type ls çıktılarını karşılaştırın — yerleşik ile harici ayrımı böyle netleşir.",
+            "en": "Compare type cd and type ls — that clarifies builtin vs external."
           }
         },
         {
           "kind": "warning",
           "text": {
-            "tr": "PATH’te görünmek bank doğrulaması değildir; draft rozeti korunur.",
-            "en": "Being on PATH is not bank verification; keep the draft badge honest."
+            "tr": "PATH’te görünmek bank doğrulaması değildir; draft rozeti korunur. rm / sudo denemelerine bu bölümde girmeyin.",
+            "en": "Being on PATH is not bank verification; keep the draft badge honest. Skip rm/sudo experiments in this topic."
           }
         }
       ],
@@ -42311,8 +44151,8 @@
             "en": "Explore home"
           },
           "prompt": {
-            "tr": "pwd, ls -la ~ ve cd /tmp; pwd çalıştırın; sonra geri dönün.",
-            "en": "Run pwd, ls -la ~, then cd /tmp; pwd; then return home."
+            "tr": "pwd; ls -la ~; cd /tmp; pwd; cd ~; pwd sırasını çalıştırıp her adımda konumun değişimini yazın.",
+            "en": "Run pwd; ls -la ~; cd /tmp; pwd; cd ~; pwd and note how the location changes each step."
           },
           "risk": "safe",
           "related_commands": [
@@ -42320,9 +44160,48 @@
             "ls",
             "cd"
           ]
+        },
+        {
+          "title": {
+            "tr": "Çıkış kodu gözlemi",
+            "en": "Observe exit status"
+          },
+          "prompt": {
+            "tr": "echo ok; echo $?; ls /yok-yol-xyz; echo $? çıktılarını kendi cümlenizle açıklayın.",
+            "en": "Explain echo ok; echo $?; ls /no-such-xyz; echo $? in your own words."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "echo",
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "type karşılaştırması",
+            "en": "Compare with type"
+          },
+          "prompt": {
+            "tr": "type cd; type ls; type echo; which ls çıktılarını karşılaştırın — hangisi yerleşik, hangisi harici?",
+            "en": "Compare type cd; type ls; type echo; which ls — which are builtins vs external?"
+          },
+          "risk": "safe",
+          "related_commands": [
+            "cd",
+            "ls",
+            "echo",
+            "which"
+          ]
         }
       ],
       "next_steps": [
+        {
+          "id": "linux-directory-structure",
+          "note": {
+            "tr": "/ ağacını ve önemli dizinleri öğrenin.",
+            "en": "Learn the / tree and key directories."
+          }
+        },
         {
           "id": "path",
           "note": {
@@ -42356,8 +44235,8 @@
         "en": "Reading, filtering, and transforming text files is core daily CLI work."
       },
       "body": {
-        "tr": "Metin işleme, borularla birleşince güçlüdür. `cat` içeriği gösterir; `grep` desen arar;\n`sed` ve `awk` satır dönüşümü yapar. GNU ile BSD araç bayrakları farklılık gösterebilir —\nbankada platform etiketlerine bakın; uydurmayın.\n\n**Öğrenme sırası:** cat → head/tail → grep → cut/tr → sort/uniq → sed → awk.\n\n**Uyarı:** `sed -i` yerinde düzenler; önce kopya veya `/tmp` üzerinde deneyin.",
-        "en": "Text processing is powerful when composed with pipes. `cat` shows content; `grep` matches\npatterns; `sed` and `awk` transform lines. GNU vs BSD flag differences matter — check\nplatform tags in the bank; do not invent flags.\n\n**Learning order:** cat → head/tail → grep → cut/tr → sort/uniq → sed → awk.\n\n**Warning:** `sed -i` edits in place; practice on a copy or under `/tmp` first."
+        "tr": "## Görüntüleme\n\nKüçük dosya: `cat`. Uzun dosya: `less`. Baş/son: `head` / `tail`. Satır sayısı: `wc -l`.\n\n## Arama\n\n`grep -n desen dosya` satır numaralı arar. `-i` büyük/küçük harf duyarsız; `-c` sayar.\n\n## Dönüştürme\n\n`cut -d: -f1` alan keser. `sort` / `uniq -c` sıralar ve sayar. `sed 's/a/b/'` basit değiştirir. `awk` alan işlemeye yarar.\n\n## Sıra\n\ncat → head/tail → grep → cut/tr → sort/uniq → sed → awk. `sed -i` yerinde düzenler — önce /tmp kopyası.\n",
+        "en": "## Viewing\n\nSmall files: `cat`. Long files: `less`. Head/tail: `head` / `tail`. Line counts: `wc -l`.\n\n## Searching\n\n`grep -n pattern file` searches with line numbers. `-i` ignores case; `-c` counts.\n\n## Transforming\n\n`cut -d: -f1` cuts fields. `sort` / `uniq -c` sort and count. `sed 's/a/b/'` does simple substitution. `awk` handles field processing.\n\n## Order\n\ncat → head/tail → grep → cut/tr → sort/uniq → sed → awk. `sed -i` edits in place — practice on a /tmp copy first.\n"
       },
       "difficulty": "beginner",
       "categories": [
@@ -42544,15 +44423,99 @@
             "tr": "Desen ara",
             "en": "Search pattern"
           },
-          "command": "grep -n pattern /etc/hosts",
+          "command": "grep -n root /etc/passwd",
           "explanation": {
-            "tr": "hosts dosyasında satır numaralı arama (salt okuma).",
-            "en": "Line-numbered search in hosts (read-only)."
+            "tr": "passwd içinde satır numaralı arama (salt okuma).",
+            "en": "Line-numbered search in passwd (read-only)."
           },
           "difficulty": "beginner",
           "risk": "safe",
           "related_commands": [
             "grep"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Baş ve son",
+            "en": "Head and tail"
+          },
+          "command": "head -n 3 /etc/passwd; tail -n 3 /etc/passwd",
+          "explanation": {
+            "tr": "Aynı dosyanın ilk ve son üç satırı.",
+            "en": "First and last three lines of the same file."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "head",
+            "tail"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Satır say",
+            "en": "Count lines"
+          },
+          "command": "wc -l /etc/passwd",
+          "explanation": {
+            "tr": "Kayıtlı kullanıcı satır sayısına pratik bakış.",
+            "en": "Practical look at account line count."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "wc"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Alan kes",
+            "en": "Cut fields"
+          },
+          "command": "cut -d: -f1,7 /etc/passwd | head",
+          "explanation": {
+            "tr": "Kullanıcı adı ve kabuk alanlarını keser.",
+            "en": "Cuts username and shell fields."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "related_commands": [
+            "cut",
+            "head"
+          ]
+        },
+        {
+          "title": {
+            "tr": "sort | uniq",
+            "en": "sort | uniq"
+          },
+          "command": "printf 'b\\na\\nb\\nc\\n' | sort | uniq -c",
+          "explanation": {
+            "tr": "Sıralayıp tekrarları sayar — boru hattı temeli.",
+            "en": "Sorts then counts duplicates — pipeline basics."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "sort",
+            "uniq"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Basit sed",
+            "en": "Simple sed"
+          },
+          "command": "echo 'kedi sever sut' | sed 's/kedi/Pamuk/'",
+          "explanation": {
+            "tr": "İlk eşleşmeyi değiştirir; dosyaya yazmaz.",
+            "en": "Replaces the first match; does not write a file."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "related_commands": [
+            "sed",
+            "echo"
           ]
         }
       ],
@@ -42570,6 +44533,13 @@
             "tr": "sed -i ve > yönlendirme veri kaybettirir.",
             "en": "sed -i and > redirection can lose data."
           }
+        },
+        {
+          "kind": "note",
+          "text": {
+            "tr": "GNU ve BSD bayrakları farklı olabilir; bankadaki platform etiketlerine bakın.",
+            "en": "GNU vs BSD flags may differ; check platform tags in the bank."
+          }
         }
       ],
       "safe_exercises": [
@@ -42580,11 +44550,41 @@
           },
           "prompt": {
             "tr": "grep -n root /etc/passwd (salt okuma) çıktısını yorumlayın.",
-            "en": "Interpret grep -n root /etc/passwd (read-only) output."
+            "en": "Interpret grep -n root /etc/passwd (read-only)."
           },
           "risk": "safe",
           "related_commands": [
             "grep"
+          ]
+        },
+        {
+          "title": {
+            "tr": "cut + sort",
+            "en": "cut + sort"
+          },
+          "prompt": {
+            "tr": "cut -d: -f1,7 /etc/passwd | sort -t: -k2 | head çıktısının ne yaptığını yazın.",
+            "en": "Explain cut -d: -f1,7 /etc/passwd | sort -t: -k2 | head."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "cut",
+            "sort"
+          ]
+        },
+        {
+          "title": {
+            "tr": "sed denemesi",
+            "en": "sed trial"
+          },
+          "prompt": {
+            "tr": "echo 'kedi sever sut' | sed 's/kedi/Pamuk/' çalıştırıp sonucu açıklayın.",
+            "en": "Run echo 'cat likes milk' | sed 's/cat/Pam/' and explain."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "sed",
+            "echo"
           ]
         }
       ],
@@ -42628,7 +44628,7 @@
           "man sed",
           "man awk"
         ],
-        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
+        "notes": "PDF-depth text-processing; original wording; stays draft."
       }
     },
     {
