@@ -12576,8 +12576,8 @@
         "packages"
       ],
       "summary": {
-        "tr": "Bekleyen güvenlik güncellemelerini salt okunur kontrol et (yükseltme zorunlu değil).",
-        "en": "Check pending security updates read-only (upgrade not required)."
+        "tr": "Bekleyen güvenlik güncellemelerini listele; yükseltme zorunlu değil (bazı yollar indirir/derleme planı gösterir).",
+        "en": "List pending security updates; upgrade not required (some paths download or show build plans)."
       },
       "intent": {
         "tr": [
@@ -12829,8 +12829,8 @@
       ]
     }
   ],
-  "content_sha256": "a31207ef405b8319e4db0602f2bce599213a1fbf400055156b5139584108976f",
-  "generated_at": "2026-11-11T14:18:56Z",
+  "content_sha256": "92e6920cd8278b5685cf6d748769c1a22cc61bbd02924e5eee7267122d7e4a4b",
+  "generated_at": "2026-11-11T16:35:09Z",
   "command_count": 267,
   "concept_count": 21,
   "task_count": 36,
