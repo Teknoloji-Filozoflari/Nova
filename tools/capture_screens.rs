@@ -256,12 +256,7 @@ fn capture_topic_guide_wide(out: &Path) {
     app.status_message =
         "Konu Rehberi · Terminal temelleri — geniş detay; Alt konular + komut tablosu okunur."
             .into();
-    dump(
-        &mut app,
-        180,
-        46,
-        out.join("preview-topic-guide-wide.json"),
-    );
+    dump(&mut app, 180, 46, out.join("preview-topic-guide-wide.json"));
 }
 
 /// Aynı konu — Öğrenme bölümüne kaydırılmış (paragraf boşlukları).
