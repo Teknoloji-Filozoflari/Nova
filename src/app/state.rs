@@ -5,7 +5,13 @@
 //! [`crate::app::App`] yönetir. Böylece geçmiş sınırı, tekrar birleştirme ve
 //! dizin doğrulama kuralları dosya sistemi olmadan test edilebilir.
 
-use crate::config::state::{AttemptStatus, Prefs, RecentEntry, StateFile, RECENT_LIMIT_DEFAULT};
+use crate::commands::{
+    default_checklist_target_name, normalize_checklist_target, suggest_checklist_target_id,
+    validate_checklist_target_name, CHECKLIST_DEFAULT_TARGET,
+};
+use crate::config::state::{
+    AttemptStatus, ChecklistTarget, Prefs, RecentEntry, StateFile, RECENT_LIMIT_DEFAULT,
+};
 use std::path::PathBuf;
 
 /// Uygulamanın kalıcı durumu (bellek içi model).
@@ -135,6 +141,89 @@ impl AppState {
     pub fn set_active_project(&mut self, path: Option<PathBuf>) {
         self.active_project = path;
     }
+
+    /// Varsayılan “Bu cihaz” / `local` hedefini garanti et (idempotent).
+    ///
+    /// Eski progress kayıtları `migrate_checklist_progress` ile `local`
+    /// altına taşındıktan sonra çağrılmalı; görünen ad yoksa dil varsayılanı
+    /// yazılır.
+    pub fn ensure_checklist_targets(&mut self, lang: &str) {
+        if !self
+            .file
+            .checklist_targets
+            .iter()
+            .any(|t| t.id == CHECKLIST_DEFAULT_TARGET)
+        {
+            self.file.checklist_targets.insert(
+                0,
+                ChecklistTarget {
+                    id: CHECKLIST_DEFAULT_TARGET.to_string(),
+                    name: default_checklist_target_name(lang).to_string(),
+                },
+            );
+        }
+    }
+
+    /// Kayıtlı checklist hedefleri (sıra korunur).
+    pub fn checklist_targets(&self) -> &[ChecklistTarget] {
+        &self.file.checklist_targets
+    }
+
+    /// Id ile hedef bul.
+    pub fn checklist_target_by_id(&self, id: &str) -> Option<&ChecklistTarget> {
+        let id = normalize_checklist_target(id);
+        self.file.checklist_targets.iter().find(|t| t.id == id)
+    }
+
+    /// Yeni hedef ekle (yalnızca görünen ad → kararlı id üretilir).
+    pub fn add_checklist_target(&mut self, raw_name: &str) -> Result<ChecklistTarget, String> {
+        let name = validate_checklist_target_name(raw_name)?;
+        let taken: Vec<&str> = self
+            .file
+            .checklist_targets
+            .iter()
+            .map(|t| t.id.as_str())
+            .collect();
+        let id = suggest_checklist_target_id(&name, &taken);
+        let entry = ChecklistTarget { id, name };
+        self.file.checklist_targets.push(entry.clone());
+        Ok(entry)
+    }
+
+    /// Hedefi listeden çıkar. Varsayılan `local` silinmez.
+    ///
+    /// İlerleme kayıtları silinmez (aynı id yeniden eklenirse geri gelir).
+    pub fn remove_checklist_target(&mut self, index: usize) -> Result<ChecklistTarget, String> {
+        let Some(entry) = self.file.checklist_targets.get(index) else {
+            return Err("Hedef bulunamadı.".into());
+        };
+        if entry.id == CHECKLIST_DEFAULT_TARGET {
+            return Err("Varsayılan 'Bu cihaz' hedefi silinemez.".into());
+        }
+        Ok(self.file.checklist_targets.remove(index))
+    }
+
+    /// Tercihlerdeki son checklist hedef id’sini çöz (yoksa `local`).
+    pub fn resolve_checklist_target_id(&self) -> String {
+        if let Some(id) = self
+            .file
+            .prefs
+            .checklist_target
+            .as_deref()
+            .map(normalize_checklist_target)
+        {
+            if self.file.checklist_targets.iter().any(|t| t.id == id) {
+                return id;
+            }
+        }
+        CHECKLIST_DEFAULT_TARGET.to_string()
+    }
+
+    /// Etkin checklist hedefini tercihlerde sakla.
+    pub fn set_prefs_checklist_target(&mut self, id: &str) {
+        let id = normalize_checklist_target(id);
+        self.file.prefs.checklist_target = Some(id);
+    }
 }
 
 /// Kullanıcının yazdığı proje yolunu doğrular ve tam yola çevirir.
@@ -262,5 +351,22 @@ mod tests {
         assert_eq!(relative_time(1000, 1000 - 120), "2 dk önce");
         assert_eq!(relative_time(10_000, 10_000 - 7200), "2 sa önce");
         assert_eq!(relative_time(1_000_000, 1_000_000 - 172_800), "2 gün önce");
+    }
+
+    #[test]
+    fn checklist_targets_seed_default_and_isolate_ids() {
+        let mut s = AppState::in_memory();
+        s.ensure_checklist_targets("tr");
+        s.ensure_checklist_targets("en"); // idempotent
+        assert_eq!(s.checklist_targets().len(), 1);
+        assert_eq!(s.checklist_targets()[0].id, CHECKLIST_DEFAULT_TARGET);
+        assert_eq!(s.checklist_targets()[0].name, "Bu cihaz");
+
+        let a = s.add_checklist_target("Staging").unwrap();
+        let b = s.add_checklist_target("Staging").unwrap();
+        assert_eq!(a.id, "staging");
+        assert_eq!(b.id, "staging-2");
+        assert!(s.remove_checklist_target(0).is_err()); // local korunur
+        assert_eq!(s.remove_checklist_target(1).unwrap().id, "staging");
     }
 }

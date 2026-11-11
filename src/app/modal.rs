@@ -21,6 +21,8 @@ pub enum ConfirmAction {
     ClearRecents,
     /// Listedeki proje dizinini çıkar.
     RemoveProject { path: PathBuf },
+    /// Checklist hedef listesinden çıkar (ilerleme kayıtları silinmez).
+    RemoveChecklistTarget { id: String, name: String },
     /// Var olmayan çalışma dizinini oluşturup başlatmayı yeniden dene.
     CreateDir { path: PathBuf, tool_id: String },
     /// Mağaza uygulamasını kur (kullanıcı alanına).
@@ -72,6 +74,18 @@ pub enum Modal {
     /// Proje dizini ekleme (tek satır).
     ProjectAdd {
         /// Girilen metin.
+        input: String,
+        /// Son hatadan kalan mesaj.
+        error: Option<String>,
+    },
+    /// Sunucu güvenlik checklist hedef seçici.
+    ChecklistTargetPicker {
+        /// Seçili satır.
+        index: usize,
+    },
+    /// Yeni checklist hedefi (yalnızca görünen ad).
+    ChecklistTargetAdd {
+        /// Girilen görünen ad.
         input: String,
         /// Son hatadan kalan mesaj.
         error: Option<String>,

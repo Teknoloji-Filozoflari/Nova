@@ -74,13 +74,19 @@ pub struct StateFile {
     pub command_favorites: BTreeSet<String>,
     /// Sunucu güvenlik kontrolü adım durumları.
     ///
-    /// Anahtar: `server-security-check::<target>::<step_id>` (hedefler
+    /// Anahtar: `server-security-check::<target_id>::<step_id>` (hedefler
     /// birbirinden yalıtılır). Eski `server-security-check::<step_id>` /
     /// çıplak adım id kayıtları yüklemede `local` hedefine taşınır.
     /// Değer: `unchecked` / `ok` / `review` / `na`. Parola, anahtar, token,
-    /// host/IP **yazılmaz**.
+    /// host/IP **yazılmaz** — yalnızca durum dizgileri.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub command_checklist: BTreeMap<String, String>,
+    /// Checklist ilerleme hedefleri (kalıcı yerel id + görünen ad).
+    ///
+    /// IP, parola, SSH anahtarı veya başka sır **yazılmaz**. Varsayılan
+    /// hedef `local` / “Bu cihaz” yüklemede eklenir.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub checklist_targets: Vec<ChecklistTarget>,
     /// Son kullanılanlar, **en yeni önce**.
     #[serde(default)]
     pub recents: Vec<RecentEntry>,
@@ -96,6 +102,18 @@ pub struct StateFile {
     /// Kalıcı tercihler.
     #[serde(default)]
     pub prefs: Prefs,
+}
+
+/// Kullanıcının adlandırdığı checklist hedefi (manuel izleme).
+///
+/// Yalnızca kararlı yerel `id` ve görünen `name` tutulur — bağlantı
+/// bilgisi, parola veya anahtar yok.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ChecklistTarget {
+    /// Durum anahtarlarında kullanılan kararlı kimlik (`local`, `prod-lab`, …).
+    pub id: String,
+    /// Kullanıcının verdiği görünen ad (“Bu cihaz”, “Staging”, …).
+    pub name: String,
 }
 
 /// Kalıcı tercihler.
@@ -135,6 +153,11 @@ pub struct Prefs {
     /// Arayüz dili (`tr`, `en`, `ru`, `az`, `uz`, `kk`). `None` → Türkçe.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub language: Option<String>,
+    /// Son seçili sunucu-güvenlik checklist hedef id’si (`local`, …).
+    ///
+    /// Yalnızca id; IP/parola/SSH anahtarı tutulmaz.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checklist_target: Option<String>,
     /// Eski paylaşılan ikincil sütun genişliği (geriye dönük okuma).
     /// Yeni yazılar [`Self::pane_sizes`] altına, ekran başına gider.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -460,6 +483,11 @@ mod tests {
             status: AttemptStatus::RequestSent,
         });
         state.project_dirs.push("/home/x/proje".into());
+        state.checklist_targets.push(ChecklistTarget {
+            id: "local".into(),
+            name: "Bu cihaz".into(),
+        });
+        state.prefs.checklist_target = Some("local".into());
         save_state(&path, &state).unwrap();
 
         let load = load_state(&path);
@@ -467,6 +495,8 @@ mod tests {
         assert_eq!(load.state.favorites, state.favorites);
         assert_eq!(load.state.recents, state.recents);
         assert_eq!(load.state.project_dirs, state.project_dirs);
+        assert_eq!(load.state.checklist_targets, state.checklist_targets);
+        assert_eq!(load.state.prefs.checklist_target.as_deref(), Some("local"));
         let _ = fs::remove_dir_all(&dir);
     }
 

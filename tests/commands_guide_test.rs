@@ -793,6 +793,16 @@ fn checklist_progress_isolated_across_targets_and_migrates_legacy() {
         .command_checklist
         .insert("security-check-firewall-ports".into(), "review".into());
     let mut app = App::with_state(catalog, state, false);
+    // Varsayılan hedef “Bu cihaz” / local — eski kayıtlar buraya taşınır.
+    assert_eq!(app.checklist_target, CHECKLIST_DEFAULT_TARGET);
+    assert!(
+        app.state
+            .checklist_targets()
+            .iter()
+            .any(|t| t.id == CHECKLIST_DEFAULT_TARGET),
+        "varsayılan hedef kaydı yok"
+    );
+    assert_eq!(app.checklist_target_display_name(), "Bu cihaz");
     let ssh_key = checklist_progress_key(CHECKLIST_DEFAULT_TARGET, "security-check-ssh");
     let fw_key = checklist_progress_key(CHECKLIST_DEFAULT_TARGET, "security-check-firewall-ports");
     assert_eq!(
@@ -884,6 +894,145 @@ fn checklist_progress_isolated_across_targets_and_migrates_legacy() {
         0
     );
     assert_eq!(app.state.file.command_checklist, before);
+}
+
+#[test]
+fn checklist_targets_ui_switch_preserves_independent_progress() {
+    use nova::app::modal::Modal;
+    use nova::commands::CHECKLIST_DEFAULT_TARGET;
+
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::ServerSecurity);
+    let steps = app.filtered_checklist_steps();
+    assert!(!steps.is_empty());
+    let ssh_idx = steps
+        .iter()
+        .position(|s| s.id == "security-check-ssh")
+        .expect("ssh step");
+    app.commands_entry_index = ssh_idx;
+    app.focus = nova::app::PanelFocus::CommandsList;
+
+    // local → ok
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char(' '),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    let local_key = steps[ssh_idx].state_key_for(CHECKLIST_DEFAULT_TARGET);
+    assert_eq!(
+        app.state
+            .file
+            .command_checklist
+            .get(&local_key)
+            .map(String::as_str),
+        Some("ok")
+    );
+
+    // t → hedef seçici; A → ad gir; Enter → ekle; Enter → etkinleştir
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char('t'),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(matches!(app.modal, Modal::ChecklistTargetPicker { .. }));
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char('a'),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(matches!(app.modal, Modal::ChecklistTargetAdd { .. }));
+    for c in "Staging".chars() {
+        app.handle_key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Char(c),
+            crossterm::event::KeyModifiers::NONE,
+        ))
+        .unwrap();
+    }
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(matches!(app.modal, Modal::ChecklistTargetPicker { .. }));
+    // Seçili satır yeni hedef; Enter ile etkinleştir.
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert_eq!(app.modal, Modal::None);
+    assert_eq!(app.checklist_target, "staging");
+    assert_eq!(app.checklist_target_display_name(), "Staging");
+    assert_eq!(
+        app.state.file.prefs.checklist_target.as_deref(),
+        Some("staging")
+    );
+
+    // Aynı adım staging’de unchecked; Space → ok (local’den bağımsız).
+    assert_eq!(
+        app.checklist_step_state(&steps[ssh_idx]).as_str(),
+        "unchecked",
+        "staging local ilerlemesini görmemeli"
+    );
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char(' '),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    let staging_key = steps[ssh_idx].state_key_for("staging");
+    assert_eq!(
+        app.state
+            .file
+            .command_checklist
+            .get(&staging_key)
+            .map(String::as_str),
+        Some("ok")
+    );
+    assert_eq!(
+        app.state
+            .file
+            .command_checklist
+            .get(&local_key)
+            .map(String::as_str),
+        Some("ok"),
+        "staging işareti local kaydı bozmamalı"
+    );
+
+    // Geri local’e geç — önceki ok korunur.
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char('t'),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    // local ilk satır
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char('k'),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert_eq!(app.checklist_target, CHECKLIST_DEFAULT_TARGET);
+    assert_eq!(app.checklist_step_state(&steps[ssh_idx]).as_str(), "ok");
+
+    // Sırlar saklanmaz — yalnızca id + ad + durum.
+    for t in app.state.checklist_targets() {
+        assert!(!t.id.contains('@'));
+        assert!(!t.name.contains("BEGIN PRIVATE"));
+    }
+    for v in app.state.file.command_checklist.values() {
+        assert!(matches!(v.as_str(), "ok" | "review" | "na" | "unchecked"));
+    }
+
+    let text = all_text(&render(&app, 120, 40));
+    assert!(
+        text.contains("Bu cihaz") || text.contains("This device"),
+        "varsayılan hedef yüzeyi yok:\n{text}"
+    );
 }
 
 #[test]
