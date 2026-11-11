@@ -564,15 +564,17 @@ fn checklist_platform_filter_match_and_no_match() {
             .collect::<Vec<_>>()
     );
 
-    // No-match: linux-only docker step + Windows filter → empty (no silent substitute).
+    // No-match: docker has no BSD impl (jails ≠ Docker) → empty, no silent substitute.
+    // (Windows now has docker examples in the combined #69 catalog.)
     let docker = steps
         .iter()
         .find(|s| s.id == "security-check-docker")
         .expect("docker checklist step");
+    app.commands_filters.os = Some("bsd".into());
     let empty = nova::commands::select_checklist_examples(&docker.examples, &app.commands_filters);
     assert!(
         empty.is_empty(),
-        "windows must not inherit linux docker example: {:?}",
+        "bsd must not inherit linux/windows docker example: {:?}",
         empty
             .iter()
             .map(|e| e.example.command.as_str())
