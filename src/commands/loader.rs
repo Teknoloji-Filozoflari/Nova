@@ -246,7 +246,7 @@ mod tests {
         assert_eq!(bank.schema_version, 2);
         assert_eq!(
             man.content_sha256,
-            "d4ade2d8bff0291d9a15fdb6db894229d7bccd2f00c0b506bedbc7ff9ec45afe"
+            "a31207ef405b8319e4db0602f2bce599213a1fbf400055156b5139584108976f"
         );
         let with_refs = bank
             .commands

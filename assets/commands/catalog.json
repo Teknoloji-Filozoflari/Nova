@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-11T14:13:37Z",
-  "content_sha256": "d4ade2d8bff0291d9a15fdb6db894229d7bccd2f00c0b506bedbc7ff9ec45afe",
+  "generated_at": "2026-11-11T14:18:56Z",
+  "content_sha256": "a31207ef405b8319e4db0602f2bce599213a1fbf400055156b5139584108976f",
   "command_count": 267,
   "concept_count": 21,
   "task_count": 36,
@@ -38804,8 +38804,8 @@
         "en": "Do backups exist/read? Plan real restore in a controlled environment."
       },
       "description": {
-        "tr": "Neden: Alınmayan veya doğrulanmayan yedek felakette işe yaramaz; kör restore üretimi ezer.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nİsteğe bağlı düzeltme: Drill: boş staging dizine restore → dosya örnekle → üretim yoluna basmadan hash karşılaştır. Başarısızsa yalnız staging’i sil; prod’a dokunma.",
-        "en": "Why: Missing/unverified backups fail in disasters; blind restore can wipe production.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nOptional fix: Drill: restore to empty staging → sample files → compare hashes before touching prod. On failure, delete staging only; do not touch prod."
+        "tr": "Neden: Alınmayan veya doğrulanmayan yedek felakette işe yaramaz; kör restore üretimi ezer.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: restic CLI Linux/macOS/Windows/BSD’de aynıdır; yol/kimlik bilgisi OS’e göre\ndeğişir. Windows wbadmin/VSS bu bankada birinci sınıf değil — restic yoksa na veya kendi yolunu\nbelgeleyin. Örneklerde secret yok.\n\nİsteğe bağlı düzeltme: Drill: boş staging dizine restore → dosya örnekle → üretim yoluna basmadan\nhash karşılaştır. Başarısızsa yalnız staging’i sil; prod’a dokunma.",
+        "en": "Why: Missing/unverified backups fail in disasters; blind restore can wipe production.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: the restic CLI is the same on Linux/macOS/Windows/BSD; paths/credentials differ\nby OS. Windows wbadmin/VSS are not first-class here — if restic is absent, mark na or document\nyour path. No secrets in examples.\n\nOptional fix: Drill: restore to empty staging → sample files → compare hashes before touching\nprod. On failure, delete staging only; do not touch prod."
       },
       "category": "backup",
       "tags": [
@@ -38827,10 +38827,11 @@
       },
       "implementations": [
         {
-          "id": "restic-check",
+          "id": "restic-unix",
           "platforms": [
             "linux",
-            "macos"
+            "macos",
+            "bsd"
           ],
           "shells": [
             "bash"
@@ -38874,6 +38875,50 @@
             "tr": "Örneklerde secret yok. Geri yüklemeyi önce boş dizine deneyin.",
             "en": "No secrets in examples. Trial-restore into an empty directory first."
           }
+        },
+        {
+          "id": "restic-windows",
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ],
+          "commands": [
+            "restic"
+          ],
+          "examples": [
+            {
+              "command": "restic version",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none",
+              "explanation": {
+                "tr": "restic PATH’te mi. Yoksa na; wbadmin/VSS bu bankada birinci sınıf değil.",
+                "en": "Is restic on PATH? Else na; wbadmin/VSS are not first-class in this bank."
+              }
+            },
+            {
+              "command": "restic -r C:\\path\\to\\repo snapshots",
+              "risk": "caution",
+              "shell": "powershell",
+              "privilege": "user",
+              "explanation": {
+                "tr": "Snapshot listesi (parola gerekir; yol yer tutucu).",
+                "en": "Snapshot list (needs password; path placeholder)."
+              }
+            },
+            {
+              "command": "restic -r C:\\path\\to\\repo check",
+              "risk": "caution",
+              "shell": "powershell",
+              "privilege": "user",
+              "explanation": {
+                "tr": "Repo bütünlüğü (yazmaz).",
+                "en": "Repo integrity (non-writing)."
+              }
+            }
+          ]
         }
       ],
       "related_commands": [
@@ -38888,7 +38933,7 @@
           "https://restic.readthedocs.io/",
           "https://borgbackup.readthedocs.io/"
         ],
-        "notes": "NV-103 sequential security checklist stage 9; read-only diagnostics; not human-verified."
+        "notes": "NV-106 platform-split security checklist stage 9; read-only diagnostics; not human-verified."
       },
       "related_tasks": [
         "backup-directory",
@@ -38909,8 +38954,8 @@
         "en": "Resolver / DNS health; mark VPN na if tooling absent (WireGuard still a gap)."
       },
       "description": {
-        "tr": "Neden: Zehirli/yanlış DNS yönlendirmeyi bozar; VPN kopması yönetim erişimini kesebilir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nİsteğe bağlı düzeltme: resolv/NetworkManager yedeği almadan kalıcı DNS değiştirmeyin. VPN kill-switch’i kör açmayın — yönetim yolunu test edin.",
-        "en": "Why: Poisoned/wrong DNS breaks routing; VPN failure can cut management access.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nOptional fix: Do not persistently change DNS without backing up resolv/NetworkManager. Do not blind-enable VPN kill-switches — test management path."
+        "tr": "Neden: Zehirli/yanlış DNS yönlendirmeyi bozar; VPN kopması yönetim erişimini kesebilir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: Linux resolvectl;/etc/resolv.conf; macOS scutil --dns; Windows ipconfig /all;\nBSD /etc/resolv.conf + dig. VPN (wg/wg-quick) bankada gap — varsa yalnız salt okunur düşünün.\n\nİsteğe bağlı düzeltme: resolv/NetworkManager yedeği almadan kalıcı DNS değiştirmeyin. VPN\nkill-switch’i kör açmayın — yönetim yolunu test edin.",
+        "en": "Why: Poisoned/wrong DNS breaks routing; VPN failure can cut management access.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: Linux resolvectl;/etc/resolv.conf; macOS scutil --dns; Windows ipconfig /all;\nBSD /etc/resolv.conf + dig. VPN (wg/wg-quick) remains a bank gap — prefer read-only if present.\n\nOptional fix: Do not persistently change DNS without backing up resolv/NetworkManager. Do not\nblind-enable VPN kill-switches — test management path."
       },
       "category": "network",
       "tags": [
@@ -38991,8 +39036,88 @@
               "shell": "zsh",
               "privilege": "none",
               "explanation": {
-                "tr": "macOS DNS yapılandırması özeti.",
-                "en": "macOS DNS configuration summary."
+                "tr": "macOS DNS yapılandırması özeti (resolvectl değildir).",
+                "en": "macOS DNS configuration summary (not resolvectl)."
+              }
+            },
+            {
+              "command": "dig +short example.com A",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Harici çözünürlük duman testi.",
+                "en": "External resolution smoke test."
+              }
+            }
+          ]
+        },
+        {
+          "id": "windows-dns",
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ],
+          "commands": [
+            "ipconfig",
+            "dig"
+          ],
+          "examples": [
+            {
+              "command": "ipconfig /all",
+              "risk": "safe",
+              "shell": "cmd",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Arabirim DNS sunucuları (resolvectl/scutil değildir). /flushdns yazmaz ama dikkatli okuyun.",
+                "en": "Per-interface DNS servers (not resolvectl/scutil). /flushdns is a write — do not use here."
+              }
+            },
+            {
+              "command": "dig +short example.com A",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none",
+              "explanation": {
+                "tr": "dig kuruluysa duman testi; yoksa na veya nslookup (bankada ayrı gap).",
+                "en": "Smoke test when dig is installed; else na or nslookup (separate bank gap)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "bsd-dns",
+          "platforms": [
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "dig",
+            "host"
+          ],
+          "examples": [
+            {
+              "command": "cat /etc/resolv.conf",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "BSD çözümleyici dosyası (systemd-resolved varsayılmaz).",
+                "en": "BSD resolver file (do not assume systemd-resolved)."
+              }
+            },
+            {
+              "command": "dig +short example.com A || host example.com",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Harici çözünürlük duman testi.",
+                "en": "External resolution smoke test."
               }
             }
           ]
@@ -39003,16 +39128,18 @@
         "dig",
         "host",
         "nmcli",
-        "scutil"
+        "scutil",
+        "ipconfig"
       ],
       "verification": {
         "status": "draft",
         "sources": [
           "man 1 resolvectl",
           "man 1 dig",
-          "man 8 scutil"
+          "man 8 scutil",
+          "ipconfig /?"
         ],
-        "notes": "NV-103 sequential security checklist stage 8; read-only diagnostics; not human-verified."
+        "notes": "NV-106 platform-split security checklist stage 8; read-only diagnostics; not human-verified."
       },
       "related_tasks": [
         "check-dns",
@@ -39034,8 +39161,8 @@
         "en": "Running containers, published ports, privileged flags — na if absent."
       },
       "description": {
-        "tr": "Neden: docker.sock / privileged / host network host ile eşdeğer risk taşıyabilir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nİsteğe bağlı düzeltme: Gereksiz privileged kaldırın; compose/stack yedeği alın; rolling restart ile doğrulayın. Kör docker rm -f üretimde tehlikeli.",
-        "en": "Why: docker.sock / privileged / host network can equal host-level risk.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nOptional fix: Remove unnecessary privileged; backup compose/stack; verify with rolling restart. Blind docker rm -f is dangerous in prod."
+        "tr": "Neden: docker.sock / privileged / host network host ile eşdeğer risk taşıyabilir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: Linux’ta docker.service (systemctl); Windows/macOS’ta Docker Desktop /\nengine CLI aynı `docker ps` yüzeyi ama servis modeli farklı. BSD jails ≠ Docker — bu aşamada\nDocker yoksa na; jail denetimi ayrı gap.\n\nİsteğe bağlı düzeltme: Gereksiz privileged kaldırın; compose/stack yedeği alın; rolling restart\nile doğrulayın. Kör docker rm -f üretimde tehlikeli.",
+        "en": "Why: docker.sock / privileged / host network can equal host-level risk.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: Linux uses docker.service (systemctl); Windows/macOS Docker Desktop share the\nsame `docker ps` CLI but a different service model. BSD jails ≠ Docker — mark na when Docker is\nabsent; jail checks are a separate gap.\n\nOptional fix: Remove unnecessary privileged; backup compose/stack; verify with rolling restart.\nBlind docker rm -f is dangerous in prod."
       },
       "category": "containers",
       "tags": [
@@ -39101,22 +39228,117 @@
               }
             }
           ]
+        },
+        {
+          "id": "windows-docker",
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ],
+          "commands": [
+            "docker",
+            "get-service"
+          ],
+          "examples": [
+            {
+              "command": "Get-Service *docker* -ErrorAction SilentlyContinue; docker version 2>$null; if (-not $?) { 'docker-na' }",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Docker Desktop/engine var mı (systemctl yoktur). Yoksa na.",
+                "en": "Is Docker Desktop/engine present (no systemctl)? Else na."
+              }
+            },
+            {
+              "command": "docker ps --format \"table {{.Names}}\\t{{.Image}}\\t{{.Ports}}\\t{{.Status}}\"",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "user",
+              "explanation": {
+                "tr": "Çalışan konteyner + yayınlanan portlar.",
+                "en": "Running containers + published ports."
+              }
+            },
+            {
+              "command": "docker ps -q | ForEach-Object { docker inspect --format '{{.Name}} privileged={{.HostConfig.Privileged}} networkMode={{.HostConfig.NetworkMode}}' $_ }",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "user",
+              "explanation": {
+                "tr": "Privileged/host network bayrakları.",
+                "en": "Privileged/host-network flags."
+              }
+            }
+          ]
+        },
+        {
+          "id": "macos-docker",
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ],
+          "commands": [
+            "docker"
+          ],
+          "examples": [
+            {
+              "command": "docker version 2>/dev/null || echo 'docker-na'",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Docker Desktop CLI. Yoksa na (systemctl/launchctl docker birimi varsayılmaz).",
+                "en": "Docker Desktop CLI. Else na (do not assume a systemctl/launchctl docker unit)."
+              }
+            },
+            {
+              "command": "docker ps --format 'table {{.Names}}\\t{{.Image}}\\t{{.Ports}}\\t{{.Status}}'",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "user",
+              "explanation": {
+                "tr": "Çalışan konteyner + portlar.",
+                "en": "Running containers + ports."
+              }
+            },
+            {
+              "command": "docker ps -q | xargs -n1 docker inspect --format '{{.Name}} privileged={{.HostConfig.Privileged}} networkMode={{.HostConfig.NetworkMode}}'",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "user",
+              "explanation": {
+                "tr": "Privileged/host network bayrakları.",
+                "en": "Privileged/host-network flags."
+              }
+            }
+          ],
+          "notes": {
+            "tr": "BSD Docker genelde na; jails ayrı konu.",
+            "en": "BSD Docker is usually na; jails are a separate topic."
+          }
         }
       ],
       "related_commands": [
         "docker",
         "docker-compose",
         "podman",
-        "systemctl"
+        "systemctl",
+        "get-service"
       ],
       "verification": {
         "status": "draft",
         "sources": [
           "docker --help",
           "https://docs.docker.com/engine/reference/commandline/ps/",
-          "man 1 systemctl"
+          "man 1 systemctl",
+          "Get-Help Get-Service"
         ],
-        "notes": "NV-103 sequential security checklist stage 6; read-only diagnostics; not human-verified."
+        "notes": "NV-106 platform-split security checklist stage 6; read-only diagnostics; not human-verified. BSD/jails intentionally na/gap."
       },
       "related_tasks": [
         "inspect-container",
@@ -39138,8 +39360,8 @@
         "en": "Local listening ports + firewall status — no rule add/delete; no remote scanning."
       },
       "description": {
-        "tr": "Neden: Gereksiz dinleyen servisler saldırı yüzeyi; yanlış firewall kuralı hizmeti keser.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nİsteğe bağlı düzeltme: Kural eklemeden önce mevcut policy yedeği alın. ufw --force reset / geniş allow kör önerilmez. Değişiklik sonrası hizmeti doğrula; rollback için önceki ruleset.",
-        "en": "Why: Unnecessary listeners are attack surface; wrong firewall rules outage services.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nOptional fix: Backup policy before adding rules. Blind ufw --force reset / wide allow is not recommended. Verify service after change; keep prior ruleset for rollback."
+        "tr": "Neden: Gereksiz dinleyen servisler saldırı yüzeyi; yanlış firewall kuralı hizmeti keser.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: ufw Debian/Ubuntu ailesi; firewalld Fedora/RHEL ailesi; pf BSD; Windows\nnetsh/advfirewall. macOS’ta Application Firewall (socketfilterfw) ayrıdır — bu bankada henüz yok;\npfctl macOS’ta da vardır ama çoğu masaüstünde kapalı olabilir.\n\nİsteğe bağlı düzeltme: Kural eklemeden önce mevcut policy yedeği alın. ufw --force reset / geniş\nallow kör önerilmez. Değişiklik sonrası hizmeti doğrula; rollback için önceki ruleset.",
+        "en": "Why: Unnecessary listeners are attack surface; wrong firewall rules outage services.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: ufw is Debian/Ubuntu-family; firewalld is Fedora/RHEL-family; pf is BSD;\nWindows uses netsh/advfirewall. macOS Application Firewall (socketfilterfw) is separate and not\nyet in this bank; pfctl exists on macOS but is often inactive on desktops.\n\nOptional fix: Backup policy before adding rules. Blind ufw --force reset / wide allow is not\nrecommended. Verify service after change; keep prior ruleset for rollback."
       },
       "category": "security",
       "tags": [
@@ -39162,7 +39384,7 @@
       },
       "implementations": [
         {
-          "id": "linux-ss-ufw",
+          "id": "linux-ss",
           "platforms": [
             "linux"
           ],
@@ -39170,9 +39392,7 @@
             "bash"
           ],
           "commands": [
-            "ss",
-            "ufw",
-            "firewall-cmd"
+            "ss"
           ],
           "examples": [
             {
@@ -39184,22 +39404,67 @@
                 "tr": "Yerel dinleyiciler. Sağlıklı: bilinen servisler. Şüpheli: tanınmayan 0.0.0.0 dinleyiciler.",
                 "en": "Local listeners. Healthy: known services. Suspicious: unknown 0.0.0.0 listeners."
               }
-            },
-            {
-              "command": "sudo ufw status verbose || firewall-cmd --state",
-              "risk": "safe",
-              "shell": "bash",
-              "privilege": "elevated",
-              "explanation": {
-                "tr": "Dağıtıma göre ufw veya firewalld. Yoksa na.",
-                "en": "ufw or firewalld by distro. Else na."
-              }
             }
           ],
           "notes": {
             "tr": "nmap ile dış tarama bu rehberde yok.",
             "en": "No external nmap scanning in this guide."
           }
+        },
+        {
+          "id": "linux-ufw",
+          "platforms": [
+            "linux"
+          ],
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "ufw"
+          ],
+          "examples": [
+            {
+              "command": "sudo ufw status verbose",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "ufw durumu (Debian/Ubuntu ailesi). Kurulu değilse na — firewalld ile karıştırma.",
+                "en": "ufw status (Debian/Ubuntu family). If absent, na — do not treat as firewalld."
+              }
+            }
+          ]
+        },
+        {
+          "id": "linux-firewalld",
+          "platforms": [
+            "linux"
+          ],
+          "distributions": [
+            "fedora"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "firewall-cmd"
+          ],
+          "examples": [
+            {
+              "command": "firewall-cmd --state",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "firewalld durumu (Fedora/RHEL ailesi). ufw değildir.",
+                "en": "firewalld state (Fedora/RHEL family). Not ufw."
+              }
+            }
+          ]
         },
         {
           "id": "windows-net",
@@ -39220,8 +39485,8 @@
               "shell": "powershell",
               "privilege": "none",
               "explanation": {
-                "tr": "Dinleyen TCP portları.",
-                "en": "Listening TCP ports."
+                "tr": "Dinleyen TCP portları (ufw/ss değildir).",
+                "en": "Listening TCP ports (not ufw/ss)."
               }
             },
             {
@@ -39230,8 +39495,8 @@
               "shell": "cmd",
               "privilege": "none",
               "explanation": {
-                "tr": "Profil durumları (kural silmez).",
-                "en": "Profile status (does not delete rules)."
+                "tr": "Windows Defender Firewall profil durumları (kural silmez).",
+                "en": "Windows Defender Firewall profile status (does not delete rules)."
               }
             }
           ]
@@ -39239,8 +39504,7 @@
         {
           "id": "bsd-pf",
           "platforms": [
-            "bsd",
-            "macos"
+            "bsd"
           ],
           "shells": [
             "bash"
@@ -39251,13 +39515,58 @@
           ],
           "examples": [
             {
+              "command": "netstat -an -p tcp | head -n 40",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "BSD netstat ile yerel soket özeti (Linux ss değildir).",
+                "en": "BSD netstat local socket summary (not Linux ss)."
+              }
+            },
+            {
               "command": "sudo pfctl -s info",
               "risk": "safe",
               "shell": "bash",
               "privilege": "elevated",
               "explanation": {
-                "tr": "PF özeti (macOS/BSD).",
-                "en": "PF summary (macOS/BSD)."
+                "tr": "PF özeti (FreeBSD/OpenBSD). ufw/firewalld değildir.",
+                "en": "PF summary (FreeBSD/OpenBSD). Not ufw/firewalld."
+              }
+            }
+          ]
+        },
+        {
+          "id": "macos-listeners",
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ],
+          "commands": [
+            "lsof",
+            "pfctl"
+          ],
+          "examples": [
+            {
+              "command": "lsof -nP -iTCP -sTCP:LISTEN",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none",
+              "explanation": {
+                "tr": "macOS dinleyen TCP soketleri.",
+                "en": "macOS listening TCP sockets."
+              }
+            },
+            {
+              "command": "sudo pfctl -s info",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "pf özeti (varsa). Application Firewall (socketfilterfw) ayrıdır ve bu bankada henüz yok; na olabilir.",
+                "en": "pf summary if present. Application Firewall (socketfilterfw) is separate and not yet in this bank; may be na."
               }
             }
           ]
@@ -39270,7 +39579,9 @@
         "nft",
         "pfctl",
         "netsh",
-        "get-nettcpconnection"
+        "get-nettcpconnection",
+        "lsof",
+        "netstat-bsd"
       ],
       "verification": {
         "status": "draft",
@@ -39278,9 +39589,11 @@
           "man 8 ss",
           "man 8 ufw",
           "man 1 firewall-cmd",
-          "man 8 pfctl"
+          "man 8 pfctl",
+          "man 8 lsof",
+          "https://learn.microsoft.com/windows/security/operating-system-security/network-security/windows-firewall/"
         ],
-        "notes": "NV-103 sequential security checklist stage 4; read-only diagnostics; not human-verified."
+        "notes": "NV-106 platform-split security checklist stage 4; read-only diagnostics; not human-verified."
       },
       "related_tasks": [
         "check-firewall-status",
@@ -39302,8 +39615,8 @@
         "en": "Read-only sweep of auth/service errors; note evidence — no log deletion."
       },
       "description": {
-        "tr": "Neden: Erken log sinyalleri olayı küçültür; log silmek soruşturmayı bozar ve gizleyebilir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nİsteğe bağlı düzeltme: Kanıtı kopyalayın (journalctl > dosya). Servis restart yalnız kök neden anlaşıldıktan sonra. Log truncate/wipe yapmayın.",
-        "en": "Why: Early log signals shrink incidents; deleting logs harms investigation and may hide abuse.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nOptional fix: Copy evidence (journalctl > file). Restart services only after root-cause hypothesis. Do not truncate/wipe logs."
+        "tr": "Neden: Erken log sinyalleri olayı küçültür; log silmek soruşturmayı bozar ve gizleyebilir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: Linux journalctl; Windows Get-WinEvent; macOS unified `log show`; BSD\ndmesg/last (+ newsyslog yapılandırması — truncate yok). journalctl ≠ log ≠ WinEvent.\n\nİsteğe bağlı düzeltme: Kanıtı kopyalayın. Servis restart yalnız kök neden anlaşıldıktan sonra.\nLog truncate/wipe yapmayın.",
+        "en": "Why: Early log signals shrink incidents; deleting logs harms investigation and may hide abuse.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: Linux journalctl; Windows Get-WinEvent; macOS unified `log show`; BSD dmesg/last\n(+ newsyslog config — no truncate). journalctl ≠ log ≠ WinEvent.\n\nOptional fix: Copy evidence. Restart services only after a root-cause hypothesis. Do not\ntruncate/wipe logs."
       },
       "category": "monitoring",
       "tags": [
@@ -39389,8 +39702,100 @@
               "shell": "powershell",
               "privilege": "none",
               "explanation": {
-                "tr": "Son System olayları (silmez).",
-                "en": "Recent System events (non-deleting)."
+                "tr": "Son System olayları (silmez; journalctl değildir).",
+                "en": "Recent System events (non-deleting; not journalctl)."
+              }
+            },
+            {
+              "command": "Get-WinEvent -LogName Security -MaxEvents 20 -ErrorAction SilentlyContinue",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Security log örneği (izin yoksa na/review).",
+                "en": "Security log sample (na/review if access denied)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "macos-log",
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ],
+          "commands": [
+            "log",
+            "last",
+            "dmesg"
+          ],
+          "examples": [
+            {
+              "command": "log show --last 10m --style compact --predicate 'eventMessage CONTAINS \"error\"' | tail -n 50",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Unified logging hata örnekleri (journalctl değildir).",
+                "en": "Unified logging error sample (not journalctl)."
+              }
+            },
+            {
+              "command": "last -n 20",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Son oturumlar.",
+                "en": "Recent sessions."
+              }
+            }
+          ]
+        },
+        {
+          "id": "bsd-logs",
+          "platforms": [
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "dmesg",
+            "last",
+            "newsyslog"
+          ],
+          "examples": [
+            {
+              "command": "dmesg | tail -n 40",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Çekirdek mesaj kuyruğu (journalctl yoktur).",
+                "en": "Kernel message tail (no journalctl)."
+              }
+            },
+            {
+              "command": "last -n 20",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Son oturumlar.",
+                "en": "Recent sessions."
+              }
+            },
+            {
+              "command": "newsyslog -n 2>/dev/null || echo 'newsyslog-check-na'",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "newsyslog yapılandırma kontrolü (rotate/truncate çalıştırmaz; -n dry-run benzeri).",
+                "en": "newsyslog config check (does not rotate/truncate; -n is dry-run-like)."
               }
             }
           ]
@@ -39401,16 +39806,20 @@
         "dmesg",
         "last",
         "get-winevent",
-        "wevtutil"
+        "wevtutil",
+        "log",
+        "newsyslog"
       ],
       "verification": {
         "status": "draft",
         "sources": [
           "man 1 journalctl",
           "man 1 last",
-          "Get-Help Get-WinEvent"
+          "Get-Help Get-WinEvent",
+          "man 1 log",
+          "man 8 newsyslog"
         ],
-        "notes": "NV-103 sequential security checklist stage 10; read-only diagnostics; not human-verified."
+        "notes": "NV-106 platform-split security checklist stage 10; read-only diagnostics; not human-verified."
       },
       "related_tasks": [
         "inspect-system-logs",
@@ -39430,8 +39839,8 @@
         "en": "Distro/version, hostname, and session surface — read-only identity."
       },
       "description": {
-        "tr": "Neden: Yanlış OS/sürüm varsayımı sonraki kontrolleri bozar; beklenmeyen oturumlar risk işaretidir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nİsteğe bağlı düzeltme: Yalnız envanter; hesap silme/ekleme bu adımda yok. Yanlış hostname için ikinci onay + dokümantasyon.",
-        "en": "Why: Wrong OS/version assumptions break later checks; unexpected sessions are risk signals.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nOptional fix: Inventory only; no account add/delete here. Hostname changes need second confirmation + docs."
+        "tr": "Neden: Yanlış OS/sürüm varsayımı sonraki kontrolleri bozar; beklenmeyen oturumlar risk işaretidir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: hostnamectl systemd/Linux; sw_vers macOS; Get-ComputerInfo Windows;\nBSD’de uname + oturum araçları. NixOS’ta hostnamectl gelir; paket PM ayrıdır.\n\nİsteğe bağlı düzeltme: Yalnız envanter; hesap silme/ekleme bu adımda yok. Yanlış hostname için\nikinci onay + dokümantasyon.",
+        "en": "Why: Wrong OS/version assumptions break later checks; unexpected sessions are risk signals.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: hostnamectl is systemd/Linux; sw_vers is macOS; Get-ComputerInfo is Windows;\nBSD uses uname + session tools. On NixOS hostnamectl ships with systemd; the PM is separate.\n\nOptional fix: Inventory only; no account add/delete here. Hostname changes need second confirmation + docs."
       },
       "category": "security",
       "tags": [
@@ -39517,8 +39926,8 @@
               "shell": "powershell",
               "privilege": "none",
               "explanation": {
-                "tr": "Ürün/sürüm/bilgisayar adı.",
-                "en": "Product/version/computer name."
+                "tr": "Ürün/sürüm/bilgisayar adı (Linux hostnamectl değildir).",
+                "en": "Product/version/computer name (not Linux hostnamectl)."
               }
             },
             {
@@ -39554,8 +39963,35 @@
               "shell": "zsh",
               "privilege": "none",
               "explanation": {
-                "tr": "Darwin + macOS sürüm + oturum.",
-                "en": "Darwin + macOS version + sessions."
+                "tr": "Darwin + macOS sürüm + oturum (hostnamectl yoktur).",
+                "en": "Darwin + macOS version + sessions (no hostnamectl)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "bsd-identity",
+          "platforms": [
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "uname",
+            "whoami",
+            "id",
+            "who"
+          ],
+          "examples": [
+            {
+              "command": "uname -a; whoami; id; who",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "BSD kimlik/oturum özeti (systemd hostnamectl yoktur).",
+                "en": "BSD identity/session summary (no systemd hostnamectl)."
               }
             }
           ]
@@ -39578,7 +40014,7 @@
           "man 1 hostnamectl",
           "Get-Help Get-ComputerInfo"
         ],
-        "notes": "NV-103 sequential security checklist stage 1; read-only diagnostics; not human-verified."
+        "notes": "NV-106 platform-split security checklist stage 1; read-only diagnostics; not human-verified."
       },
       "related_tasks": [
         "security-check-updates"
@@ -39597,8 +40033,8 @@
         "en": "nginx/caddy config test + certificate/TLS handshake — reload not required."
       },
       "description": {
-        "tr": "Neden: Bozuk proxy/TLS hem kesinti hem güvenlik uyarısı üretir; süresi dolmuş sertifika yaygındır.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nİsteğe bağlı düzeltme: Sertifika yenilemeden önce config + cert yedeği. nginx -t / caddy validate sonrası reload; bozulursa önceki config’e dön. Otomatik ACME bu bankada certbot kaydı olmadan varsayılmaz.",
-        "en": "Why: Broken proxy/TLS causes outages and warnings; expired certs are common.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nOptional fix: Backup config + certs before renewal. After nginx -t / caddy validate, reload; roll back config on failure. ACME is not assumed without a certbot entry."
+        "tr": "Neden: Bozuk proxy/TLS hem kesinti hem güvenlik uyarısı üretir; süresi dolmuş sertifika yaygındır.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: nginx/caddy + systemctl Linux odaklıdır. Windows/macOS/BSD’de proxy yoksa\nopenssl/curl ile yerel :443 denetimi yeter; IIS/ACME (certbot) bu bankada birinci sınıf değil.\n\nİsteğe bağlı düzeltme: Sertifika yenilemeden önce config + cert yedeği. nginx -t / caddy validate\nsonrası reload; bozulursa önceki config’e dön.",
+        "en": "Why: Broken proxy/TLS causes outages and warnings; expired certs are common.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: nginx/caddy + systemctl is Linux-centred. On Windows/macOS/BSD, if no proxy is\npresent, local :443 checks via openssl/curl suffice; IIS/ACME (certbot) are not first-class here.\n\nOptional fix: Backup config + certs before renewal. After nginx -t / caddy validate, reload; roll\nback config on failure."
       },
       "category": "security",
       "tags": [
@@ -39667,6 +40103,123 @@
               }
             }
           ]
+        },
+        {
+          "id": "windows-tls",
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ],
+          "commands": [
+            "openssl",
+            "curl"
+          ],
+          "examples": [
+            {
+              "command": "echo '' | openssl s_client -connect 127.0.0.1:443 -servername localhost 2>$null | openssl x509 -noout -dates -subject",
+              "risk": "caution",
+              "shell": "powershell",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yerel :443 sertifika tarihleri. IIS/certbot birinci sınıf değil; proxy yoksa na.",
+                "en": "Local :443 cert dates. IIS/certbot not first-class; na if no listener."
+              }
+            },
+            {
+              "command": "curl.exe -fsSI https://localhost/",
+              "risk": "caution",
+              "shell": "powershell",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yerel HTTPS başlık duman testi.",
+                "en": "Local HTTPS header smoke test."
+              }
+            }
+          ]
+        },
+        {
+          "id": "macos-proxy-tls",
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ],
+          "commands": [
+            "nginx",
+            "openssl",
+            "curl"
+          ],
+          "examples": [
+            {
+              "command": "nginx -t 2>/dev/null || echo 'proxy na'",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Homebrew/nginx varsa config test; yoksa na (systemctl yolu yok).",
+                "en": "Config test if Homebrew/nginx present; else na (no systemctl path)."
+              }
+            },
+            {
+              "command": "echo | openssl s_client -connect 127.0.0.1:443 -servername localhost 2>/dev/null | openssl x509 -noout -dates -subject",
+              "risk": "caution",
+              "shell": "zsh",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yerel :443 sertifika tarihleri.",
+                "en": "Local :443 cert dates."
+              }
+            },
+            {
+              "command": "curl -fsSI https://localhost/ | head -n 15",
+              "risk": "caution",
+              "shell": "zsh",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yerel HTTPS başlıkları.",
+                "en": "Local HTTPS headers."
+              }
+            }
+          ]
+        },
+        {
+          "id": "bsd-tls",
+          "platforms": [
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "openssl",
+            "curl",
+            "nginx"
+          ],
+          "examples": [
+            {
+              "command": "nginx -t 2>/dev/null || echo 'proxy na'",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "pkg nginx varsa config test; yoksa na.",
+                "en": "Config test if pkg nginx present; else na."
+              }
+            },
+            {
+              "command": "echo | openssl s_client -connect 127.0.0.1:443 -servername localhost 2>/dev/null | openssl x509 -noout -dates -subject",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yerel :443 sertifika tarihleri.",
+                "en": "Local :443 cert dates."
+              }
+            }
+          ]
         }
       ],
       "related_commands": [
@@ -39683,7 +40236,7 @@
           "man 1 openssl",
           "https://caddyserver.com/docs/command-line"
         ],
-        "notes": "NV-103 sequential security checklist stage 7; read-only diagnostics; not human-verified."
+        "notes": "NV-106 platform-split security checklist stage 7; read-only diagnostics; not human-verified."
       },
       "related_tasks": [
         "security-check-docker",
@@ -39703,8 +40256,8 @@
         "en": "sshd status and effective settings — read-only; no blind password-auth disable."
       },
       "description": {
-        "tr": "Neden: SSH kilidi host’a erişimi keser; önce ikinci oturum ve yedek config gerekir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nİsteğe bağlı düzeltme: Yedek: cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak. Değişiklikten sonra sshd -t, systemctl reload, ikinci oturumda doğrula; bozulursa bak’tan geri al. PasswordAuthentication kapatmadan önce anahtar girişini kanıtla.",
-        "en": "Why: Locking SSH out cuts host access; need a second session and config backup first.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nOptional fix: Backup: cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak. After edits: sshd -t, systemctl reload, verify in a second session; restore from bak on failure. Prove key login before disabling PasswordAuthentication."
+        "tr": "Neden: SSH kilidi host’a erişimi keser; önce ikinci oturum ve yedek config gerekir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: Linux’ta systemctl birim adı ssh/sshd dağıtıma göre değişir; BSD’de\nservice/rc.d; macOS’ta Remote Login/launchd; Windows’ta OpenSSH Server Get-Service. Hepsi için\n`sshd -T` etkili ayar dökümü (yazmaz) ortak kalabilir.\n\nİsteğe bağlı düzeltme: Yedek config alın. Değişiklikten sonra sshd -t, servisi reload edin, ikinci\noturumda doğrulayın. PasswordAuthentication kapatmadan önce anahtar girişini kanıtlayın.",
+        "en": "Why: Locking SSH out cuts host access; need a second session and config backup first.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: Linux systemctl unit is ssh/sshd by distro; BSD uses service/rc.d; macOS uses\nRemote Login/launchd; Windows uses OpenSSH Server via Get-Service. Across them, `sshd -T` remains\na non-writing effective-settings dump when OpenSSH is installed.\n\nOptional fix: Backup config. After edits: sshd -t, reload the service, verify in a second session.\nProve key login before disabling PasswordAuthentication."
       },
       "category": "security",
       "tags": [
@@ -39771,6 +40324,144 @@
               }
             }
           ]
+        },
+        {
+          "id": "windows-sshd",
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ],
+          "commands": [
+            "get-service",
+            "get-nettcpconnection",
+            "sshd"
+          ],
+          "examples": [
+            {
+              "command": "Get-Service sshd -ErrorAction SilentlyContinue",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Windows OpenSSH Server servisi. Yoksa checklist na (systemctl değildir).",
+                "en": "Windows OpenSSH Server service. If absent, checklist na (not systemctl)."
+              }
+            },
+            {
+              "command": "Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -in 22,2222 }",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yerel SSH dinleyicileri.",
+                "en": "Local SSH listeners."
+              }
+            },
+            {
+              "command": "sshd -t; sshd -T | Select-String -Pattern 'passwordauthentication|permitrootlogin|pubkeyauthentication|port '",
+              "risk": "safe",
+              "shell": "powershell",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "OpenSSH kuruluduysa etkili ayar dökümü (yazmaz).",
+                "en": "Effective settings dump when OpenSSH is installed (non-writing)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "macos-sshd",
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ],
+          "commands": [
+            "launchctl",
+            "sshd",
+            "lsof"
+          ],
+          "examples": [
+            {
+              "command": "sudo launchctl print system/com.openssh.sshd 2>/dev/null | head -n 40 || echo 'remote-login-na'",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Remote Login / OpenSSH launchd işi. Kapalıysa na olabilir (systemctl değildir).",
+                "en": "Remote Login / OpenSSH launchd job. May be na if disabled (not systemctl)."
+              }
+            },
+            {
+              "command": "sudo sshd -t && sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin|pubkeyauthentication|port '",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Config test + etkili ayarlar.",
+                "en": "Config test + effective settings."
+              }
+            },
+            {
+              "command": "lsof -nP -iTCP:22 -sTCP:LISTEN || true",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yerel :22 dinleyicisi (uzak tarama değil).",
+                "en": "Local :22 listener (not a remote scan)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "bsd-sshd",
+          "platforms": [
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "service",
+            "sshd",
+            "netstat-bsd"
+          ],
+          "examples": [
+            {
+              "command": "service sshd status",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "FreeBSD/NetBSD rc.d sshd durumu (systemctl/launchctl değildir). OpenBSD’de rcctl ayrıdır.",
+                "en": "FreeBSD/NetBSD rc.d sshd status (not systemctl/launchctl). OpenBSD uses rcctl separately."
+              }
+            },
+            {
+              "command": "sudo sshd -t && sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin|pubkeyauthentication|port '",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Config test + etkili ayarlar.",
+                "en": "Config test + effective settings."
+              }
+            },
+            {
+              "command": "netstat -an -p tcp | grep '\\.22 '",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yerel :22 soketleri (BSD netstat).",
+                "en": "Local :22 sockets (BSD netstat)."
+              }
+            }
+          ]
         }
       ],
       "related_commands": [
@@ -39778,16 +40469,25 @@
         "ssh",
         "systemctl",
         "journalctl",
-        "ss"
+        "ss",
+        "get-service",
+        "get-nettcpconnection",
+        "launchctl",
+        "service",
+        "lsof",
+        "netstat-bsd"
       ],
       "verification": {
         "status": "draft",
         "sources": [
           "man 8 sshd",
           "man 5 sshd_config",
-          "man 1 systemctl"
+          "man 1 systemctl",
+          "Get-Help Get-Service",
+          "man 1 launchctl",
+          "https://man.freebsd.org/cgi/man.cgi?query=service&sektion=8"
         ],
-        "notes": "NV-103 sequential security checklist stage 3; read-only diagnostics; not human-verified."
+        "notes": "NV-106 platform-split security checklist stage 3; read-only diagnostics; not human-verified."
       },
       "related_tasks": [
         "connect-ssh",
@@ -39808,8 +40508,8 @@
         "en": "Check pending security updates read-only (upgrade not required)."
       },
       "description": {
-        "tr": "Neden: Eski paketler bilinen CVElerin kapısını açık bırakır; kör full-upgrade bakım penceresi ister.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nİsteğe bağlı düzeltme: Bakım penceresinde ilgili PM ile yükselt; önce snapshot/backup. NixOS: nixos-rebuild test/switch ayrı kavram — Nix paket kurmak değildir.",
-        "en": "Why: Stale packages leave known CVEs open; blind full-upgrade needs a maintenance window.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nOptional fix: Upgrade in a maintenance window with the matching PM; snapshot/backup first. NixOS: nixos-rebuild test/switch is not “install a package”."
+        "tr": "Neden: Eski paketler bilinen CVElerin kapısını açık bırakır; kör full-upgrade bakım penceresi ister.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: pacman ≠ apt ≠ dnf; freebsd-update (taban) ≠ pkg (paketler); Nix ≠ NixOS —\nNixOS’ta birincil yol nixos-rebuild’tur, nix-env değildir.\n\nİsteğe bağlı düzeltme: Bakım penceresinde ilgili PM ile yükselt; önce snapshot/backup.",
+        "en": "Why: Stale packages leave known CVEs open; blind full-upgrade needs a maintenance window.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: pacman ≠ apt ≠ dnf; freebsd-update (base) ≠ pkg (packages); Nix ≠ NixOS —\non NixOS the primary path is nixos-rebuild, not nix-env.\n\nOptional fix: Upgrade in a maintenance window with the matching PM; snapshot/backup first."
       },
       "category": "packages",
       "tags": [
@@ -39918,6 +40618,37 @@
           ]
         },
         {
+          "id": "nixos-check",
+          "platforms": [
+            "linux"
+          ],
+          "distributions": [
+            "nixos"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "nixos-rebuild"
+          ],
+          "examples": [
+            {
+              "command": "sudo nixos-rebuild dry-build",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "NixOS yapılandırmasını derler/uygulamaz. nix-env veya düz Nix kurulum değildir.",
+                "en": "Builds NixOS config without switching. Not nix-env or plain Nix package install."
+              }
+            }
+          ],
+          "notes": {
+            "tr": "Nix ≠ NixOS; bu uygulama yalnız NixOS host içindir.",
+            "en": "Nix ≠ NixOS; this implementation is for NixOS hosts only."
+          }
+        },
+        {
           "id": "windows-winget",
           "platforms": [
             "windows"
@@ -39935,8 +40666,8 @@
               "shell": "powershell",
               "privilege": "none",
               "explanation": {
-                "tr": "Yükseltilebilir kanat paketleri listeler (uygulamaz).",
-                "en": "Lists upgradable WinGet packages (does not apply)."
+                "tr": "Yükseltilebilir WinGet paketlerini listeler (uygulamaz; --all yükseltir).",
+                "en": "Lists upgradable WinGet packages (does not apply; --all would upgrade)."
               }
             }
           ]
@@ -39964,6 +40695,44 @@
               }
             }
           ]
+        },
+        {
+          "id": "freebsd-check",
+          "platforms": [
+            "bsd"
+          ],
+          "distributions": [
+            "freebsd-release"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "pkg",
+            "freebsd-update"
+          ],
+          "examples": [
+            {
+              "command": "pkg version -l '<'",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "pkg paketlerinde yükseltme adayları (taban sistemi değildir).",
+                "en": "pkg package upgrade candidates (not the FreeBSD base system)."
+              }
+            },
+            {
+              "command": "sudo freebsd-update fetch && sudo freebsd-update show | head",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Taban yamalarını indirir ve özet gösterir; install uygulamaz. pkg upgrade değildir.",
+                "en": "Fetches base patches and shows a summary; does not install. Not pkg upgrade."
+              }
+            }
+          ]
         }
       ],
       "related_commands": [
@@ -39974,7 +40743,8 @@
         "nixos-rebuild",
         "softwareupdate",
         "winget",
-        "freebsd-update"
+        "freebsd-update",
+        "pkg"
       ],
       "verification": {
         "status": "draft",
@@ -39982,10 +40752,13 @@
           "man 8 pacman",
           "man 8 apt",
           "man 8 dnf",
+          "https://nixos.org/manual/nixos/stable/#sec-upgrading",
           "softwareupdate --help",
-          "winget upgrade -h"
+          "winget upgrade -h",
+          "https://man.freebsd.org/cgi/man.cgi?query=freebsd-update&sektion=8",
+          "https://man.freebsd.org/cgi/man.cgi?query=pkg&sektion=8"
         ],
-        "notes": "NV-103 sequential security checklist stage 2; read-only diagnostics; not human-verified."
+        "notes": "NV-106 platform-split security checklist stage 2; read-only/near-read diagnostics; not human-verified."
       },
       "related_tasks": [
         "update-system",
@@ -40006,8 +40779,8 @@
         "en": "Who can login/sudo — read-only; no blind sudoers writes."
       },
       "description": {
-        "tr": "Neden: Gereksiz sudo/NOPASSWD yatay hareketi kolaylaştırır; bozuk sudoers kilitleyebilir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nİsteğe bağlı düzeltme: visudo ile düzenleyin; -c ile doğrulayın; ikinci root oturumu açık tutun. Hesap silme/userdel bu adımın parçası değil.",
-        "en": "Why: Unnecessary sudo/NOPASSWD eases lateral movement; broken sudoers can lock you out.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nOptional fix: Edit with visudo; verify with -c; keep a second root session. Account deletion/userdel is out of scope here."
+        "tr": "Neden: Gereksiz sudo/NOPASSWD yatay hareketi kolaylaştırır; bozuk sudoers kilitleyebilir.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: Linux getent/sudo/visudo; macOS dscl + sudo; OpenBSD doas (sudo değildir);\nWindows’ta sudo yoktur — Administrators/UAC (whoami /groups). Get-LocalUser henüz bankada yok.\n\nİsteğe bağlı düzeltme: visudo/doas.conf ile düzenleyin; sözdizimini doğrulayın; ikinci root oturumu\naçık tutun. Hesap silme bu adımın parçası değil.",
+        "en": "Why: Unnecessary sudo/NOPASSWD eases lateral movement; broken sudoers can lock you out.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: Linux getent/sudo/visudo; macOS dscl + sudo; OpenBSD doas (not sudo); Windows\nhas no sudo — Administrators/UAC via whoami /groups. Get-LocalUser is not yet in the bank.\n\nOptional fix: Edit with visudo/doas.conf; verify syntax; keep a second root session. Account\ndeletion is out of scope here."
       },
       "category": "security",
       "tags": [
@@ -40076,6 +40849,130 @@
               }
             }
           ]
+        },
+        {
+          "id": "windows-admins",
+          "platforms": [
+            "windows"
+          ],
+          "shells": [
+            "powershell"
+          ],
+          "commands": [
+            "whoami",
+            "icacls"
+          ],
+          "examples": [
+            {
+              "command": "whoami /groups",
+              "risk": "safe",
+              "shell": "cmd",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Grup üyelikleri. Şüpheli: beklenmeyen Administrators. Windows’ta sudo yoktur.",
+                "en": "Group memberships. Suspicious: unexpected Administrators. Windows has no sudo."
+              }
+            },
+            {
+              "command": "whoami /priv",
+              "risk": "safe",
+              "shell": "cmd",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Etkin ayrıcalıklar (UAC yüzeyi).",
+                "en": "Enabled privileges (UAC surface)."
+              }
+            }
+          ],
+          "notes": {
+            "tr": "Get-LocalUser/net localgroup henüz bankada yok; whoami ile yetinilir.",
+            "en": "Get-LocalUser/net localgroup not yet in the bank; whoami is the honest stopgap."
+          }
+        },
+        {
+          "id": "macos-admin",
+          "platforms": [
+            "macos"
+          ],
+          "shells": [
+            "zsh"
+          ],
+          "commands": [
+            "dscl",
+            "id",
+            "sudo",
+            "whoami"
+          ],
+          "examples": [
+            {
+              "command": "dscl . -list /Users",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Yerel dizin kullanıcıları (getent değildir).",
+                "en": "Local directory users (not getent)."
+              }
+            },
+            {
+              "command": "id; groups; sudo -l",
+              "risk": "safe",
+              "shell": "zsh",
+              "privilege": "user",
+              "explanation": {
+                "tr": "admin grup yüzeyi + kendi sudo hakları. Şüpheli: bilinmeyen NOPASSWD.",
+                "en": "admin group surface + own sudo rights. Suspicious: unknown NOPASSWD."
+              }
+            }
+          ]
+        },
+        {
+          "id": "bsd-priv",
+          "platforms": [
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "id",
+            "who",
+            "doas",
+            "sudo",
+            "visudo"
+          ],
+          "examples": [
+            {
+              "command": "id; who; groups",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Oturum kimliği ve gruplar.",
+                "en": "Session identity and groups."
+              }
+            },
+            {
+              "command": "sudo -l 2>/dev/null || doas -n true 2>/dev/null || echo 'priv-tool-na'",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "user",
+              "explanation": {
+                "tr": "FreeBSD’de sık sudo; OpenBSD’de doas. İkisini eşanlamlı sanma.",
+                "en": "FreeBSD often uses sudo; OpenBSD uses doas. Do not treat them as synonyms."
+              }
+            },
+            {
+              "command": "sudo visudo -c 2>/dev/null || echo 'visudo-na-check-doas-conf'",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "sudoers sözdizimi (varsa). OpenBSD doas.conf ayrı dosyadır.",
+                "en": "sudoers syntax when present. OpenBSD doas.conf is a separate file."
+              }
+            }
+          ]
         }
       ],
       "related_commands": [
@@ -40085,16 +40982,23 @@
         "sudo",
         "visudo",
         "last",
-        "passwd"
+        "passwd",
+        "whoami",
+        "icacls",
+        "dscl",
+        "doas"
       ],
       "verification": {
         "status": "draft",
         "sources": [
           "man 1 getent",
           "man 8 visudo",
-          "man 8 sudo"
+          "man 8 sudo",
+          "man 1 dscl",
+          "man 1 doas",
+          "whoami /?"
         ],
-        "notes": "NV-103 sequential security checklist stage 5; read-only diagnostics; not human-verified."
+        "notes": "NV-106 platform-split security checklist stage 5; read-only diagnostics; not human-verified."
       },
       "related_tasks": [
         "security-check-firewall-ports",
