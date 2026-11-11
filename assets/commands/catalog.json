@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-11T17:37:28Z",
-  "content_sha256": "1a64dd48ee49d7d026627944d4f0b97b3e57b951858d727cf7eb814ad12c254a",
+  "generated_at": "2026-11-11T19:28:26Z",
+  "content_sha256": "eb15d7f851993865a70094a66d8d08df3f9f230738d24efcca5b4e86c9d31844",
   "command_count": 270,
-  "concept_count": 21,
+  "concept_count": 29,
   "task_count": 36,
   "profile_count": 14,
   "commands": [
@@ -445,7 +445,8 @@
           "man 8 apt"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
@@ -457,7 +458,25 @@
       "purpose": {
         "tr": "Debian/Ubuntu paket kurulum ve yükseltme (Arch’ta pacman kullanın).",
         "en": "Debian/Ubuntu package install/upgrade (use pacman on Arch)."
-      }
+      },
+      "when_to_use": {
+        "tr": "Debian/Ubuntu paket indeksi ve kurulum işlemleri.",
+        "en": "Debian/Ubuntu package index and install operations."
+      },
+      "syntax": "apt [options] command",
+      "expected_effect": {
+        "tr": "update indeksleri yeniler; install/upgrade paketleri değiştirir.",
+        "en": "update refreshes indexes; install/upgrade change packages."
+      },
+      "common_mistakes": [
+        {
+          "tr": "apt update ile upgrade’i aynı sanmak.",
+          "en": "Treating apt update as the same as upgrade."
+        }
+      ],
+      "related_topics": [
+        "package-managers"
+      ]
     },
     {
       "schema_version": 2,
@@ -2000,7 +2019,8 @@
             "tr": "os-release içeriğini basar.",
             "en": "Prints os-release."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         }
       ],
       "related": [
@@ -2025,7 +2045,7 @@
         ],
         "last_reviewed": "2026-11-02",
         "reviewer": "nova-commands-phase15",
-        "notes": "Flag -n/--number and safe read example confirmed."
+        "notes": "Flag -n/--number and safe read example confirmed. NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
@@ -2033,7 +2053,26 @@
           "shell-pipes-redirection"
         ],
         "favorite_eligible": true
-      }
+      },
+      "when_to_use": {
+        "tr": "Dosya içeriğini birleştirip göstermek.",
+        "en": "Concatenate and display file contents."
+      },
+      "syntax": "cat [OPTION]... [FILE]...",
+      "expected_effect": {
+        "tr": "Dosya içeriklerini stdout’a yazar.",
+        "en": "Writes file contents to stdout."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Büyük ikili dosyaları cat ile terminale dökmek.",
+          "en": "Dumping large binary files to the terminal with cat."
+        }
+      ],
+      "related_topics": [
+        "text-processing",
+        "shell-pipes-redirection"
+      ]
     },
     {
       "schema_version": 2,
@@ -2081,7 +2120,8 @@
             "tr": "Ev dizinine gider.",
             "en": "Changes to home."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -2117,7 +2157,7 @@
         ],
         "last_reviewed": "2026-11-02",
         "reviewer": "nova-commands-bootstrap",
-        "notes": "Builtin — local discovery may not see a path."
+        "notes": "Builtin — local discovery may not see a path. NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
@@ -2125,7 +2165,30 @@
           "terminal-basics",
           "path"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "Çalışma dizinini değiştirmek (kabuk yerleşiği).",
+        "en": "Change the working directory (shell builtin)."
+      },
+      "syntax": "cd [DIR]",
+      "expected_effect": {
+        "tr": "Kabuğun çalışma dizinini değiştirir; başarısızlıkta konum aynı kalır.",
+        "en": "Changes the shell working directory; on failure the location stays the same."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Boşluklu yolları tırnaksız vermek.",
+          "en": "Passing paths with spaces without quotes."
+        },
+        {
+          "tr": "cd’yi alt kabukta çalıştırıp üst kabuğun değişmesini beklemek.",
+          "en": "Running cd in a subshell and expecting the parent shell to move."
+        }
+      ],
+      "related_topics": [
+        "terminal-basics",
+        "path"
+      ]
     },
     {
       "schema_version": 2,
@@ -2460,13 +2523,36 @@
           "man 1 chmod"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
           "permissions"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "Dosya veya dizin izin bitlerini değiştirmek.",
+        "en": "Change permission bits on files or directories."
+      },
+      "syntax": "chmod [OPTION]... MODE[,MODE]... FILE...",
+      "expected_effect": {
+        "tr": "Hedeflerin modunu günceller; içerikleri değiştirmez.",
+        "en": "Updates modes on targets; does not change file contents."
+      },
+      "common_mistakes": [
+        {
+          "tr": "chmod -R ile yanlışlıkla geniş ağacı açmak.",
+          "en": "Accidentally opening a wide tree with chmod -R."
+        },
+        {
+          "tr": "777’yi “çözüm” sanmak.",
+          "en": "Treating 777 as a “fix”."
+        }
+      ],
+      "related_topics": [
+        "permissions"
+      ]
     },
     {
       "schema_version": 2,
@@ -3132,7 +3218,8 @@
             "tr": "Yanıt başlıklarını basar.",
             "en": "Prints response headers."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         }
       ],
       "related": [
@@ -3155,7 +3242,8 @@
           "https://curl.se/docs/manual.html"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "favorite_eligible": true,
@@ -3164,7 +3252,25 @@
           "networking",
           "networking-basics"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "HTTP(S) ve diğer URL’lere istemci isteği atmak.",
+        "en": "Make client requests to HTTP(S) and other URLs."
+      },
+      "syntax": "curl [options...] URL...",
+      "expected_effect": {
+        "tr": "Yanıt gövdesini stdout’a yazar (bayraklarla başlık/dosya).",
+        "en": "Writes the response body to stdout (headers/file via flags)."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Hassas URL/token’ları shell history’ye bırakmak.",
+          "en": "Leaving sensitive URLs/tokens in shell history."
+        }
+      ],
+      "related_topics": [
+        "networking-basics"
+      ]
     },
     {
       "schema_version": 2,
@@ -3740,7 +3846,8 @@
             "tr": "Disk doluluğu.",
             "en": "Disk usage summary."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         }
       ],
       "related": [
@@ -3764,14 +3871,33 @@
         ],
         "last_reviewed": "2026-11-02",
         "reviewer": "nova-commands-phase15",
-        "notes": "Flag -h/--human-readable confirmed; read-only space report."
+        "notes": "Flag -h/--human-readable confirmed; read-only space report. NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
           "storage"
         ],
         "favorite_eligible": true
-      }
+      },
+      "when_to_use": {
+        "tr": "Dosya sistemi doluluk oranını görmek.",
+        "en": "See filesystem free/used space."
+      },
+      "syntax": "df [OPTION]... [FILE]...",
+      "expected_effect": {
+        "tr": "Bağlı dosya sistemlerinin kullanımını tablo basar.",
+        "en": "Prints a table of mounted filesystem usage."
+      },
+      "common_mistakes": [
+        {
+          "tr": "df ile du’yu karıştırmak (cihaz vs dizin ağacı).",
+          "en": "Confusing df with du (device vs directory tree)."
+        }
+      ],
+      "related_topics": [
+        "storage",
+        "monitoring-and-logs"
+      ]
     },
     {
       "schema_version": 2,
@@ -4558,7 +4684,8 @@
           "man 8 dnf"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
@@ -4570,7 +4697,25 @@
       "purpose": {
         "tr": "Fedora/RHEL ailesi paket yöneticisi.",
         "en": "Fedora/RHEL-family package manager."
-      }
+      },
+      "when_to_use": {
+        "tr": "Fedora/RHEL ailesi paket işlemleri.",
+        "en": "Fedora/RHEL-family package operations."
+      },
+      "syntax": "dnf [options] <command> [<args>...]",
+      "expected_effect": {
+        "tr": "search/info okur; install/upgrade paketleri değiştirir.",
+        "en": "search/info read; install/upgrade change packages."
+      },
+      "common_mistakes": [
+        {
+          "tr": "rpm-ostree sistemlerde klasik dnf varsaymak.",
+          "en": "Assuming classic dnf on rpm-ostree systems."
+        }
+      ],
+      "related_topics": [
+        "package-managers"
+      ]
     },
     {
       "schema_version": 2,
@@ -4861,7 +5006,7 @@
         "sources": [
           "https://docs.docker.com/engine/reference/commandline/cli/"
         ],
-        "notes": "debian/ubuntu package intentionally omitted as unknown."
+        "notes": "debian/ubuntu package intentionally omitted as unknown. NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
@@ -4919,7 +5064,25 @@
           "tr": "Privileged/host-network konteynerler host’u zayıflatır; publish edilen portları gözden geçirin.",
           "en": "Privileged/host-network containers weaken the host; review published ports."
         }
-      }
+      },
+      "when_to_use": {
+        "tr": "Docker runtime ile konteyner listeleme/log/inceleme (ve yönetim).",
+        "en": "List/log/inspect (and manage) containers with the Docker runtime."
+      },
+      "syntax": "docker [OPTIONS] COMMAND",
+      "expected_effect": {
+        "tr": "ps/logs/inspect okur; run/rm konteyner yaşam döngüsünü değiştirir.",
+        "en": "ps/logs/inspect read; run/rm change container lifecycle."
+      },
+      "common_mistakes": [
+        {
+          "tr": "podman ile bayrakların birebir aynı olduğunu sanmak.",
+          "en": "Assuming flags are identical to podman."
+        }
+      ],
+      "related_topics": [
+        "containers-basics"
+      ]
     },
     {
       "schema_version": 2,
@@ -5517,7 +5680,8 @@
             "tr": "hello yazar.",
             "en": "Prints hello."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         }
       ],
       "intent": {
@@ -5537,7 +5701,7 @@
         ],
         "last_reviewed": "2026-11-02",
         "reviewer": "nova-commands-phase15",
-        "notes": "Flag -n confirmed for /bin/echo; note shell builtin may differ slightly."
+        "notes": "Flag -n confirmed for /bin/echo; note shell builtin may differ slightly. NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
@@ -5546,7 +5710,26 @@
           "path"
         ],
         "favorite_eligible": true
-      }
+      },
+      "when_to_use": {
+        "tr": "Metin veya değişken değerlerini yazdırmak; boru/test için.",
+        "en": "Print text or variable values; useful in pipes/tests."
+      },
+      "syntax": "echo [SHORT-OPTION]... [STRING]...",
+      "expected_effect": {
+        "tr": "Argümanları stdout’a basar; dosya yazmaz (yönlendirme sizden).",
+        "en": "Prints arguments to stdout; does not write files (redirection is yours)."
+      },
+      "common_mistakes": [
+        {
+          "tr": "echo ile printf kaçış davranışını aynı sanmak.",
+          "en": "Assuming echo escape behavior matches printf."
+        }
+      ],
+      "related_topics": [
+        "terminal-basics",
+        "shell-pipes-redirection"
+      ]
     },
     {
       "schema_version": 2,
@@ -6578,7 +6761,8 @@
             "tr": "Ev dizininde PDF arar.",
             "en": "Finds PDFs under home."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -6613,14 +6797,38 @@
           "man 1 find"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
           "files",
           "shell-pipes-redirection"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "Dizin ağacında isim/tür/zaman ölçütleriyle dosya bulmak.",
+        "en": "Find files in a tree by name/type/time predicates."
+      },
+      "syntax": "find [PATH]... [EXPRESSION]",
+      "expected_effect": {
+        "tr": "Eşleşen yolları listeler (varsayılan -print); -delete kullanmadıkça silmez.",
+        "en": "Lists matching paths (default -print); does not delete unless -delete is used."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Kökten sınırsız find ile sistemi yormak.",
+          "en": "Hammering the system with unbounded find from /."
+        },
+        {
+          "tr": "-name kalıbını tırnaksız verip kabuğun * genişletmesine izin vermek.",
+          "en": "Leaving -name patterns unquoted so the shell expands *."
+        }
+      ],
+      "related_topics": [
+        "finding-files",
+        "permissions"
+      ]
     },
     {
       "schema_version": 2,
@@ -9742,7 +9950,7 @@
         ],
         "last_reviewed": "2026-11-02",
         "reviewer": "nova-commands-bootstrap",
-        "notes": " Flags/examples expanded 2026-11-10 from git --help."
+        "notes": "Flags/examples expanded 2026-11-10 from git --help. NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "favorite_eligible": true,
@@ -9760,7 +9968,25 @@
           "tr": "Token/şifreyi URL veya argv içine yazmayın; credential helper kullanın.",
           "en": "Do not put tokens/passwords in URLs or argv; use a credential helper."
         }
-      }
+      },
+      "when_to_use": {
+        "tr": "Kaynak kontrolü: durum, geçmiş, commit, dal işlemleri.",
+        "en": "Source control: status, history, commit, branch operations."
+      },
+      "syntax": "git <command> [<args>]",
+      "expected_effect": {
+        "tr": "status/log okur; commit/push deposu değiştirir.",
+        "en": "status/log read; commit/push change the repository."
+      },
+      "common_mistakes": [
+        {
+          "tr": "force push’u paylaşılmış dallarda “düzeltme” sanmak.",
+          "en": "Treating force-push as a fix on shared branches."
+        }
+      ],
+      "related_topics": [
+        "development-basics"
+      ]
     },
     {
       "schema_version": 2,
@@ -9987,7 +10213,8 @@
             "tr": "TODO geçen satırları numarayla gösterir.",
             "en": "Shows TODO lines with numbers."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -10022,7 +10249,8 @@
           "man 1 grep"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "favorite_eligible": true,
@@ -10031,7 +10259,30 @@
           "files",
           "shell-pipes-redirection"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "Dosya veya stdin içinde desen aramak.",
+        "en": "Search for a pattern in files or stdin."
+      },
+      "syntax": "grep [OPTION]... PATTERN [FILE]...",
+      "expected_effect": {
+        "tr": "Eşleşen satırları basar; eşleşme yoksa genelde çıkış kodu 1.",
+        "en": "Prints matching lines; usually exit status 1 when nothing matches."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Regex özel karakterlerini escape etmemek.",
+          "en": "Forgetting to escape regex metacharacters."
+        },
+        {
+          "tr": "Büyük/küçük harf için -i unutmak.",
+          "en": "Forgetting -i for case-insensitive search."
+        }
+      ],
+      "related_topics": [
+        "text-processing",
+        "shell-pipes-redirection"
+      ]
     },
     {
       "schema_version": 2,
@@ -12072,7 +12323,8 @@
           },
           "risk": "safe",
           "privilege": "none",
-          "requires_elevated": false
+          "requires_elevated": false,
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -12130,7 +12382,7 @@
         ],
         "last_reviewed": "2026-11-02",
         "reviewer": "nova-commands-bootstrap",
-        "notes": "Flags marked unverified 2026-11-10; sourced from man 8 ip knowledge."
+        "notes": "Flags marked unverified 2026-11-10; sourced from man 8 ip knowledge. NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
@@ -12141,7 +12393,25 @@
       "purpose": {
         "tr": "Linux ağ yığınına bakış: adres, link, rota (iproute2).",
         "en": "Inspect the Linux network stack: address, link, route (iproute2)."
-      }
+      },
+      "when_to_use": {
+        "tr": "Linux’ta arayüz, adres ve rota bilgisini okumak/yönetmek (öğrenmede önce okuma).",
+        "en": "On Linux, read/manage interface, address, and route info (prefer reading while learning)."
+      },
+      "syntax": "ip [OPTIONS] OBJECT {COMMAND | help}",
+      "expected_effect": {
+        "tr": "ip addr/link/route altkomutları durum basar; değiştiren komutlar ağ bağlantısını bozabilir.",
+        "en": "ip addr/link/route subcommands print state; mutating commands can break connectivity."
+      },
+      "common_mistakes": [
+        {
+          "tr": "macOS/BSD’de ip bekleyip ifconfig yerine geçmesini sanmak.",
+          "en": "Expecting ip on macOS/BSD as a drop-in for ifconfig."
+        }
+      ],
+      "related_topics": [
+        "networking-basics"
+      ]
     },
     {
       "schema_version": 2,
@@ -12731,7 +13001,8 @@
             "en": "Last 50 sshd lines."
           },
           "risk": "safe",
-          "privilege": "none"
+          "privilege": "none",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -12784,7 +13055,8 @@
           "man 1 journalctl"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
@@ -12796,7 +13068,26 @@
       "purpose": {
         "tr": "systemd journal’dan salt okunur olay incelemesi; olay müdahalesinde ilk durak.",
         "en": "Read-only event inspection from the systemd journal; first stop in incident review."
-      }
+      },
+      "when_to_use": {
+        "tr": "systemd journal günlüklerini okumak.",
+        "en": "Read systemd journal logs."
+      },
+      "syntax": "journalctl [OPTIONS...] [MATCHES...]",
+      "expected_effect": {
+        "tr": "Seçilen günlük satırlarını basar; servisleri değiştirmez.",
+        "en": "Prints selected log lines; does not change services."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Non-systemd distroda journalctl aramak.",
+          "en": "Looking for journalctl on non-systemd distros."
+        }
+      ],
+      "related_topics": [
+        "monitoring-and-logs",
+        "systemd"
+      ]
     },
     {
       "schema_version": 2,
@@ -14254,7 +14545,8 @@
             "tr": "Gizli dosyalar, insan okunur boyutlar, uzun biçim.",
             "en": "Hidden files, human sizes, long format."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -14298,7 +14590,7 @@
         ],
         "last_reviewed": "2026-11-02",
         "reviewer": "nova-commands-phase15",
-        "notes": "Flags -a/-l/-h/-R and examples checked against GNU coreutils man/--help. Safe read-only listing."
+        "notes": "Flags -a/-l/-h/-R and examples checked against GNU coreutils man/--help. Safe read-only listing. NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "favorite_eligible": true,
@@ -14307,7 +14599,31 @@
           "files",
           "terminal-basics"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "Bir dizinde ne olduğunu hızlıca görmek; gizli dosyalar veya ayrıntılı izinler için bayrak ekleyin.",
+        "en": "Quickly see what is in a directory; add flags for hidden files or detailed permissions."
+      },
+      "syntax": "ls [OPTION]... [FILE]...",
+      "expected_effect": {
+        "tr": "Belirtilen yolların adlarını (ve -l ile meta veriyi) stdout’a yazar; dosya sistemini değiştirmez.",
+        "en": "Writes names (and metadata with -l) for the given paths to stdout; does not change the filesystem."
+      },
+      "common_mistakes": [
+        {
+          "tr": "ls yolunu yanlış yazıp “böyle bir dosya yok” sanmak — önce pwd.",
+          "en": "Mistyping the path and assuming the file is missing — check pwd first."
+        },
+        {
+          "tr": "GNU -h/--color ile BSD ls bayraklarını karıştırmak.",
+          "en": "Mixing GNU -h/--color assumptions with BSD ls flags."
+        }
+      ],
+      "related_topics": [
+        "terminal-basics",
+        "finding-files",
+        "permissions"
+      ]
     },
     {
       "schema_version": 2,
@@ -19449,7 +19765,8 @@
           "https://wiki.archlinux.org/title/Pacman"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "favorite_eligible": true,
@@ -19465,7 +19782,26 @@
       "purpose": {
         "tr": "Arch Linux birincil paket yöneticisi (Nova tercihi).",
         "en": "Arch Linux primary package manager (Nova preference)."
-      }
+      },
+      "when_to_use": {
+        "tr": "Arch Linux (ve türevi) paket işlemleri.",
+        "en": "Arch Linux (and derivatives) package operations."
+      },
+      "syntax": "pacman <operation> [options] [targets]",
+      "expected_effect": {
+        "tr": "Arama/sorgu okur; -S/-R sistem paketlerini değiştirir.",
+        "en": "Search/query reads; -S/-R change installed packages."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Diğer distrolarda pacman varsaymak (sessiz Arch yok).",
+          "en": "Assuming pacman on other distros (no silent Arch)."
+        }
+      ],
+      "related_topics": [
+        "package-managers",
+        "package-managers-comparison"
+      ]
     },
     {
       "schema_version": 2,
@@ -21813,7 +22149,8 @@
             "tr": "Geniş süreç tablosu.",
             "en": "Wide process table."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         },
         {
           "title": {
@@ -21850,14 +22187,33 @@
         ],
         "last_reviewed": "2026-11-02",
         "reviewer": "nova-commands-phase17",
-        "notes": "Read-only process snapshot; aux/-ef flags already marked verified."
+        "notes": "Read-only process snapshot; aux/-ef flags already marked verified. NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
           "terminal-basics"
         ],
         "favorite_eligible": true
-      }
+      },
+      "when_to_use": {
+        "tr": "Çalışan süreçlerin anlık listesini görmek.",
+        "en": "See a snapshot of running processes."
+      },
+      "syntax": "ps [OPTIONS]",
+      "expected_effect": {
+        "tr": "Süreç tablosundan satırlar basar; süreçleri değiştirmez.",
+        "en": "Prints rows from the process table; does not change processes."
+      },
+      "common_mistakes": [
+        {
+          "tr": "ps aux ile ps -ef sözdizimlerini karıştırmak.",
+          "en": "Mixing ps aux and ps -ef syntax dialects."
+        }
+      ],
+      "related_topics": [
+        "processes",
+        "debugging"
+      ]
     },
     {
       "schema_version": 2,
@@ -22096,7 +22452,8 @@
             "tr": "Bulunduğunuz dizini yazdırır.",
             "en": "Prints your current directory."
           },
-          "risk": "safe"
+          "risk": "safe",
+          "difficulty": "beginner"
         }
       ],
       "related": [
@@ -22120,7 +22477,7 @@
         ],
         "last_reviewed": "2026-11-02",
         "reviewer": "nova-commands-phase15",
-        "notes": "No ambiguous flags; behavior matches coreutils pwd."
+        "notes": "No ambiguous flags; behavior matches coreutils pwd. NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "favorite_eligible": true,
@@ -22129,7 +22486,26 @@
           "files",
           "terminal-basics"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "Şu an hangi dizinde olduğunuzu doğrulamak.",
+        "en": "Confirm which directory you are in right now."
+      },
+      "syntax": "pwd [-L|-P]",
+      "expected_effect": {
+        "tr": "Çalışma dizininin yolunu tek satırda basar.",
+        "en": "Prints the working directory path on one line."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Sembolik bağ (-L/-P) farkını yok saymak.",
+          "en": "Ignoring symlink (-L/-P) differences."
+        }
+      ],
+      "related_topics": [
+        "terminal-basics",
+        "path"
+      ]
     },
     {
       "schema_version": 2,
@@ -28848,7 +29224,8 @@
           "man 1 systemctl"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
@@ -28859,7 +29236,26 @@
       "purpose": {
         "tr": "systemd birim durumu ve yaşam döngüsü — servis güvenliği kontrolünün omurgası.",
         "en": "systemd unit status and lifecycle — backbone of service security checks."
-      }
+      },
+      "when_to_use": {
+        "tr": "systemd birimlerinin durumunu görmek veya (dikkatle) yönetmek.",
+        "en": "Inspect or (carefully) manage systemd units."
+      },
+      "syntax": "systemctl [OPTIONS...] COMMAND [UNIT...]",
+      "expected_effect": {
+        "tr": "status/is-active okur; start/stop/enable servis durumunu değiştirir.",
+        "en": "status/is-active read; start/stop/enable change service state."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Alpine/Void/Gentoo’da systemctl beklemek (OpenRC/runit).",
+          "en": "Expecting systemctl on Alpine/Void/Gentoo (OpenRC/runit)."
+        }
+      ],
+      "related_topics": [
+        "systemd",
+        "monitoring-and-logs"
+      ]
     },
     {
       "schema_version": 2,
@@ -29393,13 +29789,37 @@
           "man 1 tar"
         ],
         "last_reviewed": "2026-11-02",
-        "reviewer": "nova-commands-bootstrap"
+        "reviewer": "nova-commands-bootstrap",
+        "notes": "NV-123 teachable fields (when/syntax/mistakes/topics)."
       },
       "nova": {
         "concepts": [
           "files"
         ]
-      }
+      },
+      "when_to_use": {
+        "tr": "Dosyaları arşivlemek veya arşivden listelemek/çıkarmak.",
+        "en": "Archive files or list/extract from an archive."
+      },
+      "syntax": "tar [OPTIONS...] [FILE]...",
+      "expected_effect": {
+        "tr": "-c oluşturur, -t listeler, -x çıkarır; sıkıştırma eklentileri -z/-J ile gelir.",
+        "en": "-c creates, -t lists, -x extracts; compression add-ons come via -z/-J."
+      },
+      "common_mistakes": [
+        {
+          "tr": "Önce -t ile listelemeden çıkarmak.",
+          "en": "Extracting without listing with -t first."
+        },
+        {
+          "tr": "Yanlış -C diziniyle dosyaları beklenmeyen yere yazmak.",
+          "en": "Writing files to the wrong place with a mistaken -C directory."
+        }
+      ],
+      "related_topics": [
+        "archives-compression",
+        "backup"
+      ]
     },
     {
       "schema_version": 2,
@@ -35459,6 +35879,199 @@
   ],
   "concepts": [
     {
+      "id": "archives-compression",
+      "kind": "nova-commands-concept",
+      "format": "topic-guide",
+      "title": {
+        "tr": "Arşiv ve sıkıştırma",
+        "en": "Archives and compression"
+      },
+      "summary": {
+        "tr": "tar, gzip, xz, zip — oluşturma ve çıkarma; üzerine yazmaya dikkat.",
+        "en": "tar, gzip, xz, zip — create and extract; watch overwrites."
+      },
+      "intro": {
+        "tr": "Arşivlemek ve açmak; yanlış -C veya üzerine yazma veri kaybettirir.",
+        "en": "Archive and extract; wrong -C or overwrites can lose data."
+      },
+      "body": {
+        "tr": "`tar -czf` sıkıştırılmış arşiv oluşturur; `tar -tzf` içeriği listeler; `tar -xzf` çıkarır.\nÖnce listeleyin (`-t`), sonra çıkarın. `unzip -l` benzer şekilde listeler.\n\nWindows’ta Expand-Archive / tar (bsdtar) farklılıkları için bank kayıtlarına bakın.",
+        "en": "`tar -czf` creates a compressed archive; `tar -tzf` lists; `tar -xzf` extracts.\nList first (`-t`), then extract. `unzip -l` likewise lists.\n\nOn Windows, see bank records for Expand-Archive / tar (bsdtar) differences."
+      },
+      "difficulty": "beginner",
+      "categories": [
+        "archives"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "tags": [
+        "tar",
+        "gzip",
+        "zip"
+      ],
+      "learning_path": [
+        {
+          "ref": "tar",
+          "kind": "command"
+        },
+        {
+          "ref": "gzip",
+          "kind": "command"
+        },
+        {
+          "ref": "xz",
+          "kind": "command"
+        },
+        {
+          "ref": "unzip",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "list",
+          "title": {
+            "tr": "Listele",
+            "en": "List"
+          },
+          "summary": {
+            "tr": "Açmadan içeriği görün.",
+            "en": "See contents without extracting."
+          },
+          "related_commands": [
+            "tar",
+            "unzip"
+          ]
+        },
+        {
+          "id": "extract",
+          "title": {
+            "tr": "Çıkar",
+            "en": "Extract"
+          },
+          "summary": {
+            "tr": "Hedef dizini bilinçli seçin.",
+            "en": "Choose the target directory deliberately."
+          },
+          "related_commands": [
+            "tar"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "tar",
+          "purpose": {
+            "tr": "Tar arşivlerini oluşturur veya çıkarır.",
+            "en": "Create or extract tape archives."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "gzip",
+          "purpose": {
+            "tr": "Dosyaları gzip ile sıkıştırır veya açar.",
+            "en": "Compress or expand files with gzip."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "xz",
+          "purpose": {
+            "tr": "XZ sıkıştırma aracı.",
+            "en": "Compress or decompress .xz files."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "unzip",
+          "purpose": {
+            "tr": "ZIP arşivlerini çıkarır.",
+            "en": "Extract ZIP archives."
+          },
+          "learning_level": "beginner"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "İçerik listele",
+            "en": "List contents"
+          },
+          "command": "tar -tzf archive.tar.gz | head",
+          "explanation": {
+            "tr": "Arşiv üyelerini listeler (dosya varsa).",
+            "en": "Lists archive members (when the file exists)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "tar"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "caution",
+          "text": {
+            "tr": "Çıkarma mevcut dosyaların üzerine yazabilir.",
+            "en": "Extraction can overwrite existing files."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Listele önce",
+            "en": "List first"
+          },
+          "prompt": {
+            "tr": "Elinizde bir .tar.gz varsa tar -tzf ile listeleyin; çıkarmayın.",
+            "en": "If you have a .tar.gz, list with tar -tzf; do not extract yet."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "tar"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "backup"
+        },
+        {
+          "id": "storage"
+        }
+      ],
+      "related_commands": [
+        "tar",
+        "gzip",
+        "xz",
+        "unzip"
+      ],
+      "related_concepts": [
+        "backup",
+        "storage",
+        "finding-files"
+      ],
+      "see_also": [
+        "man tar",
+        "man gzip"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man tar",
+          "man gzip"
+        ],
+        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
+      }
+    },
+    {
       "id": "backup",
       "kind": "nova-commands-concept",
       "title": {
@@ -35503,8 +36116,159 @@
           "https://borgbackup.readthedocs.io/",
           "https://rclone.org/docs/"
         ],
-        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
-      }
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "backup",
+        "archives"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "intro": {
+        "tr": "Yedekleme ve arşivleme: rsync/tar odaklı; geri yüklemeden önce doğrulama.",
+        "en": "Backup and archives: rsync/tar focused; verify before restore."
+      },
+      "learning_path": [
+        {
+          "ref": "restic",
+          "kind": "command"
+        },
+        {
+          "ref": "borg",
+          "kind": "command"
+        },
+        {
+          "ref": "rclone",
+          "kind": "command"
+        },
+        {
+          "ref": "rsync",
+          "kind": "command"
+        },
+        {
+          "ref": "tar",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "restic",
+          "purpose": {
+            "tr": "Şifreli artımlı yedekleme.",
+            "en": "Encrypted incremental backups."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "borg",
+          "purpose": {
+            "tr": "BorgBackup dedupe yedekleme.",
+            "en": "BorgBackup deduplicating backups."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "rclone",
+          "purpose": {
+            "tr": "Bulut depolama senkron aracı.",
+            "en": "Cloud storage sync tool."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "rsync",
+          "purpose": {
+            "tr": "Dosyaları verimli eşitleyerek kopyalar.",
+            "en": "Fast incremental file transfer."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "tar",
+          "purpose": {
+            "tr": "Tar arşivlerini oluşturur veya çıkarır.",
+            "en": "Create or extract tape archives."
+          },
+          "learning_level": "beginner"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "Yedekleme ve arşivleme: rsync/tar odaklı; geri yüklemeden önce doğrulama.",
+            "en": "Backup and archives: rsync/tar focused; verify before restore."
+          },
+          "related_commands": [
+            "restic",
+            "borg",
+            "rclone",
+            "rsync",
+            "tar"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "restic version",
+          "explanation": {
+            "tr": "restic sürümü.",
+            "en": "restic version."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "restic"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "restic",
+            "borg",
+            "rclone"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "archives-compression"
+        },
+        {
+          "id": "storage"
+        }
+      ]
     },
     {
       "id": "cloud",
@@ -35552,7 +36316,334 @@
           "https://learn.microsoft.com/cli/azure/",
           "https://cloud.google.com/sdk/docs"
         ],
-        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "cloud"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "intro": {
+        "tr": "Bulut CLI’ler (ör. aws) kaynaklı draft; paket adları distrolar arası uydurulmaz.",
+        "en": "Cloud CLIs (e.g. aws) stay sourced drafts; package names are not invented across distros."
+      },
+      "learning_path": [
+        {
+          "ref": "aws",
+          "kind": "command"
+        },
+        {
+          "ref": "az",
+          "kind": "command"
+        },
+        {
+          "ref": "gcloud",
+          "kind": "command"
+        },
+        {
+          "ref": "terraform",
+          "kind": "command"
+        },
+        {
+          "ref": "rclone",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "aws",
+          "purpose": {
+            "tr": "AWS Command Line Interface.",
+            "en": "AWS Command Line Interface."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "az",
+          "purpose": {
+            "tr": "Azure CLI.",
+            "en": "Azure CLI."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "gcloud",
+          "purpose": {
+            "tr": "Google Cloud CLI.",
+            "en": "Google Cloud CLI."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "terraform",
+          "purpose": {
+            "tr": "HashiCorp Terraform (IaC).",
+            "en": "HashiCorp Terraform (IaC)."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "rclone",
+          "purpose": {
+            "tr": "Bulut depolama senkron aracı.",
+            "en": "Cloud storage sync tool."
+          },
+          "learning_level": "unspecified"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "Bulut CLI’ler (ör. aws) kaynaklı draft; paket adları distrolar arası uydurulmaz.",
+            "en": "Cloud CLIs (e.g. aws) stay sourced drafts; package names are not invented across distros."
+          },
+          "related_commands": [
+            "aws",
+            "az",
+            "gcloud",
+            "terraform",
+            "rclone"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "aws --version",
+          "explanation": {
+            "tr": "AWS CLI sürümü.",
+            "en": "AWS CLI version."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "aws"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "aws",
+            "az",
+            "gcloud"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "infrastructure-as-code"
+        }
+      ]
+    },
+    {
+      "id": "containers-basics",
+      "kind": "nova-commands-concept",
+      "format": "topic-guide",
+      "title": {
+        "tr": "Konteyner temelleri",
+        "en": "Container basics"
+      },
+      "summary": {
+        "tr": "docker/podman ile durum, log ve inceleme; runtime ayrımları dürüst tutulur.",
+        "en": "Status, logs, and inspect with docker/podman; keep runtime differences honest."
+      },
+      "intro": {
+        "tr": "Konteyner runtime’ları benzer CLI sunar ama paket/ad/kurulum distroya göre değişir.",
+        "en": "Container runtimes offer similar CLIs but packages/names/install differ by distro."
+      },
+      "body": {
+        "tr": "`docker ps` / `podman ps` çalışan konteynerleri listeler; `logs` ve `inspect` okuma yollarıdır.\nNixOS/Void/Gentoo konteyner görevleri hâlâ ince olabilir — bank notlarına bakın.\nhelm/nerdctl paket adları çoğu distroda bilinçli olarak Arch-bilinen + dürüst nota bırakılmıştır.",
+        "en": "`docker ps` / `podman ps` list running containers; `logs` and `inspect` are read paths.\nNixOS/Void/Gentoo container tasks may still be thin — see bank notes.\nhelm/nerdctl package names stay Arch-known + honesty notes on many distros."
+      },
+      "difficulty": "intermediate",
+      "categories": [
+        "containers"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "tags": [
+        "docker",
+        "podman",
+        "containers"
+      ],
+      "learning_path": [
+        {
+          "ref": "docker",
+          "kind": "command"
+        },
+        {
+          "ref": "podman",
+          "kind": "command"
+        },
+        {
+          "ref": "kubectl",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "list-logs",
+          "title": {
+            "tr": "Liste ve log",
+            "en": "List and logs"
+          },
+          "summary": {
+            "tr": "ps + logs salt okuma.",
+            "en": "ps + logs read-only."
+          },
+          "related_commands": [
+            "docker",
+            "podman"
+          ]
+        },
+        {
+          "id": "orchestrators",
+          "title": {
+            "tr": "Orkestrasyon",
+            "en": "Orchestration"
+          },
+          "summary": {
+            "tr": "kubectl ayrı öğrenme yolu.",
+            "en": "kubectl is a separate learning path."
+          },
+          "related_commands": [
+            "kubectl"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "docker",
+          "purpose": {
+            "tr": "Docker konteyner CLI.",
+            "en": "Docker container CLI."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "podman",
+          "purpose": {
+            "tr": "Demonssuz konteyner motoru.",
+            "en": "Daemonless container engine."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "kubectl",
+          "purpose": {
+            "tr": "Kubernetes küme CLI.",
+            "en": "Kubernetes cluster CLI."
+          },
+          "learning_level": "advanced"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Çalışan konteynerler",
+            "en": "Running containers"
+          },
+          "command": "docker ps",
+          "explanation": {
+            "tr": "Çalışan konteynerleri listeler (docker kuruluysa).",
+            "en": "Lists running containers (if docker is installed)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "docker"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "podman kökless yolu docker ile birebir aynı değildir.",
+            "en": "podman rootless is not identical to docker."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "ps okuma",
+            "en": "Read ps"
+          },
+          "prompt": {
+            "tr": "docker ps veya podman ps (kurulu olana) — oluşturmayın/silmeyin.",
+            "en": "docker ps or podman ps (whichever is installed) — do not create/delete."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "docker",
+            "podman"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "kubernetes"
+        },
+        {
+          "id": "monitoring-and-logs"
+        }
+      ],
+      "related_commands": [
+        "docker",
+        "podman",
+        "kubectl"
+      ],
+      "related_concepts": [
+        "kubernetes",
+        "package-managers",
+        "networking-basics"
+      ],
+      "see_also": [
+        "man docker",
+        "podman --help"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man docker",
+          "podman --help"
+        ],
+        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
       }
     },
     {
@@ -35599,8 +36690,143 @@
           "https://dev.mysql.com/doc/refman/8.4/en/mysql.html",
           "https://redis.io/docs/latest/develop/tools/cli/"
         ],
-        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
-      }
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "databases"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "intro": {
+        "tr": "sqlite3/psql istemci temelleri; üretim şema değişiklikleri bu rehberin dışında.",
+        "en": "sqlite3/psql client basics; production schema changes are out of scope here."
+      },
+      "learning_path": [
+        {
+          "ref": "mysql",
+          "kind": "command"
+        },
+        {
+          "ref": "redis-cli",
+          "kind": "command"
+        },
+        {
+          "ref": "psql",
+          "kind": "command"
+        },
+        {
+          "ref": "sqlite3",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "mysql",
+          "purpose": {
+            "tr": "MySQL/MariaDB istemci CLI.",
+            "en": "MySQL/MariaDB client CLI."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "redis-cli",
+          "purpose": {
+            "tr": "Redis komut satırı istemcisi.",
+            "en": "Redis command-line client."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "psql",
+          "purpose": {
+            "tr": "PostgreSQL etkileşimli terminal.",
+            "en": "PostgreSQL interactive terminal."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "sqlite3",
+          "purpose": {
+            "tr": "SQLite komut satırı kabuğu.",
+            "en": "SQLite command-line shell."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "sqlite3/psql istemci temelleri; üretim şema değişiklikleri bu rehberin dışında.",
+            "en": "sqlite3/psql client basics; production schema changes are out of scope here."
+          },
+          "related_commands": [
+            "mysql",
+            "redis-cli",
+            "psql",
+            "sqlite3"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "mysql --version",
+          "explanation": {
+            "tr": "İstemci sürümü.",
+            "en": "Client version."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "mysql"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "mysql",
+            "redis-cli",
+            "psql"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "development-basics"
+        }
+      ]
     },
     {
       "id": "debugging",
@@ -35651,7 +36877,599 @@
           "man 8 lsof",
           "man 1 journalctl"
         ],
-        "notes": "Agent-authored teaching article; not verified."
+        "notes": "Agent-authored teaching article; not verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "processes",
+        "development",
+        "monitoring"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "intro": {
+        "tr": "Süreç, strace/dtruss tarzı izleme ve günlüklerle hata ayıklama giriş.",
+        "en": "Intro to process inspection, tracing-style tools, and logs for debugging."
+      },
+      "learning_path": [
+        {
+          "ref": "strace",
+          "kind": "command"
+        },
+        {
+          "ref": "lsof",
+          "kind": "command"
+        },
+        {
+          "ref": "ps",
+          "kind": "command"
+        },
+        {
+          "ref": "pgrep",
+          "kind": "command"
+        },
+        {
+          "ref": "journalctl",
+          "kind": "command"
+        },
+        {
+          "ref": "dmesg",
+          "kind": "command"
+        },
+        {
+          "ref": "top",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "strace",
+          "purpose": {
+            "tr": "Sistem çağrılarını izler.",
+            "en": "Traces system calls."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "lsof",
+          "purpose": {
+            "tr": "Açık dosyaları ve soketleri listeler.",
+            "en": "List open files and sockets."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "ps",
+          "purpose": {
+            "tr": "Anlık süreç listesi.",
+            "en": "Report a snapshot of processes."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "pgrep",
+          "purpose": {
+            "tr": "Ada göre süreç PID’lerini bulur.",
+            "en": "Find process IDs by name."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "journalctl",
+          "purpose": {
+            "tr": "systemd günlüğünü sorgular.",
+            "en": "Query the systemd journal."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "dmesg",
+          "purpose": {
+            "tr": "Çekirdek mesaj halkasını yazdırır.",
+            "en": "Print or control the kernel ring buffer."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "top",
+          "purpose": {
+            "tr": "Canlı süreç izleyici.",
+            "en": "Dynamic real-time process viewer."
+          },
+          "learning_level": "beginner"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "Süreç, strace/dtruss tarzı izleme ve günlüklerle hata ayıklama giriş.",
+            "en": "Intro to process inspection, tracing-style tools, and logs for debugging."
+          },
+          "related_commands": [
+            "strace",
+            "lsof",
+            "ps",
+            "pgrep",
+            "journalctl",
+            "dmesg"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Komutu izle",
+            "en": "Trace command"
+          },
+          "command": "strace -e openat ls /tmp",
+          "explanation": {
+            "tr": "ls’in openat çağrılarını gösterir.",
+            "en": "Shows openat calls made by ls."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "strace"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "strace",
+            "lsof",
+            "ps"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "processes"
+        },
+        {
+          "id": "monitoring-and-logs"
+        }
+      ]
+    },
+    {
+      "id": "development-basics",
+      "kind": "nova-commands-concept",
+      "format": "topic-guide",
+      "title": {
+        "tr": "Geliştirme temelleri",
+        "en": "Development basics"
+      },
+      "summary": {
+        "tr": "git, derleyiciler ve dil araçlarına giriş; OS SDK’leri ayrı.",
+        "en": "Intro to git, compilers, and language tools; OS SDKs are separate."
+      },
+      "intro": {
+        "tr": "Kaynak kontrolü ve yapı araçları; xcode-select gibi platform SDK’leri notlarla.",
+        "en": "Source control and build tools; platform SDKs like xcode-select noted separately."
+      },
+      "body": {
+        "tr": "`git status` / `git log` okuma ile başlayın. `diff` ve `patch` yama işler.\n`make` / `gcc` / `python3` dil ve yapı ekosistemine köprüdür. macOS’ta `xcode-select`\nayrı bir bank kaydıdır.",
+        "en": "Start with read-oriented `git status` / `git log`. `diff` and `patch` handle patches.\n`make` / `gcc` / `python3` bridge into language/build ecosystems. On macOS, `xcode-select`\nis a separate bank record."
+      },
+      "difficulty": "beginner",
+      "categories": [
+        "development"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "tags": [
+        "git",
+        "development",
+        "build"
+      ],
+      "learning_path": [
+        {
+          "ref": "git",
+          "kind": "command"
+        },
+        {
+          "ref": "make",
+          "kind": "command"
+        },
+        {
+          "ref": "gcc",
+          "kind": "command"
+        },
+        {
+          "ref": "python3",
+          "kind": "command"
+        },
+        {
+          "ref": "diff",
+          "kind": "command"
+        },
+        {
+          "ref": "patch",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "git-read",
+          "title": {
+            "tr": "git okuma",
+            "en": "git reading"
+          },
+          "summary": {
+            "tr": "status/log/diff.",
+            "en": "status/log/diff."
+          },
+          "related_commands": [
+            "git",
+            "diff"
+          ]
+        },
+        {
+          "id": "build",
+          "title": {
+            "tr": "Derleme",
+            "en": "Build"
+          },
+          "summary": {
+            "tr": "make/gcc giriş.",
+            "en": "make/gcc intro."
+          },
+          "related_commands": [
+            "make",
+            "gcc"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "git",
+          "purpose": {
+            "tr": "Dağıtık sürüm kontrol sistemi.",
+            "en": "Distributed version control system."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "make",
+          "purpose": {
+            "tr": "Makefile’dan derleme hedefleri çalıştırır.",
+            "en": "GNU make utility to maintain groups of programs."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "gcc",
+          "purpose": {
+            "tr": "GNU C/C++ derleyici sürücüsü.",
+            "en": "GNU C/C++ compiler driver."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "python3",
+          "purpose": {
+            "tr": "Python 3 yorumlayıcısı.",
+            "en": "Python 3 interpreter."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "diff",
+          "purpose": {
+            "tr": "Dosyaları satır satır karşılaştırır.",
+            "en": "Compare files line by line."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "patch",
+          "purpose": {
+            "tr": "diff çıktısını dosyalara uygular.",
+            "en": "Applies diff output to files."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "git status",
+            "en": "git status"
+          },
+          "command": "git status",
+          "explanation": {
+            "tr": "Çalışma ağacı durumunu gösterir (repo içinde).",
+            "en": "Shows working tree status (inside a repo)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "git"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "Önce salt okuma git komutlarını öğrenin; force push sonra.",
+            "en": "Learn read-only git commands first; force-push later."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "status",
+            "en": "status"
+          },
+          "prompt": {
+            "tr": "Bir git reposunda git status ve git log -1 okuyun.",
+            "en": "In a git repo, read git status and git log -1."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "git"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "debugging"
+        },
+        {
+          "id": "infrastructure-as-code"
+        }
+      ],
+      "related_commands": [
+        "git",
+        "make",
+        "gcc",
+        "python3",
+        "diff",
+        "patch"
+      ],
+      "related_concepts": [
+        "debugging",
+        "json-data",
+        "text-processing"
+      ],
+      "see_also": [
+        "man git",
+        "man make"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man git",
+          "man make"
+        ],
+        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
+      }
+    },
+    {
+      "id": "finding-files",
+      "kind": "nova-commands-concept",
+      "format": "topic-guide",
+      "title": {
+        "tr": "Dosya arama",
+        "en": "Finding files"
+      },
+      "summary": {
+        "tr": "find, locate, fd ve isim/yol arama kalıpları.",
+        "en": "find, locate, fd, and name/path search patterns."
+      },
+      "intro": {
+        "tr": "İsim, tür ve zamana göre dosya bulmak; geniş find ifadelerinde dikkat.",
+        "en": "Find files by name, type, and time; be careful with broad find expressions."
+      },
+      "body": {
+        "tr": "`find` ağaçta arar; `locate` (varsa) önceden indekslenmiş veritabanına bakar.\nBaşlarken `find . -name '*.txt'` gibi dar kalıplar kullanın. `-delete` ve `-exec rm`\ntehlikeli olabilir — bu rehberde salt listeleme tercih edilir.\n\nWindows’ta `Get-ChildItem -Recurse` benzer işi görür; bank kaydına bakın.",
+        "en": "`find` walks trees; `locate` (when present) queries a prebuilt database.\nStart with narrow patterns like `find . -name '*.txt'`. `-delete` and `-exec rm`\ncan be dangerous — this guide prefers listing only.\n\nOn Windows, `Get-ChildItem -Recurse` covers similar jobs; see the bank record."
+      },
+      "difficulty": "beginner",
+      "categories": [
+        "search",
+        "filesystem"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "tags": [
+        "find",
+        "search",
+        "files"
+      ],
+      "learning_path": [
+        {
+          "ref": "find",
+          "kind": "command"
+        },
+        {
+          "ref": "locate",
+          "kind": "command"
+        },
+        {
+          "ref": "which",
+          "kind": "command"
+        },
+        {
+          "ref": "ls",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "by-name",
+          "title": {
+            "tr": "İsme göre",
+            "en": "By name"
+          },
+          "summary": {
+            "tr": "find -name / -iname.",
+            "en": "find -name / -iname."
+          },
+          "related_commands": [
+            "find"
+          ]
+        },
+        {
+          "id": "index",
+          "title": {
+            "tr": "İndeks",
+            "en": "Index"
+          },
+          "summary": {
+            "tr": "locate hızlıdır ama güncel olmayabilir.",
+            "en": "locate is fast but may be stale."
+          },
+          "related_commands": [
+            "locate"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "find",
+          "purpose": {
+            "tr": "Dizin ağacında dosya arar.",
+            "en": "Search for files in a directory hierarchy."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "locate",
+          "purpose": {
+            "tr": "Önceden indekslenmiş dosya adı araması.",
+            "en": "Find files by name via a prebuilt database."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "which",
+          "purpose": {
+            "tr": "Komutun PATH üzerindeki konumunu gösterir.",
+            "en": "Locate a command on PATH."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "ls",
+          "purpose": {
+            "tr": "Dizin içeriğini listeler.",
+            "en": "List directory contents."
+          },
+          "learning_level": "beginner"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "İsim kalıbı",
+            "en": "Name pattern"
+          },
+          "command": "find /tmp -maxdepth 2 -type f -name '*.txt'",
+          "explanation": {
+            "tr": "/tmp altında sığ .txt dosyalarını listeler.",
+            "en": "Lists shallow .txt files under /tmp."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "find"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "caution",
+          "text": {
+            "tr": "Kökten (`/`) geniş find yavaş ve gürültülüdür; maxdepth kullanın.",
+            "en": "Broad find from `/` is slow and noisy; use maxdepth."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Dar find",
+            "en": "Narrow find"
+          },
+          "prompt": {
+            "tr": "find ~ -maxdepth 1 -type d çıktısını okuyun.",
+            "en": "Read find ~ -maxdepth 1 -type d output."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "find"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "text-processing"
+        },
+        {
+          "id": "permissions"
+        },
+        {
+          "id": "storage"
+        }
+      ],
+      "related_commands": [
+        "find",
+        "locate",
+        "which",
+        "ls"
+      ],
+      "related_concepts": [
+        "permissions",
+        "text-processing",
+        "storage"
+      ],
+      "see_also": [
+        "man find",
+        "man locate"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man find",
+          "man locate"
+        ],
+        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
       }
     },
     {
@@ -35703,7 +37521,363 @@
           "man 1 firewall-cmd",
           "https://wiki.archlinux.org/title/Firewalls"
         ],
-        "notes": "Teaching overview; firewall CLIs stay draft/list-only in commands/."
+        "notes": "Teaching overview; firewall CLIs stay draft/list-only in commands/. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "security",
+        "network"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "intro": {
+        "tr": "Güvenlik duvarı okuma yolları (ufw/firewalld/nft/pf/netsh); yazma yolları dikkat ve draft.",
+        "en": "Firewall read paths (ufw/firewalld/nft/pf/netsh); write paths stay cautious/draft."
+      },
+      "learning_path": [
+        {
+          "ref": "nft",
+          "kind": "command"
+        },
+        {
+          "ref": "iptables",
+          "kind": "command"
+        },
+        {
+          "ref": "firewall-cmd",
+          "kind": "command"
+        },
+        {
+          "ref": "ufw",
+          "kind": "command"
+        },
+        {
+          "ref": "pfctl",
+          "kind": "command"
+        },
+        {
+          "ref": "ss",
+          "kind": "command"
+        },
+        {
+          "ref": "ip",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "nft",
+          "purpose": {
+            "tr": "nftables kural yönetimi.",
+            "en": "nftables ruleset management."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "iptables",
+          "purpose": {
+            "tr": "Eski nesil IPv4 netfilter aracı.",
+            "en": "Legacy IPv4 netfilter administration."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "firewall-cmd",
+          "purpose": {
+            "tr": "firewalld komut satırı.",
+            "en": "firewalld command-line client."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "ufw",
+          "purpose": {
+            "tr": "Uncomplicated Firewall (iptables/nft ön yüz).",
+            "en": "Uncomplicated Firewall (iptables/nft frontend)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "pfctl",
+          "purpose": {
+            "tr": "PF (Packet Filter) denetimi — OpenBSD/FreeBSD.",
+            "en": "PF (Packet Filter) control — OpenBSD/FreeBSD."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "ss",
+          "purpose": {
+            "tr": "Soket istatistiklerini gösterir.",
+            "en": "Investigate sockets."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "ip",
+          "purpose": {
+            "tr": "Ağ aygıtları, adresler ve rotaları yönetir.",
+            "en": "Show and manipulate routing, devices, and tunnels."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "Güvenlik duvarı okuma yolları (ufw/firewalld/nft/pf/netsh); yazma yolları dikkat ve draft.",
+            "en": "Firewall read paths (ufw/firewalld/nft/pf/netsh); write paths stay cautious/draft."
+          },
+          "related_commands": [
+            "nft",
+            "iptables",
+            "firewall-cmd",
+            "ufw",
+            "pfctl",
+            "ss"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Kuralları listele",
+            "en": "List ruleset"
+          },
+          "command": "sudo nft list ruleset",
+          "explanation": {
+            "tr": "Geçerli tüm kuralları basar (salt okuma).",
+            "en": "Prints the current ruleset (read-only)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "nft"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "nft",
+            "iptables",
+            "firewall-cmd"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "server-security-checklist"
+        },
+        {
+          "id": "networking-basics"
+        }
+      ]
+    },
+    {
+      "id": "hardware-inspection",
+      "kind": "nova-commands-concept",
+      "format": "topic-guide",
+      "title": {
+        "tr": "Donanım inceleme",
+        "en": "Hardware inspection"
+      },
+      "summary": {
+        "tr": "lscpu, lsblk, lspci benzeri salt okuma donanım bilgisi.",
+        "en": "Read-only hardware info via lscpu, lsblk, lspci, and peers."
+      },
+      "intro": {
+        "tr": "Donanımı okumak; firmware/boot yazma yolları bu rehberde yok.",
+        "en": "Read hardware; firmware/boot write paths are out of this guide."
+      },
+      "body": {
+        "tr": "Linux’ta `lscpu`, `lsblk`, `lspci`, `lsusb` yaygın salt okuma araçlarıdır.\nmacOS/Windows karşılıkları farklıdır (`system_profiler`, Get-Disk, …) — ilgili bank kayıtlarına bakın.\nDisk bölümleme/yazma (`fdisk`, `mkfs`) ayrı ve tehlikelidir.",
+        "en": "On Linux, `lscpu`, `lsblk`, `lspci`, and `lsusb` are common read-only tools.\nmacOS/Windows counterparts differ (`system_profiler`, Get-Disk, …) — see those bank records.\nPartitioning/formatting (`fdisk`, `mkfs`) is separate and dangerous."
+      },
+      "difficulty": "beginner",
+      "categories": [
+        "hardware",
+        "disks"
+      ],
+      "platforms": [
+        "linux"
+      ],
+      "tags": [
+        "hardware",
+        "lscpu",
+        "lsblk"
+      ],
+      "learning_path": [
+        {
+          "ref": "lscpu",
+          "kind": "command"
+        },
+        {
+          "ref": "lsblk",
+          "kind": "command"
+        },
+        {
+          "ref": "lspci",
+          "kind": "command"
+        },
+        {
+          "ref": "lsusb",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "cpu-block",
+          "title": {
+            "tr": "CPU ve blok",
+            "en": "CPU and block"
+          },
+          "summary": {
+            "tr": "lscpu + lsblk.",
+            "en": "lscpu + lsblk."
+          },
+          "related_commands": [
+            "lscpu",
+            "lsblk"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "lscpu",
+          "purpose": {
+            "tr": "CPU mimarisi bilgisini gösterir.",
+            "en": "Display CPU architecture information."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "lsblk",
+          "purpose": {
+            "tr": "Blok aygıtları ağaç olarak listeler.",
+            "en": "List block devices."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "lspci",
+          "purpose": {
+            "tr": "PCI aygıtlarını listeler.",
+            "en": "List PCI devices."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "lsusb",
+          "purpose": {
+            "tr": "USB aygıtlarını listeler.",
+            "en": "List USB devices."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "CPU özeti",
+            "en": "CPU summary"
+          },
+          "command": "lscpu",
+          "explanation": {
+            "tr": "CPU mimarisi ve çekirdek bilgisini basar.",
+            "en": "Prints CPU architecture and core info."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "lscpu"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "lsblk ağaç görünümü bağlama noktalarını da gösterir.",
+            "en": "lsblk tree view also shows mount points."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "lsblk",
+            "en": "lsblk"
+          },
+          "prompt": {
+            "tr": "lsblk -f çıktısını okuyun; hiçbir cihazı biçimlendirmeyin.",
+            "en": "Read lsblk -f; do not format any device."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "lsblk"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "storage"
+        },
+        {
+          "id": "monitoring-and-logs"
+        }
+      ],
+      "related_commands": [
+        "lscpu",
+        "lsblk",
+        "lspci",
+        "lsusb"
+      ],
+      "related_concepts": [
+        "storage",
+        "monitoring-and-logs"
+      ],
+      "see_also": [
+        "man lscpu",
+        "man lsblk"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man lscpu",
+          "man lsblk"
+        ],
+        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
       }
     },
     {
@@ -35754,8 +37928,184 @@
           "https://docs.ansible.com/",
           "https://docs.aws.amazon.com/cli/"
         ],
-        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
-      }
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "devops",
+        "cloud"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "intro": {
+        "tr": "Terraform/Ansible tarzı IaC giriş; bayraklar kaynaklı draft kalır.",
+        "en": "Intro to Terraform/Ansible-style IaC; flags stay sourced drafts."
+      },
+      "learning_path": [
+        {
+          "ref": "terraform",
+          "kind": "command"
+        },
+        {
+          "ref": "ansible",
+          "kind": "command"
+        },
+        {
+          "ref": "aws",
+          "kind": "command"
+        },
+        {
+          "ref": "az",
+          "kind": "command"
+        },
+        {
+          "ref": "gcloud",
+          "kind": "command"
+        },
+        {
+          "ref": "kubectl",
+          "kind": "command"
+        },
+        {
+          "ref": "gh",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "terraform",
+          "purpose": {
+            "tr": "HashiCorp Terraform (IaC).",
+            "en": "HashiCorp Terraform (IaC)."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "ansible",
+          "purpose": {
+            "tr": "Ansible otomasyon motoru.",
+            "en": "Ansible automation engine."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "aws",
+          "purpose": {
+            "tr": "AWS Command Line Interface.",
+            "en": "AWS Command Line Interface."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "az",
+          "purpose": {
+            "tr": "Azure CLI.",
+            "en": "Azure CLI."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "gcloud",
+          "purpose": {
+            "tr": "Google Cloud CLI.",
+            "en": "Google Cloud CLI."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "kubectl",
+          "purpose": {
+            "tr": "Kubernetes küme CLI.",
+            "en": "Kubernetes cluster CLI."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "gh",
+          "purpose": {
+            "tr": "GitHub resmi CLI.",
+            "en": "Official GitHub CLI."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "Terraform/Ansible tarzı IaC giriş; bayraklar kaynaklı draft kalır.",
+            "en": "Intro to Terraform/Ansible-style IaC; flags stay sourced drafts."
+          },
+          "related_commands": [
+            "terraform",
+            "ansible",
+            "aws",
+            "az",
+            "gcloud",
+            "kubectl"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "terraform version",
+          "explanation": {
+            "tr": "Terraform sürümü.",
+            "en": "Terraform version."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "terraform"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "terraform",
+            "ansible",
+            "aws"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "cloud"
+        },
+        {
+          "id": "kubernetes"
+        }
+      ]
     },
     {
       "id": "json-data",
@@ -35801,8 +38151,160 @@
           "https://jqlang.github.io/jq/manual/",
           "https://www.sqlite.org/cli.html"
         ],
-        "notes": "Agent-authored; spot-check before verified."
-      }
+        "notes": "Agent-authored; spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "text",
+        "development"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "intro": {
+        "tr": "JSON satırlarını okumak ve süzmek için jq ve benzeri araçlar.",
+        "en": "Read and filter JSON lines with jq and related tools."
+      },
+      "learning_path": [
+        {
+          "ref": "jq",
+          "kind": "command"
+        },
+        {
+          "ref": "sqlite3",
+          "kind": "command"
+        },
+        {
+          "ref": "curl",
+          "kind": "command"
+        },
+        {
+          "ref": "python3",
+          "kind": "command"
+        },
+        {
+          "ref": "psql",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "jq",
+          "purpose": {
+            "tr": "JSON süzgeç ve dönüştürücü.",
+            "en": "JSON filter and transformer."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "sqlite3",
+          "purpose": {
+            "tr": "SQLite komut satırı kabuğu.",
+            "en": "SQLite command-line shell."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "curl",
+          "purpose": {
+            "tr": "URL ile veri transferi yapar.",
+            "en": "Transfer data from or to a server."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "python3",
+          "purpose": {
+            "tr": "Python 3 yorumlayıcısı.",
+            "en": "Python 3 interpreter."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "psql",
+          "purpose": {
+            "tr": "PostgreSQL etkileşimli terminal.",
+            "en": "PostgreSQL interactive terminal."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "JSON satırlarını okumak ve süzmek için jq ve benzeri araçlar.",
+            "en": "Read and filter JSON lines with jq and related tools."
+          },
+          "related_commands": [
+            "jq",
+            "sqlite3",
+            "curl",
+            "python3",
+            "psql"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Güzelleştir",
+            "en": "Pretty-print"
+          },
+          "command": "echo '{\"a\":1}' | jq .",
+          "explanation": {
+            "tr": "Girişi biçimlendirilmiş JSON olarak basar.",
+            "en": "Pretty-prints the input JSON."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "jq"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "jq",
+            "sqlite3",
+            "curl"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "debugging"
+        },
+        {
+          "id": "development-basics"
+        }
+      ]
     },
     {
       "id": "kubernetes",
@@ -35849,7 +38351,397 @@
           "https://kubernetes.io/docs/concepts/overview/",
           "https://helm.sh/docs/"
         ],
-        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "containers",
+        "devops"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "intro": {
+        "tr": "kubectl ile küme kaynaklarını okuma; helm paket adları distroya göre uydurulmaz.",
+        "en": "Read cluster resources with kubectl; helm package names are not invented per distro."
+      },
+      "learning_path": [
+        {
+          "ref": "kubectl",
+          "kind": "command"
+        },
+        {
+          "ref": "helm",
+          "kind": "command"
+        },
+        {
+          "ref": "crictl",
+          "kind": "command"
+        },
+        {
+          "ref": "nerdctl",
+          "kind": "command"
+        },
+        {
+          "ref": "docker",
+          "kind": "command"
+        },
+        {
+          "ref": "podman",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "kubectl",
+          "purpose": {
+            "tr": "Kubernetes küme CLI.",
+            "en": "Kubernetes cluster CLI."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "helm",
+          "purpose": {
+            "tr": "Kubernetes paket yöneticisi.",
+            "en": "Kubernetes package manager."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "crictl",
+          "purpose": {
+            "tr": "CRI runtime hata ayıklama CLI.",
+            "en": "CRI runtime debugging CLI."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "nerdctl",
+          "purpose": {
+            "tr": "containerd için Docker uyumlu CLI.",
+            "en": "Docker-compatible CLI for containerd."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "docker",
+          "purpose": {
+            "tr": "Docker konteyner CLI.",
+            "en": "Docker container CLI."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "podman",
+          "purpose": {
+            "tr": "Demonssuz konteyner motoru.",
+            "en": "Daemonless container engine."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "kubectl ile küme kaynaklarını okuma; helm paket adları distroya göre uydurulmaz.",
+            "en": "Read cluster resources with kubectl; helm package names are not invented per distro."
+          },
+          "related_commands": [
+            "kubectl",
+            "helm",
+            "crictl",
+            "nerdctl",
+            "docker",
+            "podman"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Sürüm",
+            "en": "Version"
+          },
+          "command": "kubectl version --client",
+          "explanation": {
+            "tr": "İstemci sürümü (küme gerekmez).",
+            "en": "Client version (no cluster required)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "kubectl"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "kubectl",
+            "helm",
+            "crictl"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "containers-basics"
+        },
+        {
+          "id": "infrastructure-as-code"
+        }
+      ]
+    },
+    {
+      "id": "monitoring-and-logs",
+      "kind": "nova-commands-concept",
+      "format": "topic-guide",
+      "title": {
+        "tr": "İzleme ve günlükler",
+        "en": "Monitoring and logs"
+      },
+      "summary": {
+        "tr": "journalctl, syslog dosyaları ve kaynak kullanımı; non-systemd dürüst ayrımı.",
+        "en": "journalctl, syslog files, and resource usage; honest non-systemd split."
+      },
+      "intro": {
+        "tr": "Günlük okuma ve kaynak izleme; Alpine/Void/Gentoo’da journalctl varsayılan değildir.",
+        "en": "Log reading and resource monitoring; journalctl is not the default on Alpine/Void/Gentoo."
+      },
+      "body": {
+        "tr": "systemd distrolarında `journalctl` birincil günlük aracıdır. OpenRC/runit dünyasında\n`/var/log/messages` veya servis logları kullanılır — bank görevleri bunu ayırır.\n`top`/`free`/`df` çapraz platformda kaynak görünümü verir (bayrak farklarıyla).",
+        "en": "On systemd distros, `journalctl` is the primary log tool. In OpenRC/runit worlds,\n`/var/log/messages` or service logs apply — bank tasks split this honestly.\n`top`/`free`/`df` give cross-platform resource views (with flag differences)."
+      },
+      "difficulty": "intermediate",
+      "categories": [
+        "monitoring",
+        "system"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "tags": [
+        "logs",
+        "journalctl",
+        "monitoring"
+      ],
+      "learning_path": [
+        {
+          "ref": "journalctl",
+          "kind": "command"
+        },
+        {
+          "ref": "dmesg",
+          "kind": "command"
+        },
+        {
+          "ref": "top",
+          "kind": "command"
+        },
+        {
+          "ref": "free",
+          "kind": "command"
+        },
+        {
+          "ref": "df",
+          "kind": "command"
+        },
+        {
+          "ref": "uptime",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "journal",
+          "title": {
+            "tr": "journalctl",
+            "en": "journalctl"
+          },
+          "summary": {
+            "tr": "Yalnızca systemd aileleri.",
+            "en": "systemd families only."
+          },
+          "related_commands": [
+            "journalctl"
+          ]
+        },
+        {
+          "id": "resources",
+          "title": {
+            "tr": "Kaynaklar",
+            "en": "Resources"
+          },
+          "summary": {
+            "tr": "CPU/RAM/disk okuma.",
+            "en": "CPU/RAM/disk reads."
+          },
+          "related_commands": [
+            "top",
+            "free",
+            "df"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "journalctl",
+          "purpose": {
+            "tr": "systemd günlüğünü sorgular.",
+            "en": "Query the systemd journal."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "dmesg",
+          "purpose": {
+            "tr": "Çekirdek mesaj halkasını yazdırır.",
+            "en": "Print or control the kernel ring buffer."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "top",
+          "purpose": {
+            "tr": "Canlı süreç izleyici.",
+            "en": "Dynamic real-time process viewer."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "free",
+          "purpose": {
+            "tr": "Bellek kullanımını gösterir.",
+            "en": "Display amount of free and used memory."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "df",
+          "purpose": {
+            "tr": "Dosya sistemi disk kullanımı.",
+            "en": "Report file system disk space usage."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "uptime",
+          "purpose": {
+            "tr": "Çalışma süresi ve yük ortalaması.",
+            "en": "Tell how long the system has been running."
+          },
+          "learning_level": "beginner"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Son boot günlükleri",
+            "en": "Recent boot logs"
+          },
+          "command": "journalctl -b -n 20 --no-pager",
+          "explanation": {
+            "tr": "Bu açılıştan 20 satır (systemd).",
+            "en": "20 lines from this boot (systemd)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "journalctl"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "journalctl yoksa hata normaldir; syslog yoluna bakın.",
+            "en": "Missing journalctl is normal on some distros; use syslog paths."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "df -h",
+            "en": "df -h"
+          },
+          "prompt": {
+            "tr": "df -h çıktısını okuyun; bir dosya sistemi % kullanımını not edin.",
+            "en": "Read df -h; note one filesystem percent used."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "df"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "systemd"
+        },
+        {
+          "id": "debugging"
+        },
+        {
+          "id": "server-security-checklist"
+        }
+      ],
+      "related_commands": [
+        "journalctl",
+        "dmesg",
+        "top",
+        "free",
+        "df"
+      ],
+      "related_concepts": [
+        "systemd",
+        "debugging",
+        "processes"
+      ],
+      "see_also": [
+        "man journalctl",
+        "man df"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man journalctl",
+          "man df"
+        ],
+        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
       }
     },
     {
@@ -35908,8 +38800,192 @@
           "man systemd-resolved / resolvectl",
           "https://wiki.archlinux.org/title/Network_configuration"
         ],
-        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified."
-      }
+        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "network"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "intro": {
+        "tr": "Yerel IP, DNS, bağlantı testi ve yönlendirme — okuma odaklı ağ temelleri.",
+        "en": "Local IP, DNS, connectivity checks, and routing — read-oriented networking basics."
+      },
+      "learning_path": [
+        {
+          "ref": "ip",
+          "kind": "command"
+        },
+        {
+          "ref": "ping",
+          "kind": "command"
+        },
+        {
+          "ref": "dig",
+          "kind": "command"
+        },
+        {
+          "ref": "curl",
+          "kind": "command"
+        },
+        {
+          "ref": "ss",
+          "kind": "command"
+        },
+        {
+          "ref": "traceroute",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "addressing",
+          "title": {
+            "tr": "Adresleme",
+            "en": "Addressing"
+          },
+          "summary": {
+            "tr": "ip/ifconfig veya Get-NetIPConfiguration ile arayüz adresleri.",
+            "en": "Interface addresses via ip/ifconfig or Get-NetIPConfiguration."
+          },
+          "related_commands": [
+            "ip"
+          ]
+        },
+        {
+          "id": "dns-http",
+          "title": {
+            "tr": "DNS ve HTTP",
+            "en": "DNS and HTTP"
+          },
+          "summary": {
+            "tr": "dig/nslookup çözümler; curl istek atar (yazma değil okuma örnekleri tercih).",
+            "en": "dig/nslookup resolve; curl makes requests (prefer read examples)."
+          },
+          "related_commands": [
+            "dig",
+            "curl"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "ip",
+          "purpose": {
+            "tr": "Ağ aygıtları, adresler ve rotaları yönetir.",
+            "en": "Show and manipulate routing, devices, and tunnels."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "ping",
+          "purpose": {
+            "tr": "ICMP ile host erişimini dener.",
+            "en": "Send ICMP ECHO_REQUEST to network hosts."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "dig",
+          "purpose": {
+            "tr": "DNS sorgu aracı (BIND).",
+            "en": "DNS lookup utility (BIND)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "curl",
+          "purpose": {
+            "tr": "URL ile veri transferi yapar.",
+            "en": "Transfer data from or to a server."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "ss",
+          "purpose": {
+            "tr": "Soket istatistiklerini gösterir.",
+            "en": "Investigate sockets."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "traceroute",
+          "purpose": {
+            "tr": "Paketlerin rota hop’larını izler.",
+            "en": "Print the route packets take to a host."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Ping (sınırlı)",
+            "en": "Ping (bounded)"
+          },
+          "command": "ping -c 3 1.1.1.1",
+          "explanation": {
+            "tr": "Üç ICMP denemesi; -c Linux/BSD’de yaygın (Windows: -n).",
+            "en": "Three ICMP probes; -c common on Linux/BSD (Windows: -n)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "ping"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "ip Linux’ta net-tools/ifconfig’tan farklıdır; macOS/BSD’de ifconfig hâlâ yaygındır.",
+            "en": "ip on Linux differs from net-tools/ifconfig; macOS/BSD still often use ifconfig."
+          }
+        },
+        {
+          "kind": "warning",
+          "text": {
+            "tr": "Ağ tarama / saldırı adımları bu rehberde yoktur.",
+            "en": "Network scanning / attack steps are not part of this guide."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Yerel arayüzleri okuyun",
+            "en": "Read local interfaces"
+          },
+          "prompt": {
+            "tr": "Linux: ip -br a; macOS/BSD: ifconfig -a (salt okuma).",
+            "en": "Linux: ip -br a; macOS/BSD: ifconfig -a (read-only)."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "ip"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "firewalls"
+        },
+        {
+          "id": "reverse-proxy"
+        }
+      ]
     },
     {
       "id": "nix-guix",
@@ -35965,8 +39041,205 @@
           "https://guix.gnu.org/manual/en/html_node/",
           "https://guix.gnu.org/manual/en/html_node/Package-Management.html"
         ],
-        "notes": "Faz 4 teaching article; draft until human review."
-      }
+        "notes": "Faz 4 teaching article; draft until human review. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "packages"
+      ],
+      "platforms": [
+        "linux",
+        "macos"
+      ],
+      "distributions": [
+        "nixos"
+      ],
+      "intro": {
+        "tr": "Nix ve Guix deklaratif modeller; nix ≠ NixOS; nixos-rebuild ayrıdır.",
+        "en": "Nix and Guix declarative models; nix ≠ NixOS; nixos-rebuild is distinct."
+      },
+      "learning_path": [
+        {
+          "ref": "nix",
+          "kind": "command"
+        },
+        {
+          "ref": "nix-shell",
+          "kind": "command"
+        },
+        {
+          "ref": "nix-env",
+          "kind": "command"
+        },
+        {
+          "ref": "nixos-rebuild",
+          "kind": "command"
+        },
+        {
+          "ref": "nix-collect-garbage",
+          "kind": "command"
+        },
+        {
+          "ref": "guix",
+          "kind": "command"
+        },
+        {
+          "ref": "pacman",
+          "kind": "command"
+        },
+        {
+          "ref": "emerge",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "nix",
+          "purpose": {
+            "tr": "Nix paket yöneticisi (modern CLI).",
+            "en": "Nix package manager (modern CLI)."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "nix-shell",
+          "purpose": {
+            "tr": "Klasik Nix geçici kabuk (eski yol).",
+            "en": "Classic Nix ephemeral shell (legacy path)."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "nix-env",
+          "purpose": {
+            "tr": "Eski Nix profil aracı (geçiş / miras).",
+            "en": "Legacy Nix profile tool (transition / heritage)."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "nixos-rebuild",
+          "purpose": {
+            "tr": "NixOS sistem yapılandırmasını uygula.",
+            "en": "Apply NixOS system configuration."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "nix-collect-garbage",
+          "purpose": {
+            "tr": "Nix store çöp toplama.",
+            "en": "Nix store garbage collection."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "guix",
+          "purpose": {
+            "tr": "GNU Guix paket ve sistem yöneticisi.",
+            "en": "GNU Guix package and system manager."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "pacman",
+          "purpose": {
+            "tr": "Arch Linux paket yöneticisi.",
+            "en": "Arch Linux package manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "emerge",
+          "purpose": {
+            "tr": "Gentoo Portage paket kurucu (emerge).",
+            "en": "Gentoo Portage package tool (emerge)."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "rpm-ostree",
+          "purpose": {
+            "tr": "rpm-ostree atomik/ostree sistem yönetimi.",
+            "en": "rpm-ostree atomic/ostree system management."
+          },
+          "learning_level": "unspecified"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "Nix ve Guix deklaratif modeller; nix ≠ NixOS; nixos-rebuild ayrıdır.",
+            "en": "Nix and Guix declarative models; nix ≠ NixOS; nixos-rebuild is distinct."
+          },
+          "related_commands": [
+            "nix",
+            "nix-shell",
+            "nix-env",
+            "nixos-rebuild",
+            "nix-collect-garbage",
+            "guix"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Ara",
+            "en": "Search"
+          },
+          "command": "nix search nixpkgs ripgrep",
+          "explanation": {
+            "tr": "nixpkgs içinde ripgrep arar.",
+            "en": "Searches nixpkgs for ripgrep."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "nix"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "nix",
+            "nix-shell",
+            "nix-env"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "package-managers"
+        },
+        {
+          "id": "package-managers-comparison"
+        }
+      ]
     },
     {
       "id": "package-managers",
@@ -36050,8 +39323,291 @@
           "https://guix.gnu.org/manual/en/html_node/",
           "docs/package-managers-comparison.md"
         ],
-        "notes": "Faz 4–6 expansion; draft pending human review of PM coverage."
-      }
+        "notes": "Faz 4–6 expansion; draft pending human review of PM coverage. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "packages"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "distributions": [
+        "arch",
+        "debian",
+        "ubuntu",
+        "fedora",
+        "rhel",
+        "opensuse-leap",
+        "opensuse-tumbleweed",
+        "alpine",
+        "void",
+        "gentoo",
+        "nixos"
+      ],
+      "intro": {
+        "tr": "Her distro ailesinin kendi paket yöneticisi vardır; isimleri ve bayrakları uydurulmaz. Sessiz Arch varsayılanı yok.",
+        "en": "Each distro family has its own package manager; names and flags are not invented. No silent Arch default."
+      },
+      "learning_path": [
+        {
+          "ref": "pacman",
+          "kind": "command"
+        },
+        {
+          "ref": "apt",
+          "kind": "command"
+        },
+        {
+          "ref": "dnf",
+          "kind": "command"
+        },
+        {
+          "ref": "zypper",
+          "kind": "command"
+        },
+        {
+          "ref": "apk",
+          "kind": "command"
+        },
+        {
+          "ref": "xbps-install",
+          "kind": "command"
+        },
+        {
+          "ref": "emerge",
+          "kind": "command"
+        },
+        {
+          "ref": "nix",
+          "kind": "command"
+        },
+        {
+          "ref": "brew",
+          "kind": "command"
+        },
+        {
+          "ref": "winget",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "linux-families",
+          "title": {
+            "tr": "Linux aileleri",
+            "en": "Linux families"
+          },
+          "summary": {
+            "tr": "pacman / apt / dnf / zypper / apk / xbps / emerge / nixos-rebuild ayrı modellerdir.",
+            "en": "pacman / apt / dnf / zypper / apk / xbps / emerge / nixos-rebuild are distinct models."
+          },
+          "related_commands": [
+            "pacman",
+            "apt",
+            "dnf",
+            "zypper",
+            "apk"
+          ]
+        },
+        {
+          "id": "declarative",
+          "title": {
+            "tr": "Deklaratif",
+            "en": "Declarative"
+          },
+          "summary": {
+            "tr": "Nix/Guix ve NixOS rebuild klasik dnf/apt değildir.",
+            "en": "Nix/Guix and NixOS rebuild are not classic dnf/apt."
+          },
+          "related_commands": [
+            "nix"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "pacman",
+          "purpose": {
+            "tr": "Arch Linux paket yöneticisi.",
+            "en": "Arch Linux package manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "apt",
+          "purpose": {
+            "tr": "Debian/Ubuntu yüksek seviye paket aracı.",
+            "en": "Debian/Ubuntu high-level package tool."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "dnf",
+          "purpose": {
+            "tr": "Fedora/RHEL paket yöneticisi.",
+            "en": "Fedora/RHEL package manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "zypper",
+          "purpose": {
+            "tr": "openSUSE/SUSE paket yöneticisi.",
+            "en": "openSUSE/SUSE package manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "apk",
+          "purpose": {
+            "tr": "Alpine Linux paket yöneticisi (apk).",
+            "en": "Alpine Linux package manager (apk)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "xbps-install",
+          "purpose": {
+            "tr": "Void Linux XBPS kurulum aracı.",
+            "en": "Void Linux XBPS install tool."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "emerge",
+          "purpose": {
+            "tr": "Gentoo Portage paket kurucu (emerge).",
+            "en": "Gentoo Portage package tool (emerge)."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "nix",
+          "purpose": {
+            "tr": "Nix paket yöneticisi (modern CLI).",
+            "en": "Nix package manager (modern CLI)."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "guix",
+          "purpose": {
+            "tr": "GNU Guix paket ve sistem yöneticisi.",
+            "en": "GNU Guix package and system manager."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "brew",
+          "purpose": {
+            "tr": "Homebrew paket yöneticisi (macOS).",
+            "en": "Homebrew package manager (macOS)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "winget",
+          "purpose": {
+            "tr": "Windows Paket Yöneticisi (WinGet) CLI.",
+            "en": "Windows Package Manager (WinGet) CLI."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "pkg",
+          "purpose": {
+            "tr": "FreeBSD ikili paket yöneticisi (pkgng).",
+            "en": "FreeBSD binary package manager (pkgng)."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Arch arama",
+            "en": "Arch search"
+          },
+          "command": "pacman -Ss curl",
+          "explanation": {
+            "tr": "Arch deposunda curl arar (kurmaz).",
+            "en": "Searches Arch repos for curl (does not install)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "pacman"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Debian güncelleme listesi",
+            "en": "Debian update lists"
+          },
+          "command": "sudo apt update",
+          "explanation": {
+            "tr": "Paket indekslerini yeniler; yükseltme yapmaz.",
+            "en": "Refreshes package indexes; does not upgrade."
+          },
+          "difficulty": "beginner",
+          "risk": "caution",
+          "platforms": [
+            "linux"
+          ],
+          "related_commands": [
+            "apt"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "warning",
+          "text": {
+            "tr": "Bilinmeyen paket adını uydurmayın; omit veya draft bırakın.",
+            "en": "Do not invent unknown package names; omit or leave draft."
+          }
+        },
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Leap zypper update ≠ Tumbleweed zypper dup.",
+            "en": "Leap zypper update ≠ Tumbleweed zypper dup."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma sorgu",
+            "en": "Read-only query"
+          },
+          "prompt": {
+            "tr": "Kendi distro PM’inizle bir paketi arayın/sorgulayın (kurmadan).",
+            "en": "Search/query one package with your distro PM (do not install)."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "pacman",
+            "apt",
+            "dnf"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "package-managers-comparison"
+        },
+        {
+          "id": "nix-guix"
+        }
+      ]
     },
     {
       "id": "package-managers-comparison",
@@ -36136,8 +39692,260 @@
           "https://en.opensuse.org/SDB:Zypper_manual",
           "https://guix.gnu.org/manual/en/html_node/"
         ],
-        "notes": "Faz 4–6 comparison expansion; draft pending human review."
-      }
+        "notes": "Faz 4–6 comparison expansion; draft pending human review. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "packages"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "intro": {
+        "tr": "PM’leri yan yana karşılaştırma; aileleri karıştırmayın.",
+        "en": "Side-by-side PM comparison; do not mix families."
+      },
+      "learning_path": [
+        {
+          "ref": "pacman",
+          "kind": "command"
+        },
+        {
+          "ref": "apt",
+          "kind": "command"
+        },
+        {
+          "ref": "dnf",
+          "kind": "command"
+        },
+        {
+          "ref": "dpkg",
+          "kind": "command"
+        },
+        {
+          "ref": "rpm",
+          "kind": "command"
+        },
+        {
+          "ref": "flatpak",
+          "kind": "command"
+        },
+        {
+          "ref": "paru",
+          "kind": "command"
+        },
+        {
+          "ref": "zypper",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "pacman",
+          "purpose": {
+            "tr": "Arch Linux paket yöneticisi.",
+            "en": "Arch Linux package manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "apt",
+          "purpose": {
+            "tr": "Debian/Ubuntu yüksek seviye paket aracı.",
+            "en": "Debian/Ubuntu high-level package tool."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "dnf",
+          "purpose": {
+            "tr": "Fedora/RHEL paket yöneticisi.",
+            "en": "Fedora/RHEL package manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "dpkg",
+          "purpose": {
+            "tr": "Debian paket yöneticisinin düşük seviye aracı.",
+            "en": "Debian package manager low-level tool."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "rpm",
+          "purpose": {
+            "tr": "RPM paket yöneticisi (düşük seviye).",
+            "en": "RPM package manager (low-level)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "flatpak",
+          "purpose": {
+            "tr": "Uygulama dağıtımı için Flatpak CLI.",
+            "en": "Flatpak application deployment CLI."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "paru",
+          "purpose": {
+            "tr": "AUR yardımcı pacman sarmalayıcı.",
+            "en": "AUR helper wrapping pacman."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "zypper",
+          "purpose": {
+            "tr": "openSUSE/SUSE paket yöneticisi.",
+            "en": "openSUSE/SUSE package manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "apk",
+          "purpose": {
+            "tr": "Alpine Linux paket yöneticisi (apk).",
+            "en": "Alpine Linux package manager (apk)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "emerge",
+          "purpose": {
+            "tr": "Gentoo Portage paket kurucu (emerge).",
+            "en": "Gentoo Portage package tool (emerge)."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "xbps-install",
+          "purpose": {
+            "tr": "Void Linux XBPS kurulum aracı.",
+            "en": "Void Linux XBPS install tool."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "xbps-query",
+          "purpose": {
+            "tr": "Void Linux XBPS sorgu aracı.",
+            "en": "Void Linux XBPS query tool."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "xbps-remove",
+          "purpose": {
+            "tr": "Void Linux XBPS kaldırma aracı.",
+            "en": "Void Linux XBPS remove tool."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "eopkg",
+          "purpose": {
+            "tr": "Solus paket yöneticisi (eopkg).",
+            "en": "Solus package manager (eopkg)."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "slackpkg",
+          "purpose": {
+            "tr": "Slackware resmi paket aracı.",
+            "en": "Slackware official package tool."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "nix",
+          "purpose": {
+            "tr": "Nix paket yöneticisi (modern CLI).",
+            "en": "Nix package manager (modern CLI)."
+          },
+          "learning_level": "unspecified"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "PM’leri yan yana karşılaştırma; aileleri karıştırmayın.",
+            "en": "Side-by-side PM comparison; do not mix families."
+          },
+          "related_commands": [
+            "pacman",
+            "apt",
+            "dnf",
+            "dpkg",
+            "rpm",
+            "flatpak"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Kur",
+            "en": "Install"
+          },
+          "command": "sudo pacman -S curl",
+          "explanation": {
+            "tr": "curl paketini kurar.",
+            "en": "Installs curl."
+          },
+          "difficulty": "intermediate",
+          "risk": "caution",
+          "related_commands": [
+            "pacman"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "pacman",
+            "apt",
+            "dnf"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "package-managers"
+        },
+        {
+          "id": "nix-guix"
+        }
+      ]
     },
     {
       "id": "path",
@@ -36182,8 +39990,160 @@
           "man environ / POSIX PATH",
           "man bash (COMMAND EXECUTION)"
         ],
-        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified."
-      }
+        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "shell"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "intro": {
+        "tr": "Kabuk komutları PATH üzerindeki dizinlerde arar; hangi ikili çalıştığını bilmek kritiktir.",
+        "en": "Shells look up commands on PATH; knowing which binary runs is critical."
+      },
+      "learning_path": [
+        {
+          "ref": "which",
+          "kind": "command"
+        },
+        {
+          "ref": "env",
+          "kind": "command"
+        },
+        {
+          "ref": "export",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "lookup-order",
+          "title": {
+            "tr": "Arama sırası",
+            "en": "Lookup order"
+          },
+          "summary": {
+            "tr": "Soldan sağa PATH girdileri; ilk eşleşme kazanır.",
+            "en": "Left-to-right PATH entries; first match wins."
+          },
+          "related_commands": [
+            "which"
+          ]
+        },
+        {
+          "id": "env-export",
+          "title": {
+            "tr": "Ortam değişkenleri",
+            "en": "Environment variables"
+          },
+          "summary": {
+            "tr": "export ile alt süreçlere aktarılır; Windows’ta set / $env: farklıdır.",
+            "en": "export passes to children; Windows set / $env: differ."
+          },
+          "related_commands": [
+            "env",
+            "export"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "which",
+          "purpose": {
+            "tr": "Komutun PATH üzerindeki konumunu gösterir.",
+            "en": "Locate a command on PATH."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "env",
+          "purpose": {
+            "tr": "Ortamı gösterir veya değiştirerek komut çalıştırır.",
+            "en": "Show environment or run a command in a modified environment."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "export",
+          "purpose": {
+            "tr": "Değişkeni ortamda dışa aktarır (yerleşik).",
+            "en": "Set export attribute for shell variables (builtin)."
+          },
+          "learning_level": "beginner"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "which ile konum",
+            "en": "Locate with which"
+          },
+          "command": "which ls",
+          "explanation": {
+            "tr": "ls ikilisinin yolunu basar (ortama göre).",
+            "en": "Prints the path of the ls binary (environment-dependent)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "which"
+          ]
+        },
+        {
+          "title": {
+            "tr": "PATH yazdır",
+            "en": "Print PATH"
+          },
+          "command": "echo \"$PATH\"",
+          "explanation": {
+            "tr": "Arama yollarını iki nokta ile ayırarak gösterir.",
+            "en": "Shows search paths separated by colons."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "echo"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "caution",
+          "text": {
+            "tr": "which ile type farklıdır: type kabuk yerleşiklerini de gösterir.",
+            "en": "which differs from type: type also reveals shell builtins."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "İkili yolunu bulun",
+            "en": "Find a binary path"
+          },
+          "prompt": {
+            "tr": "which python3 (veya py) ile echo \"$PATH\" çıktılarını karşılaştırın.",
+            "en": "Compare which python3 (or py) with echo \"$PATH\"."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "which"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "shell-pipes-redirection"
+        },
+        {
+          "id": "package-managers"
+        }
+      ]
     },
     {
       "id": "permissions",
@@ -36238,7 +40198,434 @@
           "man 8 sudo",
           "https://wiki.archlinux.org/title/Users_and_groups"
         ],
-        "notes": "Agent-authored; registry id already existed — article added this phase."
+        "notes": "Agent-authored; registry id already existed — article added this phase. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "users"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "intro": {
+        "tr": "Unix izinleri kullanıcı/grup/diğer ve rwx bitleriyle dosya erişimini denetler.",
+        "en": "Unix permissions control access via user/group/other and rwx bits."
+      },
+      "learning_path": [
+        {
+          "ref": "whoami",
+          "kind": "command"
+        },
+        {
+          "ref": "id",
+          "kind": "command"
+        },
+        {
+          "ref": "ls",
+          "kind": "command"
+        },
+        {
+          "ref": "chmod",
+          "kind": "command"
+        },
+        {
+          "ref": "chown",
+          "kind": "command"
+        },
+        {
+          "ref": "sudo",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "identity",
+          "title": {
+            "tr": "Kimlik",
+            "en": "Identity"
+          },
+          "summary": {
+            "tr": "whoami / id ile kullanıcı ve grupları görün.",
+            "en": "See user and groups with whoami / id."
+          },
+          "related_commands": [
+            "whoami",
+            "id"
+          ]
+        },
+        {
+          "id": "mode-bits",
+          "title": {
+            "tr": "Mod bitleri",
+            "en": "Mode bits"
+          },
+          "summary": {
+            "tr": "ls -l sol sütun; chmod sembolik veya oktal.",
+            "en": "ls -l left column; chmod symbolic or octal."
+          },
+          "related_commands": [
+            "ls",
+            "chmod"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "whoami",
+          "purpose": {
+            "tr": "Geçerli etkili kullanıcı adını basar.",
+            "en": "Print effective user name."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "id",
+          "purpose": {
+            "tr": "Kullanıcı ve grup kimliklerini basar.",
+            "en": "Print user and group IDs."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "chmod",
+          "purpose": {
+            "tr": "Dosya kipini (izinlerini) değiştirir.",
+            "en": "Change file mode bits."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "chown",
+          "purpose": {
+            "tr": "Dosya sahibini değiştirir.",
+            "en": "Change file owner and group."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "chgrp",
+          "purpose": {
+            "tr": "Dosya grup sahipliğini değiştirir.",
+            "en": "Change group ownership of files."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "sudo",
+          "purpose": {
+            "tr": "Komutu başka kullanıcı olarak çalıştırır (genelde root).",
+            "en": "Execute a command as another user (usually root)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "passwd",
+          "purpose": {
+            "tr": "Kullanıcı parola değiştirir.",
+            "en": "Change user password."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Kimim?",
+            "en": "Who am I?"
+          },
+          "command": "id",
+          "explanation": {
+            "tr": "uid/gid ve grupları listeler.",
+            "en": "Lists uid/gid and groups."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "id"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Özel dosya modu",
+            "en": "Private file mode"
+          },
+          "command": "chmod 600 /tmp/nova-private-demo",
+          "explanation": {
+            "tr": "Sahibe rw; gruba/diğerine yok. Önce dokunun; gerçek gizli dosyalarda dikkat.",
+            "en": "Owner rw; none for group/other. Touch first; be careful with real secrets."
+          },
+          "difficulty": "intermediate",
+          "risk": "caution",
+          "related_commands": [
+            "chmod"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "warning",
+          "text": {
+            "tr": "chmod -R ve chown -R geri dönüşü zor hatalar üretebilir; önce dar kapsam.",
+            "en": "chmod -R and chown -R can cause hard-to-undo mistakes; keep scope narrow first."
+          }
+        },
+        {
+          "kind": "caution",
+          "text": {
+            "tr": "sudo her sorunu çözmez; yanlış sudo daha büyük zarar verir.",
+            "en": "sudo does not fix everything; wrong sudo causes larger damage."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "id ve ls -l",
+            "en": "id and ls -l"
+          },
+          "prompt": {
+            "tr": "id; ls -ld ~ /tmp çıktılarını okuyun (değiştirmeyin).",
+            "en": "Run id; ls -ld ~ /tmp and read the modes (do not change)."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "id",
+            "ls"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "processes"
+        },
+        {
+          "id": "server-security-checklist"
+        }
+      ]
+    },
+    {
+      "id": "processes",
+      "kind": "nova-commands-concept",
+      "format": "topic-guide",
+      "title": {
+        "tr": "Süreçler",
+        "en": "Processes"
+      },
+      "summary": {
+        "tr": "ps, top, kill ve süreç gözlemi; sinyallerde dikkat.",
+        "en": "ps, top, kill, and process inspection; be careful with signals."
+      },
+      "intro": {
+        "tr": "Çalışan süreçleri görmek ve güvenli şekilde sinyal göndermek.",
+        "en": "See running processes and send signals safely."
+      },
+      "body": {
+        "tr": "`ps` anlık liste; `top`/`htop` canlı görünüm. `kill` varsayılan SIGTERM gönderir;\n`kill -9` (SIGKILL) son çaredir. Yanlış PID başka süreci öldürür.\n\nWindows’ta `Get-Process` / `Stop-Process` ayrı modeldir — Linux alias’ı değildir.",
+        "en": "`ps` is a snapshot; `top`/`htop` are live views. `kill` defaults to SIGTERM;\n`kill -9` (SIGKILL) is a last resort. The wrong PID kills the wrong process.\n\nOn Windows, `Get-Process` / `Stop-Process` are a different model — not Linux aliases."
+      },
+      "difficulty": "beginner",
+      "categories": [
+        "processes"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "tags": [
+        "ps",
+        "top",
+        "kill"
+      ],
+      "learning_path": [
+        {
+          "ref": "ps",
+          "kind": "command"
+        },
+        {
+          "ref": "top",
+          "kind": "command"
+        },
+        {
+          "ref": "htop",
+          "kind": "command"
+        },
+        {
+          "ref": "kill",
+          "kind": "command"
+        },
+        {
+          "ref": "pgrep",
+          "kind": "command"
+        },
+        {
+          "ref": "pkill",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "list",
+          "title": {
+            "tr": "Listeleme",
+            "en": "Listing"
+          },
+          "summary": {
+            "tr": "ps aux / ps -ef platforma göre.",
+            "en": "ps aux / ps -ef by platform."
+          },
+          "related_commands": [
+            "ps"
+          ]
+        },
+        {
+          "id": "signals",
+          "title": {
+            "tr": "Sinyaller",
+            "en": "Signals"
+          },
+          "summary": {
+            "tr": "Önce TERM; KILL son çare.",
+            "en": "TERM first; KILL last."
+          },
+          "related_commands": [
+            "kill"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "ps",
+          "purpose": {
+            "tr": "Anlık süreç listesi.",
+            "en": "Report a snapshot of processes."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "top",
+          "purpose": {
+            "tr": "Canlı süreç izleyici.",
+            "en": "Dynamic real-time process viewer."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "htop",
+          "purpose": {
+            "tr": "Etkileşimli süreç görüntüleyici.",
+            "en": "Interactive process viewer."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "kill",
+          "purpose": {
+            "tr": "Sürece sinyal gönderir.",
+            "en": "Send a signal to a process."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "pgrep",
+          "purpose": {
+            "tr": "Ada göre süreç PID’lerini bulur.",
+            "en": "Find process IDs by name."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "pkill",
+          "purpose": {
+            "tr": "Ada göre süreçlere sinyal gönderir.",
+            "en": "Signals processes by name pattern."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Kendi süreçleriniz",
+            "en": "Your processes"
+          },
+          "command": "ps -u \"$USER\"",
+          "explanation": {
+            "tr": "Kullanıcı süreçlerini listeler (POSIX tarzı).",
+            "en": "Lists user processes (POSIX-style)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "ps"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "warning",
+          "text": {
+            "tr": "pkill kalıbı birden fazla sürece isabet edebilir.",
+            "en": "pkill patterns can hit multiple processes."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "ps okuma",
+            "en": "Read ps"
+          },
+          "prompt": {
+            "tr": "ps -u \"$USER\" | head çıktısını yorumlayın; kill etmeyin.",
+            "en": "Interpret ps -u \"$USER\" | head; do not kill anything."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "ps"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "debugging"
+        },
+        {
+          "id": "monitoring-and-logs"
+        }
+      ],
+      "related_commands": [
+        "ps",
+        "top",
+        "htop",
+        "kill",
+        "pgrep",
+        "pkill"
+      ],
+      "related_concepts": [
+        "debugging",
+        "permissions",
+        "monitoring-and-logs"
+      ],
+      "see_also": [
+        "man ps",
+        "man kill"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man ps",
+          "man kill"
+        ],
+        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
       }
     },
     {
@@ -36287,8 +40674,172 @@
           "https://nginx.org/en/docs/",
           "https://caddyserver.com/docs/"
         ],
-        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
-      }
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "network",
+        "security"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "intro": {
+        "tr": "nginx/caddy reverse proxy okuma ve TLS notları; ACME/certbot henüz ince.",
+        "en": "nginx/caddy reverse-proxy reading and TLS notes; ACME/certbot still thin."
+      },
+      "learning_path": [
+        {
+          "ref": "nginx",
+          "kind": "command"
+        },
+        {
+          "ref": "caddy",
+          "kind": "command"
+        },
+        {
+          "ref": "curl",
+          "kind": "command"
+        },
+        {
+          "ref": "openssl",
+          "kind": "command"
+        },
+        {
+          "ref": "ss",
+          "kind": "command"
+        },
+        {
+          "ref": "systemctl",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "nginx",
+          "purpose": {
+            "tr": "HTTP reverse proxy / web sunucu.",
+            "en": "HTTP reverse proxy / web server."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "caddy",
+          "purpose": {
+            "tr": "Otomatik TLS’li web sunucu.",
+            "en": "Web server with automatic TLS."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "curl",
+          "purpose": {
+            "tr": "URL ile veri transferi yapar.",
+            "en": "Transfer data from or to a server."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "openssl",
+          "purpose": {
+            "tr": "TLS/SSL ve kriptografi araç kutusu.",
+            "en": "TLS/SSL and cryptography toolkit."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "ss",
+          "purpose": {
+            "tr": "Soket istatistiklerini gösterir.",
+            "en": "Investigate sockets."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "systemctl",
+          "purpose": {
+            "tr": "systemd birimlerini denetler.",
+            "en": "Control the systemd system and service manager."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "nginx/caddy reverse proxy okuma ve TLS notları; ACME/certbot henüz ince.",
+            "en": "nginx/caddy reverse-proxy reading and TLS notes; ACME/certbot still thin."
+          },
+          "related_commands": [
+            "nginx",
+            "caddy",
+            "curl",
+            "openssl",
+            "ss",
+            "systemctl"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Config test",
+            "en": "Config test"
+          },
+          "command": "nginx -t",
+          "explanation": {
+            "tr": "Yapılandırma sözdizimini test eder (yazmaz).",
+            "en": "Tests config syntax (does not write)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "nginx"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "nginx",
+            "caddy",
+            "curl"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "server-security-checklist"
+        },
+        {
+          "id": "networking-basics"
+        }
+      ]
     },
     {
       "id": "server-security-checklist",
@@ -36362,8 +40913,261 @@
           "https://wiki.archlinux.org/title/Security",
           "https://www.openssh.com/manual.html"
         ],
-        "notes": "NV-103 agent-authored guide concept; checklist UI state is Nova-local."
-      }
+        "notes": "NV-103 agent-authored guide concept; checklist UI state is Nova-local. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "security",
+        "system"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "intro": {
+        "tr": "Salt okuma güvenlik kontrol aşamaları; otomatik çalıştırma yok; yazma yolu yok.",
+        "en": "Read-only security checklist stages; no auto-run; no write-path steps."
+      },
+      "learning_path": [
+        {
+          "ref": "uname",
+          "kind": "command"
+        },
+        {
+          "ref": "who",
+          "kind": "command"
+        },
+        {
+          "ref": "last",
+          "kind": "command"
+        },
+        {
+          "ref": "pacman",
+          "kind": "command"
+        },
+        {
+          "ref": "apt",
+          "kind": "command"
+        },
+        {
+          "ref": "dnf",
+          "kind": "command"
+        },
+        {
+          "ref": "sshd",
+          "kind": "command"
+        },
+        {
+          "ref": "ssh",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "uname",
+          "purpose": {
+            "tr": "Sistem bilgisini yazdırır.",
+            "en": "Print system information."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "who",
+          "purpose": {
+            "tr": "Oturum açmış kullanıcıları listeler.",
+            "en": "Show who is logged on."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "last",
+          "purpose": {
+            "tr": "Son oturum açma kayıtlarını gösterir.",
+            "en": "Show recent login history."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "pacman",
+          "purpose": {
+            "tr": "Arch Linux paket yöneticisi.",
+            "en": "Arch Linux package manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "apt",
+          "purpose": {
+            "tr": "Debian/Ubuntu yüksek seviye paket aracı.",
+            "en": "Debian/Ubuntu high-level package tool."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "dnf",
+          "purpose": {
+            "tr": "Fedora/RHEL paket yöneticisi.",
+            "en": "Fedora/RHEL package manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "sshd",
+          "purpose": {
+            "tr": "OpenSSH sunucu süreci / yapılandırma testi.",
+            "en": "OpenSSH server daemon / config test."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "ssh",
+          "purpose": {
+            "tr": "Uzaktan güvenli kabuk oturumu.",
+            "en": "OpenSSH remote login client."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "systemctl",
+          "purpose": {
+            "tr": "systemd birimlerini denetler.",
+            "en": "Control the systemd system and service manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "ss",
+          "purpose": {
+            "tr": "Soket istatistiklerini gösterir.",
+            "en": "Investigate sockets."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "ufw",
+          "purpose": {
+            "tr": "Uncomplicated Firewall (iptables/nft ön yüz).",
+            "en": "Uncomplicated Firewall (iptables/nft frontend)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "firewall-cmd",
+          "purpose": {
+            "tr": "firewalld komut satırı.",
+            "en": "firewalld command-line client."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "visudo",
+          "purpose": {
+            "tr": "sudoers dosyasını güvenli düzenler.",
+            "en": "Safely edit the sudoers file."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "sudo",
+          "purpose": {
+            "tr": "Komutu başka kullanıcı olarak çalıştırır (genelde root).",
+            "en": "Execute a command as another user (usually root)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "docker",
+          "purpose": {
+            "tr": "Docker konteyner CLI.",
+            "en": "Docker container CLI."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "nginx",
+          "purpose": {
+            "tr": "HTTP reverse proxy / web sunucu.",
+            "en": "HTTP reverse proxy / web server."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "Salt okuma güvenlik kontrol aşamaları; otomatik çalıştırma yok; yazma yolu yok.",
+            "en": "Read-only security checklist stages; no auto-run; no write-path steps."
+          },
+          "related_commands": [
+            "uname",
+            "who",
+            "last",
+            "pacman",
+            "apt",
+            "dnf"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Tümü",
+            "en": "All"
+          },
+          "command": "uname -a",
+          "explanation": {
+            "tr": "Özet sistem kimliği.",
+            "en": "Summary system identity."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "uname"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "uname",
+            "who",
+            "last"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "firewalls"
+        },
+        {
+          "id": "permissions"
+        }
+      ]
     },
     {
       "id": "shell-pipes-redirection",
@@ -36410,8 +41214,238 @@
           "man bash (REDIRECTION, PIPES)",
           "POSIX shell redirection"
         ],
-        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified."
-      }
+        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "shell",
+        "text"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "intro": {
+        "tr": "Borular (|) ve yönlendirme (>, >>, <, 2>) komutları birleştirir; veri akışını kontrol eder.",
+        "en": "Pipes (|) and redirection (>, >>, <, 2>) compose commands and control data flow."
+      },
+      "learning_path": [
+        {
+          "ref": "echo",
+          "kind": "command"
+        },
+        {
+          "ref": "cat",
+          "kind": "command"
+        },
+        {
+          "ref": "grep",
+          "kind": "command"
+        },
+        {
+          "ref": "head",
+          "kind": "command"
+        },
+        {
+          "ref": "tail",
+          "kind": "command"
+        },
+        {
+          "ref": "wc",
+          "kind": "command"
+        },
+        {
+          "ref": "sort",
+          "kind": "command"
+        },
+        {
+          "ref": "uniq",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "stdout-stderr",
+          "title": {
+            "tr": "stdout / stderr",
+            "en": "stdout / stderr"
+          },
+          "summary": {
+            "tr": "> stdout; 2> stderr; | bir sürecin stdout’unu diğerinin stdin’ine bağlar.",
+            "en": "> is stdout; 2> stderr; | connects stdout of one process to stdin of the next."
+          },
+          "related_commands": [
+            "echo",
+            "cat"
+          ]
+        },
+        {
+          "id": "filters",
+          "title": {
+            "tr": "Filtreler",
+            "en": "Filters"
+          },
+          "summary": {
+            "tr": "grep/head/tail/wc/sort/uniq sık boru halkalarıdır.",
+            "en": "grep/head/tail/wc/sort/uniq are common pipe stages."
+          },
+          "related_commands": [
+            "grep",
+            "head",
+            "tail",
+            "wc"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "cat",
+          "purpose": {
+            "tr": "Dosyaları birleştirip yazar.",
+            "en": "Concatenate and print files."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "grep",
+          "purpose": {
+            "tr": "Metinde desen arar.",
+            "en": "Print lines matching a pattern."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "head",
+          "purpose": {
+            "tr": "Dosyanın başını gösterir.",
+            "en": "Show the start of files."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "tail",
+          "purpose": {
+            "tr": "Dosyanın sonunu gösterir.",
+            "en": "Show the end of files."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "wc",
+          "purpose": {
+            "tr": "Satır, kelime ve bayt sayar.",
+            "en": "Count lines, words, and bytes."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "sort",
+          "purpose": {
+            "tr": "Satırları sıralar.",
+            "en": "Sort lines of text."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "uniq",
+          "purpose": {
+            "tr": "Ardışık yinelenen satırları bildirir veya süzgeçler.",
+            "en": "Report or omit repeated adjacent lines."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "tee",
+          "purpose": {
+            "tr": "Çıktıyı hem dosyaya hem stdout’a yazar.",
+            "en": "Write output to files and stdout."
+          },
+          "learning_level": "beginner"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Basit boru",
+            "en": "Simple pipe"
+          },
+          "command": "printf \"b\\na\\nb\\n\" | sort | uniq -c",
+          "explanation": {
+            "tr": "Satırları sıralar ve tekrarları sayar.",
+            "en": "Sorts lines and counts duplicates."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "sort",
+            "uniq"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Dosyaya yaz (dikkat)",
+            "en": "Write to file (careful)"
+          },
+          "command": "echo hello > /tmp/nova-guide-demo.txt",
+          "explanation": {
+            "tr": "> hedefi üzerine yazar; mevcut dosyayı siler. Öğrenme için /tmp kullanın.",
+            "en": "> overwrites the target; destroys existing content. Use /tmp while learning."
+          },
+          "difficulty": "intermediate",
+          "risk": "caution",
+          "related_commands": [
+            "echo"
+          ],
+          "warnings": [
+            {
+              "tr": "> mevcut dosyayı siler; kritik yollarda kullanmayın.",
+              "en": "> truncates existing files; avoid critical paths."
+            }
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "warning",
+          "text": {
+            "tr": ">> ekler; > üzerine yazar. Yanlış yönlendirme veri kaybettirir.",
+            "en": ">> appends; > overwrites. Wrong redirection loses data."
+          }
+        },
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "Önce komutu tek başına çalıştırıp çıktıyı görün; sonra boru ekleyin.",
+            "en": "Run each stage alone first, then add the pipe."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "/tmp üzerinde boru",
+            "en": "Pipe on /tmp"
+          },
+          "prompt": {
+            "tr": "echo -e \"x\\ny\\nx\" > /tmp/t.txt; sort /tmp/t.txt | uniq -c",
+            "en": "echo -e \"x\\ny\\nx\" > /tmp/t.txt; sort /tmp/t.txt | uniq -c"
+          },
+          "risk": "caution",
+          "related_commands": [
+            "sort",
+            "uniq"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "text-processing"
+        },
+        {
+          "id": "finding-files"
+        }
+      ]
     },
     {
       "id": "storage",
@@ -36472,8 +41506,261 @@
           "https://wiki.archlinux.org/title/File_systems"
         ],
         "last_reviewed": "2026-11-02",
-        "notes": "Updated for mkfs/parted/wipefs/fsck coverage; no destructive runs."
-      }
+        "notes": "Updated for mkfs/parted/wipefs/fsck coverage; no destructive runs. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "disks",
+        "filesystem"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "intro": {
+        "tr": "Disk kullanımı, bağlama ve dosya sistemleri — yıkıcı mkfs örnekleri rehber dışı bırakılır.",
+        "en": "Disk usage, mounts, and filesystems — destructive mkfs practice stays out of exercises."
+      },
+      "learning_path": [
+        {
+          "ref": "lsblk",
+          "kind": "command"
+        },
+        {
+          "ref": "df",
+          "kind": "command"
+        },
+        {
+          "ref": "du",
+          "kind": "command"
+        },
+        {
+          "ref": "mount",
+          "kind": "command"
+        },
+        {
+          "ref": "umount",
+          "kind": "command"
+        },
+        {
+          "ref": "findmnt",
+          "kind": "command"
+        },
+        {
+          "ref": "blkid",
+          "kind": "command"
+        },
+        {
+          "ref": "fdisk",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "lsblk",
+          "purpose": {
+            "tr": "Blok aygıtları ağaç olarak listeler.",
+            "en": "List block devices."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "df",
+          "purpose": {
+            "tr": "Dosya sistemi disk kullanımı.",
+            "en": "Report file system disk space usage."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "du",
+          "purpose": {
+            "tr": "Dizin disk kullanımını tahmin eder.",
+            "en": "Estimate file space usage."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "mount",
+          "purpose": {
+            "tr": "Dosya sistemi bağlar.",
+            "en": "Mount a filesystem."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "umount",
+          "purpose": {
+            "tr": "Dosya sistemi bağlantısını kaldırır.",
+            "en": "Unmount filesystems."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "findmnt",
+          "purpose": {
+            "tr": "Bağlı dosya sistemlerini listeler.",
+            "en": "List mounted filesystems (libmount)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "blkid",
+          "purpose": {
+            "tr": "Blok aygıt özniteliklerini basar.",
+            "en": "Print block device attributes."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "fdisk",
+          "purpose": {
+            "tr": "Disk bölüm tablosu düzenleyici.",
+            "en": "Manipulate disk partition tables."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "parted",
+          "purpose": {
+            "tr": "GNU Parted — bölüm tablosu düzenleyici (yıkıcı).",
+            "en": "GNU Parted — partition table manipulator (destructive)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "dd",
+          "purpose": {
+            "tr": "Blok düzeyinde kopyalama/dönüştürme.",
+            "en": "Convert and copy files at block level."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "sync",
+          "purpose": {
+            "tr": "Önbellekteki yazıları diske boşaltır.",
+            "en": "Flush filesystem write caches to disk."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "mkfs",
+          "purpose": {
+            "tr": "Dosya sistemi oluşturma ön yüzü (yıkıcı).",
+            "en": "Frontend to build a Linux filesystem (destructive)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "mkfs.ext4",
+          "purpose": {
+            "tr": "ext4 dosya sistemi oluşturur (yıkıcı).",
+            "en": "Create an ext4 filesystem (destructive)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "mkfs.xfs",
+          "purpose": {
+            "tr": "XFS dosya sistemi oluşturur (yıkıcı).",
+            "en": "Construct an XFS filesystem (destructive)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "mkfs.btrfs",
+          "purpose": {
+            "tr": "Btrfs dosya sistemi oluşturur (yıkıcı).",
+            "en": "Create a Btrfs filesystem (destructive)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "mkfs.fat",
+          "purpose": {
+            "tr": "FAT/VFAT dosya sistemi oluşturur (yıkıcı).",
+            "en": "Create a FAT/VFAT filesystem (destructive)."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "Disk kullanımı, bağlama ve dosya sistemleri — yıkıcı mkfs örnekleri rehber dışı bırakılır.",
+            "en": "Disk usage, mounts, and filesystems — destructive mkfs practice stays out of exercises."
+          },
+          "related_commands": [
+            "lsblk",
+            "df",
+            "du",
+            "mount",
+            "umount",
+            "findmnt"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Ağaç",
+            "en": "Tree"
+          },
+          "command": "lsblk -f",
+          "explanation": {
+            "tr": "Aygıtlar + FS; format/mkfs öncesi doğrulama için ilk adım.",
+            "en": "Devices + filesystems; first step before any format/mkfs."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "lsblk"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "lsblk",
+            "df",
+            "du"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "backup"
+        },
+        {
+          "id": "archives-compression"
+        }
+      ]
     },
     {
       "id": "systemd",
@@ -36525,8 +41812,227 @@
           "man systemctl",
           "https://wiki.archlinux.org/title/Systemd"
         ],
-        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified."
-      }
+        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "system"
+      ],
+      "platforms": [
+        "linux"
+      ],
+      "distributions": [
+        "arch",
+        "debian",
+        "ubuntu",
+        "fedora",
+        "rhel",
+        "opensuse-leap",
+        "opensuse-tumbleweed",
+        "nixos"
+      ],
+      "intro": {
+        "tr": "systemd birimlerini durumlandırma ve günlükler; Alpine/Void/Gentoo OpenRC/runit ayrıdır.",
+        "en": "Inspect systemd units and journals; Alpine/Void/Gentoo use OpenRC/runit instead."
+      },
+      "learning_path": [
+        {
+          "ref": "systemctl",
+          "kind": "command"
+        },
+        {
+          "ref": "journalctl",
+          "kind": "command"
+        },
+        {
+          "ref": "hostnamectl",
+          "kind": "command"
+        },
+        {
+          "ref": "timedatectl",
+          "kind": "command"
+        },
+        {
+          "ref": "loginctl",
+          "kind": "command"
+        },
+        {
+          "ref": "systemd-analyze",
+          "kind": "command"
+        },
+        {
+          "ref": "bootctl",
+          "kind": "command"
+        },
+        {
+          "ref": "service",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "systemctl",
+          "purpose": {
+            "tr": "systemd birimlerini denetler.",
+            "en": "Control the systemd system and service manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "journalctl",
+          "purpose": {
+            "tr": "systemd günlüğünü sorgular.",
+            "en": "Query the systemd journal."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "hostnamectl",
+          "purpose": {
+            "tr": "Hostname ve ilgili ayarları yönetir.",
+            "en": "Query or change system hostname settings."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "timedatectl",
+          "purpose": {
+            "tr": "Sistem saati ve zaman dilimini denetler.",
+            "en": "Control system time and timezone."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "loginctl",
+          "purpose": {
+            "tr": "systemd oturum ve kullanıcı denetimi.",
+            "en": "Control systemd-logind sessions and users."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "systemd-analyze",
+          "purpose": {
+            "tr": "systemd önyükleme ve birim çözümlemesi.",
+            "en": "Analyze systemd boot and unit structure."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "bootctl",
+          "purpose": {
+            "tr": "systemd-boot ve EFI önyükleme denetimi.",
+            "en": "Control firmware and systemd-boot entries."
+          },
+          "learning_level": "advanced"
+        },
+        {
+          "id": "service",
+          "purpose": {
+            "tr": "FreeBSD/NetBSD rc.d servis denetimi (systemd değil).",
+            "en": "FreeBSD/NetBSD rc.d service control (not systemd)."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "sysrc",
+          "purpose": {
+            "tr": "FreeBSD rc.conf güvenli okuma/yazma yardımcısı.",
+            "en": "FreeBSD rc.conf safe get/set helper."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "rcctl",
+          "purpose": {
+            "tr": "OpenBSD rc.d servis denetimi (systemd / FreeBSD service değil).",
+            "en": "OpenBSD rc.d service control (not systemd / FreeBSD service)."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "launchctl",
+          "purpose": {
+            "tr": "launchd iş yükü denetimi (macOS servisleri).",
+            "en": "launchd job control (macOS services)."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "systemd birimlerini durumlandırma ve günlükler; Alpine/Void/Gentoo OpenRC/runit ayrıdır.",
+            "en": "Inspect systemd units and journals; Alpine/Void/Gentoo use OpenRC/runit instead."
+          },
+          "related_commands": [
+            "systemctl",
+            "journalctl",
+            "hostnamectl",
+            "timedatectl",
+            "loginctl",
+            "systemd-analyze"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Durum",
+            "en": "Status"
+          },
+          "command": "systemctl status sshd",
+          "explanation": {
+            "tr": "sshd birim durumu (ad dağıtıma göre ssh/sshd).",
+            "en": "sshd unit status (name may be ssh/sshd)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "systemctl"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "systemctl",
+            "journalctl",
+            "hostnamectl"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "monitoring-and-logs"
+        },
+        {
+          "id": "server-security-checklist"
+        }
+      ]
     },
     {
       "id": "terminal-basics",
@@ -36571,7 +42077,558 @@
           "POSIX.1 shell command language (overview)",
           "man bash (INVOCATION, SHELL GRAMMAR)"
         ],
-        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified."
+        "notes": "Agent-authored teaching article; needs maintainer spot-check before verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "shell",
+        "filesystem"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "intro": {
+        "tr": "Terminal, kabuk istemi, komut satırı biçimi ve çıkış kodları — Komut Rehberi’ne giriş.",
+        "en": "Terminal, shell prompt, command-line form, and exit statuses — entry to the Command Guide."
+      },
+      "learning_path": [
+        {
+          "ref": "pwd",
+          "kind": "command",
+          "note": {
+            "tr": "Nerede olduğunuzu görün.",
+            "en": "See where you are."
+          }
+        },
+        {
+          "ref": "ls",
+          "kind": "command",
+          "note": {
+            "tr": "Dizin içeriğini okuyun.",
+            "en": "Read directory contents."
+          }
+        },
+        {
+          "ref": "cd",
+          "kind": "command",
+          "note": {
+            "tr": "Dizin değiştirin (tırnak!).",
+            "en": "Change directory (quote paths!)."
+          }
+        },
+        {
+          "ref": "echo",
+          "kind": "command",
+          "note": {
+            "tr": "Metin ve değişkenleri yazdırın.",
+            "en": "Print text and variables."
+          }
+        },
+        {
+          "ref": "history",
+          "kind": "command",
+          "note": {
+            "tr": "Önceki satırları gözden geçirin.",
+            "en": "Review previous lines."
+          }
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "prompt-and-line",
+          "title": {
+            "tr": "İstem ve satır",
+            "en": "Prompt and line"
+          },
+          "summary": {
+            "tr": "Kabuk hazır olduğunu gösterir; Enter satırı gönderir.",
+            "en": "Shell shows readiness; Enter sends the line."
+          },
+          "related_commands": [
+            "echo",
+            "history"
+          ]
+        },
+        {
+          "id": "exit-status",
+          "title": {
+            "tr": "Çıkış kodu",
+            "en": "Exit status"
+          },
+          "summary": {
+            "tr": "0 başarı; sıfır dışı hata. echo $? ile bakın.",
+            "en": "0 is success; non-zero is failure. Check with echo $?."
+          },
+          "related_commands": [
+            "echo"
+          ]
+        },
+        {
+          "id": "help",
+          "title": {
+            "tr": "Yardım",
+            "en": "Help"
+          },
+          "summary": {
+            "tr": "man ve --help bank doğrulamasından önce kaynak kabul edilir.",
+            "en": "man and --help are sources before bank verification."
+          },
+          "related_commands": [
+            "ls"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "pwd",
+          "purpose": {
+            "tr": "Çalışma dizinini yazdırır.",
+            "en": "Print working directory."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "ls",
+          "purpose": {
+            "tr": "Dizin içeriğini listeler.",
+            "en": "List directory contents."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "cd",
+          "purpose": {
+            "tr": "Çalışma dizinini değiştirir (kabuk yerleşiği).",
+            "en": "Change the shell working directory (builtin)."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "echo",
+          "purpose": {
+            "tr": "Argümanları yazar.",
+            "en": "Display a line of text."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "history",
+          "purpose": {
+            "tr": "Komut geçmişini listeler (yerleşik).",
+            "en": "Display command history (builtin)."
+          },
+          "learning_level": "beginner"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Konum + liste",
+            "en": "Location + list"
+          },
+          "command": "pwd && ls",
+          "explanation": {
+            "tr": "Çalışma dizinini yazdırır ve içeriği listeler.",
+            "en": "Prints the working directory and lists its contents."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "pwd",
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Gizli dosyalar",
+            "en": "Hidden files"
+          },
+          "command": "ls -la",
+          "explanation": {
+            "tr": "Uzun biçim ve gizli girdiler (nokta ile başlayanlar).",
+            "en": "Long format including hidden (dot) entries."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "ls"
+          ]
+        },
+        {
+          "title": {
+            "tr": "Son çıkış kodu",
+            "en": "Last exit status"
+          },
+          "command": "false; echo $?",
+          "explanation": {
+            "tr": "false başarısız olur; $? genelde 1 gösterir.",
+            "en": "false fails; $? usually shows 1."
+          },
+          "difficulty": "intermediate",
+          "risk": "safe",
+          "platforms": [
+            "linux",
+            "macos",
+            "bsd"
+          ],
+          "related_commands": [
+            "echo"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "Boşluk içeren yolları tırnaklayın: cd \"My Documents\".",
+            "en": "Quote paths with spaces: cd \"My Documents\"."
+          }
+        },
+        {
+          "kind": "warning",
+          "text": {
+            "tr": "PATH’te görünmek bank doğrulaması değildir; draft rozeti korunur.",
+            "en": "Being on PATH is not bank verification; keep the draft badge honest."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Ev dizinini keşfet",
+            "en": "Explore home"
+          },
+          "prompt": {
+            "tr": "pwd, ls -la ~ ve cd /tmp; pwd çalıştırın; sonra geri dönün.",
+            "en": "Run pwd, ls -la ~, then cd /tmp; pwd; then return home."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "pwd",
+            "ls",
+            "cd"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "path",
+          "note": {
+            "tr": "PATH nasıl aranır?",
+            "en": "How PATH lookup works"
+          }
+        },
+        {
+          "id": "shell-pipes-redirection",
+          "note": {
+            "tr": "Borular ve yönlendirme",
+            "en": "Pipes and redirection"
+          }
+        }
+      ]
+    },
+    {
+      "id": "text-processing",
+      "kind": "nova-commands-concept",
+      "format": "topic-guide",
+      "title": {
+        "tr": "Metin işleme",
+        "en": "Text processing"
+      },
+      "summary": {
+        "tr": "cat, grep, sed, awk ve satır araçlarıyla metin süzme.",
+        "en": "Filter text with cat, grep, sed, awk, and line tools."
+      },
+      "intro": {
+        "tr": "Metin dosyalarını okumak, süzmek ve dönüştürmek günlük CLI işinin çekirdeğidir.",
+        "en": "Reading, filtering, and transforming text files is core daily CLI work."
+      },
+      "body": {
+        "tr": "Metin işleme, borularla birleşince güçlüdür. `cat` içeriği gösterir; `grep` desen arar;\n`sed` ve `awk` satır dönüşümü yapar. GNU ile BSD araç bayrakları farklılık gösterebilir —\nbankada platform etiketlerine bakın; uydurmayın.\n\n**Öğrenme sırası:** cat → head/tail → grep → cut/tr → sort/uniq → sed → awk.\n\n**Uyarı:** `sed -i` yerinde düzenler; önce kopya veya `/tmp` üzerinde deneyin.",
+        "en": "Text processing is powerful when composed with pipes. `cat` shows content; `grep` matches\npatterns; `sed` and `awk` transform lines. GNU vs BSD flag differences matter — check\nplatform tags in the bank; do not invent flags.\n\n**Learning order:** cat → head/tail → grep → cut/tr → sort/uniq → sed → awk.\n\n**Warning:** `sed -i` edits in place; practice on a copy or under `/tmp` first."
+      },
+      "difficulty": "beginner",
+      "categories": [
+        "text"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "tags": [
+        "text",
+        "grep",
+        "sed",
+        "awk"
+      ],
+      "learning_path": [
+        {
+          "ref": "cat",
+          "kind": "command"
+        },
+        {
+          "ref": "grep",
+          "kind": "command"
+        },
+        {
+          "ref": "sed",
+          "kind": "command"
+        },
+        {
+          "ref": "awk",
+          "kind": "command"
+        },
+        {
+          "ref": "cut",
+          "kind": "command"
+        },
+        {
+          "ref": "head",
+          "kind": "command"
+        },
+        {
+          "ref": "tail",
+          "kind": "command"
+        },
+        {
+          "ref": "wc",
+          "kind": "command"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "view",
+          "title": {
+            "tr": "Görüntüleme",
+            "en": "Viewing"
+          },
+          "summary": {
+            "tr": "cat/head/tail ile bakın.",
+            "en": "View with cat/head/tail."
+          },
+          "related_commands": [
+            "cat",
+            "head",
+            "tail"
+          ]
+        },
+        {
+          "id": "match",
+          "title": {
+            "tr": "Eşleştirme",
+            "en": "Matching"
+          },
+          "summary": {
+            "tr": "grep ile desen.",
+            "en": "Patterns with grep."
+          },
+          "related_commands": [
+            "grep"
+          ]
+        },
+        {
+          "id": "transform",
+          "title": {
+            "tr": "Dönüştürme",
+            "en": "Transform"
+          },
+          "summary": {
+            "tr": "sed/awk/cut/tr.",
+            "en": "sed/awk/cut/tr."
+          },
+          "related_commands": [
+            "sed",
+            "awk",
+            "cut"
+          ]
+        }
+      ],
+      "command_table": [
+        {
+          "id": "cat",
+          "purpose": {
+            "tr": "Dosyaları birleştirip yazar.",
+            "en": "Concatenate and print files."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "grep",
+          "purpose": {
+            "tr": "Metinde desen arar.",
+            "en": "Print lines matching a pattern."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "sed",
+          "purpose": {
+            "tr": "Akış düzenleyici.",
+            "en": "Stream editor."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "awk",
+          "purpose": {
+            "tr": "Desen tarama ve metin işleme dili.",
+            "en": "Pattern scanning and text processing language."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "cut",
+          "purpose": {
+            "tr": "Satırlardan alan veya bayt keser.",
+            "en": "Remove sections from each line."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "head",
+          "purpose": {
+            "tr": "Dosyanın başını gösterir.",
+            "en": "Show the start of files."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "tail",
+          "purpose": {
+            "tr": "Dosyanın sonunu gösterir.",
+            "en": "Show the end of files."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "wc",
+          "purpose": {
+            "tr": "Satır, kelime ve bayt sayar.",
+            "en": "Count lines, words, and bytes."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "sort",
+          "purpose": {
+            "tr": "Satırları sıralar.",
+            "en": "Sort lines of text."
+          },
+          "learning_level": "beginner"
+        },
+        {
+          "id": "uniq",
+          "purpose": {
+            "tr": "Ardışık yinelenen satırları bildirir veya süzgeçler.",
+            "en": "Report or omit repeated adjacent lines."
+          },
+          "learning_level": "beginner"
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Desen ara",
+            "en": "Search pattern"
+          },
+          "command": "grep -n pattern /etc/hosts",
+          "explanation": {
+            "tr": "hosts dosyasında satır numaralı arama (salt okuma).",
+            "en": "Line-numbered search in hosts (read-only)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "grep"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "tip",
+          "text": {
+            "tr": "Önce grep -n ile bulun; sonra sed planlayın.",
+            "en": "Find with grep -n first; then plan sed."
+          }
+        },
+        {
+          "kind": "warning",
+          "text": {
+            "tr": "sed -i ve > yönlendirme veri kaybettirir.",
+            "en": "sed -i and > redirection can lose data."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "grep alıştırması",
+            "en": "grep practice"
+          },
+          "prompt": {
+            "tr": "grep -n root /etc/passwd (salt okuma) çıktısını yorumlayın.",
+            "en": "Interpret grep -n root /etc/passwd (read-only) output."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "grep"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "shell-pipes-redirection"
+        },
+        {
+          "id": "finding-files"
+        },
+        {
+          "id": "json-data"
+        }
+      ],
+      "related_commands": [
+        "cat",
+        "grep",
+        "sed",
+        "awk",
+        "cut",
+        "head",
+        "tail",
+        "wc",
+        "sort",
+        "uniq"
+      ],
+      "related_concepts": [
+        "shell-pipes-redirection",
+        "json-data",
+        "finding-files"
+      ],
+      "see_also": [
+        "man grep",
+        "man sed",
+        "man awk"
+      ],
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "man grep",
+          "man sed",
+          "man awk"
+        ],
+        "notes": "NV-123 new topic guide from bank + man-oriented teaching; PDF not available in env; not human-verified."
       }
     },
     {
@@ -36617,8 +42674,140 @@
           "https://libvirt.org/docs.html",
           "https://www.qemu.org/docs/master/tools/qemu-img.html"
         ],
-        "notes": "Agent-authored Faz 7 teaching draft; not human-verified."
-      }
+        "notes": "Agent-authored Faz 7 teaching draft; not human-verified. NV-123 topic-guide structure; agent-authored; needs human review before verified."
+      },
+      "format": "topic-guide",
+      "categories": [
+        "virtualization"
+      ],
+      "platforms": [
+        "linux"
+      ],
+      "intro": {
+        "tr": "libvirt/virsh ve disk img araçlarına giriş; appliance CLI’ler kapsam dışı.",
+        "en": "Intro to libvirt/virsh and disk image tools; appliance CLIs are out of scope."
+      },
+      "learning_path": [
+        {
+          "ref": "virsh",
+          "kind": "command"
+        },
+        {
+          "ref": "qemu-img",
+          "kind": "command"
+        },
+        {
+          "ref": "systemctl",
+          "kind": "command"
+        },
+        {
+          "ref": "lsblk",
+          "kind": "command"
+        }
+      ],
+      "command_table": [
+        {
+          "id": "virsh",
+          "purpose": {
+            "tr": "libvirt yönetim kabuğu.",
+            "en": "libvirt management shell."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "qemu-img",
+          "purpose": {
+            "tr": "QEMU disk imajı aracı.",
+            "en": "QEMU disk image utility."
+          },
+          "learning_level": "unspecified"
+        },
+        {
+          "id": "systemctl",
+          "purpose": {
+            "tr": "systemd birimlerini denetler.",
+            "en": "Control the systemd system and service manager."
+          },
+          "learning_level": "intermediate"
+        },
+        {
+          "id": "lsblk",
+          "purpose": {
+            "tr": "Blok aygıtları ağaç olarak listeler.",
+            "en": "List block devices."
+          },
+          "learning_level": "intermediate"
+        }
+      ],
+      "subtopics": [
+        {
+          "id": "overview",
+          "title": {
+            "tr": "Genel bakış",
+            "en": "Overview"
+          },
+          "summary": {
+            "tr": "libvirt/virsh ve disk img araçlarına giriş; appliance CLI’ler kapsam dışı.",
+            "en": "Intro to libvirt/virsh and disk image tools; appliance CLIs are out of scope."
+          },
+          "related_commands": [
+            "virsh",
+            "qemu-img",
+            "systemctl",
+            "lsblk"
+          ]
+        }
+      ],
+      "graded_examples": [
+        {
+          "title": {
+            "tr": "Domain listesi",
+            "en": "List domains"
+          },
+          "command": "virsh list --all",
+          "explanation": {
+            "tr": "Tüm sanal makineleri listeler (libvirt erişimi).",
+            "en": "Lists all VMs (needs libvirt access)."
+          },
+          "difficulty": "beginner",
+          "risk": "safe",
+          "related_commands": [
+            "virsh"
+          ]
+        }
+      ],
+      "callouts": [
+        {
+          "kind": "note",
+          "text": {
+            "tr": "Örnekler bank kayıtlarından gelir; man/--help ile doğrulanmadan verified yapılmaz.",
+            "en": "Examples come from bank records; not verified without man/--help review."
+          }
+        }
+      ],
+      "safe_exercises": [
+        {
+          "title": {
+            "tr": "Salt okuma keşif",
+            "en": "Read-only exploration"
+          },
+          "prompt": {
+            "tr": "Bu konudaki bir safe/caution komutun beginner örneğini okuyun; çalıştırmadan önce risk rozetine bakın.",
+            "en": "Read a beginner example of a safe/caution command in this topic; check the risk badge before running."
+          },
+          "risk": "safe",
+          "related_commands": [
+            "virsh",
+            "qemu-img",
+            "systemctl"
+          ]
+        }
+      ],
+      "next_steps": [
+        {
+          "id": "containers-basics"
+        }
+      ]
     }
   ],
   "tasks": [

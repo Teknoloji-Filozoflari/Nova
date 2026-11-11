@@ -379,8 +379,14 @@ pub struct CommandEntry {
     pub category: String,
     #[serde(default)]
     pub summary: LocalizedString,
+    /// Kısa amaç cümlesi (özetten ayrı; yoksa boş).
+    #[serde(default)]
+    pub purpose: LocalizedString,
     #[serde(default)]
     pub description: LocalizedString,
+    /// Komut düzeyinde yaygın hatalar (örnek `warnings` ile birleşir).
+    #[serde(default)]
+    pub common_mistakes: Vec<LocalizedString>,
     #[serde(default)]
     pub tags: Vec<String>,
     #[serde(default)]
@@ -491,28 +497,126 @@ impl IntentPhrases {
     }
 }
 
-/// Öğrenme konsepti makalesi (Başlangıç “konu” girişi).
-#[derive(Debug, Clone, Deserialize)]
-pub struct ConceptEntry {
-    pub id: String,
+/// Konu rehberi öğrenme yolu adımı (`learning_path[]`).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct TopicLearningStep {
+    #[serde(default)]
+    pub r#ref: String,
     #[serde(default)]
     pub kind: Option<String>,
+    #[serde(default)]
+    pub note: LocalizedString,
+}
+
+/// Konu rehberi alt başlık (`subtopics[]`).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct TopicSubtopic {
+    #[serde(default)]
+    pub id: String,
     #[serde(default)]
     pub title: LocalizedString,
     #[serde(default)]
     pub summary: LocalizedString,
     #[serde(default)]
+    pub related_commands: Vec<String>,
+}
+
+/// Konu rehberi komut tablosu satırı (`command_table[]`).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct TopicCommandRow {
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub purpose: LocalizedString,
+    #[serde(default)]
+    pub learning_level: LearningLevel,
+}
+
+/// Konu rehberi callout (`callouts[]`: tip / warning / risk).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct TopicCallout {
+    #[serde(default)]
+    pub kind: String,
+    #[serde(default)]
+    pub text: LocalizedString,
+}
+
+/// Konu rehberi alıştırması (`safe_exercises[]`).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct TopicExercise {
+    #[serde(default)]
+    pub title: LocalizedString,
+    #[serde(default)]
+    pub prompt: LocalizedString,
+    #[serde(default)]
+    pub hint: LocalizedString,
+    #[serde(default)]
+    pub risk: RiskLevel,
+    #[serde(default)]
+    pub related_commands: Vec<String>,
+}
+
+/// Konu rehberi “sıradaki” adımı (`next_steps[]`).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct TopicNextStep {
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub note: LocalizedString,
+}
+
+/// Öğrenme konsepti makalesi (Başlangıç “konu” girişi).
+///
+/// NV-123 öğretici alanlar (`format: topic-guide`) additive: doluysa konu
+/// rehberi gösterir; yoksa `summary`/`body`/`related_*` ile yetinir —
+/// boş bölüm uydurulmaz.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ConceptEntry {
+    pub id: String,
+    #[serde(default)]
+    pub kind: Option<String>,
+    /// `topic-guide` → öğretici konu rehberi düzeni.
+    #[serde(default)]
+    pub format: Option<String>,
+    #[serde(default)]
+    pub title: LocalizedString,
+    #[serde(default)]
+    pub summary: LocalizedString,
+    /// Giriş metni; boşsa `summary` kullanılır.
+    #[serde(default)]
+    pub intro: LocalizedString,
+    #[serde(default)]
+    pub learning_path: Vec<TopicLearningStep>,
+    #[serde(default)]
     pub difficulty: Option<String>,
     #[serde(default)]
     pub tags: Vec<String>,
+    #[serde(default)]
+    pub categories: Vec<String>,
+    #[serde(default)]
+    pub platforms: Vec<String>,
+    #[serde(default)]
+    pub distributions: Vec<String>,
     #[serde(default)]
     pub related_commands: Vec<String>,
     #[serde(default)]
     pub related_concepts: Vec<String>,
     #[serde(default)]
+    pub subtopics: Vec<TopicSubtopic>,
+    #[serde(default)]
+    pub command_table: Vec<TopicCommandRow>,
+    #[serde(default)]
     pub see_also: Vec<String>,
     #[serde(default)]
     pub body: LocalizedString,
+    #[serde(default)]
+    pub graded_examples: Vec<CommandExample>,
+    #[serde(default)]
+    pub callouts: Vec<TopicCallout>,
+    #[serde(default)]
+    pub safe_exercises: Vec<TopicExercise>,
+    #[serde(default)]
+    pub next_steps: Vec<TopicNextStep>,
     #[serde(default)]
     pub verification: VerificationInfo,
 }
