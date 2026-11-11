@@ -274,30 +274,51 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         push_wrapped(&mut lines, intro_body, wrap_w, text);
     }
 
-    // Order — yalnızca dolu `learning_order` / `sort_index`
-    if !concept.learning_order.is_empty() || concept.sort_index.is_some() {
+    // Order — `learning_path`
+    if !concept.learning_path.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicOrder));
-        if let Some(idx) = concept.sort_index {
-            lines.push(Line::from(format!("  #{idx}")));
-        }
-        for (i, step) in concept.learning_order.iter().enumerate() {
-            push_wrapped(&mut lines, &format!("  {}. {step}", i + 1), wrap_w, text);
+        for (i, step) in concept.learning_path.iter().enumerate() {
+            let note = step.note.pick(lang_id);
+            let line = if note.is_empty() {
+                format!("  {}. {}", i + 1, step.r#ref)
+            } else {
+                format!("  {}. {} — {note}", i + 1, step.r#ref)
+            };
+            push_wrapped(&mut lines, &line, wrap_w, text);
         }
     }
 
-    // Subtopics
-    let subtopics: Vec<&str> = if !concept.subtopics.is_empty() {
-        concept.subtopics.iter().map(|s| s.as_str()).collect()
-    } else {
-        concept
-            .related_concepts
-            .iter()
-            .map(|s| s.as_str())
-            .collect()
-    };
-    if !subtopics.is_empty() {
+    // Subtopics — structured; fallback related_concepts ids
+    if !concept.subtopics.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicSubtopics));
-        let rows: Vec<(String, String, String)> = subtopics
+        let rows: Vec<(String, String, String)> = concept
+            .subtopics
+            .iter()
+            .map(|s| {
+                (
+                    s.title.pick(lang_id).to_string(),
+                    s.summary.pick(lang_id).to_string(),
+                    s.id.clone(),
+                )
+            })
+            .collect();
+        push_table_or_cards(
+            &mut lines,
+            &[
+                lang.t(Msg::CommandsTopicSubtopics),
+                lang.t(Msg::CommandsTopicIntro),
+                "id",
+            ],
+            &rows,
+            wrap_w,
+            text,
+            muted,
+            accent,
+        );
+    } else if !concept.related_concepts.is_empty() {
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicSubtopics));
+        let rows: Vec<(String, String, String)> = concept
+            .related_concepts
             .iter()
             .map(|id| {
                 let title = app
@@ -306,7 +327,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                     .iter()
                     .find(|c| c.id == *id)
                     .map(|c| c.title.pick(lang_id).to_string())
-                    .unwrap_or_else(|| (*id).to_string());
+                    .unwrap_or_else(|| id.clone());
                 let summ = app
                     .commands_bank
                     .concepts
@@ -314,7 +335,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                     .find(|c| c.id == *id)
                     .map(|c| c.summary.pick(lang_id).to_string())
                     .unwrap_or_default();
-                (title, summ, (*id).to_string())
+                (title, summ, id.clone())
             })
             .collect();
         push_table_or_cards(
@@ -332,21 +353,53 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         );
     }
 
-    // Command table
-    if !concept.related_commands.is_empty() {
+    // Command table — bank `command_table` preferred; else related_commands
+    if !concept.command_table.is_empty() {
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicCmdTable));
+        let rows: Vec<(String, String, String)> = concept
+            .command_table
+            .iter()
+            .map(|row| {
+                let name = bank_cmd(app, &row.id)
+                    .map(|c| c.name.clone())
+                    .unwrap_or_else(|| row.id.clone());
+                let purpose = row.purpose.pick(lang_id).to_string();
+                let level = if row.learning_level.is_specified() {
+                    row.learning_level.label(lang_id).to_string()
+                } else {
+                    String::new()
+                };
+                (name, purpose, level)
+            })
+            .collect();
+        push_table_or_cards(
+            &mut lines,
+            &[
+                lang.t(Msg::CommandsList),
+                lang.t(Msg::CommandsPurpose),
+                "lvl",
+            ],
+            &rows,
+            wrap_w,
+            text,
+            muted,
+            accent,
+        );
+    } else if !concept.related_commands.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicCmdTable));
         let rows: Vec<(String, String, String)> = concept
             .related_commands
             .iter()
             .filter_map(|id| {
                 let cmd = bank_cmd(app, id)?;
-                let summ = cmd.summary.pick(lang_id).to_string();
-                let risk = cmd.risk.label(lang_id).to_string();
-                Some((cmd.name.clone(), summ, risk))
+                Some((
+                    cmd.name.clone(),
+                    cmd.summary.pick(lang_id).to_string(),
+                    cmd.risk.label(lang_id).to_string(),
+                ))
             })
             .collect();
         if rows.is_empty() {
-            // id’ler bankada yoksa ham id göster (uydurma özet yok)
             let fallback: Vec<(String, String, String)> = concept
                 .related_commands
                 .iter()
@@ -378,22 +431,36 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         }
     }
 
-    // Learning body (mevcut makale) — intro’dan ayrı, doluysa
+    // Learning body — intro’dan ayrı, doluysa
     let body = concept.body.pick(lang_id);
     if !body.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicLearning));
         push_wrapped(&mut lines, body, wrap_w, text);
     }
 
-    // Examples — topic.examples veya related beginner
+    // Examples — graded_examples, else related beginner
     let mut shown_examples = 0usize;
-    if !concept.examples.is_empty() {
-        let filtered = select_command_examples(&concept.examples, &app.commands_filters);
-        if !filtered.is_empty() {
+    if !concept.graded_examples.is_empty() {
+        let filtered = select_command_examples(&concept.graded_examples, &app.commands_filters);
+        if filtered.is_empty() {
+            push_heading(&mut lines, lang.t(Msg::CommandsExamples));
+            lines.push(Line::from(Span::styled(
+                format!("  {}", lang.t(Msg::CommandsFilterNoMatch)),
+                warn,
+            )));
+            shown_examples = 1; // section shown; skip fallback
+        } else {
             push_heading(&mut lines, lang.t(Msg::CommandsExamples));
             let mut exs: Vec<_> = filtered.into_iter().cloned().collect();
             sort_examples_by_difficulty(&mut exs);
             for ex in exs.iter().take(6) {
+                let title = ex.title.pick(lang_id);
+                if !title.is_empty() {
+                    lines.push(Line::from(format!(
+                        "  · {title} [{}]",
+                        ex.risk.label(lang_id)
+                    )));
+                }
                 push_code_block(&mut lines, &ex.command, wrap_w, accent, muted);
                 let expl = ex.explanation.pick(lang_id);
                 if !expl.is_empty() {
@@ -428,11 +495,24 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         }
     }
 
-    // Tips
-    if !concept.tips.is_empty() {
+    // Callouts → tip / warning / risk
+    let tips: Vec<_> = concept
+        .callouts
+        .iter()
+        .filter(|c| c.kind.eq_ignore_ascii_case("tip"))
+        .collect();
+    let warns: Vec<_> = concept
+        .callouts
+        .iter()
+        .filter(|c| {
+            let k = c.kind.to_ascii_lowercase();
+            k == "warning" || k == "warn" || k == "risk"
+        })
+        .collect();
+    if !tips.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicTips));
-        for tip in &concept.tips {
-            let t = tip.pick(lang_id);
+        for tip in tips {
+            let t = tip.text.pick(lang_id);
             if !t.is_empty() {
                 push_callout(
                     &mut lines,
@@ -446,16 +526,19 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
             }
         }
     }
-
-    // Warnings
-    if !concept.warnings.is_empty() {
+    if !warns.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicWarnings));
-        for w in &concept.warnings {
-            let wt = w.pick(lang_id);
+        for w in warns {
+            let wt = w.text.pick(lang_id);
             if !wt.is_empty() {
+                let kind = if w.kind.eq_ignore_ascii_case("risk") {
+                    CalloutKind::Risk
+                } else {
+                    CalloutKind::Warn
+                };
                 push_callout(
                     &mut lines,
-                    CalloutKind::Warn,
+                    kind,
                     lang.t(Msg::CommandsTopicWarnings),
                     wt,
                     wrap_w,
@@ -467,9 +550,9 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
     }
 
     // Exercises
-    if !concept.exercises.is_empty() {
+    if !concept.safe_exercises.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicExercises));
-        for (i, ex) in concept.exercises.iter().enumerate() {
+        for (i, ex) in concept.safe_exercises.iter().enumerate() {
             let title = ex.title.pick(lang_id);
             let prompt = ex.prompt.pick(lang_id);
             let hint = ex.hint.pick(lang_id);
@@ -499,7 +582,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         }
     }
 
-    // Related tasks (mevcut; doluysa)
+    // Related tasks
     let related_tasks = app.commands_bank.related_tasks_for_concept(concept);
     if !related_tasks.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicRelatedTasks));
@@ -511,26 +594,30 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         push_wrapped(&mut lines, &format!("  {}", names.join(", ")), wrap_w, text);
     }
 
-    // Next — yalnız additive `next`
-    if !concept.next.is_empty() {
+    // Next steps
+    if !concept.next_steps.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicNext));
         let rows: Vec<(String, String, String)> = concept
-            .next
+            .next_steps
             .iter()
-            .map(|id| {
+            .map(|n| {
                 let title = app
                     .commands_bank
                     .concepts
                     .iter()
-                    .find(|c| c.id == *id)
+                    .find(|c| c.id == n.id)
                     .map(|c| c.title.pick(lang_id).to_string())
-                    .unwrap_or_else(|| id.clone());
-                (title, String::new(), id.clone())
+                    .unwrap_or_else(|| n.id.clone());
+                (title, n.note.pick(lang_id).to_string(), n.id.clone())
             })
             .collect();
         push_table_or_cards(
             &mut lines,
-            &[lang.t(Msg::CommandsTopicNext), "", "id"],
+            &[
+                lang.t(Msg::CommandsTopicNext),
+                lang.t(Msg::CommandsTopicIntro),
+                "id",
+            ],
             &rows,
             wrap_w,
             text,

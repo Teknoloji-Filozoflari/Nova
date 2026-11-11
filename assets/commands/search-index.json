@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 341,
+  "entry_count": 349,
   "entries": [
     {
       "type": "command",
@@ -570,7 +570,8 @@
       },
       "concepts": [
         "files",
-        "shell-pipes-redirection"
+        "shell-pipes-redirection",
+        "text-processing"
       ]
     },
     {
@@ -1076,7 +1077,8 @@
         ]
       },
       "concepts": [
-        "storage"
+        "storage",
+        "monitoring-and-logs"
       ]
     },
     {
@@ -1408,7 +1410,8 @@
         ]
       },
       "concepts": [
-        "containers"
+        "containers",
+        "containers-basics"
       ]
     },
     {
@@ -1587,7 +1590,8 @@
       "concepts": [
         "shell-builtin",
         "terminal-basics",
-        "path"
+        "path",
+        "shell-pipes-redirection"
       ]
     },
     {
@@ -1890,7 +1894,9 @@
       },
       "concepts": [
         "files",
-        "shell-pipes-redirection"
+        "shell-pipes-redirection",
+        "finding-files",
+        "permissions"
       ]
     },
     {
@@ -2852,7 +2858,8 @@
         ]
       },
       "concepts": [
-        "terminal-basics"
+        "terminal-basics",
+        "development-basics"
       ]
     },
     {
@@ -2925,7 +2932,8 @@
       },
       "concepts": [
         "files",
-        "shell-pipes-redirection"
+        "shell-pipes-redirection",
+        "text-processing"
       ]
     },
     {
@@ -3739,7 +3747,8 @@
       },
       "concepts": [
         "terminal-basics",
-        "systemd"
+        "systemd",
+        "monitoring-and-logs"
       ]
     },
     {
@@ -4149,7 +4158,9 @@
       },
       "concepts": [
         "files",
-        "terminal-basics"
+        "terminal-basics",
+        "finding-files",
+        "permissions"
       ]
     },
     {
@@ -6209,7 +6220,9 @@
         ]
       },
       "concepts": [
-        "terminal-basics"
+        "terminal-basics",
+        "processes",
+        "debugging"
       ]
     },
     {
@@ -6285,7 +6298,8 @@
       },
       "concepts": [
         "files",
-        "terminal-basics"
+        "terminal-basics",
+        "path"
       ]
     },
     {
@@ -8147,7 +8161,8 @@
       },
       "concepts": [
         "systemd",
-        "terminal-basics"
+        "terminal-basics",
+        "monitoring-and-logs"
       ]
     },
     {
@@ -8288,7 +8303,9 @@
         ]
       },
       "concepts": [
-        "files"
+        "files",
+        "archives-compression",
+        "backup"
       ]
     },
     {
@@ -9985,8 +10002,52 @@
     },
     {
       "type": "concept",
+      "id": "archives-compression",
+      "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "archives"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "tags": [
+        "tar",
+        "gzip",
+        "zip"
+      ],
+      "title": {
+        "tr": "Arşiv ve sıkıştırma",
+        "en": "Archives and compression"
+      },
+      "summary": {
+        "tr": "tar, gzip, xz, zip — oluşturma ve çıkarma; üzerine yazmaya dikkat.",
+        "en": "tar, gzip, xz, zip — create and extract; watch overwrites."
+      },
+      "related_commands": [
+        "tar",
+        "gzip",
+        "xz",
+        "unzip"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "backup",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "backup",
+        "archives"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "tags": [
         "backup",
         "restic",
@@ -10013,6 +10074,15 @@
       "type": "concept",
       "id": "cloud",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "cloud"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
       "tags": [
         "cloud",
         "aws",
@@ -10037,8 +10107,50 @@
     },
     {
       "type": "concept",
+      "id": "containers-basics",
+      "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "containers"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "tags": [
+        "docker",
+        "podman",
+        "containers"
+      ],
+      "title": {
+        "tr": "Konteyner temelleri",
+        "en": "Container basics"
+      },
+      "summary": {
+        "tr": "docker/podman ile durum, log ve inceleme; runtime ayrımları dürüst tutulur.",
+        "en": "Status, logs, and inspect with docker/podman; keep runtime differences honest."
+      },
+      "related_commands": [
+        "docker",
+        "podman",
+        "kubectl"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "databases",
       "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "databases"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
       "tags": [
         "database",
         "mysql",
@@ -10064,6 +10176,17 @@
       "type": "concept",
       "id": "debugging",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "processes",
+        "development",
+        "monitoring"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "tags": [
         "debug",
         "strace",
@@ -10090,8 +10213,89 @@
     },
     {
       "type": "concept",
+      "id": "development-basics",
+      "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "development"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "tags": [
+        "git",
+        "development",
+        "build"
+      ],
+      "title": {
+        "tr": "Geliştirme temelleri",
+        "en": "Development basics"
+      },
+      "summary": {
+        "tr": "git, derleyiciler ve dil araçlarına giriş; OS SDK’leri ayrı.",
+        "en": "Intro to git, compilers, and language tools; OS SDKs are separate."
+      },
+      "related_commands": [
+        "git",
+        "make",
+        "gcc",
+        "python3",
+        "diff",
+        "patch"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "finding-files",
+      "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "search",
+        "filesystem"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "tags": [
+        "find",
+        "search",
+        "files"
+      ],
+      "title": {
+        "tr": "Dosya arama",
+        "en": "Finding files"
+      },
+      "summary": {
+        "tr": "find, locate, fd ve isim/yol arama kalıpları.",
+        "en": "find, locate, fd, and name/path search patterns."
+      },
+      "related_commands": [
+        "find",
+        "locate",
+        "which",
+        "ls"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "firewalls",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "security",
+        "network"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
       "tags": [
         "firewall",
         "nftables",
@@ -10118,8 +10322,50 @@
     },
     {
       "type": "concept",
+      "id": "hardware-inspection",
+      "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "hardware",
+        "disks"
+      ],
+      "platforms": [
+        "linux"
+      ],
+      "tags": [
+        "hardware",
+        "lscpu",
+        "lsblk"
+      ],
+      "title": {
+        "tr": "Donanım inceleme",
+        "en": "Hardware inspection"
+      },
+      "summary": {
+        "tr": "lscpu, lsblk, lspci benzeri salt okuma donanım bilgisi.",
+        "en": "Read-only hardware info via lscpu, lsblk, lspci, and peers."
+      },
+      "related_commands": [
+        "lscpu",
+        "lsblk",
+        "lspci",
+        "lsusb"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "infrastructure-as-code",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "devops",
+        "cloud"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
       "tags": [
         "iac",
         "terraform",
@@ -10149,6 +10395,17 @@
       "type": "concept",
       "id": "json-data",
       "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "text",
+        "development"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
       "tags": [
         "json",
         "sql",
@@ -10175,6 +10432,16 @@
       "type": "concept",
       "id": "kubernetes",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "containers",
+        "devops"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
       "tags": [
         "kubernetes",
         "containers",
@@ -10200,8 +10467,54 @@
     },
     {
       "type": "concept",
+      "id": "monitoring-and-logs",
+      "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "monitoring",
+        "system"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "tags": [
+        "logs",
+        "journalctl",
+        "monitoring"
+      ],
+      "title": {
+        "tr": "İzleme ve günlükler",
+        "en": "Monitoring and logs"
+      },
+      "summary": {
+        "tr": "journalctl, syslog dosyaları ve kaynak kullanımı; non-systemd dürüst ayrımı.",
+        "en": "journalctl, syslog files, and resource usage; honest non-systemd split."
+      },
+      "related_commands": [
+        "journalctl",
+        "dmesg",
+        "top",
+        "free",
+        "df"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "networking-basics",
       "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "network"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
       "tags": [
         "network",
         "dns",
@@ -10237,6 +10550,14 @@
       "type": "concept",
       "id": "nix-guix",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "packages"
+      ],
+      "platforms": [
+        "linux",
+        "macos"
+      ],
       "tags": [
         "packages",
         "nix",
@@ -10268,6 +10589,16 @@
       "type": "concept",
       "id": "package-managers",
       "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "packages"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
       "tags": [
         "packages",
         "pacman",
@@ -10317,6 +10648,16 @@
       "type": "concept",
       "id": "package-managers-comparison",
       "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "packages"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
       "tags": [
         "packages",
         "pacman",
@@ -10368,6 +10709,16 @@
       "type": "concept",
       "id": "path",
       "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "shell"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
       "tags": [
         "shell",
         "path",
@@ -10393,6 +10744,15 @@
       "type": "concept",
       "id": "permissions",
       "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "users"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "tags": [
         "permissions",
         "users",
@@ -10424,8 +10784,54 @@
     },
     {
       "type": "concept",
+      "id": "processes",
+      "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "processes"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
+      "tags": [
+        "ps",
+        "top",
+        "kill"
+      ],
+      "title": {
+        "tr": "Süreçler",
+        "en": "Processes"
+      },
+      "summary": {
+        "tr": "ps, top, kill ve süreç gözlemi; sinyallerde dikkat.",
+        "en": "ps, top, kill, and process inspection; be careful with signals."
+      },
+      "related_commands": [
+        "ps",
+        "top",
+        "htop",
+        "kill",
+        "pgrep",
+        "pkill"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "reverse-proxy",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "network",
+        "security"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "tags": [
         "nginx",
         "caddy",
@@ -10454,6 +10860,17 @@
       "type": "concept",
       "id": "server-security-checklist",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "security",
+        "system"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
       "tags": [
         "security",
         "checklist",
@@ -10498,6 +10915,16 @@
       "type": "concept",
       "id": "shell-pipes-redirection",
       "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "shell",
+        "text"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "tags": [
         "shell",
         "pipes",
@@ -10526,6 +10953,17 @@
       "type": "concept",
       "id": "storage",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "disks",
+        "filesystem"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd",
+        "windows"
+      ],
       "tags": [
         "disks",
         "storage",
@@ -10566,6 +11004,13 @@
       "type": "concept",
       "id": "systemd",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "system"
+      ],
+      "platforms": [
+        "linux"
+      ],
       "tags": [
         "systemd",
         "services",
@@ -10597,6 +11042,16 @@
       "type": "concept",
       "id": "terminal-basics",
       "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "shell",
+        "filesystem"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
       "tags": [
         "shell",
         "beginner",
@@ -10620,8 +11075,55 @@
     },
     {
       "type": "concept",
+      "id": "text-processing",
+      "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "text"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "bsd"
+      ],
+      "tags": [
+        "text",
+        "grep",
+        "sed",
+        "awk"
+      ],
+      "title": {
+        "tr": "Metin işleme",
+        "en": "Text processing"
+      },
+      "summary": {
+        "tr": "cat, grep, sed, awk ve satır araçlarıyla metin süzme.",
+        "en": "Filter text with cat, grep, sed, awk, and line tools."
+      },
+      "related_commands": [
+        "cat",
+        "grep",
+        "sed",
+        "awk",
+        "cut",
+        "head",
+        "tail",
+        "wc",
+        "sort",
+        "uniq"
+      ]
+    },
+    {
+      "type": "concept",
       "id": "virtualization",
       "difficulty": "intermediate",
+      "format": "topic-guide",
+      "categories": [
+        "virtualization"
+      ],
+      "platforms": [
+        "linux"
+      ],
       "tags": [
         "virtualization",
         "kvm",
@@ -12971,10 +13473,10 @@
       ]
     }
   ],
-  "content_sha256": "1a64dd48ee49d7d026627944d4f0b97b3e57b951858d727cf7eb814ad12c254a",
-  "generated_at": "2026-11-11T17:37:28Z",
+  "content_sha256": "eb15d7f851993865a70094a66d8d08df3f9f230738d24efcca5b4e86c9d31844",
+  "generated_at": "2026-11-11T19:28:26Z",
   "command_count": 270,
-  "concept_count": 21,
+  "concept_count": 29,
   "task_count": 36,
   "profile_count": 14
 }

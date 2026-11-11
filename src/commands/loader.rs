@@ -242,11 +242,17 @@ mod tests {
             bank.command_count.unwrap_or(bank.commands.len()),
             bank.commands.len()
         );
-        // Canlı banka schema v2 + beklenen digest (Nova-Commands #39 / NV-121 @ 1a64dd48…).
+        // Canlı banka schema v2 + beklenen digest (Nova-Commands #40 / NV-123 @ eb15d7f8…).
         assert_eq!(bank.schema_version, 2);
         assert_eq!(
             man.content_sha256,
-            "1a64dd48ee49d7d026627944d4f0b97b3e57b951858d727cf7eb814ad12c254a"
+            "eb15d7f851993865a70094a66d8d08df3f9f230738d24efcca5b4e86c9d31844"
+        );
+        assert!(
+            bank.concepts.iter().any(|c| !c.learning_path.is_empty()
+                || !c.command_table.is_empty()
+                || !c.safe_exercises.is_empty()),
+            "NV-123 topic-guide alanları beklenirdi"
         );
         let with_refs = bank
             .commands

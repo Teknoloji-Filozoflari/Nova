@@ -23,7 +23,8 @@ pub mod repo_sync;
 
 pub use bank::{
     sort_examples_by_difficulty, CommandBank, CommandEntry, CommandExample, ConceptEntry,
-    GuideEntry, LearningLevel, LocalizedString, ProfileEntry, RiskLevel, TaskEntry, TopicExercise,
+    GuideEntry, LearningLevel, LocalizedString, ProfileEntry, RiskLevel, TaskEntry, TopicCallout,
+    TopicCommandRow, TopicExercise, TopicLearningStep, TopicNextStep, TopicSubtopic,
     VerificationStatus, BANK_KIND,
 };
 pub use checklist::{

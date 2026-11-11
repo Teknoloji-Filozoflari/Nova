@@ -1503,13 +1503,40 @@ fn command_detail_uses_bordered_code_and_skips_empty_topic_sections() {
     let mut app = app();
     app.select_commands_tab();
     app.commands_filters.clear();
-    // Konu: boş tips/exercises bölümü uydurma
+    // Minimal konu — callouts/exercises yok → bölüm uydurma
     assert!(app.commands_list_shows_concepts());
-    let concepts = app.filtered_concepts();
-    assert!(!concepts.is_empty());
-    app.commands_entry_index = 0;
-    app.terminal_size = Some((140, 42));
-    let topic = all_text(&render(&app, 140, 42));
+    app.commands_bank.concepts.push(
+        serde_json::from_value(serde_json::json!({
+            "id": "nv124-topic-sparse",
+            "title": {"tr": "Seyrek konu", "en": "Sparse topic"},
+            "summary": {"tr": "kısa özet seyrek", "en": "short sparse summary"},
+            "body": {"tr": "x".repeat(80), "en": "y".repeat(80)},
+            "verification": {"status": "draft"}
+        }))
+        .unwrap(),
+    );
+    let idx = app
+        .filtered_concepts()
+        .iter()
+        .position(|c| c.id == "nv124-topic-sparse")
+        .expect("sparse");
+    app.commands_entry_index = idx;
+    let sparse = app
+        .filtered_concepts()
+        .into_iter()
+        .find(|c| c.id == "nv124-topic-sparse")
+        .expect("sparse");
+    let lines = nova::ui::guide_detail::topic_guide_lines(&app, sparse, 72);
+    let topic: String = lines
+        .iter()
+        .map(|l| {
+            l.spans
+                .iter()
+                .map(|s| s.content.as_ref())
+                .collect::<String>()
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
     assert!(
         !topic.contains("İpuçları:") && !topic.contains("Tips:"),
         "boş tips bölümü uydurulmamalı:\n{topic}"
@@ -1575,17 +1602,27 @@ fn topic_additive_fields_render_when_present() {
     app.commands_bank.concepts.push(
         serde_json::from_value(serde_json::json!({
             "id": "nv124-topic-rich",
+            "format": "topic-guide",
             "title": {"tr": "Zengin konu", "en": "Rich topic"},
             "summary": {"tr": "özet", "en": "summary"},
             "intro": {"tr": "giriş metni nv124", "en": "intro text nv124"},
-            "learning_order": ["adım-a", "adım-b"],
-            "tips": [{"tr": "ipucu nv124", "en": "tip nv124"}],
-            "warnings": [{"tr": "uyarı nv124", "en": "warn nv124"}],
-            "exercises": [{
+            "learning_path": [
+                {"ref": "adım-a", "kind": "command", "note": {"tr": "bir", "en": "one"}},
+                {"ref": "adım-b", "kind": "command"}
+            ],
+            "callouts": [
+                {"kind": "tip", "text": {"tr": "ipucu nv124", "en": "tip nv124"}},
+                {"kind": "warning", "text": {"tr": "uyarı nv124", "en": "warn nv124"}}
+            ],
+            "safe_exercises": [{
                 "title": {"tr": "Alıştırma 1", "en": "Exercise 1"},
-                "prompt": {"tr": "dene", "en": "try"}
+                "prompt": {"tr": "dene", "en": "try"},
+                "risk": "safe"
             }],
-            "next": ["backup"],
+            "next_steps": [{"id": "backup", "note": {"tr": "sonraki", "en": "next"}}],
+            "command_table": [
+                {"id": "ls", "purpose": {"tr": "listele", "en": "list"}, "learning_level": "beginner"}
+            ],
             "related_commands": ["ls"],
             "body": {"tr": "x".repeat(80), "en": "y".repeat(80)},
             "verification": {"status": "draft"}
