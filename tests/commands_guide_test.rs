@@ -536,6 +536,63 @@ fn server_security_checklist_persists_local_state_only() {
 }
 
 #[test]
+fn checklist_platform_filter_match_and_no_match() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::ServerSecurity);
+    let steps = app.filtered_checklist_steps();
+    let fw = steps
+        .iter()
+        .find(|s| s.id == "security-check-firewall-ports")
+        .expect("firewall checklist step from vendored bank");
+    assert!(
+        fw.examples.len() >= 2,
+        "vendored firewall task must keep multi-platform examples, got {}",
+        fw.examples.len()
+    );
+
+    // Match: Windows must not surface linux ufw/ss.
+    app.commands_filters.os = Some("windows".into());
+    let win = nova::commands::select_checklist_examples(&fw.examples, &app.commands_filters);
+    assert!(!win.is_empty(), "windows firewall example expected");
+    assert!(
+        win.iter()
+            .all(|e| { !e.example.command.contains("ufw") && !e.example.command.contains("ss -") }),
+        "windows selection leaked linux cmds: {:?}",
+        win.iter()
+            .map(|e| e.example.command.as_str())
+            .collect::<Vec<_>>()
+    );
+
+    // No-match: linux-only docker step + Windows filter → empty (no silent substitute).
+    let docker = steps
+        .iter()
+        .find(|s| s.id == "security-check-docker")
+        .expect("docker checklist step");
+    let empty = nova::commands::select_checklist_examples(&docker.examples, &app.commands_filters);
+    assert!(
+        empty.is_empty(),
+        "windows must not inherit linux docker example: {:?}",
+        empty
+            .iter()
+            .map(|e| e.example.command.as_str())
+            .collect::<Vec<_>>()
+    );
+
+    // UI surfaces the no-example copy when filter has no match.
+    if let Some(idx) = steps.iter().position(|s| s.id == "security-check-docker") {
+        app.commands_entry_index = idx;
+    }
+    let text = all_text(&render(&app, 140, 42));
+    assert!(
+        text.contains("No example for this platform")
+            || text.contains("Bu platform")
+            || text.contains("örnek yok"),
+        "checklist should tell user there is no platform example:\n{text}"
+    );
+}
+
+#[test]
 fn enter_never_auto_runs_commands() {
     let mut app = app();
     app.select_commands_tab();
