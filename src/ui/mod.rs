@@ -2906,27 +2906,81 @@ fn checklist_detail_lines(app: &App) -> Vec<Line<'static>> {
         lines.push(Line::from(format!("  {diag}")));
     }
 
-    if let Some(ref ex) = step.example {
-        lines.push(Line::from(""));
+    let matched = crate::commands::select_checklist_examples(&step.examples, &app.commands_filters);
+    lines.push(Line::from(""));
+    if matched.is_empty() {
         lines.push(Line::from(Span::styled(
             format!("{}:", lang.t(Msg::CommandsSafeExample)),
             Style::default().add_modifier(Modifier::BOLD),
         )));
-        let title = ex.title.pick(lang_id);
-        if !title.is_empty() {
-            lines.push(Line::from(format!("  · {title}")));
-        }
+        let filter_hint = app.commands_filters.summary_chips().join(" ");
+        let msg = if filter_hint.is_empty() {
+            lang.t(Msg::CommandsChecklistNoExample).to_string()
+        } else {
+            format!(
+                "{} ({filter_hint})",
+                lang.t(Msg::CommandsChecklistNoExample)
+            )
+        };
         lines.push(Line::from(Span::styled(
-            format!("  $ {}", ex.command),
-            Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
+            format!("  {msg}"),
+            Style::default().fg(pal.warn),
         )));
-        let expl = ex.explanation.pick(lang_id);
-        if !expl.is_empty() {
+    } else {
+        lines.push(Line::from(Span::styled(
+            format!("{}:", lang.t(Msg::CommandsSafeExample)),
+            Style::default().add_modifier(Modifier::BOLD),
+        )));
+        for (idx, view) in matched.iter().enumerate() {
+            let ex = &view.example;
+            if idx > 0 {
+                lines.push(Line::from(""));
+            }
+            let mut meta: Vec<String> = Vec::new();
+            if !view.platforms.is_empty() {
+                meta.push(view.platforms.join("/"));
+            }
+            if let Some(ref sh) = ex.shell {
+                if !sh.is_empty() {
+                    meta.push(sh.clone());
+                }
+            }
+            if !view.distributions.is_empty() {
+                meta.push(view.distributions.join("/"));
+            }
+            if !meta.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    format!("  [{}]", meta.join(" · ")),
+                    Style::default().fg(pal.muted),
+                )));
+            }
+            let title = ex.title.pick(lang_id);
+            if !title.is_empty() {
+                lines.push(Line::from(format!("  · {title}")));
+            }
             lines.push(Line::from(Span::styled(
-                format!("{}:", lang.t(Msg::CommandsExpectedEffect)),
-                Style::default().add_modifier(Modifier::BOLD),
+                format!("  $ {}", ex.command),
+                Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
             )));
-            lines.push(Line::from(format!("  {expl}")));
+            if !ex.warnings.is_empty() {
+                for w in &ex.warnings {
+                    let text = w.pick(lang_id);
+                    if !text.is_empty() {
+                        lines.push(Line::from(Span::styled(
+                            format!("  ! {text}"),
+                            Style::default().fg(pal.warn),
+                        )));
+                    }
+                }
+            }
+            let expl = ex.explanation.pick(lang_id);
+            if !expl.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    format!("{}:", lang.t(Msg::CommandsExpectedEffect)),
+                    Style::default().add_modifier(Modifier::BOLD),
+                )));
+                lines.push(Line::from(format!("  {expl}")));
+            }
         }
     }
 

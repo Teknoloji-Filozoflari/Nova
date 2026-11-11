@@ -274,6 +274,7 @@ impl Language {
             Msg::CommandsChecklistHint => t.commands_checklist_hint,
             Msg::CommandsChecklistNeverScan => t.commands_checklist_never_scan,
             Msg::CommandsChecklistStatus => t.commands_checklist_status,
+            Msg::CommandsChecklistNoExample => t.commands_checklist_no_example,
             Msg::CommandsPathPresenceNote => t.commands_path_presence_note,
             Msg::CommandsExamplesEasyAdv => t.commands_examples_easy_adv,
             Msg::CommandsRollback => t.commands_rollback,
@@ -526,6 +527,7 @@ pub enum Msg {
     CommandsChecklistHint,
     CommandsChecklistNeverScan,
     CommandsChecklistStatus,
+    CommandsChecklistNoExample,
     CommandsPathPresenceNote,
     CommandsExamplesEasyAdv,
     CommandsRollback,
@@ -747,6 +749,7 @@ struct Table {
     commands_checklist_hint: &'static str,
     commands_checklist_never_scan: &'static str,
     commands_checklist_status: &'static str,
+    commands_checklist_no_example: &'static str,
     commands_path_presence_note: &'static str,
     commands_examples_easy_adv: &'static str,
     commands_rollback: &'static str,
@@ -959,6 +962,8 @@ const TR: Table = Table {
     commands_checklist_never_scan:
         "Rehber tarama/uzak erişim/komut çalıştırmaz; parola-host saklamaz.",
     commands_checklist_status: "durum",
+    commands_checklist_no_example:
+        "Bu platform / süzgeç için örnek yok — başka OS komutu gösterilmez.",
     commands_path_presence_note:
         "PATH’te olmak = doğrulanmış açıklama değil; bankayı yine gezebilirsiniz.",
     commands_examples_easy_adv: "Örnekler (kolay → ileri)",
@@ -1173,6 +1178,8 @@ const EN: Table = Table {
     commands_checklist_never_scan:
         "Guide never scans/remotes/runs commands; no passwords or hosts stored.",
     commands_checklist_status: "status",
+    commands_checklist_no_example:
+        "No example for this platform / filter — will not show another OS command.",
     commands_path_presence_note: "On PATH ≠ verified description; you can still browse the bank.",
     commands_examples_easy_adv: "Examples (easy → advanced)",
     commands_rollback: "Rollback",
@@ -1384,6 +1391,8 @@ const RU: Table = Table {
     commands_checklist_never_scan:
         "Guide never scans/remotes/runs commands; no passwords or hosts stored.",
     commands_checklist_status: "status",
+    commands_checklist_no_example:
+        "No example for this platform / filter — will not show another OS command.",
     commands_path_presence_note: "On PATH ≠ verified description; you can still browse the bank.",
     commands_examples_easy_adv: "Examples (easy → advanced)",
     commands_rollback: "Rollback",
@@ -1595,6 +1604,8 @@ const AZ: Table = Table {
     commands_checklist_never_scan:
         "Guide never scans/remotes/runs commands; no passwords or hosts stored.",
     commands_checklist_status: "status",
+    commands_checklist_no_example:
+        "No example for this platform / filter — will not show another OS command.",
     commands_path_presence_note: "On PATH ≠ verified description; you can still browse the bank.",
     commands_examples_easy_adv: "Examples (easy → advanced)",
     commands_rollback: "Rollback",
@@ -1807,6 +1818,8 @@ const UZ: Table = Table {
     commands_checklist_never_scan:
         "Guide never scans/remotes/runs commands; no passwords or hosts stored.",
     commands_checklist_status: "status",
+    commands_checklist_no_example:
+        "No example for this platform / filter — will not show another OS command.",
     commands_path_presence_note: "On PATH ≠ verified description; you can still browse the bank.",
     commands_examples_easy_adv: "Examples (easy → advanced)",
     commands_rollback: "Rollback",
@@ -2018,6 +2031,8 @@ const KK: Table = Table {
     commands_checklist_never_scan:
         "Guide never scans/remotes/runs commands; no passwords or hosts stored.",
     commands_checklist_status: "status",
+    commands_checklist_no_example:
+        "No example for this platform / filter — will not show another OS command.",
     commands_path_presence_note: "On PATH ≠ verified description; you can still browse the bank.",
     commands_examples_easy_adv: "Examples (easy → advanced)",
     commands_rollback: "Rollback",
@@ -2230,6 +2245,8 @@ const TK: Table = Table {
     commands_checklist_never_scan:
         "Guide never scans/remotes/runs commands; no passwords or hosts stored.",
     commands_checklist_status: "status",
+    commands_checklist_no_example:
+        "No example for this platform / filter — will not show another OS command.",
     commands_path_presence_note: "On PATH ≠ verified description; you can still browse the bank.",
     commands_examples_easy_adv: "Examples (easy → advanced)",
     commands_rollback: "Rollback",
