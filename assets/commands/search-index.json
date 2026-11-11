@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 338,
+  "entry_count": 341,
   "entries": [
     {
       "type": "command",
@@ -6367,6 +6367,84 @@
     },
     {
       "type": "command",
+      "id": "rc-service",
+      "name": "rc-service",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "system",
+        "openrc",
+        "services",
+        "alpine",
+        "gentoo"
+      ],
+      "summary": {
+        "tr": "OpenRC servislerini denetler (systemctl değil).",
+        "en": "Control OpenRC services (not systemctl)."
+      },
+      "intent": {
+        "tr": [
+          "rc-service",
+          "openrc başlat",
+          "alpine servis"
+        ],
+        "en": [
+          "rc-service",
+          "openrc start",
+          "alpine service"
+        ]
+      },
+      "concepts": [
+        "systemd"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "rc-status",
+      "name": "rc-status",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "safe",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "system",
+        "openrc",
+        "services",
+        "alpine",
+        "gentoo"
+      ],
+      "summary": {
+        "tr": "OpenRC servis durumunu listeler (systemd değil).",
+        "en": "List OpenRC service status (not systemd)."
+      },
+      "intent": {
+        "tr": [
+          "openrc durum",
+          "rc-status",
+          "alpine servis listesi"
+        ],
+        "en": [
+          "rc-status",
+          "openrc status",
+          "alpine list services"
+        ]
+      },
+      "concepts": [
+        "systemd"
+      ]
+    },
+    {
+      "type": "command",
       "id": "rcctl",
       "name": "rcctl",
       "category": "system",
@@ -7884,6 +7962,44 @@
       },
       "concepts": [
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "sv",
+      "name": "sv",
+      "category": "system",
+      "kind": "administrative_tool",
+      "risk": "dangerous",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "system",
+        "runit",
+        "void",
+        "services"
+      ],
+      "summary": {
+        "tr": "Void Linux runit servis denetimi (systemd / OpenRC değil).",
+        "en": "Void Linux runit service control (not systemd / OpenRC)."
+      },
+      "intent": {
+        "tr": [
+          "sv status",
+          "void servis",
+          "runit"
+        ],
+        "en": [
+          "sv status",
+          "void service",
+          "runit"
+        ]
+      },
+      "concepts": [
+        "systemd"
       ]
     },
     {
@@ -11505,6 +11621,7 @@
       "related_commands": [
         "firewall-cmd",
         "netsh",
+        "nft",
         "pfctl",
         "ufw"
       ]
@@ -12023,7 +12140,8 @@
         "dmesg",
         "get-winevent",
         "journalctl",
-        "log"
+        "log",
+        "tail"
       ]
     },
     {
@@ -12035,6 +12153,8 @@
       },
       "category": "packages",
       "platforms": [
+        "bsd",
+        "freebsd",
         "linux",
         "macos",
         "windows"
@@ -12061,11 +12181,18 @@
         ]
       },
       "related_commands": [
+        "apk",
         "apt",
         "brew",
         "dnf",
+        "emerge",
+        "nixos-rebuild",
         "pacman",
-        "winget"
+        "pkg",
+        "winget",
+        "xbps-install",
+        "xbps-query",
+        "zypper"
       ]
     },
     {
@@ -12167,7 +12294,9 @@
       "verification": "draft",
       "tags": [
         "services",
-        "systemd"
+        "systemd",
+        "openrc",
+        "runit"
       ],
       "summary": {
         "tr": "systemd / BSD service / Windows Get-Service / launchctl ile servis durumu.",
@@ -12188,8 +12317,11 @@
       "related_commands": [
         "get-service",
         "launchctl",
+        "rc-service",
+        "rc-status",
         "rcctl",
         "service",
+        "sv",
         "systemctl"
       ]
     },
@@ -12363,6 +12495,7 @@
         "lsof",
         "netsh",
         "netstat-bsd",
+        "nft",
         "pfctl",
         "ss",
         "ufw"
@@ -12592,14 +12725,18 @@
         ]
       },
       "related_commands": [
+        "apk",
         "apt",
         "dnf",
+        "emerge",
         "freebsd-update",
         "nixos-rebuild",
         "pacman",
         "pkg",
         "softwareupdate",
-        "winget"
+        "winget",
+        "xbps-install",
+        "zypper"
       ]
     },
     {
@@ -12818,20 +12955,25 @@
         ]
       },
       "related_commands": [
+        "apk",
         "apt",
         "brew",
         "dnf",
+        "emerge",
         "freebsd-update",
+        "nixos-rebuild",
         "pacman",
         "pkg",
         "softwareupdate",
-        "winget"
+        "winget",
+        "xbps-install",
+        "zypper"
       ]
     }
   ],
-  "content_sha256": "92e6920cd8278b5685cf6d748769c1a22cc61bbd02924e5eee7267122d7e4a4b",
-  "generated_at": "2026-11-11T16:35:09Z",
-  "command_count": 267,
+  "content_sha256": "1a64dd48ee49d7d026627944d4f0b97b3e57b951858d727cf7eb814ad12c254a",
+  "generated_at": "2026-11-11T17:37:28Z",
+  "command_count": 270,
   "concept_count": 21,
   "task_count": 36,
   "profile_count": 14

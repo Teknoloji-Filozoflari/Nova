@@ -155,15 +155,90 @@ fn command_covers_os(cmd: &CommandEntry, os: &str) -> bool {
 
 fn command_covers_distro(cmd: &CommandEntry, distro: &str) -> bool {
     let d = distro.to_ascii_lowercase();
-    cmd.package_refs.iter().any(|r| {
-        r.distributions
-            .iter()
-            .any(|x| x.to_ascii_lowercase() == d || x.to_ascii_lowercase().contains(&d))
-    }) || cmd
-        .packages
-        .labeled_pairs(true)
+    let has_refs = cmd.package_refs.iter().any(|r| !r.distributions.is_empty());
+    let has_legacy = !cmd.packages.is_empty();
+    if !has_refs && !has_legacy {
+        // Distro meta yok = genel komut; sessizce Arch sayma, eleme de.
+        return true;
+    }
+    // Exact distribution id match only — no Arch-first collapse / substring.
+    if cmd
+        .package_refs
         .iter()
-        .any(|(label, _)| label.to_ascii_lowercase().contains(&d))
+        .any(|r| r.distributions.iter().any(|x| x.to_ascii_lowercase() == d))
+    {
+        return true;
+    }
+    // Legacy `packages` keys: exact field match. Never fall back Arch↔Debian.
+    match d.as_str() {
+        "arch" => cmd.packages.arch.as_ref().is_some_and(|s| !s.is_empty()),
+        "debian" => cmd.packages.debian.as_ref().is_some_and(|s| !s.is_empty()),
+        "ubuntu" => cmd.packages.ubuntu.as_ref().is_some_and(|s| !s.is_empty()),
+        "fedora" => cmd.packages.fedora.as_ref().is_some_and(|s| !s.is_empty()),
+        "rhel" => cmd.packages.rhel.as_ref().is_some_and(|s| !s.is_empty()),
+        _ => {
+            // Yalnız package_refs ile bilinen id'ler; legacy’de yoksa eşleşme yok.
+            false
+        }
+    }
+}
+
+/// Aktif distro süzgecine uyan paket satırları — eşleşme yoksa boş (ikame yok).
+pub fn package_lines_for_filter(
+    cmd: &CommandEntry,
+    filters: &CommandsFilters,
+    arch_host: bool,
+) -> Vec<(String, String)> {
+    let all = cmd.package_labeled_pairs(arch_host && filters.distro.is_none());
+    let Some(ref distro) = filters.distro else {
+        return all;
+    };
+    let d = distro.to_ascii_lowercase();
+    let mut out = Vec::new();
+    if !cmd.package_refs.is_empty() {
+        for r in &cmd.package_refs {
+            if r.package.is_empty() {
+                continue;
+            }
+            if r.distributions.iter().any(|x| x.to_ascii_lowercase() == d) {
+                out.push((r.label(), r.package.clone()));
+            }
+        }
+        return out;
+    }
+    // Legacy packages — yalnızca seçilen anahtar; Arch’a düşme.
+    let legacy = match d.as_str() {
+        "arch" => cmd
+            .packages
+            .arch
+            .as_deref()
+            .map(|p| ("arch/pacman".into(), p.to_string())),
+        "debian" => cmd
+            .packages
+            .debian
+            .as_deref()
+            .map(|p| ("debian".into(), p.to_string())),
+        "ubuntu" => cmd
+            .packages
+            .ubuntu
+            .as_deref()
+            .map(|p| ("ubuntu".into(), p.to_string())),
+        "fedora" => cmd
+            .packages
+            .fedora
+            .as_deref()
+            .map(|p| ("fedora".into(), p.to_string())),
+        "rhel" => cmd
+            .packages
+            .rhel
+            .as_deref()
+            .map(|p| ("rhel".into(), p.to_string())),
+        _ => None,
+    };
+    if let Some(pair) = legacy {
+        out.push(pair);
+    }
+    out
 }
 
 fn command_covers_shell(cmd: &CommandEntry, shell: &str) -> bool {
@@ -199,6 +274,30 @@ pub fn host_os_bank_id() -> &'static str {
                 "freebsd"
             } else {
                 "other"
+            }
+        }
+    }
+}
+
+/// Güvenilir host OS/distro süzgeç varsayılanı (düzenlenebilir; sessiz Arch çökertmesi yok).
+///
+/// - Arch → OS `linux` + distro `arch` (Arch ≠ tüm Linux; birincil hedef)
+/// - diğer Linux → yalnız OS `linux` (distro meta seyrek; yanlış eleme yok)
+/// - macOS / Windows / FreeBSD → yalnız OS
+/// - bilinmeyen → `(None, None)` — varsayılan dayatma yok
+pub fn host_filter_defaults(bank_distros: &[String]) -> (Option<String>, Option<String>) {
+    let _ = bank_distros;
+    match detect_host_os() {
+        HostOs::Arch => (Some("linux".into()), Some("arch".into())),
+        HostOs::MacOs => (Some("macos".into()), None),
+        HostOs::Linux => (Some("linux".into()), None),
+        HostOs::Other => {
+            if cfg!(target_os = "windows") {
+                (Some("windows".into()), None)
+            } else if cfg!(target_os = "freebsd") {
+                (Some("freebsd".into()), None)
+            } else {
+                (None, None)
             }
         }
     }
@@ -544,5 +643,74 @@ mod tests {
             !f.matches(&caution_beg),
             "risk=safe beginner/caution elemmeli — seviye risk yerine geçmez"
         );
+    }
+
+    #[test]
+    fn distro_filter_does_not_collapse_to_arch_or_substitute() {
+        let debian_only = cmd_json(serde_json::json!({
+            "id": "apt-only",
+            "name": "apt-only",
+            "platforms": ["linux"],
+            "risk": "safe",
+            "packages": {"debian": "coreutils"},
+        }));
+        let both = cmd_json(serde_json::json!({
+            "id": "multi-pm",
+            "name": "multi-pm",
+            "platforms": ["linux"],
+            "risk": "safe",
+            "packages": {"arch": "coreutils", "debian": "coreutils"},
+        }));
+        let arch_f = CommandsFilters {
+            distro: Some("arch".into()),
+            ..Default::default()
+        };
+        assert!(
+            !arch_f.matches(&debian_only),
+            "debian-only komut distro=arch ile sessizce Arch sayılmamalı"
+        );
+        assert!(arch_f.matches(&both));
+
+        let deb_f = CommandsFilters {
+            distro: Some("debian".into()),
+            ..Default::default()
+        };
+        assert!(deb_f.matches(&debian_only));
+        let arch_pkgs = package_lines_for_filter(&both, &arch_f, true);
+        assert_eq!(arch_pkgs.len(), 1);
+        assert!(arch_pkgs[0].0.starts_with("arch"));
+        let empty = package_lines_for_filter(&debian_only, &arch_f, true);
+        assert!(
+            empty.is_empty(),
+            "distro=arch iken debian paketi ikame edilmemeli: {empty:?}"
+        );
+    }
+
+    #[test]
+    fn host_filter_defaults_arch_keeps_os_and_distro_separate() {
+        // Sözleşme: Arch → linux + arch (Arch ≠ tüm Linux sessiz çökertmesi yok).
+        let bank = vec!["arch".into(), "debian".into()];
+        let (os, distro) = host_filter_defaults(&bank);
+        match crate::store::host::detect_host_os() {
+            crate::store::host::HostOs::Arch => {
+                assert_eq!(os.as_deref(), Some("linux"));
+                assert_eq!(distro.as_deref(), Some("arch"));
+            }
+            crate::store::host::HostOs::Linux => {
+                assert_eq!(os.as_deref(), Some("linux"));
+                assert!(
+                    distro.is_none(),
+                    "non-Arch Linux distro dayatmaz: {distro:?}"
+                );
+            }
+            crate::store::host::HostOs::MacOs => {
+                assert_eq!(os.as_deref(), Some("macos"));
+                assert!(distro.is_none());
+            }
+            crate::store::host::HostOs::Other => {
+                // windows/freebsd/unknown — OS opsiyonel; distro yok.
+                assert!(distro.is_none());
+            }
+        }
     }
 }

@@ -137,10 +137,12 @@ fn commands_tab_local_source_uses_local_kind_not_bank() {
 fn commands_detail_shows_purpose_safe_example_risk_sudo() {
     let mut app = app();
     app.select_commands_tab();
+    app.commands_filters.clear();
     app.set_commands_mode(CommandsBrowseMode::AllCommands);
-    // Geniş: sağ detay paneli (gruplu: 2 ikincil sütun → ~168+ sütun gerekir).
+    // Geniş: sağ detay paneli (gruplu: commit sonrası Grup+Liste+Detay).
     app.terminal_size = Some((180, 42));
     app.narrow_mode = false;
+    app.commit_commands_guide();
     let cmds = app.filtered_bank_commands();
     assert!(!cmds.is_empty());
     if let Some(idx) = cmds.iter().position(|c| !c.examples.is_empty()) {
@@ -148,8 +150,11 @@ fn commands_detail_shows_purpose_safe_example_risk_sudo() {
     }
     let text = all_text(&render(&app, 180, 42));
     assert!(
-        text.contains("Ne işe yarar")
+        text.contains("Ne zaman işe yarar")
+            || text.contains("When it helps")
+            || text.contains("Ne işe yarar")
             || text.contains("What is it for")
+            || text.contains("Platform")
             || text.contains("risk")
             || text.contains("Risk")
             || text.contains("dikkat")
@@ -166,7 +171,9 @@ fn commands_detail_shows_purpose_safe_example_risk_sudo() {
             || text.contains("Bayrak")
             || text.contains("Flags")
             || text.contains("sudo")
-            || text.contains("çalıştırılmaz"),
+            || text.contains("çalıştırılmaz")
+            || text.contains("Yetki")
+            || text.contains("Privilege"),
         "detay alanları yok:\n{text}"
     );
     assert!(
@@ -289,21 +296,29 @@ fn guide_keeps_max_three_content_panels_with_breadcrumb_esc() {
 fn teachable_detail_shows_flags_and_os_fit() {
     let mut app = app();
     app.select_commands_tab();
+    app.commands_filters.clear();
     app.set_commands_mode(CommandsBrowseMode::AllCommands);
-    app.terminal_size = Some((160, 45));
+    app.terminal_size = Some((180, 48));
     app.narrow_mode = false;
+    app.commit_commands_guide();
     let cmds = app.filtered_bank_commands();
     assert!(!cmds.is_empty());
     if let Some(idx) = cmds.iter().position(|c| !c.flags.is_empty()) {
         app.commands_entry_index = idx;
     }
-    let text = all_text(&render(&app, 160, 45));
+    let text = all_text(&render(&app, 180, 48));
     assert!(
-        text.contains("Ne işe yarar")
+        text.contains("Ne zaman işe yarar")
+            || text.contains("When it helps")
+            || text.contains("Ne işe yarar")
             || text.contains("What is it for")
             || text.contains("Bayrak")
             || text.contains("Flags")
-            || text.contains("risk"),
+            || text.contains("Platform")
+            || text.contains("risk")
+            || text.contains("dikkat")
+            || text.contains("uyumlu")
+            || text.contains("Fits"),
         "öğretici detay yok:\n{text}"
     );
 }
@@ -1240,4 +1255,175 @@ fn enter_and_nav_keys_never_auto_execute_guide_or_checklist() {
     );
     assert!(app.install_job.is_none() && app.pending_tty_pm.is_none());
     assert!(!app.modal.is_open());
+}
+
+#[test]
+fn start_topic_detail_shows_related_commands_tasks_learning() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.commands_filters.clear();
+    assert!(
+        app.commands_list_shows_concepts(),
+        "Başlangıç konu listesi göstermeli"
+    );
+    let concepts = app.filtered_concepts();
+    assert!(!concepts.is_empty(), "konu listesi boş olmamalı");
+    // related_commands dolu bir konu seç
+    if let Some(idx) = concepts.iter().position(|c| !c.related_commands.is_empty()) {
+        app.commands_entry_index = idx;
+    }
+    app.terminal_size = Some((140, 40));
+    app.narrow_mode = false;
+    let text = all_text(&render(&app, 140, 40));
+    assert!(
+        text.contains("Konular") || text.contains("Topics") || text.contains("Öğrenme"),
+        "konu listesi/öğrenme yok:\n{text}"
+    );
+    assert!(
+        text.contains("İlgili komut")
+            || text.contains("Related command")
+            || text.contains("Öğrenme")
+            || text.contains("Learning"),
+        "konu detayında related/learning yok:\n{text}"
+    );
+    // Enter çalıştırmaz
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(app.install_job.is_none() && app.pending_tty_pm.is_none());
+    assert!(!app.modal.is_open());
+    assert!(
+        app.status_message.contains("çalıştırılmaz")
+            || app.status_message.contains("Bank")
+            || app.status_message.contains("Konu"),
+        "konu Enter bilgi satırı: {}",
+        app.status_message
+    );
+}
+
+#[test]
+fn host_filter_default_is_editable_and_clearable() {
+    let mut app = app();
+    app.select_commands_tab();
+    // Güvenilir host’ta OS (ve Arch’ta distro) tohumlanır.
+    let seeded_os = app.commands_filters.os.clone();
+    assert!(
+        app.commands_host_filter_seeded,
+        "host süzgeci bir kez tohumlanmalı"
+    );
+    if seeded_os.is_some() {
+        assert!(
+            app.status_message.contains("os:")
+                || app.status_message.contains("Host")
+                || app.status_message.contains("süzgeç"),
+            "host varsayılanı durum satırında: {}",
+            app.status_message
+        );
+    }
+    // Düzenlenebilir: OS döngüsü (`o`)
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char('o'),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    // Temizle — yeniden dayatma yok
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char('x'),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(app.commands_filters.os.is_none());
+    assert!(app.commands_filters.distro.is_none());
+    app.select_commands_tab();
+    assert!(
+        app.commands_filters.os.is_none(),
+        "x sonrası host süzgeci yeniden dayatılmamalı"
+    );
+}
+
+#[test]
+fn bank_filter_no_match_does_not_substitute_other_os() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.commands_filters.clear();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    app.commands_category_index = 0;
+    // Eşleşmeyen OS — boş liste, ikame yok
+    app.commands_filters.os = Some("nonexistent-os-xyz".into());
+    let cmds = app.filtered_bank_commands();
+    assert!(
+        cmds.is_empty(),
+        "no-match OS boş dönmeli, ikame yok: {:?}",
+        cmds.iter().map(|c| c.id.as_str()).collect::<Vec<_>>()
+    );
+    app.terminal_size = Some((140, 36));
+    let text = all_text(&render(&app, 140, 36));
+    assert!(
+        text.contains("eşleşme yok")
+            || text.contains("No match")
+            || text.contains("ikame")
+            || text.contains("substitut"),
+        "no-match UI mesajı yok:\n{text}"
+    );
+}
+
+#[test]
+fn distro_filter_no_arch_collapse_on_debian_only_package() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.commands_filters.clear();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    let cat = app
+        .commands_bank_categories()
+        .first()
+        .copied()
+        .unwrap_or("files")
+        .to_string();
+    app.commands_bank.commands.push(
+        serde_json::from_value(serde_json::json!({
+            "id": "nv122-debian-only",
+            "name": "nv122-debian-only",
+            "category": cat,
+            "platforms": ["linux"],
+            "risk": "safe",
+            "packages": {"debian": "demo"},
+        }))
+        .unwrap(),
+    );
+    app.commands_bank.commands.push(
+        serde_json::from_value(serde_json::json!({
+            "id": "nv122-arch-only",
+            "name": "nv122-arch-only",
+            "category": cat,
+            "platforms": ["linux"],
+            "risk": "safe",
+            "packages": {"arch": "demo"},
+        }))
+        .unwrap(),
+    );
+    app.search_query = "nv122-".into();
+    app.commands_filters.distro = Some("arch".into());
+    let ids: Vec<_> = app
+        .filtered_bank_commands()
+        .iter()
+        .map(|c| c.id.as_str())
+        .collect();
+    assert!(
+        ids.contains(&"nv122-arch-only"),
+        "arch distro arch-only tutmalı: {ids:?}"
+    );
+    assert!(
+        !ids.contains(&"nv122-debian-only"),
+        "arch distro debian-only’yi Arch’a çökertmemeli: {ids:?}"
+    );
+    app.commands_filters.distro = Some("debian".into());
+    let ids: Vec<_> = app
+        .filtered_bank_commands()
+        .iter()
+        .map(|c| c.id.as_str())
+        .collect();
+    assert!(ids.contains(&"nv122-debian-only"));
+    assert!(!ids.contains(&"nv122-arch-only"));
 }

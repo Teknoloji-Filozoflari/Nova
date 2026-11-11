@@ -1470,11 +1470,48 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
                 format!(" {} ({}) ", lang.t(Msg::CommandsTasksList), tasks.len())
             };
             (title, items)
+        } else if app.commands_list_shows_concepts() {
+            let concepts = app.filtered_concepts();
+            let items = if concepts.is_empty() {
+                vec![ListItem::new(Span::styled(
+                    lang.t(Msg::CommandsFilterNoMatch),
+                    Style::default().fg(pal.muted),
+                ))]
+            } else {
+                concepts
+                    .iter()
+                    .enumerate()
+                    .map(|(i, concept)| {
+                        let selected = i == app.commands_entry_index;
+                        let focused = selected && app.focus == PanelFocus::CommandsList;
+                        let style = row_style(pal, selected, focused);
+                        let draft = if concept.verification.status == VerificationStatus::Draft {
+                            " ·draft"
+                        } else {
+                            ""
+                        };
+                        let diff = concept
+                            .difficulty
+                            .as_deref()
+                            .map(|d| format!(" [{d}]"))
+                            .unwrap_or_default();
+                        let label = truncate(
+                            &format!("{}{diff}{draft}", concept.title.pick(lang_id)),
+                            area.width.saturating_sub(6) as usize,
+                        );
+                        list_row(selected, label, style)
+                    })
+                    .collect()
+            };
+            let title = format!(" {} ({}) ", lang.t(Msg::CommandsTopicsList), concepts.len());
+            (title, items)
         } else {
             let cmds = app.filtered_bank_commands();
             let items = if cmds.is_empty() {
                 let empty = if searching {
                     lang.t(Msg::EmptyCommandsSearch)
+                } else if app.commands_filters.is_active() {
+                    lang.t(Msg::CommandsFilterNoMatch)
                 } else if app.command_favorite_only {
                     lang.t(Msg::EmptyCommandsFavorites)
                 } else if app.commands_mode == CommandsBrowseMode::Context
@@ -2222,7 +2259,8 @@ fn draw_commands_detail_panel(f: &mut Frame, app: &App, area: Rect) {
     } else {
         Style::default().fg(pal.muted)
     };
-    let lines = commands_detail_lines(app);
+    let wrap_w = area.width.saturating_sub(4).max(12) as usize;
+    let lines = commands_detail_lines(app, wrap_w);
     let detail = Paragraph::new(lines)
         .wrap(Wrap { trim: false })
         .scroll((app.commands_detail_scroll, 0))
@@ -2242,7 +2280,8 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
     }
     let lang = app.ui_lang();
     if app.commands_tab {
-        let lines = commands_detail_lines(app);
+        let wrap_w = area.width.saturating_sub(2).max(12) as usize;
+        let lines = commands_detail_lines(app, wrap_w);
         let detail = Paragraph::new(lines)
             .wrap(Wrap { trim: false })
             .scroll((app.commands_detail_scroll, 0))
@@ -2269,17 +2308,130 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
     draw_tool_detail_info(f, app, area, false);
 }
 
-fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
+fn push_wrapped(lines: &mut Vec<Line<'static>>, text: &str, width: usize, style: Style) {
+    for part in wrap_text(text, width) {
+        lines.push(Line::from(Span::styled(part, style)));
+    }
+}
+
+fn commands_detail_lines(app: &App, wrap_w: usize) -> Vec<Line<'static>> {
     use crate::commands::{
-        command_os_fit, CommandsBrowseMode, CommandsSource, OsFit, RiskLevel, VerificationStatus,
+        command_os_fit, package_lines_for_filter, CommandsBrowseMode, CommandsSource, OsFit,
+        RiskLevel, VerificationStatus,
     };
     let lang = app.ui_lang();
     let lang_id = lang.id();
     let pal = palette(app);
     let mut lines = Vec::new();
+    let wrap_w = wrap_w.max(12);
 
     if app.commands_mode == CommandsBrowseMode::ServerSecurity {
         return checklist_detail_lines(app);
+    }
+
+    if app.commands_list_shows_concepts() {
+        let concepts = app.filtered_concepts();
+        let Some(concept) = concepts
+            .get(
+                app.commands_entry_index
+                    .min(concepts.len().saturating_sub(1)),
+            )
+            .copied()
+        else {
+            lines.push(Line::from(lang.t(Msg::CommandsNoTopicSelected).to_string()));
+            return lines;
+        };
+        lines.push(Line::from(Span::styled(
+            concept.title.pick(lang_id).to_string(),
+            Style::default()
+                .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
+                .fg(pal.accent),
+        )));
+        let summary = concept.summary.pick(lang_id);
+        if !summary.is_empty() {
+            push_wrapped(&mut lines, summary, wrap_w, Style::default().fg(pal.text));
+        }
+        if let Some(ref diff) = concept.difficulty {
+            lines.push(Line::from(Span::styled(
+                format!("[{diff}] · {}", concept.verification.status.as_str()),
+                Style::default().fg(pal.search),
+            )));
+        } else {
+            lines.push(Line::from(Span::styled(
+                concept.verification.status.as_str().to_string(),
+                Style::default().fg(pal.muted),
+            )));
+        }
+        if concept.verification.status == VerificationStatus::Draft {
+            lines.push(Line::from(Span::styled(
+                lang.t(Msg::CommandsDraftWarn).to_string(),
+                Style::default().fg(pal.warn),
+            )));
+        }
+        let body = concept.body.pick(lang_id);
+        if !body.is_empty() {
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                format!("{}:", lang.t(Msg::CommandsTopicLearning)),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            push_wrapped(&mut lines, body, wrap_w, Style::default().fg(pal.text));
+        }
+        if !concept.related_commands.is_empty() {
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                format!("{}:", lang.t(Msg::CommandsTopicRelatedCmds)),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            push_wrapped(
+                &mut lines,
+                &format!("  {}", concept.related_commands.join(", ")),
+                wrap_w,
+                Style::default().fg(pal.accent),
+            );
+        }
+        let related_tasks = app.commands_bank.related_tasks_for_concept(concept);
+        if !related_tasks.is_empty() {
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                format!("{}:", lang.t(Msg::CommandsTopicRelatedTasks)),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            let names: Vec<String> = related_tasks
+                .iter()
+                .take(8)
+                .map(|t| t.name.pick(lang_id).to_string())
+                .collect();
+            push_wrapped(
+                &mut lines,
+                &format!("  {}", names.join(", ")),
+                wrap_w,
+                Style::default().fg(pal.text),
+            );
+        }
+        let mut related_learning = concept.related_concepts.clone();
+        related_learning.extend(concept.see_also.iter().cloned());
+        related_learning.sort();
+        related_learning.dedup();
+        if !related_learning.is_empty() {
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                format!("{}:", lang.t(Msg::CommandsConcepts)),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            push_wrapped(
+                &mut lines,
+                &format!("  {}", related_learning.join(", ")),
+                wrap_w,
+                Style::default().fg(pal.muted),
+            );
+        }
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            lang.t(Msg::CommandsNeverAutorun).to_string(),
+            Style::default().fg(pal.muted),
+        )));
+        return lines;
     }
 
     if app.commands_list_shows_tasks() {
@@ -2391,15 +2543,18 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
             } else {
                 ""
             };
-            // Güçlü başlık
+            // 1) Ad + tek satır özet
             lines.push(Line::from(Span::styled(
                 format!("{fav}{}", cmd.name),
                 Style::default()
                     .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
                     .fg(pal.accent),
             )));
-            // Rozetler: OS · shell · kategori · verification · learning_level · risk
-            let mut badges: Vec<Span<'static>> = Vec::new();
+            let summary = cmd.summary.pick(lang_id);
+            if !summary.is_empty() {
+                push_wrapped(&mut lines, summary, wrap_w, Style::default().fg(pal.text));
+            }
+
             let os_label = if !cmd.operating_systems.is_empty() {
                 cmd.operating_systems.join("/")
             } else if !cmd.platforms.is_empty() {
@@ -2407,46 +2562,56 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
             } else {
                 "general".into()
             };
-            badges.push(Span::styled(
-                format!("[{os_label}]"),
-                Style::default().fg(pal.muted),
-            ));
-            if !cmd.shells.is_empty() {
-                badges.push(Span::raw(" "));
-                badges.push(Span::styled(
-                    format!("[{}]", cmd.shells.join("/")),
-                    Style::default().fg(pal.search),
-                ));
-            }
-            badges.push(Span::raw(" "));
-            badges.push(Span::styled(
-                format!("[{}]", lang.bank_category(&cmd.category)),
-                Style::default().fg(pal.muted),
-            ));
-            badges.push(Span::raw(" "));
-            badges.push(Span::styled(
-                format!("[{}]", cmd.verification.status.as_str()),
-                Style::default().fg(if cmd.verification.status == VerificationStatus::Verified {
-                    pal.success
-                } else {
-                    pal.warn
-                }),
-            ));
-            badges.push(Span::raw(" "));
-            badges.push(Span::styled(
-                format!("[{}]", cmd.learning_level.label(lang_id)),
-                Style::default().fg(pal.search),
-            ));
-            badges.push(Span::raw(" "));
-            badges.push(Span::styled(
-                format!("[{}]", cmd.risk.label(lang_id)),
-                Style::default()
-                    .fg(risk_color(pal, cmd.risk))
-                    .add_modifier(Modifier::BOLD),
-            ));
-            lines.push(Line::from(badges));
 
-            // OS uyumu — sessizce native ima etme
+            // 2) Desteklenen OS / distro / shell (+ risk / doğrulama rozetleri)
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                format!("{}:", lang.t(Msg::CommandsPlatforms)),
+                Style::default().add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!(
+                "  OS: {os_label} · {} · {}",
+                cmd.learning_level.label(lang_id),
+                lang.bank_category(&cmd.category)
+            )));
+            if !cmd.shells.is_empty() {
+                lines.push(Line::from(format!(
+                    "  {}: {}",
+                    lang.t(Msg::CommandsShells),
+                    cmd.shells.join(", ")
+                )));
+            }
+            let distro_bits: Vec<String> = cmd
+                .package_refs
+                .iter()
+                .flat_map(|r| r.distributions.iter().cloned())
+                .collect::<std::collections::BTreeSet<_>>()
+                .into_iter()
+                .collect();
+            if !distro_bits.is_empty() {
+                lines.push(Line::from(format!("  distro: {}", distro_bits.join(", "))));
+            }
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled(
+                    format!("[{}]", cmd.verification.status.as_str()),
+                    Style::default().fg(
+                        if cmd.verification.status == VerificationStatus::Verified {
+                            pal.success
+                        } else {
+                            pal.warn
+                        },
+                    ),
+                ),
+                Span::raw(" "),
+                Span::styled(
+                    format!("[{}]", cmd.risk.label(lang_id)),
+                    Style::default()
+                        .fg(risk_color(pal, cmd.risk))
+                        .add_modifier(Modifier::BOLD),
+                ),
+            ]));
+
             let fit = command_os_fit(cmd);
             let fit_msg = match fit {
                 OsFit::Native => lang.t(Msg::CommandsOsFitNative),
@@ -2470,38 +2635,39 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 )));
             }
 
-            // 1) Ne işe yarar? (kısa)
-            lines.push(Line::from(""));
-            lines.push(Line::from(Span::styled(
-                format!("{}:", lang.t(Msg::CommandsPurpose)),
-                Style::default().add_modifier(Modifier::BOLD),
-            )));
-            let summary = cmd.summary.pick(lang_id);
-            if !summary.is_empty() {
-                lines.push(Line::from(summary.to_string()));
-            }
+            // 3) Ne zaman işe yarar
+            let mut when_bits: Vec<String> = cmd.tags.clone();
+            when_bits.extend(cmd.intent.all_for_lang(lang_id).iter().cloned());
+            when_bits.sort();
+            when_bits.dedup();
             let desc = cmd.description.pick(lang_id);
-            // Uzun açıklamayı aşağıda tut — üstte kısa kalsın
-            if !desc.is_empty() && desc != summary {
+            if !when_bits.is_empty() || (!desc.is_empty() && desc != summary) {
+                lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    desc.to_string(),
-                    Style::default().fg(pal.muted),
+                    format!("{}:", lang.t(Msg::CommandsWhenUseful)),
+                    Style::default().add_modifier(Modifier::BOLD),
                 )));
+                if !when_bits.is_empty() {
+                    push_wrapped(
+                        &mut lines,
+                        &format!("  {}", when_bits.join(", ")),
+                        wrap_w,
+                        Style::default().fg(pal.muted),
+                    );
+                }
+                if !desc.is_empty() && desc != summary {
+                    push_wrapped(&mut lines, desc, wrap_w, Style::default().fg(pal.text));
+                }
             }
 
-            // 2) Sözdizimi
+            // Sözdizimi + bayraklar (örneklerden önce, kısa)
             lines.push(Line::from(""));
             lines.push(Line::from(Span::styled(
                 format!("{}:", lang.t(Msg::CommandsSyntax)),
                 Style::default().add_modifier(Modifier::BOLD),
             )));
-            let alias = if cmd.aliases.is_empty() {
-                String::new()
-            } else {
-                format!("  ({})", cmd.aliases.join(", "))
-            };
             lines.push(Line::from(Span::styled(
-                format!("  $ {}{alias}", cmd.name),
+                format!("  $ {}", cmd.name),
                 Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
             )));
             if !cmd.aliases.is_empty() {
@@ -2511,10 +2677,7 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     cmd.aliases.join(", ")
                 )));
             }
-
-            // 3) Bayraklar
             if !cmd.flags.is_empty() {
-                lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
                     format!("{}:", lang.t(Msg::CommandsFlags)),
                     Style::default().add_modifier(Modifier::BOLD),
@@ -2522,10 +2685,12 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 for flag in cmd.flags.iter().take(12) {
                     let meaning = flag.meaning.pick(lang_id);
                     let ver = if flag.verified { " ✓" } else { "" };
-                    lines.push(Line::from(vec![
-                        Span::styled(format!("  {}", flag.flag), Style::default().fg(pal.accent)),
-                        Span::raw(format!("{ver} — {meaning}")),
-                    ]));
+                    push_wrapped(
+                        &mut lines,
+                        &format!("  {}{ver} — {meaning}", flag.flag),
+                        wrap_w,
+                        Style::default().fg(pal.text),
+                    );
                 }
                 if cmd.flags.len() > 12 {
                     lines.push(Line::from(Span::styled(
@@ -2535,7 +2700,7 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 }
             }
 
-            // 4) Örnekler kolay → ileri
+            // 4) Örnekler kolay → ileri (kopyalanabilir)
             if !cmd.examples.is_empty() {
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
@@ -2565,57 +2730,28 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     )));
                     let expl = ex.explanation.pick(lang_id);
                     if !expl.is_empty() {
-                        lines.push(Line::from(Span::styled(
-                            format!("      {expl}"),
+                        push_wrapped(
+                            &mut lines,
+                            &format!("      {expl}"),
+                            wrap_w,
                             Style::default().fg(pal.muted),
-                        )));
+                        );
                     }
                     for w in &ex.warnings {
                         let wt = w.pick(lang_id);
                         if !wt.is_empty() {
-                            lines.push(Line::from(Span::styled(
-                                format!("      ! {wt}"),
+                            push_wrapped(
+                                &mut lines,
+                                &format!("      ! {wt}"),
+                                wrap_w,
                                 Style::default().fg(pal.warn),
-                            )));
+                            );
                         }
                     }
                 }
             }
 
-            // 5) Beklenen etki (ilk safe örnek açıklaması özeti)
-            if let Some(ex) = cmd
-                .examples
-                .iter()
-                .find(|ex| ex.risk == RiskLevel::Safe)
-                .or_else(|| cmd.examples.first())
-            {
-                let expl = ex.explanation.pick(lang_id);
-                if !expl.is_empty() {
-                    lines.push(Line::from(""));
-                    lines.push(Line::from(Span::styled(
-                        format!("{}:", lang.t(Msg::CommandsExpectedEffect)),
-                        Style::default().add_modifier(Modifier::BOLD),
-                    )));
-                    lines.push(Line::from(format!("  {expl}")));
-                }
-            }
-
-            // 6) Platformlar / kabuklar
-            lines.push(Line::from(""));
-            lines.push(Line::from(Span::styled(
-                format!("{}:", lang.t(Msg::CommandsPlatforms)),
-                Style::default().add_modifier(Modifier::BOLD),
-            )));
-            lines.push(Line::from(format!("  OS: {os_label}")));
-            if !cmd.shells.is_empty() {
-                lines.push(Line::from(format!(
-                    "  {}: {}",
-                    lang.t(Msg::CommandsShells),
-                    cmd.shells.join(", ")
-                )));
-            }
-
-            // 7) Yetki / risk / yan etki
+            // 5) Yetki / risk / yan etki
             lines.push(Line::from(""));
             lines.push(Line::from(Span::styled(
                 format!("{}:", lang.t(Msg::CommandsSideEffects)),
@@ -2653,10 +2789,12 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
             }
             let sec = cmd.security.notes.pick(lang_id);
             if !sec.is_empty() {
-                lines.push(Line::from(Span::styled(
-                    format!("  ! {sec}"),
+                push_wrapped(
+                    &mut lines,
+                    &format!("  ! {sec}"),
+                    wrap_w,
                     Style::default().fg(pal.warn),
-                )));
+                );
             }
             if cmd.security.requires_admin || cmd.security.uac_prompt {
                 lines.push(Line::from(Span::styled(
@@ -2665,7 +2803,7 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                 )));
             }
 
-            // 8) Yaygın hatalar
+            // 6) Yaygın hatalar
             let mut mistakes: Vec<String> = cmd
                 .examples
                 .iter()
@@ -2685,14 +2823,16 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     Style::default().add_modifier(Modifier::BOLD),
                 )));
                 for m in mistakes.iter().take(6) {
-                    lines.push(Line::from(Span::styled(
-                        format!("  • {m}"),
+                    push_wrapped(
+                        &mut lines,
+                        &format!("  • {m}"),
+                        wrap_w,
                         Style::default().fg(pal.warn),
-                    )));
+                    );
                 }
             }
 
-            // Paketler
+            // Paketler — distro süzgecine dürüst; ikame yok
             let is_arch = crate::commands::host_is_arch();
             if cmd.has_package_hints() {
                 lines.push(Line::from(""));
@@ -2700,13 +2840,24 @@ fn commands_detail_lines(app: &App) -> Vec<Line<'static>> {
                     format!("{}:", lang.t(Msg::CommandsPackages)),
                     Style::default().add_modifier(Modifier::BOLD),
                 )));
-                for (label, pkg) in cmd.package_labeled_pairs(is_arch) {
-                    let mark = if is_arch && label.starts_with("arch") {
-                        " ←"
-                    } else {
-                        ""
-                    };
-                    lines.push(Line::from(format!("  {label}: {pkg}{mark}")));
+                let pkgs = package_lines_for_filter(cmd, &app.commands_filters, is_arch);
+                if pkgs.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        format!("  {}", lang.t(Msg::CommandsNoPackageForDistro)),
+                        Style::default().fg(pal.warn),
+                    )));
+                } else {
+                    for (label, pkg) in pkgs {
+                        let mark = if is_arch
+                            && app.commands_filters.distro.is_none()
+                            && label.starts_with("arch")
+                        {
+                            " ←"
+                        } else {
+                            ""
+                        };
+                        lines.push(Line::from(format!("  {label}: {pkg}{mark}")));
+                    }
                 }
             }
             let notes = cmd.install_notes.pick(lang_id);

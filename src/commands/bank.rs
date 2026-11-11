@@ -491,7 +491,7 @@ impl IntentPhrases {
     }
 }
 
-/// Öğrenme konsepti makalesi.
+/// Öğrenme konsepti makalesi (Başlangıç “konu” girişi).
 #[derive(Debug, Clone, Deserialize)]
 pub struct ConceptEntry {
     pub id: String,
@@ -509,6 +509,8 @@ pub struct ConceptEntry {
     pub related_commands: Vec<String>,
     #[serde(default)]
     pub related_concepts: Vec<String>,
+    #[serde(default)]
+    pub see_also: Vec<String>,
     #[serde(default)]
     pub body: LocalizedString,
     #[serde(default)]
@@ -678,6 +680,29 @@ pub struct GuideStep {
 }
 
 impl CommandBank {
+    /// Konu ile kesişen görevler (related_commands / etiket; uydurma yok).
+    pub fn related_tasks_for_concept(&self, concept: &ConceptEntry) -> Vec<&TaskEntry> {
+        let cmd_set: std::collections::BTreeSet<&str> = concept
+            .related_commands
+            .iter()
+            .map(|s| s.as_str())
+            .collect();
+        let tag_set: std::collections::BTreeSet<&str> =
+            concept.tags.iter().map(|s| s.as_str()).collect();
+        self.tasks
+            .iter()
+            .filter(|t| {
+                t.related_commands
+                    .iter()
+                    .any(|c| cmd_set.contains(c.as_str()))
+                    || t.implementations
+                        .iter()
+                        .any(|imp| imp.commands.iter().any(|c| cmd_set.contains(c.as_str())))
+                    || t.tags.iter().any(|tag| tag_set.contains(tag.as_str()))
+            })
+            .collect()
+    }
+
     /// `kind` / `schema_version` doğrular.
     pub fn validate_contract(&self) -> Result<(), String> {
         if self.kind != BANK_KIND {
