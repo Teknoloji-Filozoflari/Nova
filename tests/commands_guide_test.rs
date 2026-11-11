@@ -1470,3 +1470,180 @@ fn distro_filter_no_arch_collapse_on_debian_only_package() {
     assert!(ids.contains(&"nv122-debian-only"));
     assert!(!ids.contains(&"nv122-arch-only"));
 }
+
+#[test]
+fn topic_guide_vs_command_detail_panel_titles() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.commands_filters.clear();
+    assert!(app.commands_list_shows_concepts());
+    app.terminal_size = Some((140, 40));
+    let topic = all_text(&render(&app, 140, 40));
+    assert!(
+        topic.contains("Konu Rehberi") || topic.contains("Topic Guide"),
+        "konu paneli başlığı yok:\n{topic}"
+    );
+    // Komut detayına geç
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    app.commands_category_index = 0;
+    app.commands_entry_index = 0;
+    let cmd = all_text(&render(&app, 140, 40));
+    assert!(
+        cmd.contains("Komut Detay") || cmd.contains("Command Detail"),
+        "komut detay başlığı yok:\n{cmd}"
+    );
+    assert!(
+        !cmd.contains("Konu Rehberi") && !cmd.contains("Topic Guide"),
+        "komut görünümünde konu başlığı kalmamalı:\n{cmd}"
+    );
+}
+
+#[test]
+fn command_detail_uses_bordered_code_and_skips_empty_topic_sections() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.commands_filters.clear();
+    // Konu: boş tips/exercises bölümü uydurma
+    assert!(app.commands_list_shows_concepts());
+    let concepts = app.filtered_concepts();
+    assert!(!concepts.is_empty());
+    app.commands_entry_index = 0;
+    app.terminal_size = Some((140, 42));
+    let topic = all_text(&render(&app, 140, 42));
+    assert!(
+        !topic.contains("İpuçları:") && !topic.contains("Tips:"),
+        "boş tips bölümü uydurulmamalı:\n{topic}"
+    );
+    assert!(
+        !topic.contains("Alıştırmalar:") && !topic.contains("Exercises:"),
+        "boş exercises bölümü uydurulmamalı:\n{topic}"
+    );
+    assert!(
+        topic.contains("Giriş") || topic.contains("Intro") || topic.contains("Öğrenme"),
+        "intro/öğrenme beklenir:\n{topic}"
+    );
+
+    // Komut: kenarlıklı kod
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    let cat = app
+        .commands_bank_categories()
+        .first()
+        .copied()
+        .unwrap_or("files")
+        .to_string();
+    app.commands_bank.commands.push(
+        serde_json::from_value(serde_json::json!({
+            "id": "nv124-border-demo",
+            "name": "nv124-border-demo",
+            "category": cat,
+            "platforms": ["linux"],
+            "risk": "safe",
+            "examples": [
+                {"command": "echo hello-nv124", "difficulty": "beginner", "risk": "safe",
+                 "explanation": {"tr": "selam", "en": "hello"}}
+            ]
+        }))
+        .unwrap(),
+    );
+    app.search_query = "nv124-border-demo".into();
+    app.commands_entry_index = 0;
+    app.terminal_size = Some((140, 42));
+    let text = all_text(&render(&app, 140, 42));
+    assert!(
+        text.contains('┌') && text.contains('│') && text.contains('└'),
+        "kenarlıklı kod bloğu yok:\n{text}"
+    );
+    assert!(
+        text.contains("echo hello-nv124") || text.contains("$ echo"),
+        "örnek komut yok:\n{text}"
+    );
+    // Enter çalıştırmaz
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(app.install_job.is_none() && app.pending_tty_pm.is_none());
+    assert!(!app.modal.is_open());
+}
+
+#[test]
+fn topic_additive_fields_render_when_present() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.commands_filters.clear();
+    app.commands_bank.concepts.push(
+        serde_json::from_value(serde_json::json!({
+            "id": "nv124-topic-rich",
+            "title": {"tr": "Zengin konu", "en": "Rich topic"},
+            "summary": {"tr": "özet", "en": "summary"},
+            "intro": {"tr": "giriş metni nv124", "en": "intro text nv124"},
+            "learning_order": ["adım-a", "adım-b"],
+            "tips": [{"tr": "ipucu nv124", "en": "tip nv124"}],
+            "warnings": [{"tr": "uyarı nv124", "en": "warn nv124"}],
+            "exercises": [{
+                "title": {"tr": "Alıştırma 1", "en": "Exercise 1"},
+                "prompt": {"tr": "dene", "en": "try"}
+            }],
+            "next": ["backup"],
+            "related_commands": ["ls"],
+            "body": {"tr": "x".repeat(80), "en": "y".repeat(80)},
+            "verification": {"status": "draft"}
+        }))
+        .unwrap(),
+    );
+    // Konuyu seç
+    let concepts = app.filtered_concepts();
+    let idx = concepts
+        .iter()
+        .position(|c| c.id == "nv124-topic-rich")
+        .expect("injected concept");
+    app.commands_entry_index = idx;
+    app.terminal_size = Some((150, 50));
+    // Tam metin (kaydırma kırpması yok) — paneli doğrulamak için satırları da birleştir.
+    let concept = app
+        .filtered_concepts()
+        .into_iter()
+        .find(|c| c.id == "nv124-topic-rich")
+        .expect("concept");
+    let lines = nova::ui::guide_detail::topic_guide_lines(&app, concept, 72);
+    let text: String = lines
+        .iter()
+        .map(|l| {
+            l.spans
+                .iter()
+                .map(|s| s.content.as_ref())
+                .collect::<String>()
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let painted = all_text(&render(&app, 150, 50));
+    assert!(
+        painted.contains("Konu Rehberi") || painted.contains("Topic Guide"),
+        "panel başlığı:\n{painted}"
+    );
+    assert!(
+        text.contains("giriş metni nv124") || text.contains("intro text nv124"),
+        "intro yok:\n{text}"
+    );
+    assert!(
+        text.contains("adım-a") && text.contains("adım-b"),
+        "order yok:\n{text}"
+    );
+    assert!(
+        text.contains("ipucu nv124") || text.contains("tip nv124"),
+        "tips yok:\n{text}"
+    );
+    assert!(
+        text.contains("uyarı nv124") || text.contains("warn nv124"),
+        "warnings yok:\n{text}"
+    );
+    assert!(
+        text.contains("Alıştırma") || text.contains("Exercise"),
+        "exercises yok:\n{text}"
+    );
+    assert!(
+        text.contains("Sıradaki") || text.contains("Next"),
+        "next bölümü yok:\n{text}"
+    );
+}

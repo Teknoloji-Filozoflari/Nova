@@ -22,9 +22,9 @@ pub mod local;
 pub mod repo_sync;
 
 pub use bank::{
-    sort_examples_by_difficulty, CommandBank, CommandEntry, ConceptEntry, GuideEntry,
-    LearningLevel, LocalizedString, ProfileEntry, RiskLevel, TaskEntry, VerificationStatus,
-    BANK_KIND,
+    sort_examples_by_difficulty, CommandBank, CommandEntry, CommandExample, ConceptEntry,
+    GuideEntry, LearningLevel, LocalizedString, ProfileEntry, RiskLevel, TaskEntry, TopicExercise,
+    VerificationStatus, BANK_KIND,
 };
 pub use checklist::{
     checklist_progress_key, default_checklist_target_name, is_default_checklist_target_name,

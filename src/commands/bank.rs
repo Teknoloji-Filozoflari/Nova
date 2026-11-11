@@ -379,8 +379,14 @@ pub struct CommandEntry {
     pub category: String,
     #[serde(default)]
     pub summary: LocalizedString,
+    /// Kısa amaç cümlesi (özetten ayrı; yoksa boş).
+    #[serde(default)]
+    pub purpose: LocalizedString,
     #[serde(default)]
     pub description: LocalizedString,
+    /// Komut düzeyinde yaygın hatalar (örnek `warnings` ile birleşir).
+    #[serde(default)]
+    pub common_mistakes: Vec<LocalizedString>,
     #[serde(default)]
     pub tags: Vec<String>,
     #[serde(default)]
@@ -491,7 +497,21 @@ impl IntentPhrases {
     }
 }
 
+/// Konu rehberi alıştırması (Commands additive; boşsa UI bölümü yok).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct TopicExercise {
+    #[serde(default)]
+    pub title: LocalizedString,
+    #[serde(default)]
+    pub prompt: LocalizedString,
+    #[serde(default)]
+    pub hint: LocalizedString,
+}
+
 /// Öğrenme konsepti makalesi (Başlangıç “konu” girişi).
+///
+/// NV-123 öğretici alanlar additive: doluysa konu rehberi gösterir; yoksa
+/// mevcut `summary`/`body`/`related_*` ile yetinir — boş bölüm uydurulmaz.
 #[derive(Debug, Clone, Deserialize)]
 pub struct ConceptEntry {
     pub id: String,
@@ -501,6 +521,15 @@ pub struct ConceptEntry {
     pub title: LocalizedString,
     #[serde(default)]
     pub summary: LocalizedString,
+    /// Giriş metni; boşsa `summary` kullanılır (ayrı bölüm yalnızca doluysa).
+    #[serde(default)]
+    pub intro: LocalizedString,
+    /// Öğrenme sırası adımları / komut id’leri; boşsa gösterilmez.
+    #[serde(default)]
+    pub learning_order: Vec<String>,
+    /// Sayısal sıra (katalog); bilinmeyen `order` anahtarı yok sayılır.
+    #[serde(default)]
+    pub sort_index: Option<u32>,
     #[serde(default)]
     pub difficulty: Option<String>,
     #[serde(default)]
@@ -509,10 +538,25 @@ pub struct ConceptEntry {
     pub related_commands: Vec<String>,
     #[serde(default)]
     pub related_concepts: Vec<String>,
+    /// Alt konu id’leri; boşsa `related_concepts` yedek olarak kullanılır.
+    #[serde(default)]
+    pub subtopics: Vec<String>,
     #[serde(default)]
     pub see_also: Vec<String>,
     #[serde(default)]
     pub body: LocalizedString,
+    /// Konu düzeyinde örnekler (Commands); yoksa related komutlardan türetilir.
+    #[serde(default)]
+    pub examples: Vec<CommandExample>,
+    #[serde(default)]
+    pub tips: Vec<LocalizedString>,
+    #[serde(default)]
+    pub warnings: Vec<LocalizedString>,
+    #[serde(default)]
+    pub exercises: Vec<TopicExercise>,
+    /// Sonraki konu id’leri; boşsa bölüm yok (see_also URL’leri next sayılmaz).
+    #[serde(default)]
+    pub next: Vec<String>,
     #[serde(default)]
     pub verification: VerificationInfo,
 }
