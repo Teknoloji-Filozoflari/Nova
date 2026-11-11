@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-bank",
-  "generated_at": "2026-11-11T16:35:09Z",
-  "content_sha256": "92e6920cd8278b5685cf6d748769c1a22cc61bbd02924e5eee7267122d7e4a4b",
-  "command_count": 267,
+  "generated_at": "2026-11-11T17:37:28Z",
+  "content_sha256": "1a64dd48ee49d7d026627944d4f0b97b3e57b951858d727cf7eb814ad12c254a",
+  "command_count": 270,
   "concept_count": 21,
   "task_count": 36,
   "profile_count": 14,
@@ -694,6 +694,10 @@
           ]
         }
       ],
+      "install_notes": {
+        "tr": "Arch: pacman -S aws-cli (v1/v2 paket adı sürüme göre değişebilir). pipx/vendor installer ve distro\npaketleri ayrıdır — sessiz Arch varsayımı yok.",
+        "en": "Arch: pacman -S aws-cli (v1/v2 package name may vary). pipx/vendor installers and distro packages\ndiffer — no silent Arch default."
+      },
       "nova": {
         "favorite_eligible": true,
         "ui_priority": 60,
@@ -1761,6 +1765,10 @@
       ],
       "packages": {
         "arch": "caddy"
+      },
+      "install_notes": {
+        "tr": "Arch: pacman -S caddy. Diğer distrolarda paket/repo adı değişir (COPR, PPA, resmi binary) —\nuydurma yok; kurulu yolu doğrulayın.",
+        "en": "Arch: pacman -S caddy. Other distros vary (COPR, PPA, official binary) — do not invent;\nverify the installed path."
       },
       "nova": {
         "favorite_eligible": true,
@@ -4694,10 +4702,14 @@
         "windows"
       ],
       "operating_systems": [
-        "linux"
+        "linux",
+        "macos",
+        "windows"
       ],
       "packages": {
         "arch": "docker",
+        "debian": "docker.io",
+        "ubuntu": "docker.io",
         "fedora": "docker-ce"
       },
       "package_refs": [
@@ -4709,16 +4721,39 @@
           ]
         },
         {
+          "manager": "apt",
+          "package": "docker.io",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
           "manager": "dnf",
           "package": "docker-ce",
           "distributions": [
             "fedora"
           ]
+        },
+        {
+          "manager": "zypper",
+          "package": "docker",
+          "distributions": [
+            "opensuse-leap",
+            "opensuse-tumbleweed"
+          ]
+        },
+        {
+          "manager": "apk",
+          "package": "docker",
+          "distributions": [
+            "alpine"
+          ]
         }
       ],
       "install_notes": {
-        "tr": "Arch: pacman -S docker — sonra systemctl enable --now docker; kullanıcıyı docker grubuna ekleyin.\nDebian/Ubuntu paket adları dağıtıma göre değişir (unknown — dokümantasyona bakın).\nFedora sıkça docker-ce (docker.com repo).",
-        "en": "Arch: pacman -S docker — then systemctl enable --now docker; add user to docker group.\nDebian/Ubuntu package names vary (unknown — see distro docs).\nFedora often docker-ce from docker.com."
+        "tr": "Arch: pacman -S docker — sonra systemctl enable --now docker; kullanıcıyı docker grubuna ekleyin.\nDebian/Ubuntu distro paketi sıkça docker.io; Docker Inc. reposu docker-ce kullanır — karıştırmayın.\nFedora sıkça docker-ce (docker.com repo) veya moby-engine — kurulu paketi doğrulayın.\nopenSUSE: zypper in docker. Alpine: apk add docker (OpenRC servis yolu ayrıdır).\nSessiz Arch varsayımı yok: Linux filtresiz host’ta önce distro PM’sini seçin.",
+        "en": "Arch: pacman -S docker — then systemctl enable --now docker; add user to docker group.\nDebian/Ubuntu distro package is often docker.io; Docker Inc. repos use docker-ce — do not confuse.\nFedora often docker-ce (docker.com) or moby-engine — verify the installed package.\nopenSUSE: zypper in docker. Alpine: apk add docker (OpenRC service path differs).\nNo silent Arch default: pick the host distro PM when Linux is undifferenced."
       },
       "examples": [
         {
@@ -4926,8 +4961,8 @@
         }
       ],
       "install_notes": {
-        "tr": "Arch: pacman -S docker-compose\nDebian/Ubuntu: paket adı dağıtıma göre değişir (unknown — docker-compose-plugin / docker-compose v1)\nFedora: sıkça docker-compose-plugin (docker.com) — doğrulayın.\nModern kullanım: docker compose (boşluklu eklenti).",
-        "en": "Arch: pacman -S docker-compose\nDebian/Ubuntu: package name varies (unknown — docker-compose-plugin / v1)\nFedora: often docker-compose-plugin from docker.com — verify.\nModern usage: docker compose (space) plugin."
+        "tr": "Arch: pacman -S docker-compose (bilinen distro paketi).\nDebian/Ubuntu/Fedora: paket adı dağıtıma göre değişir (docker-compose-plugin / v1) — uydurma yok;\nkurulu adı doğrulayın. Modern kullanım: `docker compose` (boşluklu eklenti).\nLinux filtresiz host’ta Arch’ı sessiz varsaymayın.",
+        "en": "Arch: pacman -S docker-compose (known distro package).\nDebian/Ubuntu/Fedora: package name varies (docker-compose-plugin / v1) — do not invent;\nverify the installed name. Modern usage: `docker compose` (space) plugin.\nDo not silently default to Arch when Linux is undifferenced."
       },
       "flags": [
         {
@@ -6800,13 +6835,25 @@
           "manager": "dnf",
           "package": "firewalld",
           "distributions": [
-            "fedora"
+            "fedora",
+            "rhel",
+            "rocky",
+            "almalinux"
+          ]
+        },
+        {
+          "manager": "zypper",
+          "package": "firewalld",
+          "distributions": [
+            "opensuse-leap",
+            "opensuse-tumbleweed",
+            "sles"
           ]
         }
       ],
       "install_notes": {
-        "tr": "Arch: pacman -S firewalld — systemctl enable --now firewalld\nFedora’da sık varsayılan; Debian/Ubuntu’da isteğe bağlı.",
-        "en": "Arch: pacman -S firewalld — systemctl enable --now firewalld\nOften default on Fedora; optional on Debian/Ubuntu."
+        "tr": "Fedora/RHEL/openSUSE ailesinde sık varsayılan firewall.\nArch: pacman -S firewalld — systemctl enable --now firewalld.\nDebian/Ubuntu’da isteğe bağlı; ufw daha yaygındır — karıştırmayın.",
+        "en": "Often the default firewall on Fedora/RHEL/openSUSE families.\nArch: pacman -S firewalld — systemctl enable --now firewalld.\nOptional on Debian/Ubuntu where ufw is more common — do not confuse them."
       },
       "flags": [
         {
@@ -10641,6 +10688,10 @@
       "packages": {
         "arch": "helm"
       },
+      "install_notes": {
+        "tr": "Arch: pacman -S helm. Diğer distrolarda resmi Helm binary veya sürüm depoları yaygındır —\nLinux filtresiz host’ta Arch’ı sessiz varsaymayın.",
+        "en": "Arch: pacman -S helm. Other distros often use the official Helm binary or versioned repos —\ndo not silently default to Arch when Linux is undifferenced."
+      },
       "nova": {
         "favorite_eligible": true,
         "ui_priority": 60,
@@ -12533,8 +12584,8 @@
         "en": "Query the systemd journal."
       },
       "description": {
-        "tr": "Servis ve çekirdek loglarını journal’dan okur. -p err öncelik süzgesi yaygındır; çok geniş sorgular gürültülü olabilir.",
-        "en": "Reads service and kernel logs from the journal. -p err is a common priority filter; over-broad queries can be noisy."
+        "tr": "Servis ve çekirdek loglarını systemd journal’dan okur. OpenRC/syslog dosya yolları (`/var/log/messages`) ve macOS `log` ile **eşitlenmez**. -p err öncelik süzgesi yaygındır; çok geniş sorgular gürültülü olabilir.",
+        "en": "Reads service and kernel logs from the systemd journal. It is **not** equivalent to OpenRC/syslog file paths (/var/log/messages) or macOS log. -p err is a common priority filter; over-broad queries can be noisy."
       },
       "tags": [
         "monitoring",
@@ -12578,8 +12629,21 @@
           "distributions": [
             "fedora"
           ]
+        },
+        {
+          "manager": "zypper",
+          "package": "systemd",
+          "distributions": [
+            "opensuse-leap",
+            "opensuse-tumbleweed",
+            "sles"
+          ]
         }
       ],
+      "install_notes": {
+        "tr": "systemd journal gerektirir. Alpine/Void/Gentoo OpenRC varsayılanında journalctl varsaymayın.",
+        "en": "Requires systemd journal. Do not assume journalctl on Alpine/Void/Gentoo OpenRC defaults."
+      },
       "flags": [
         {
           "flag": "-u",
@@ -13180,10 +13244,32 @@
           "distributions": [
             "arch"
           ]
+        },
+        {
+          "manager": "apt",
+          "package": "kubernetes-client",
+          "distributions": [
+            "debian",
+            "ubuntu"
+          ]
+        },
+        {
+          "manager": "dnf",
+          "package": "kubernetes-client",
+          "distributions": [
+            "fedora"
+          ]
         }
       ],
       "packages": {
-        "arch": "kubectl"
+        "arch": "kubectl",
+        "debian": "kubernetes-client",
+        "ubuntu": "kubernetes-client",
+        "fedora": "kubernetes-client"
+      },
+      "install_notes": {
+        "tr": "Paket adları kanala göre değişir. Arch: pacman -S kubectl.\nDebian/Ubuntu/Fedora distro paketleri sıkça kubernetes-client.\nResmi Kubernetes sürüm depoları/binary ayrıdır — sessiz Arch varsayımı yok.",
+        "en": "Package names vary by channel. Arch: pacman -S kubectl.\nDebian/Ubuntu/Fedora distro packages are often kubernetes-client.\nOfficial Kubernetes versioned repos/binaries differ — no silent Arch default."
       },
       "nova": {
         "favorite_eligible": true,
@@ -16785,8 +16871,8 @@
         "arch": "nerdctl"
       },
       "install_notes": {
-        "tr": "Arch: pacman -S nerdctl. Diğer dağıtımlarda paket adı/kurulum yolu değişebilir.",
-        "en": "Arch: pacman -S nerdctl. Other distros may use different package names/paths."
+        "tr": "Arch: pacman -S nerdctl (bilinen distro paketi). Diğer dağıtımlarda paket adı/kurulum yolu değişebilir —\nsessiz Arch varsayımı yok; doğrulayın.",
+        "en": "Arch: pacman -S nerdctl (known distro package). Other distros may differ in package name/path —\nno silent Arch default; verify."
       },
       "nova": {
         "favorite_eligible": true,
@@ -17364,11 +17450,33 @@
           "distributions": [
             "fedora"
           ]
+        },
+        {
+          "manager": "zypper",
+          "package": "nftables",
+          "distributions": [
+            "opensuse-leap",
+            "opensuse-tumbleweed"
+          ]
+        },
+        {
+          "manager": "apk",
+          "package": "nftables",
+          "distributions": [
+            "alpine"
+          ]
+        },
+        {
+          "manager": "xbps",
+          "package": "nftables",
+          "distributions": [
+            "void"
+          ]
         }
       ],
       "install_notes": {
-        "tr": "Arch: pacman -S nftables\nDebian/Ubuntu: apt install nftables\nFedora: dnf install nftables\nsystemctl ile nftables servisi distroya göre değişir.",
-        "en": "Arch: pacman -S nftables\nDebian/Ubuntu: apt install nftables\nFedora: dnf install nftables\nnftables systemd unit varies by distro."
+        "tr": "Arch: pacman -S nftables\nDebian/Ubuntu: apt install nftables\nopenSUSE: zypper in nftables. Alpine: apk add nftables. Void: xbps-install nftables.\nufw/firewalld sarmalayıcısı varsa önce onları tercih edin.\nFedora: dnf install nftables\nsystemctl ile nftables servisi distroya göre değişir.",
+        "en": "Arch: pacman -S nftables\nDebian/Ubuntu: apt install nftables\nFedora: dnf install nftables\nopenSUSE: zypper in nftables. Alpine: apk add nftables. Void: xbps-install nftables.\nPrefer ufw/firewalld when those wrap the host. nftables unit varies by distro."
       },
       "flags": [
         {
@@ -21230,13 +21338,31 @@
           "manager": "dnf",
           "package": "podman",
           "distributions": [
-            "fedora"
+            "fedora",
+            "rhel",
+            "rocky",
+            "almalinux"
+          ]
+        },
+        {
+          "manager": "zypper",
+          "package": "podman",
+          "distributions": [
+            "opensuse-leap",
+            "opensuse-tumbleweed"
+          ]
+        },
+        {
+          "manager": "apk",
+          "package": "podman",
+          "distributions": [
+            "alpine"
           ]
         }
       ],
       "install_notes": {
-        "tr": "Arch: pacman -S podman\nFedora: dnf install podman\nDebian/Ubuntu: apt install podman",
-        "en": "Arch: pacman -S podman\nFedora: dnf install podman\nDebian/Ubuntu: apt install podman"
+        "tr": "Arch: pacman -S podman\nFedora/RHEL: dnf install podman\nDebian/Ubuntu: apt install podman\nopenSUSE: zypper in podman\nAlpine: apk add podman",
+        "en": "Arch: pacman -S podman\nFedora/RHEL: dnf install podman\nDebian/Ubuntu: apt install podman\nopenSUSE: zypper in podman\nAlpine: apk add podman"
       },
       "examples": [
         {
@@ -22289,6 +22415,294 @@
         ]
       },
       "learning_level": "unspecified"
+    },
+    {
+      "schema_version": 2,
+      "id": "rc-service",
+      "name": "rc-service",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "OpenRC servislerini denetler (systemctl değil).",
+        "en": "Control OpenRC services (not systemctl)."
+      },
+      "description": {
+        "tr": "`rc-service`, OpenRC init script’lerini status/start/stop/restart ile yönetir. Alpine ve Gentoo’da yaygındır. Linux `systemctl`, Void `sv` ve BSD `service`/`rcctl` ile **eş anlamlı değildir**. `status` salt okumadır; start/stop yükseltme ister ve hizmeti kesebilir.",
+        "en": "rc-service manages OpenRC init scripts via status/start/stop/restart. Common on Alpine and Gentoo. It is **not** a synonym for Linux systemctl, Void sv, or BSD service/rcctl. status is read-only; start/stop need elevation and can disrupt services."
+      },
+      "tags": [
+        "system",
+        "openrc",
+        "services",
+        "alpine",
+        "gentoo"
+      ],
+      "risk": "dangerous",
+      "learning_level": "intermediate",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "apk",
+          "package": "openrc",
+          "distributions": [
+            "alpine"
+          ]
+        },
+        {
+          "manager": "portage",
+          "package": "sys-apps/openrc",
+          "distributions": [
+            "gentoo"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "OpenRC tabanında gelir. systemd host’ta systemctl kullanın; Void’ta sv.",
+        "en": "Ships with OpenRC. On systemd hosts use systemctl; on Void use sv."
+      },
+      "flags": [
+        {
+          "flag": "status",
+          "meaning": {
+            "tr": "Servis durumunu sor.",
+            "en": "Query service status."
+          },
+          "verified": false
+        },
+        {
+          "flag": "start",
+          "meaning": {
+            "tr": "Servisi başlat.",
+            "en": "Start service."
+          },
+          "verified": false
+        },
+        {
+          "flag": "stop",
+          "meaning": {
+            "tr": "Servisi durdur.",
+            "en": "Stop service."
+          },
+          "verified": false
+        },
+        {
+          "flag": "restart",
+          "meaning": {
+            "tr": "Servisi yeniden başlat.",
+            "en": "Restart service."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "sshd durumu",
+            "en": "sshd status"
+          },
+          "command": "rc-service sshd status",
+          "explanation": {
+            "tr": "OpenRC sshd init durumunu sorar (systemctl status değildir).",
+            "en": "Queries OpenRC sshd init status (not systemctl status)."
+          },
+          "risk": "safe",
+          "difficulty": "beginner",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Servisi başlat",
+            "en": "Start service"
+          },
+          "command": "sudo rc-service sshd start",
+          "explanation": {
+            "tr": "OpenRC ile sshd’yi başlatır — hizmeti etkiler.",
+            "en": "Starts sshd via OpenRC — affects the service."
+          },
+          "risk": "caution",
+          "difficulty": "intermediate",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "rc-status",
+        "systemctl",
+        "sv",
+        "service",
+        "rcctl"
+      ],
+      "intent": {
+        "tr": [
+          "rc-service",
+          "openrc başlat",
+          "alpine servis"
+        ],
+        "en": [
+          "rc-service",
+          "openrc start",
+          "alpine service"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://wiki.alpinelinux.org/wiki/OpenRC",
+          "https://wiki.gentoo.org/wiki/OpenRC",
+          "https://manpages.debian.org/testing/openrc/rc-service.8.en.html"
+        ],
+        "notes": "Agent-authored NV-121 draft from OpenRC/Alpine/Gentoo docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
+      "id": "rc-status",
+      "name": "rc-status",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "OpenRC servis durumunu listeler (systemd değil).",
+        "en": "List OpenRC service status (not systemd)."
+      },
+      "description": {
+        "tr": "`rc-status`, Alpine/Gentoo gibi OpenRC kullanan sistemlerde runlevel ve servis durumunu gösterir. `systemctl`, Void `sv` / runit ve BSD `service`/`rcctl` ile **eşitlenmez**. Salt okuma sorguları güvenlidir; servis başlatma/durdurma `rc-service` yoludur.",
+        "en": "rc-status shows runlevel and service state on OpenRC hosts such as Alpine and Gentoo. It is **not** equivalent to systemctl, Void sv/runit, or BSD service/rcctl. Status queries are safe; start/stop goes through rc-service."
+      },
+      "tags": [
+        "system",
+        "openrc",
+        "services",
+        "alpine",
+        "gentoo"
+      ],
+      "risk": "safe",
+      "learning_level": "intermediate",
+      "requires_elevated": false,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "apk",
+          "package": "openrc",
+          "distributions": [
+            "alpine"
+          ]
+        },
+        {
+          "manager": "portage",
+          "package": "sys-apps/openrc",
+          "distributions": [
+            "gentoo"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Alpine/Gentoo OpenRC tabanında gelir. systemd host’larda (Arch/Debian/Fedora varsayılanı) birincil\naraç değildir — orada systemctl kullanın. Void runit için sv kullanın.",
+        "en": "Ships with OpenRC on Alpine/Gentoo. Not the primary tool on systemd hosts (Arch/Debian/Fedora\ndefaults) — use systemctl there. On Void runit use sv."
+      },
+      "flags": [
+        {
+          "flag": "-a",
+          "meaning": {
+            "tr": "Tüm runlevel’ları göster.",
+            "en": "Show all runlevels."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-l",
+          "meaning": {
+            "tr": "Servis listesi / listeli biçim.",
+            "en": "List form / service list."
+          },
+          "verified": false
+        },
+        {
+          "flag": "-c",
+          "meaning": {
+            "tr": "Çökük (crashed) servisleri göster.",
+            "en": "Show crashed services."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Varsayılan runlevel durumu",
+            "en": "Default runlevel status"
+          },
+          "command": "rc-status",
+          "explanation": {
+            "tr": "Geçerli runlevel’daki servisleri ve durumlarını listeler.",
+            "en": "Lists services and states for the current runlevel."
+          },
+          "risk": "safe",
+          "difficulty": "beginner",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Tüm runlevel’lar",
+            "en": "All runlevels"
+          },
+          "command": "rc-status -a",
+          "explanation": {
+            "tr": "Tüm runlevel servis özetini basar.",
+            "en": "Prints a summary across all runlevels."
+          },
+          "risk": "safe",
+          "difficulty": "beginner",
+          "requires_elevated": false
+        }
+      ],
+      "related": [
+        "rc-service",
+        "systemctl",
+        "sv",
+        "service",
+        "rcctl"
+      ],
+      "intent": {
+        "tr": [
+          "openrc durum",
+          "rc-status",
+          "alpine servis listesi"
+        ],
+        "en": [
+          "rc-status",
+          "openrc status",
+          "alpine list services"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://wiki.alpinelinux.org/wiki/OpenRC",
+          "https://wiki.gentoo.org/wiki/OpenRC",
+          "https://manpages.debian.org/testing/openrc/rc-status.8.en.html"
+        ],
+        "notes": "Agent-authored NV-121 draft from OpenRC/Alpine/Gentoo docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
     },
     {
       "schema_version": 2,
@@ -27774,6 +28188,145 @@
     },
     {
       "schema_version": 2,
+      "id": "sv",
+      "name": "sv",
+      "kind": "administrative_tool",
+      "category": "system",
+      "summary": {
+        "tr": "Void Linux runit servis denetimi (systemd / OpenRC değil).",
+        "en": "Void Linux runit service control (not systemd / OpenRC)."
+      },
+      "description": {
+        "tr": "`sv`, runit gözetimindeki servisleri status/up/down/restart ile yönetir. Void Linux’ta birincil servis aracıdır. `systemctl`, OpenRC `rc-service`/`rc-status` ve BSD `service`/`rcctl` ile **eşitlenmez**. `status` salt okumadır; up/down hizmeti değiştirir.",
+        "en": "sv controls runit-supervised services via status/up/down/restart. It is the primary service tool on Void Linux. It is **not** equivalent to systemctl, OpenRC rc-service/rc-status, or BSD service/rcctl. status is read-only; up/down change service state."
+      },
+      "tags": [
+        "system",
+        "runit",
+        "void",
+        "services"
+      ],
+      "risk": "dangerous",
+      "learning_level": "intermediate",
+      "requires_elevated": true,
+      "platforms": [
+        "linux"
+      ],
+      "operating_systems": [
+        "linux"
+      ],
+      "package_refs": [
+        {
+          "manager": "xbps",
+          "package": "runit",
+          "distributions": [
+            "void"
+          ]
+        }
+      ],
+      "install_notes": {
+        "tr": "Void runit tabanında gelir. systemd veya OpenRC host’larda birincil araç değildir.",
+        "en": "Ships with Void runit. Not the primary tool on systemd or OpenRC hosts."
+      },
+      "flags": [
+        {
+          "flag": "status",
+          "meaning": {
+            "tr": "Servis durumunu göster.",
+            "en": "Show service status."
+          },
+          "verified": false
+        },
+        {
+          "flag": "up",
+          "meaning": {
+            "tr": "Servisi başlat / ayakta tut.",
+            "en": "Start / keep service up."
+          },
+          "verified": false
+        },
+        {
+          "flag": "down",
+          "meaning": {
+            "tr": "Servisi durdur.",
+            "en": "Stop service."
+          },
+          "verified": false
+        },
+        {
+          "flag": "restart",
+          "meaning": {
+            "tr": "Servisi yeniden başlat.",
+            "en": "Restart service."
+          },
+          "verified": false
+        }
+      ],
+      "examples": [
+        {
+          "title": {
+            "tr": "Servis durumu",
+            "en": "Service status"
+          },
+          "command": "sv status /var/service/sshd",
+          "explanation": {
+            "tr": "runit sshd servis durumunu gösterir (systemctl değildir).",
+            "en": "Shows runit sshd service status (not systemctl)."
+          },
+          "risk": "safe",
+          "difficulty": "beginner",
+          "requires_elevated": false
+        },
+        {
+          "title": {
+            "tr": "Servisi yeniden başlat",
+            "en": "Restart service"
+          },
+          "command": "sudo sv restart /var/service/sshd",
+          "explanation": {
+            "tr": "runit gözetimindeki sshd’yi yeniden başlatır.",
+            "en": "Restarts runit-supervised sshd."
+          },
+          "risk": "caution",
+          "difficulty": "intermediate",
+          "requires_elevated": true
+        }
+      ],
+      "related": [
+        "rc-status",
+        "rc-service",
+        "systemctl",
+        "service",
+        "rcctl"
+      ],
+      "intent": {
+        "tr": [
+          "sv status",
+          "void servis",
+          "runit"
+        ],
+        "en": [
+          "sv status",
+          "void service",
+          "runit"
+        ]
+      },
+      "verification": {
+        "status": "draft",
+        "sources": [
+          "https://docs.voidlinux.org/config/services/index.html",
+          "https://man.voidlinux.org/sv.8"
+        ],
+        "notes": "Agent-authored NV-121 draft from Void docs; not human-verified."
+      },
+      "nova": {
+        "concepts": [
+          "systemd"
+        ]
+      }
+    },
+    {
+      "schema_version": 2,
       "id": "sync",
       "name": "sync",
       "kind": "executable",
@@ -28069,8 +28622,8 @@
         "en": "Control the systemd system and service manager."
       },
       "description": {
-        "tr": "Servis başlatma/durdurma, durum ve boot birimleri için birincil araç.",
-        "en": "Primary tool to start/stop services, check status, and manage boot units."
+        "tr": "systemd birimlerini başlatır/durdurur/sorgular. Alpine/Gentoo OpenRC (`rc-service`/`rc-status`) ve Void runit (`sv`) ile **eşitlenmez** — yalnızca systemd host’larda birincil araçtır.",
+        "en": "Starts/stops/queries systemd units. It is **not** equivalent to Alpine/Gentoo OpenRC (rc-service/rc-status) or Void runit (sv) — primary only on systemd hosts."
       },
       "tags": [
         "system",
@@ -28114,11 +28667,20 @@
           "distributions": [
             "fedora"
           ]
+        },
+        {
+          "manager": "zypper",
+          "package": "systemd",
+          "distributions": [
+            "opensuse-leap",
+            "opensuse-tumbleweed",
+            "sles"
+          ]
         }
       ],
       "install_notes": {
-        "tr": "Arch: pacman -S systemd (taban).",
-        "en": "Arch: pacman -S systemd (base)."
+        "tr": "systemd tabanlı distrolarda (Arch/Debian/Fedora/openSUSE/NixOS) taban gelir.\nAlpine/Gentoo OpenRC ve Void runit varsayılanında birincil araç değildir.",
+        "en": "Ships as base on systemd distros (Arch/Debian/Fedora/openSUSE/NixOS).\nNot the primary tool on Alpine/Gentoo OpenRC or Void runit defaults."
       },
       "flags": [
         {
@@ -28259,7 +28821,12 @@
         "systemd-analyze",
         "timedatectl",
         "loginctl",
-        "bootctl"
+        "bootctl",
+        "rc-status",
+        "rc-service",
+        "sv",
+        "service",
+        "rcctl"
       ],
       "intent": {
         "tr": [
@@ -29216,6 +29783,10 @@
       ],
       "packages": {
         "arch": "terraform"
+      },
+      "install_notes": {
+        "tr": "Arch’ta bilinen paket: pacman -S terraform. Diğer distrolarda HashiCorp/OpenTofu kanalları veya\nupstream binary yaygındır — Linux filtresiz host’ta Arch’ı sessiz varsaymayın; paket adını doğrulayın.",
+        "en": "Known Arch package: pacman -S terraform. Other distros often use HashiCorp/OpenTofu channels or\nupstream binaries — do not silently default to Arch when Linux is undifferenced; verify package name."
       },
       "nova": {
         "favorite_eligible": true,
@@ -36576,8 +37147,8 @@
               "shell": "bash",
               "privilege": "elevated",
               "explanation": {
-                "tr": "Aktif kuralları ve varsayılanları gösterir.",
-                "en": "Shows active rules and defaults."
+                "tr": "Aktif kuralları ve varsayılanları gösterir (Debian/Ubuntu ailesi).",
+                "en": "Shows active rules and defaults (Debian/Ubuntu family)."
               }
             }
           ],
@@ -36586,7 +37157,17 @@
           ],
           "shells": [
             "bash"
-          ]
+          ],
+          "distributions": [
+            "debian",
+            "ubuntu",
+            "linux-mint",
+            "pop-os"
+          ],
+          "notes": {
+            "tr": "Kurulu değilse na — firewalld/nft ile karıştırma.",
+            "en": "If absent, na — do not treat as firewalld/nft."
+          }
         },
         {
           "id": "linux-firewalld",
@@ -36600,8 +37181,8 @@
               "shell": "bash",
               "privilege": "none",
               "explanation": {
-                "tr": "Çalışıyorsa running yazar.",
-                "en": "Prints running when active."
+                "tr": "Çalışıyorsa running yazar (Fedora/RHEL/openSUSE ailesi).",
+                "en": "Prints running when active (Fedora/RHEL/openSUSE family)."
               }
             }
           ],
@@ -36610,7 +37191,52 @@
           ],
           "shells": [
             "bash"
+          ],
+          "distributions": [
+            "fedora",
+            "rhel",
+            "rocky",
+            "almalinux",
+            "opensuse-leap",
+            "opensuse-tumbleweed",
+            "sles"
           ]
+        },
+        {
+          "id": "linux-nft",
+          "commands": [
+            "nft"
+          ],
+          "examples": [
+            {
+              "command": "sudo nft list ruleset",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "nftables kurallarını listeler (ufw/firewalld sarmalayıcısı değilse ham tablo).",
+                "en": "Lists nftables ruleset (raw tables when not wrapped by ufw/firewalld)."
+              }
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "alpine",
+            "void",
+            "gentoo",
+            "arch",
+            "debian",
+            "fedora"
+          ],
+          "notes": {
+            "tr": "Birçok distroda düşük seviye araçtır; ufw/firewalld varsa önce onları tercih edin.",
+            "en": "Low-level on many distros; prefer ufw/firewalld when those are the host firewall."
+          }
         },
         {
           "id": "bsd-pfctl",
@@ -36666,9 +37292,10 @@
         "sources": [
           "man 8 ufw",
           "man 1 firewall-cmd",
+          "man 8 nft",
           "man 8 pfctl"
         ],
-        "notes": "Agent-authored Faz 8 draft; not human-verified."
+        "notes": "NV-121 multi-OS fill; still draft — not human-verified."
       },
       "tags": [
         "firewall",
@@ -38044,8 +38671,8 @@
               "shell": "bash",
               "privilege": "none",
               "explanation": {
-                "tr": "nginx biriminin son 50 satırı.",
-                "en": "Last 50 lines for nginx unit."
+                "tr": "systemd journal son satırları (OpenRC/syslog yolu değildir).",
+                "en": "Recent systemd journal lines (not OpenRC/syslog path)."
               }
             }
           ],
@@ -38057,7 +38684,70 @@
           ],
           "shells": [
             "bash"
-          ]
+          ],
+          "distributions": [
+            "arch",
+            "debian",
+            "ubuntu",
+            "fedora",
+            "rhel",
+            "rocky",
+            "almalinux",
+            "opensuse-leap",
+            "opensuse-tumbleweed",
+            "nixos"
+          ],
+          "notes": {
+            "tr": "journalctl systemd ister. Alpine/Void/Gentoo OpenRC varsayılanında ayrı uygulama kullanın.",
+            "en": "journalctl needs systemd. On Alpine/Void/Gentoo OpenRC defaults use the other implementation."
+          }
+        },
+        {
+          "id": "linux-syslog-file",
+          "commands": [
+            "tail",
+            "dmesg"
+          ],
+          "examples": [
+            {
+              "command": "tail -n 50 /var/log/messages",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Klasik syslog dosyasından son satırlar (yol distroya göre değişebilir).",
+                "en": "Last lines from a classic syslog file (path may vary by distro)."
+              }
+            },
+            {
+              "command": "dmesg | tail -n 40",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Çekirdek halka tamponu — journalctl değildir.",
+                "en": "Kernel ring buffer — not journalctl."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "alpine",
+            "void",
+            "gentoo"
+          ],
+          "notes": {
+            "tr": "/var/log/messages veya /var/log/syslog yoksa na; journalctl varsaymayın.",
+            "en": "If /var/log/messages or /var/log/syslog is absent, mark na; do not assume journalctl."
+          }
         },
         {
           "id": "windows-winevent",
@@ -38098,8 +38788,8 @@
               "shell": "zsh",
               "privilege": "none",
               "explanation": {
-                "tr": "Son 2 dakikalık kompakt günlükten kuyruk alır.",
-                "en": "Tails a compact log from the last 2 minutes."
+                "tr": "Son 5 dakikalık kompakt günlükten kuyruk alır.",
+                "en": "Tails a compact log from the last 5 minutes."
               }
             }
           ],
@@ -38145,9 +38835,10 @@
         "sources": [
           "man 1 journalctl",
           "man 1 log",
-          "man 1 dmesg"
+          "man 1 dmesg",
+          "man 1 tail"
         ],
-        "notes": "Agent-authored Faz 8 draft; not human-verified."
+        "notes": "NV-121 multi-OS fill; still draft — not human-verified."
       },
       "tags": [
         "logs",
@@ -38284,8 +38975,197 @@
             "bash"
           ],
           "distributions": [
-            "fedora"
+            "fedora",
+            "rhel",
+            "rocky",
+            "almalinux"
           ]
+        },
+        {
+          "id": "opensuse-zypper",
+          "commands": [
+            "zypper"
+          ],
+          "examples": [
+            {
+              "command": "sudo zypper search package-name",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "openSUSE/SLES depolarında arar.",
+                "en": "Searches openSUSE/SLES repositories."
+              }
+            },
+            {
+              "command": "sudo zypper install package-name",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Zypper ile paket kurar (pacman/apt değildir).",
+                "en": "Installs a package with zypper (not pacman/apt)."
+              }
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "opensuse-leap",
+            "opensuse-tumbleweed",
+            "sles"
+          ]
+        },
+        {
+          "id": "alpine-apk",
+          "commands": [
+            "apk"
+          ],
+          "examples": [
+            {
+              "command": "apk search package-name",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Alpine depolarında arar (Android APK değildir).",
+                "en": "Searches Alpine repos (not Android APK)."
+              }
+            },
+            {
+              "command": "sudo apk add package-name",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "apk add ile kurar.",
+                "en": "Installs with apk add."
+              }
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "alpine"
+          ]
+        },
+        {
+          "id": "void-xbps",
+          "commands": [
+            "xbps-install",
+            "xbps-query"
+          ],
+          "examples": [
+            {
+              "command": "xbps-query -Rs package-name",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Void XBPS depolarında arar.",
+                "en": "Searches Void XBPS repositories."
+              }
+            },
+            {
+              "command": "sudo xbps-install package-name",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "XBPS ile kurar (pacman değildir).",
+                "en": "Installs with XBPS (not pacman)."
+              }
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "void"
+          ]
+        },
+        {
+          "id": "gentoo-emerge",
+          "commands": [
+            "emerge"
+          ],
+          "examples": [
+            {
+              "command": "emerge --search package-name",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Portage ağacında arar.",
+                "en": "Searches the Portage tree."
+              }
+            },
+            {
+              "command": "sudo emerge --ask package-name",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Kaynak derleyerek kurmadan önce onay ister.",
+                "en": "Asks before compiling/installing from source."
+              }
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "gentoo"
+          ],
+          "notes": {
+            "tr": "emerge kaynak derler; ikili PM’ler gibi hızlı kurulum varsaymayın.",
+            "en": "emerge builds from source; do not assume binary-PM speed."
+          }
+        },
+        {
+          "id": "nixos-declarative",
+          "commands": [
+            "nixos-rebuild"
+          ],
+          "examples": [
+            {
+              "command": "sudo nixos-rebuild dry-build",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "NixOS’ta sistem paketi genelde configuration.nix/flake ile eklenir; nix-env sistem PM değildir. dry-build ne derleneceğini gösterir, switch yapmaz.",
+                "en": "On NixOS, system packages are usually added via configuration.nix/flake; nix-env is not the system PM. dry-build shows what would build; does not switch."
+              }
+            }
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "nixos"
+          ],
+          "notes": {
+            "tr": "Nix ≠ NixOS; bu uygulama yalnız NixOS host içindir.",
+            "en": "Nix ≠ NixOS; this implementation is for NixOS hosts only."
+          }
         },
         {
           "id": "macos-brew",
@@ -38359,6 +39239,46 @@
           "shells": [
             "powershell"
           ]
+        },
+        {
+          "id": "freebsd-pkg",
+          "commands": [
+            "pkg"
+          ],
+          "examples": [
+            {
+              "command": "pkg search package-name",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "FreeBSD pkg depolarında arar.",
+                "en": "Searches FreeBSD pkg repositories."
+              }
+            },
+            {
+              "command": "sudo pkg install package-name",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "pkg ile kurar (Linux PM değildir).",
+                "en": "Installs with pkg (not a Linux PM)."
+              }
+            }
+          ],
+          "operating_systems": [
+            "freebsd"
+          ],
+          "platforms": [
+            "bsd"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "freebsd-release"
+          ]
         }
       ],
       "verification": {
@@ -38366,9 +39286,16 @@
         "sources": [
           "man 8 pacman",
           "man 8 apt",
-          "https://docs.brew.sh/Manpage"
+          "man 8 dnf",
+          "man 8 zypper",
+          "https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper",
+          "https://docs.voidlinux.org/xbps/",
+          "https://wiki.gentoo.org/wiki/Portage",
+          "https://nixos.org/manual/nixos/stable/",
+          "https://docs.brew.sh/Manpage",
+          "https://man.freebsd.org/cgi/man.cgi?query=pkg&sektion=8"
         ],
-        "notes": "Agent-authored Faz 8 draft; not human-verified."
+        "notes": "NV-121 multi-OS fill; still draft — not human-verified."
       },
       "tags": [
         "packages",
@@ -38382,7 +39309,11 @@
         "winget",
         "pkg",
         "zypper",
-        "apk"
+        "apk",
+        "xbps-install",
+        "xbps-query",
+        "emerge",
+        "nixos-rebuild"
       ],
       "related_tasks": [
         "update-system"
@@ -38633,8 +39564,8 @@
               "shell": "bash",
               "privilege": "none",
               "explanation": {
-                "tr": "sshd birim durumunu gösterir (izinler dağıtıma göre).",
-                "en": "Shows sshd unit status (unit name varies)."
+                "tr": "Çalışan systemd servis birimlerini listeler (OpenRC/runit değildir).",
+                "en": "Lists running systemd service units (not OpenRC/runit)."
               }
             }
           ],
@@ -38646,6 +39577,96 @@
           ],
           "shells": [
             "bash"
+          ],
+          "distributions": [
+            "arch",
+            "endeavouros",
+            "manjaro",
+            "debian",
+            "ubuntu",
+            "fedora",
+            "rhel",
+            "rocky",
+            "almalinux",
+            "opensuse-leap",
+            "opensuse-tumbleweed",
+            "nixos"
+          ],
+          "notes": {
+            "tr": "systemd host’lar içindir. Alpine/Gentoo OpenRC ve Void runit ayrı uygulamalardır.",
+            "en": "For systemd hosts. Alpine/Gentoo OpenRC and Void runit are separate implementations."
+          }
+        },
+        {
+          "id": "alpine-gentoo-openrc",
+          "commands": [
+            "rc-status",
+            "rc-service"
+          ],
+          "examples": [
+            {
+              "command": "rc-status",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "OpenRC runlevel servis durumunu listeler (systemctl değildir).",
+                "en": "Lists OpenRC runlevel service status (not systemctl)."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "alpine",
+            "gentoo"
+          ]
+        },
+        {
+          "id": "void-runit",
+          "commands": [
+            "sv"
+          ],
+          "examples": [
+            {
+              "command": "ls /var/service",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Void’ta etkin runit servis bağlarını listeler; durum için sv status kullanın.",
+                "en": "Lists enabled Void runit service links; use sv status for state."
+              }
+            },
+            {
+              "command": "sv status /var/service/*",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Etkin runit servislerinin durumunu sorar.",
+                "en": "Queries status of enabled runit services."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "void"
           ]
         },
         {
@@ -38763,22 +39784,30 @@
         "status": "draft",
         "sources": [
           "man 1 systemctl",
+          "https://wiki.alpinelinux.org/wiki/OpenRC",
+          "https://wiki.gentoo.org/wiki/OpenRC",
+          "https://docs.voidlinux.org/config/services/index.html",
           "man 8 service",
           "man 8 rcctl",
           "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-service"
         ],
-        "notes": "Agent-authored Faz 8 draft; not human-verified."
+        "notes": "NV-121 multi-OS fill; still draft — not human-verified."
       },
       "description": {
-        "tr": "Servis modelleri eşitlenmez: systemctl ≠ service ≠ Get-Service ≠ launchctl.",
-        "en": "Service models are not equated: systemctl ≠ service ≠ Get-Service ≠ launchctl."
+        "tr": "Servis modelleri eşitlenmez: systemctl ≠ rc-status/rc-service ≠ sv ≠ service ≠ Get-Service ≠ launchctl.",
+        "en": "Service models are not equated: systemctl ≠ rc-status/rc-service ≠ sv ≠ service ≠ Get-Service ≠ launchctl."
       },
       "tags": [
         "services",
-        "systemd"
+        "systemd",
+        "openrc",
+        "runit"
       ],
       "related_commands": [
         "systemctl",
+        "rc-status",
+        "rc-service",
+        "sv",
         "service",
         "rcctl",
         "get-service",
@@ -39360,8 +40389,8 @@
         "en": "Local listening ports + firewall status — no rule add/delete; no remote scanning."
       },
       "description": {
-        "tr": "Neden: Gereksiz dinleyen servisler saldırı yüzeyi; yanlış firewall kuralı hizmeti keser.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: ufw Debian/Ubuntu ailesi; firewalld Fedora/RHEL ailesi; pf BSD; Windows\nnetsh/advfirewall. macOS’ta Application Firewall (socketfilterfw) ayrıdır — bu bankada henüz yok;\npfctl macOS’ta da vardır ama çoğu masaüstünde kapalı olabilir.\n\nİsteğe bağlı düzeltme: Kural eklemeden önce mevcut policy yedeği alın. ufw --force reset / geniş\nallow kör önerilmez. Değişiklik sonrası hizmeti doğrula; rollback için önceki ruleset.",
-        "en": "Why: Unnecessary listeners are attack surface; wrong firewall rules outage services.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: ufw is Debian/Ubuntu-family; firewalld is Fedora/RHEL-family; pf is BSD;\nWindows uses netsh/advfirewall. macOS Application Firewall (socketfilterfw) is separate and not\nyet in this bank; pfctl exists on macOS but is often inactive on desktops.\n\nOptional fix: Backup policy before adding rules. Blind ufw --force reset / wide allow is not\nrecommended. Verify service after change; keep prior ruleset for rollback."
+        "tr": "Neden: Gereksiz dinleyen servisler saldırı yüzeyi; yanlış firewall kuralı hizmeti keser.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: ufw Debian/Ubuntu ailesi; firewalld Fedora/RHEL/openSUSE ailesi; nftables\ndüşük seviye (Alpine/Void/Gentoo ve sarmalayıcısız host’lar); pf BSD; Windows netsh/advfirewall.\nmacOS’ta Application Firewall (socketfilterfw) ayrıdır — bu bankada henüz yok; pfctl macOS’ta da\nvardır ama çoğu masaüstünde kapalı olabilir.\n\nİsteğe bağlı düzeltme: Kural eklemeden önce mevcut policy yedeği alın. ufw --force reset / geniş\nallow kör önerilmez. Değişiklik sonrası hizmeti doğrula; rollback için önceki ruleset.",
+        "en": "Why: Unnecessary listeners are attack surface; wrong firewall rules outage services.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: ufw is Debian/Ubuntu-family; firewalld is Fedora/RHEL/openSUSE-family;\nnftables is lower-level (Alpine/Void/Gentoo and unwrapped hosts); pf is BSD; Windows uses\nnetsh/advfirewall. macOS Application Firewall (socketfilterfw) is separate and not yet in this\nbank; pfctl exists on macOS but is often inactive on desktops.\n\nOptional fix: Backup policy before adding rules. Blind ufw --force reset / wide allow is not\nrecommended. Verify service after change; keep prior ruleset for rollback."
       },
       "category": "security",
       "tags": [
@@ -39445,7 +40474,13 @@
             "linux"
           ],
           "distributions": [
-            "fedora"
+            "fedora",
+            "rhel",
+            "rocky",
+            "almalinux",
+            "opensuse-leap",
+            "opensuse-tumbleweed",
+            "sles"
           ],
           "shells": [
             "bash"
@@ -39460,8 +40495,38 @@
               "shell": "bash",
               "privilege": "none",
               "explanation": {
-                "tr": "firewalld durumu (Fedora/RHEL ailesi). ufw değildir.",
-                "en": "firewalld state (Fedora/RHEL family). Not ufw."
+                "tr": "firewalld durumu (Fedora/RHEL/openSUSE ailesi). ufw değildir.",
+                "en": "firewalld state (Fedora/RHEL/openSUSE family). Not ufw."
+              }
+            }
+          ]
+        },
+        {
+          "id": "linux-nft",
+          "platforms": [
+            "linux"
+          ],
+          "distributions": [
+            "alpine",
+            "void",
+            "gentoo",
+            "arch"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "nft"
+          ],
+          "examples": [
+            {
+              "command": "sudo nft list ruleset",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "nftables kuralları (salt okuma). ufw/firewalld sarmalayıcısı varsa önce onları kullanın.",
+                "en": "nftables ruleset (read-only). If ufw/firewalld wraps the host, prefer those first."
               }
             }
           ]
@@ -40508,8 +41573,8 @@
         "en": "List pending security updates; upgrade not required (some paths download or show build plans)."
       },
       "description": {
-        "tr": "Neden: Eski paketler bilinen CVElerin kapısını açık bırakır; kör full-upgrade bakım penceresi ister.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: pacman ≠ apt ≠ dnf; freebsd-update (taban) ≠ pkg (paketler); Nix ≠ NixOS —\nNixOS’ta birincil yol nixos-rebuild’tur, nix-env değildir.\n\nİsteğe bağlı düzeltme: Bakım penceresinde ilgili PM ile yükselt; önce snapshot/backup.",
-        "en": "Why: Stale packages leave known CVEs open; blind full-upgrade needs a maintenance window.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: pacman ≠ apt ≠ dnf; freebsd-update (base) ≠ pkg (packages); Nix ≠ NixOS —\non NixOS the primary path is nixos-rebuild, not nix-env.\n\nOptional fix: Upgrade in a maintenance window with the matching PM; snapshot/backup first."
+        "tr": "Neden: Eski paketler bilinen CVElerin kapısını açık bırakır; kör full-upgrade bakım penceresi ister.\n\nKontrol listesi durumları (Nova yerel): unchecked / ok / review / na.\nÖrnekler belgeleme içindir — otomatik çalışmaz.\n\nPlatform dürüstlüğü: pacman ≠ apt ≠ dnf ≠ zypper ≠ apk ≠ xbps ≠ emerge; freebsd-update (taban) ≠\npkg (paketler); Nix ≠ NixOS — NixOS’ta birincil yol nixos-rebuild’tur, nix-env değildir.\nLinux filtresiz host’ta sessiz Arch/pacman varsayımı yok.\n\nİsteğe bağlı düzeltme: Bakım penceresinde ilgili PM ile yükselt; önce snapshot/backup.",
+        "en": "Why: Stale packages leave known CVEs open; blind full-upgrade needs a maintenance window.\n\nChecklist states (Nova local): unchecked / ok / review / na.\nExamples are documentation only — never auto-run.\n\nPlatform honesty: pacman ≠ apt ≠ dnf ≠ zypper ≠ apk ≠ xbps ≠ emerge; freebsd-update (base) ≠\npkg (packages); Nix ≠ NixOS — on NixOS the primary path is nixos-rebuild, not nix-env.\nNo silent Arch/pacman default when Linux is undifferenced.\n\nOptional fix: Upgrade in a maintenance window with the matching PM; snapshot/backup first."
       },
       "category": "packages",
       "tags": [
@@ -40596,7 +41661,10 @@
             "linux"
           ],
           "distributions": [
-            "fedora"
+            "fedora",
+            "rhel",
+            "rocky",
+            "almalinux"
           ],
           "shells": [
             "bash"
@@ -40613,6 +41681,116 @@
               "explanation": {
                 "tr": "Güncelleme listesi; çıkış 100 = güncelleme var (dnf).",
                 "en": "Update list; exit 100 means updates available (dnf)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "opensuse-check",
+          "platforms": [
+            "linux"
+          ],
+          "distributions": [
+            "opensuse-leap",
+            "opensuse-tumbleweed",
+            "sles"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "zypper"
+          ],
+          "examples": [
+            {
+              "command": "zypper list-updates",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Bekleyen zypper güncellemelerini listeler (yazmaz). Tumbleweed dup ayrı yoldur.",
+                "en": "Lists pending zypper updates (non-writing). Tumbleweed dup is a separate path."
+              }
+            }
+          ]
+        },
+        {
+          "id": "alpine-check",
+          "platforms": [
+            "linux"
+          ],
+          "distributions": [
+            "alpine"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "apk"
+          ],
+          "examples": [
+            {
+              "command": "apk version -l '<'",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Kurulu paketlerde yükseltme adaylarını listeler (kurmaz).",
+                "en": "Lists upgrade candidates among installed packages (does not install)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "void-check",
+          "platforms": [
+            "linux"
+          ],
+          "distributions": [
+            "void"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "xbps-install"
+          ],
+          "examples": [
+            {
+              "command": "xbps-install -un",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "Kuru çalıştırma: senkron/yükseltme adaylarını gösterir; kurmaz (-n).",
+                "en": "Dry run: shows sync/upgrade candidates; does not install (-n)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "gentoo-check",
+          "platforms": [
+            "linux"
+          ],
+          "distributions": [
+            "gentoo"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "commands": [
+            "emerge"
+          ],
+          "examples": [
+            {
+              "command": "emerge -puDN @world",
+              "risk": "safe",
+              "shell": "bash",
+              "privilege": "none",
+              "explanation": {
+                "tr": "@world için ne kurulacağını/derleneceğini önizler (-p); yazmaz.",
+                "en": "Pretend @world upgrade plan (-p); does not write."
               }
             }
           ]
@@ -40752,6 +41930,10 @@
         "apt",
         "dnf",
         "rpm",
+        "zypper",
+        "apk",
+        "xbps-install",
+        "emerge",
         "nixos-rebuild",
         "softwareupdate",
         "winget",
@@ -40764,14 +41946,17 @@
           "man 8 pacman",
           "man 8 apt",
           "man 8 dnf",
+          "man 8 zypper",
+          "https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper",
+          "https://docs.voidlinux.org/xbps/",
+          "https://wiki.gentoo.org/wiki/Portage",
           "https://nixos.org/manual/nixos/stable/#sec-upgrading",
           "softwareupdate --help",
           "https://learn.microsoft.com/windows/package-manager/winget/list",
           "https://man.freebsd.org/cgi/man.cgi?query=freebsd-update&sektion=8",
-          "https://man.freebsd.org/cgi/man.cgi?query=pkg&sektion=8",
-          "https://wiki.nixos.org/wiki/Nixos-rebuild"
+          "https://man.freebsd.org/cgi/man.cgi?query=pkg&sektion=8"
         ],
-        "notes": "NV-119 content audit; stage 2 stays draft — not human-verified on live platforms."
+        "notes": "NV-121 multi-OS fill on NV-119 stage; still draft — not human-verified on live platforms."
       },
       "related_tasks": [
         "update-system",
@@ -41542,6 +42727,195 @@
           ]
         },
         {
+          "id": "opensuse-zypper",
+          "commands": [
+            "zypper"
+          ],
+          "examples": [
+            {
+              "command": "sudo zypper refresh && sudo zypper update",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Leap/SLES yama yolu (update). Tumbleweed dağıtım yükseltmesi için dup ayrıdır.",
+                "en": "Leap/SLES patch path (update). Tumbleweed distro upgrade uses dup separately."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "opensuse-leap",
+            "sles"
+          ],
+          "notes": {
+            "tr": "Tumbleweed için `sudo zypper dup` kullanın; Leap `update` ile karıştırmayın.",
+            "en": "On Tumbleweed use `sudo zypper dup`; do not confuse with Leap `update`."
+          }
+        },
+        {
+          "id": "opensuse-tumbleweed-dup",
+          "commands": [
+            "zypper"
+          ],
+          "examples": [
+            {
+              "command": "sudo zypper refresh && sudo zypper dup",
+              "risk": "dangerous",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Tumbleweed dağıtım yükseltmesi (dup) — Leap update değildir.",
+                "en": "Tumbleweed distribution upgrade (dup) — not Leap update."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "opensuse-tumbleweed"
+          ]
+        },
+        {
+          "id": "alpine-apk",
+          "commands": [
+            "apk"
+          ],
+          "examples": [
+            {
+              "command": "sudo apk update && sudo apk upgrade",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Alpine indekslerini yeniler ve paketleri yükseltir.",
+                "en": "Refreshes Alpine indexes and upgrades packages."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "alpine"
+          ]
+        },
+        {
+          "id": "void-xbps",
+          "commands": [
+            "xbps-install"
+          ],
+          "examples": [
+            {
+              "command": "sudo xbps-install -Su",
+              "risk": "caution",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Void XBPS senkron + yükseltme.",
+                "en": "Void XBPS sync + upgrade."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "void"
+          ]
+        },
+        {
+          "id": "gentoo-emerge",
+          "commands": [
+            "emerge"
+          ],
+          "examples": [
+            {
+              "command": "sudo emerge --sync && sudo emerge --ask -uDN @world",
+              "risk": "dangerous",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "Portage senkron + @world yükseltme (uzun sürebilir).",
+                "en": "Portage sync + @world upgrade (can take long)."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "gentoo"
+          ]
+        },
+        {
+          "id": "nixos-rebuild",
+          "commands": [
+            "nixos-rebuild"
+          ],
+          "examples": [
+            {
+              "command": "sudo nixos-rebuild switch",
+              "risk": "dangerous",
+              "shell": "bash",
+              "privilege": "elevated",
+              "explanation": {
+                "tr": "NixOS yapılandırmasını uygular (nix-env sistem güncellemesi değildir).",
+                "en": "Applies NixOS configuration (not a nix-env system upgrade)."
+              }
+            }
+          ],
+          "operating_systems": [
+            "linux"
+          ],
+          "platforms": [
+            "linux"
+          ],
+          "shells": [
+            "bash"
+          ],
+          "distributions": [
+            "nixos"
+          ],
+          "notes": {
+            "tr": "Nix ≠ NixOS; channel/flake güncellemesi ayrı adımdır.",
+            "en": "Nix ≠ NixOS; channel/flake update is a separate step."
+          }
+        },
+        {
           "id": "freebsd-pkg",
           "commands": [
             "pkg",
@@ -41623,14 +42997,19 @@
           "man 8 pacman",
           "man 8 apt",
           "man 8 dnf",
+          "man 8 zypper",
+          "https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper",
+          "https://docs.voidlinux.org/xbps/",
+          "https://wiki.gentoo.org/wiki/Portage",
+          "https://nixos.org/manual/nixos/stable/",
           "https://docs.brew.sh/",
           "https://learn.microsoft.com/windows/package-manager/winget/"
         ],
-        "notes": "Agent-authored Faz 8 draft; not human-verified."
+        "notes": "NV-121 multi-OS fill; still draft — not human-verified."
       },
       "description": {
-        "tr": "Arch'ta pacman tercih edilir. Windows/macOS güncelleme modelleri ayrıdır. Örnekler caution/elevated; otomatik çalıştırılmaz.",
-        "en": "Prefer pacman on Arch. Windows/macOS update models differ. Examples are caution/elevated; not auto-executed."
+        "tr": "Dağıtıma özgü PM kullanın; Linux’ta sessiz Arch/pacman varsayımı yok. Windows/macOS modelleri ayrıdır. Örnekler caution/elevated; otomatik çalıştırılmaz.",
+        "en": "Use the distro PM; no silent Arch/pacman default for undifferenced Linux. Windows/macOS models differ. Examples are caution/elevated; not auto-executed."
       },
       "tags": [
         "packages",
@@ -41647,7 +43026,10 @@
         "brew",
         "softwareupdate",
         "winget",
-        "freebsd-update"
+        "freebsd-update",
+        "xbps-install",
+        "emerge",
+        "nixos-rebuild"
       ],
       "related_tasks": [
         "install-package"

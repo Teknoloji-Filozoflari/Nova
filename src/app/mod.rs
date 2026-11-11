@@ -214,6 +214,8 @@ pub struct App {
     pub commands_guide_committed: bool,
     /// Banka süzgeçleri (OS/distro/shell/profil/seviye/risk) — PATH’e uygulanmaz.
     pub commands_filters: commands::CommandsFilters,
+    /// Host OS/distro varsayılanı bir kez uygulandı mı? (kullanıcı `x` ile temizleyebilir).
+    pub commands_host_filter_seeded: bool,
     /// Sunucu güvenlik checklist ilerleme hedefi (`local`, host etiketi, …).
     ///
     /// Durum anahtarları hedefe göre ayrılır; varsayılan
@@ -433,6 +435,7 @@ impl App {
             commands_task_drill: None,
             commands_guide_committed: false,
             commands_filters: commands::CommandsFilters::default(),
+            commands_host_filter_seeded: false,
             checklist_target,
             commands_detail_scroll: 0,
             commands_bank,
@@ -1052,6 +1055,8 @@ impl App {
             }
             KeyCode::Char('x') | KeyCode::Char('X') if self.commands_tab => {
                 self.commands_filters.clear();
+                // Host varsayılanı yeniden dayatılmaz; kullanıcı bilerek temizledi.
+                self.commands_host_filter_seeded = true;
                 self.commands_entry_index = 0;
                 self.commands_detail_scroll = 0;
                 self.status_message = self
@@ -1639,12 +1644,41 @@ impl App {
         self.commands_entry_index = 0;
         self.commands_task_drill = None;
         self.commands_guide_committed = false;
+        self.seed_commands_host_filters_if_needed();
         self.refresh_local_commands_stub();
         self.focus = PanelFocus::CommandsList;
-        self.status_message = self
-            .ui_lang()
-            .t(crate::i18n::Msg::CommandsStatusOpened)
-            .to_string();
+        let chips = self.commands_filters.summary_chips();
+        if chips.is_empty() {
+            self.status_message = self
+                .ui_lang()
+                .t(crate::i18n::Msg::CommandsStatusOpened)
+                .to_string();
+        } else {
+            self.status_message = format!(
+                "{} · {} · {}",
+                self.ui_lang().t(crate::i18n::Msg::CommandsStatusOpened),
+                self.ui_lang()
+                    .t(crate::i18n::Msg::CommandsHostFilterDefault),
+                chips.join(" ")
+            );
+        }
+    }
+
+    /// Güvenilir host OS/distro’yu düzenlenebilir süzgeç varsayılanı yap (bir kez).
+    fn seed_commands_host_filters_if_needed(&mut self) {
+        if self.commands_host_filter_seeded {
+            return;
+        }
+        self.commands_host_filter_seeded = true;
+        let distros = commands::bank_distro_values(&self.commands_bank.commands);
+        let (os, distro) = commands::host_filter_defaults(&distros);
+        // Yalnız boş süzgeçte uygula — kullanıcının önceki seçimini ezme.
+        if self.commands_filters.os.is_none() {
+            self.commands_filters.os = os;
+        }
+        if self.commands_filters.distro.is_none() {
+            self.commands_filters.distro = distro;
+        }
     }
 
     /// Mağaza sekmesine geçer.
@@ -1831,6 +1865,8 @@ impl App {
             self.filtered_checklist_steps().len()
         } else if self.commands_list_shows_tasks() {
             self.filtered_tasks().len()
+        } else if self.commands_list_shows_concepts() {
+            self.filtered_concepts().len()
         } else {
             self.filtered_bank_commands().len()
         }
@@ -1839,6 +1875,50 @@ impl App {
     /// Liste şu an görev satırları mı gösteriyor?
     pub fn commands_list_shows_tasks(&self) -> bool {
         self.commands_mode == CommandsBrowseMode::ByTask && self.commands_task_drill.is_none()
+    }
+
+    /// Başlangıç: konu (konsept) listesi — arama yokken.
+    pub fn commands_list_shows_concepts(&self) -> bool {
+        self.commands_mode == CommandsBrowseMode::Start && self.search_query.is_empty()
+    }
+
+    /// Başlangıç konuları (konseptler); arama/süzgeç dürüstçe boş bırakabilir.
+    pub fn filtered_concepts(&self) -> Vec<&commands::ConceptEntry> {
+        let mut concepts: Vec<&commands::ConceptEntry> =
+            self.commands_bank.concepts.iter().collect();
+        if !self.search_query.is_empty() {
+            let q = self.search_query.to_ascii_lowercase();
+            let lang = self.ui_lang().id();
+            concepts.retain(|c| {
+                c.id.to_ascii_lowercase().contains(&q)
+                    || c.title.pick(lang).to_ascii_lowercase().contains(&q)
+                    || c.summary.pick(lang).to_ascii_lowercase().contains(&q)
+                    || c.tags.iter().any(|t| t.to_ascii_lowercase().contains(&q))
+                    || c.related_commands
+                        .iter()
+                        .any(|id| id.to_ascii_lowercase().contains(&q))
+            });
+        }
+        // Öğrenme yolu sırası (start_learning ile aynı PATH_ORDER önceliği).
+        const PATH_ORDER: &[&str] = &[
+            "terminal-basics",
+            "path",
+            "shell-pipes-redirection",
+            "permissions",
+            "networking-basics",
+            "json-data",
+            "package-managers",
+            "storage",
+            "systemd",
+            "debugging",
+        ];
+        concepts.sort_by_key(|c| {
+            PATH_ORDER
+                .iter()
+                .position(|id| *id == c.id)
+                .unwrap_or(usize::MAX)
+        });
+        concepts
     }
 
     /// Sunucu güvenlik kontrol listesi adımları.
@@ -2980,6 +3060,30 @@ impl App {
                 task.category,
                 task.name.pick(lang),
                 task.verification.status.as_str()
+            );
+            return;
+        }
+        if self.commands_list_shows_concepts() {
+            let concepts = self.filtered_concepts();
+            let Some(concept) = concepts
+                .get(
+                    self.commands_entry_index
+                        .min(concepts.len().saturating_sub(1)),
+                )
+                .copied()
+            else {
+                self.status_message = self
+                    .ui_lang()
+                    .t(crate::i18n::Msg::CommandsNoTopicSelected)
+                    .to_string();
+                return;
+            };
+            let lang = self.ui_lang().id();
+            self.status_message = format!(
+                "Konu {} · {} komut · Bank · {} (çalıştırılmaz)",
+                concept.title.pick(lang),
+                concept.related_commands.len(),
+                concept.verification.status.as_str()
             );
             return;
         }
