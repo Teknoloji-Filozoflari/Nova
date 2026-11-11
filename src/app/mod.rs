@@ -214,6 +214,11 @@ pub struct App {
     pub commands_guide_committed: bool,
     /// Banka süzgeçleri (OS/distro/shell/profil/seviye/risk) — PATH’e uygulanmaz.
     pub commands_filters: commands::CommandsFilters,
+    /// Sunucu güvenlik checklist ilerleme hedefi (`local`, host etiketi, …).
+    ///
+    /// Durum anahtarları hedefe göre ayrılır; varsayılan
+    /// [`commands::CHECKLIST_DEFAULT_TARGET`].
+    pub checklist_target: String,
     /// Detay paneli dikey kaydırma (satır ofseti).
     pub commands_detail_scroll: u16,
     /// Gömülü Nova-Commands bankası (`nova-commands-bank`).
@@ -344,6 +349,8 @@ impl App {
                 }
             }
         }
+        // Eski `guide::step` / çıplak adım anahtarlarını hedef-kapsamlı forma taşı.
+        let _ = commands::migrate_checklist_progress(&mut state.file.command_checklist);
         // Nova içinde eklenen araçlar katalogda hazır değildir; durum
         // dosyasından geri yüklenir. Zaten katalogda olan bir kimlik (ör.
         // kullanıcı sonradan aynı aracı `config.toml`'a da yazdıysa)
@@ -417,6 +424,7 @@ impl App {
             commands_task_drill: None,
             commands_guide_committed: false,
             commands_filters: commands::CommandsFilters::default(),
+            checklist_target: commands::CHECKLIST_DEFAULT_TARGET.to_string(),
             commands_detail_scroll: 0,
             commands_bank,
             commands_search_index,
@@ -1847,7 +1855,7 @@ impl App {
             .state
             .file
             .command_checklist
-            .get(&step.state_key())
+            .get(&step.state_key_for(&self.checklist_target))
             .map(|s| s.as_str())
         {
             Some("ok") => ChecklistStepState::Ok,
@@ -1867,7 +1875,7 @@ impl App {
             return;
         };
         let next = self.checklist_step_state(&step).next();
-        let key = step.state_key();
+        let key = step.state_key_for(&self.checklist_target);
         if next == commands::ChecklistStepState::Unchecked {
             self.state.file.command_checklist.remove(&key);
         } else {

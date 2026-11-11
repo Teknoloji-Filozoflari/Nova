@@ -442,4 +442,107 @@ mod tests {
         assert!(seen.contains(&LearningLevelFilter::Unspecified));
         assert_eq!(v, LearningLevelFilter::All);
     }
+
+    fn cmd_json(v: serde_json::Value) -> CommandEntry {
+        serde_json::from_value(v).expect("command fixture")
+    }
+
+    #[test]
+    fn os_filter_selects_matching_platform_ids() {
+        let linux = cmd_json(serde_json::json!({
+            "id": "ufw-demo",
+            "name": "ufw",
+            "platforms": ["linux"],
+            "risk": "safe",
+            "learning_level": "beginner",
+        }));
+        let windows = cmd_json(serde_json::json!({
+            "id": "netsh-demo",
+            "name": "netsh",
+            "platforms": ["windows"],
+            "risk": "safe",
+            "learning_level": "beginner",
+        }));
+        let f = CommandsFilters {
+            os: Some("windows".into()),
+            ..Default::default()
+        };
+        assert!(
+            f.matches(&windows),
+            "windows süzgeci netsh-demo id'sini tutmalı"
+        );
+        assert!(
+            !f.matches(&linux),
+            "windows süzgeci ufw-demo (linux) elemmeli"
+        );
+    }
+
+    #[test]
+    fn distro_filter_selects_package_ref_distributions() {
+        let arch = cmd_json(serde_json::json!({
+            "id": "pacman-demo",
+            "name": "pacman",
+            "platforms": ["linux"],
+            "risk": "safe",
+            "learning_level": "beginner",
+            "package_refs": [{"manager": "pacman", "package": "pacman", "distributions": ["arch"]}],
+        }));
+        let debian = cmd_json(serde_json::json!({
+            "id": "apt-demo",
+            "name": "apt",
+            "platforms": ["linux"],
+            "risk": "safe",
+            "learning_level": "beginner",
+            "package_refs": [{"manager": "apt", "package": "apt", "distributions": ["debian"]}],
+        }));
+        let f = CommandsFilters {
+            distro: Some("arch".into()),
+            ..Default::default()
+        };
+        assert!(f.matches(&arch), "distro=arch pacman-demo id'sini tutmalı");
+        assert!(!f.matches(&debian), "distro=arch apt-demo elemmeli");
+    }
+
+    #[test]
+    fn shell_filter_selects_shell_metadata_and_examples() {
+        let bash = cmd_json(serde_json::json!({
+            "id": "bash-demo",
+            "name": "bash-demo",
+            "shells": ["bash"],
+            "risk": "safe",
+            "learning_level": "beginner",
+        }));
+        let pwsh = cmd_json(serde_json::json!({
+            "id": "pwsh-demo",
+            "name": "pwsh-demo",
+            "shells": ["powershell"],
+            "examples": [{"command": "Get-Help", "shell": "powershell", "risk": "safe"}],
+            "risk": "safe",
+            "learning_level": "beginner",
+        }));
+        let f = CommandsFilters {
+            shell: Some("powershell".into()),
+            ..Default::default()
+        };
+        assert!(
+            f.matches(&pwsh),
+            "shell=powershell pwsh-demo id'sini tutmalı"
+        );
+        assert!(!f.matches(&bash), "shell=powershell bash-demo elemmeli");
+    }
+
+    #[test]
+    fn risk_filter_selects_exact_risk_not_learning() {
+        let safe_adv = cmd(RiskLevel::Safe, LearningLevel::Advanced);
+        let caution_beg = cmd(RiskLevel::Caution, LearningLevel::Beginner);
+        let f = CommandsFilters {
+            risk: Some(RiskLevel::Safe),
+            ..Default::default()
+        };
+        assert!(f.matches(&safe_adv), "risk=safe advanced komutu tutmalı");
+        assert!(
+            !f.matches(&caution_beg),
+            "risk=safe beginner/caution elemmeli — seviye risk yerine geçmez"
+        );
+    }
 }

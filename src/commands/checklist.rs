@@ -71,6 +71,12 @@ impl ChecklistStepState {
 /// Sabit rehber kimliği (state anahtarı öneki).
 pub const SERVER_SECURITY_GUIDE_ID: &str = "server-security-check";
 
+/// Varsayılan checklist hedefi (yerel / tek host).
+///
+/// İlerleme anahtarı: `{SERVER_SECURITY_GUIDE_ID}::{target}::{step_id}`.
+/// Farklı hedefler birbirine sızmaz.
+pub const CHECKLIST_DEFAULT_TARGET: &str = "local";
+
 /// Checklist adımına bağlı tek örnek — TaskImplementation alanları korunur.
 #[derive(Debug, Clone)]
 pub struct ChecklistExampleView {
@@ -153,8 +159,14 @@ pub struct ChecklistStepView {
 }
 
 impl ChecklistStepView {
+    /// Hedef + adım için kalıcı durum anahtarı.
+    pub fn state_key_for(&self, target: &str) -> String {
+        checklist_progress_key(target, &self.id)
+    }
+
+    /// Varsayılan hedef (`local`) için durum anahtarı.
     pub fn state_key(&self) -> String {
-        format!("{SERVER_SECURITY_GUIDE_ID}::{}", self.id)
+        self.state_key_for(CHECKLIST_DEFAULT_TARGET)
     }
 
     /// Geriye dönük: süzgeçsiz ilk örnek (tercihen Arch / düşük risk).
@@ -164,6 +176,68 @@ impl ChecklistStepView {
             .next()
             .map(|e| &e.example)
     }
+}
+
+/// `{guide}::{target}::{step}` — hedef / adım ayrımı.
+pub fn checklist_progress_key(target: &str, step_id: &str) -> String {
+    let target = normalize_checklist_target(target);
+    format!("{SERVER_SECURITY_GUIDE_ID}::{target}::{step_id}")
+}
+
+fn normalize_checklist_target(target: &str) -> String {
+    let t = target.trim();
+    if t.is_empty() {
+        CHECKLIST_DEFAULT_TARGET.to_string()
+    } else {
+        t.to_ascii_lowercase()
+    }
+}
+
+/// Eski `command_checklist` kayıtlarını hedef-kapsamlı anahtarlara taşı.
+///
+/// - `server-security-check::{step}` → `server-security-check::local::{step}`
+/// - çıplak `{step}` (önek yok) → aynı varsayılan hedef altına
+/// - zaten 3 parçalı anahtarlar (`guide::target::step`) olduğu gibi kalır
+///
+/// Dönüş: taşınan / yeniden yazılan kayıt sayısı.
+pub fn migrate_checklist_progress(map: &mut std::collections::BTreeMap<String, String>) -> usize {
+    let mut rewritten = 0usize;
+    let legacy: Vec<(String, String)> = map
+        .iter()
+        .filter(|(k, _)| !is_target_scoped_checklist_key(k))
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
+    for (old_key, value) in legacy {
+        let Some(step_id) = legacy_checklist_step_id(&old_key) else {
+            continue;
+        };
+        let new_key = checklist_progress_key(CHECKLIST_DEFAULT_TARGET, step_id);
+        map.remove(&old_key);
+        // Hedefte zaten yeni kayıt varsa eskiyi düş; üzerine yazma.
+        map.entry(new_key).or_insert(value);
+        rewritten += 1;
+    }
+    rewritten
+}
+
+fn is_target_scoped_checklist_key(key: &str) -> bool {
+    let parts: Vec<&str> = key.splitn(3, "::").collect();
+    parts.len() == 3 && parts[0] == SERVER_SECURITY_GUIDE_ID && !parts[1].is_empty()
+}
+
+fn legacy_checklist_step_id(key: &str) -> Option<&str> {
+    if let Some(rest) = key.strip_prefix(&format!("{SERVER_SECURITY_GUIDE_ID}::")) {
+        // Eski 2 parçalı: guide::step (step içinde :: yok).
+        if !rest.is_empty() && !rest.contains("::") {
+            return Some(rest);
+        }
+        return None;
+    }
+    // Çıplak adım id (yanlışlıkla öneksiz yazılmış eski kayıt).
+    if !key.is_empty() && !key.contains("::") {
+        return Some(key);
+    }
+    None
 }
 
 fn guide_from_bank(bank: &CommandBank) -> Option<&GuideEntry> {
@@ -874,5 +948,108 @@ mod tests {
         assert!(matched
             .iter()
             .all(|m| m.example.command.contains("Get-NetTCPConnection")));
+    }
+
+    #[test]
+    fn checklist_progress_isolated_between_targets() {
+        let step = ChecklistStepView {
+            id: "security-check-ssh".into(),
+            title: LocalizedString::default(),
+            summary: LocalizedString::default(),
+            diagnosis: LocalizedString::default(),
+            risk: RiskLevel::Safe,
+            requires_elevated: false,
+            related_commands: Vec::new(),
+            examples: Vec::new(),
+            rollback: LocalizedString::default(),
+            platforms: Vec::new(),
+            operating_systems: Vec::new(),
+        };
+        let local = step.state_key_for("local");
+        let prod = step.state_key_for("prod-host");
+        assert_ne!(local, prod, "farklı hedefler ayrı anahtar kullanmalı");
+        assert_eq!(
+            local,
+            format!("{SERVER_SECURITY_GUIDE_ID}::local::security-check-ssh")
+        );
+        assert_eq!(
+            prod,
+            format!("{SERVER_SECURITY_GUIDE_ID}::prod-host::security-check-ssh")
+        );
+
+        let mut map = std::collections::BTreeMap::new();
+        map.insert(local.clone(), "ok".into());
+        assert_eq!(map.get(&local).map(String::as_str), Some("ok"));
+        assert!(
+            !map.contains_key(&prod),
+            "local ilerlemesi prod-host'a sızmamalı"
+        );
+    }
+
+    #[test]
+    fn checklist_progress_migrates_legacy_two_part_and_bare_keys() {
+        let mut map = std::collections::BTreeMap::new();
+        map.insert(
+            format!("{SERVER_SECURITY_GUIDE_ID}::security-check-ssh"),
+            "ok".into(),
+        );
+        map.insert("security-check-firewall-ports".into(), "review".into());
+        // Zaten hedef-kapsamlı — dokunulmamalı.
+        map.insert(
+            format!("{SERVER_SECURITY_GUIDE_ID}::prod::security-check-docker"),
+            "na".into(),
+        );
+
+        let n = migrate_checklist_progress(&mut map);
+        assert_eq!(n, 2, "iki eski kayıt taşınmalı, got {n}");
+        assert!(
+            !map.contains_key(&format!("{SERVER_SECURITY_GUIDE_ID}::security-check-ssh")),
+            "eski 2 parçalı anahtar kalkmalı"
+        );
+        assert!(
+            !map.contains_key("security-check-firewall-ports"),
+            "çıplak adım anahtarı kalkmalı"
+        );
+        assert_eq!(
+            map.get(&checklist_progress_key(
+                CHECKLIST_DEFAULT_TARGET,
+                "security-check-ssh"
+            ))
+            .map(String::as_str),
+            Some("ok")
+        );
+        assert_eq!(
+            map.get(&checklist_progress_key(
+                CHECKLIST_DEFAULT_TARGET,
+                "security-check-firewall-ports"
+            ))
+            .map(String::as_str),
+            Some("review")
+        );
+        assert_eq!(
+            map.get(&format!(
+                "{SERVER_SECURITY_GUIDE_ID}::prod::security-check-docker"
+            ))
+            .map(String::as_str),
+            Some("na"),
+            "mevcut hedef kaydı korunmalı"
+        );
+    }
+
+    #[test]
+    fn checklist_progress_migrate_does_not_clobber_existing_target_value() {
+        let mut map = std::collections::BTreeMap::new();
+        let modern = checklist_progress_key(CHECKLIST_DEFAULT_TARGET, "security-check-ssh");
+        map.insert(modern.clone(), "review".into());
+        map.insert(
+            format!("{SERVER_SECURITY_GUIDE_ID}::security-check-ssh"),
+            "ok".into(),
+        );
+        migrate_checklist_progress(&mut map);
+        assert_eq!(
+            map.get(&modern).map(String::as_str),
+            Some("review"),
+            "mevcut modern değer eski kayıtla ezilmemeli"
+        );
     }
 }

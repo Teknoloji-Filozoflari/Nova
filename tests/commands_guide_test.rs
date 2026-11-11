@@ -306,27 +306,259 @@ fn teachable_detail_shows_flags_and_os_fit() {
             || text.contains("risk"),
         "öğretici detay yok:\n{text}"
     );
-    // 80x24 dar: kritik uyarılar panik/clip olmamalı
-    let narrow = all_text(&render(&app, 80, 24));
-    assert!(!narrow.is_empty(), "80x24 boş render");
 }
 
 #[test]
-fn filters_os_risk_and_search_aliases_flags() {
+fn narrow_80x24_keeps_critical_warning_and_selection_accessible() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::ServerSecurity);
+    app.focus = nova::app::PanelFocus::CommandsList;
+    app.terminal_size = Some((80, 24));
+    app.narrow_mode = true;
+
+    let steps = app.filtered_checklist_steps();
+    assert!(steps.len() >= 2, "checklist en az 2 adım: {}", steps.len());
+    // Son adıma in: dar listede kaydırma gerekir; seçim görünür kalmalı.
+    app.commands_entry_index = steps.len() - 1;
+    let selected_id = steps[app.commands_entry_index].id.clone();
+    let selected_title = {
+        let lang = app.ui_lang().id();
+        steps[app.commands_entry_index].title.pick(lang).to_string()
+    };
+    assert!(
+        selected_id.starts_with("security-check-"),
+        "seçili adım id beklenirdi: {selected_id}"
+    );
+
+    let narrow = all_text(&render(&app, 80, 24));
+    assert!(
+        narrow.contains("çalıştırılmaz")
+            || narrow.contains("NeverScan")
+            || narrow.contains("never")
+            || narrow.contains("Space")
+            || narrow.contains("salt okunur")
+            || narrow.contains("Read-only")
+            || narrow.contains("tarama")
+            || narrow.contains("scan"),
+        "80x24 kritik güvenlik uyarısı erişilebilir olmalı:\n{narrow}"
+    );
+    // Seçili satır başlığı veya id listede / detayda kalsın (kırpılıp kaybolmasın).
+    let title_hit = !selected_title.is_empty()
+        && narrow.contains(selected_title.chars().take(12).collect::<String>().as_str());
+    let id_hit = narrow.contains(&selected_id) || narrow.contains("security-check");
+    assert!(
+        title_hit || id_hit || narrow.contains("[ ]") || narrow.contains("[✓]"),
+        "80x24 seçili checklist öğesi erişilebilir olmalı (id={selected_id}):\n{narrow}"
+    );
+
+    // Detay kaydırma içeriği sığmasa da çökmemeli; uyarı korunur.
+    app.focus = nova::app::PanelFocus::CommandsDetail;
+    app.commands_detail_scroll = 40;
+    let scrolled = all_text(&render(&app, 80, 24));
+    assert!(
+        scrolled.contains("çalıştırılmaz")
+            || scrolled.contains("never")
+            || scrolled.contains("Space")
+            || scrolled.contains("salt")
+            || scrolled.contains("Read-only")
+            || scrolled.contains("örnek")
+            || scrolled.contains("example")
+            || !scrolled.trim().is_empty(),
+        "dar detay kaydırması panik/boş bırakmamalı:\n{scrolled}"
+    );
+}
+
+#[test]
+fn filters_each_facet_selects_expected_command_ids() {
     let mut app = app();
     app.select_commands_tab();
     app.set_commands_mode(CommandsBrowseMode::AllCommands);
-    let before = app.filtered_bank_commands().len();
-    assert!(before > 0);
-    app.commands_filters.risk = Some(nova::commands::RiskLevel::Safe);
-    let safe_n = app.filtered_bank_commands().len();
-    assert!(safe_n <= before);
-    assert!(app
+    app.commands_category_index = 0;
+    let cat = app
+        .commands_bank_categories()
+        .first()
+        .copied()
+        .unwrap_or("files")
+        .to_string();
+
+    // İzole fixture’lar — her süzgeç kendi id’sini seçer.
+    let fixtures = [
+        serde_json::json!({
+            "id": "facet-os-windows",
+            "name": "facet-os-windows",
+            "category": cat,
+            "platforms": ["windows"],
+            "risk": "safe",
+            "learning_level": "beginner",
+        }),
+        serde_json::json!({
+            "id": "facet-os-linux",
+            "name": "facet-os-linux",
+            "category": cat,
+            "platforms": ["linux"],
+            "risk": "safe",
+            "learning_level": "beginner",
+            "package_refs": [{"manager": "pacman", "package": "demo", "distributions": ["arch"]}],
+            "shells": ["bash"],
+        }),
+        serde_json::json!({
+            "id": "facet-distro-debian",
+            "name": "facet-distro-debian",
+            "category": cat,
+            "platforms": ["linux"],
+            "risk": "safe",
+            "learning_level": "beginner",
+            "package_refs": [{"manager": "apt", "package": "demo", "distributions": ["debian"]}],
+        }),
+        serde_json::json!({
+            "id": "facet-shell-pwsh",
+            "name": "facet-shell-pwsh",
+            "category": cat,
+            "platforms": ["windows"],
+            "shells": ["powershell"],
+            "risk": "safe",
+            "learning_level": "beginner",
+        }),
+        serde_json::json!({
+            "id": "facet-level-advanced-safe",
+            "name": "facet-level-advanced-safe",
+            "category": cat,
+            "platforms": ["linux"],
+            "risk": "safe",
+            "learning_level": "advanced",
+        }),
+        serde_json::json!({
+            "id": "facet-risk-dangerous",
+            "name": "facet-risk-dangerous",
+            "category": cat,
+            "platforms": ["linux"],
+            "risk": "dangerous",
+            "learning_level": "beginner",
+        }),
+    ];
+    for v in fixtures {
+        app.commands_bank
+            .commands
+            .push(serde_json::from_value(v).expect("facet fixture"));
+    }
+    // Arama açıkken kategori kısıtı kalkar — facet’leri banka genelinde doğrula.
+    app.search_query = "facet-".into();
+
+    // OS
+    app.commands_filters.os = Some("windows".into());
+    let os_ids: Vec<_> = app
         .filtered_bank_commands()
         .iter()
-        .all(|c| c.risk == nova::commands::RiskLevel::Safe));
+        .map(|c| c.id.as_str())
+        .collect();
+    assert!(
+        os_ids.contains(&"facet-os-windows"),
+        "OS=windows facet-os-windows tutmalı: {os_ids:?}"
+    );
+    assert!(
+        !os_ids.contains(&"facet-os-linux"),
+        "OS=windows facet-os-linux elemmeli: {os_ids:?}"
+    );
     app.commands_filters.clear();
-    // Flag / alias araması (PATH ile karışmaz)
+
+    // Distro (Arch tercihi — debian fixture elemmeli)
+    app.commands_filters.distro = Some("arch".into());
+    let distro_ids: Vec<_> = app
+        .filtered_bank_commands()
+        .iter()
+        .map(|c| c.id.as_str())
+        .collect();
+    assert!(
+        distro_ids.contains(&"facet-os-linux"),
+        "distro=arch pacman dağıtımlı facet-os-linux tutmalı: {distro_ids:?}"
+    );
+    assert!(
+        !distro_ids.contains(&"facet-distro-debian"),
+        "distro=arch facet-distro-debian elemmeli: {distro_ids:?}"
+    );
+    app.commands_filters.clear();
+
+    // Shell
+    app.commands_filters.shell = Some("powershell".into());
+    let shell_ids: Vec<_> = app
+        .filtered_bank_commands()
+        .iter()
+        .map(|c| c.id.as_str())
+        .collect();
+    assert!(
+        shell_ids.contains(&"facet-shell-pwsh"),
+        "shell=powershell facet-shell-pwsh tutmalı: {shell_ids:?}"
+    );
+    assert!(
+        !shell_ids.contains(&"facet-os-linux"),
+        "shell=powershell bash’li facet-os-linux elemmeli: {shell_ids:?}"
+    );
+    app.commands_filters.clear();
+
+    // Profile — related_commands kesişimi
+    let profile_id = "facet-profile-test";
+    app.commands_bank.profiles.push(
+        serde_json::from_value(serde_json::json!({
+            "id": profile_id,
+            "name": {"en": "Facet profile"},
+            "summary": {"en": "test"},
+            "related_commands": ["facet-os-linux"],
+            "verification": {"status": "draft"},
+        }))
+        .expect("profile fixture"),
+    );
+    app.commands_filters.profile = Some(profile_id.into());
+    let profile_ids: Vec<_> = app
+        .filtered_bank_commands()
+        .iter()
+        .map(|c| c.id.as_str())
+        .collect();
+    assert!(
+        profile_ids.contains(&"facet-os-linux"),
+        "profil related_commands facet-os-linux tutmalı: {profile_ids:?}"
+    );
+    assert!(
+        !profile_ids.contains(&"facet-os-windows"),
+        "profil dışı facet-os-windows elemmeli: {profile_ids:?}"
+    );
+    app.commands_filters.clear();
+
+    // learning_level (risk değil)
+    app.commands_filters.learning = LearningLevelFilter::Advanced;
+    let level_ids: Vec<_> = app
+        .filtered_bank_commands()
+        .iter()
+        .map(|c| c.id.as_str())
+        .collect();
+    assert!(
+        level_ids.contains(&"facet-level-advanced-safe"),
+        "learning=advanced safe komutu tutmalı: {level_ids:?}"
+    );
+    assert!(
+        !level_ids.contains(&"facet-risk-dangerous"),
+        "learning=advanced beginner+dangerous’ı risk yüzünden advanced saymamalı: {level_ids:?}"
+    );
+    app.commands_filters.clear();
+
+    // risk (learning değil)
+    app.commands_filters.risk = Some(RiskLevel::Dangerous);
+    let risk_ids: Vec<_> = app
+        .filtered_bank_commands()
+        .iter()
+        .map(|c| c.id.as_str())
+        .collect();
+    assert!(
+        risk_ids.contains(&"facet-risk-dangerous"),
+        "risk=dangerous facet-risk-dangerous tutmalı: {risk_ids:?}"
+    );
+    assert!(
+        !risk_ids.contains(&"facet-level-advanced-safe"),
+        "risk=dangerous safe advanced’ı elemmeli: {risk_ids:?}"
+    );
+    app.commands_filters.clear();
+
+    // Flag / alias araması PATH ile karışmaz
     app.search_query = "-h".into();
     let _ = app.filtered_bank_commands();
     app.set_commands_mode(CommandsBrowseMode::SystemPath);
@@ -496,7 +728,11 @@ fn server_security_checklist_persists_local_state_only() {
     );
     app.commands_entry_index = 0;
     app.focus = nova::app::PanelFocus::CommandsList;
-    let key = steps[0].state_key();
+    let key = steps[0].state_key_for(&app.checklist_target);
+    assert!(
+        key.contains("::local::") || key.contains(&format!("::{}::", app.checklist_target)),
+        "hedef-kapsamlı anahtar beklenirdi: {key}"
+    );
     assert!(!app.state.file.command_checklist.contains_key(&key));
     app.handle_key(crossterm::event::KeyEvent::new(
         crossterm::event::KeyCode::Char(' '),
@@ -536,6 +772,121 @@ fn server_security_checklist_persists_local_state_only() {
 }
 
 #[test]
+fn checklist_progress_isolated_across_targets_and_migrates_legacy() {
+    use nova::app::state::AppState;
+    use nova::commands::{
+        checklist_progress_key, migrate_checklist_progress, CHECKLIST_DEFAULT_TARGET,
+        SERVER_SECURITY_GUIDE_ID,
+    };
+
+    let entries = nova::catalog::loader::builtin_catalog().expect("katalog");
+    let catalog = Catalog::from_entries(entries).expect("katalog");
+
+    // Eski 2 parçalı + çıplak kayıtlar → App yüklemede local hedefine taşınır.
+    let mut state = AppState::in_memory();
+    state.file.command_checklist.insert(
+        format!("{SERVER_SECURITY_GUIDE_ID}::security-check-ssh"),
+        "ok".into(),
+    );
+    state
+        .file
+        .command_checklist
+        .insert("security-check-firewall-ports".into(), "review".into());
+    let mut app = App::with_state(catalog, state, false);
+    let ssh_key = checklist_progress_key(CHECKLIST_DEFAULT_TARGET, "security-check-ssh");
+    let fw_key = checklist_progress_key(CHECKLIST_DEFAULT_TARGET, "security-check-firewall-ports");
+    assert_eq!(
+        app.state
+            .file
+            .command_checklist
+            .get(&ssh_key)
+            .map(String::as_str),
+        Some("ok"),
+        "eski guide::step kaydı local hedefine taşınmalı"
+    );
+    assert_eq!(
+        app.state
+            .file
+            .command_checklist
+            .get(&fw_key)
+            .map(String::as_str),
+        Some("review"),
+        "çıplak adım kaydı local hedefine taşınmalı"
+    );
+    assert!(
+        !app.state
+            .file
+            .command_checklist
+            .contains_key(&format!("{SERVER_SECURITY_GUIDE_ID}::security-check-ssh")),
+        "eski 2 parçalı anahtar kalkmalı"
+    );
+
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::ServerSecurity);
+    let steps = app.filtered_checklist_steps();
+    let ssh_idx = steps
+        .iter()
+        .position(|s| s.id == "security-check-ssh")
+        .expect("ssh step");
+    let other_idx = steps
+        .iter()
+        .position(|s| s.id != "security-check-ssh")
+        .expect("another step");
+
+    // Aynı hedefte adımlar birbirine sızmaz.
+    assert_eq!(app.checklist_step_state(&steps[ssh_idx]).as_str(), "ok");
+    assert_eq!(
+        app.checklist_step_state(&steps[other_idx]).as_str(),
+        if steps[other_idx].id == "security-check-firewall-ports" {
+            "review"
+        } else {
+            "unchecked"
+        }
+    );
+
+    // Farklı hedef: local ok → prod unchecked (yalıtım).
+    app.checklist_target = "prod-host".into();
+    assert_eq!(
+        app.checklist_step_state(&steps[ssh_idx]).as_str(),
+        "unchecked",
+        "prod-host local ilerlemesini görmemeli"
+    );
+    app.commands_entry_index = ssh_idx;
+    app.focus = nova::app::PanelFocus::CommandsList;
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Char(' '),
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    let prod_key = steps[ssh_idx].state_key_for("prod-host");
+    assert_eq!(
+        app.state
+            .file
+            .command_checklist
+            .get(&prod_key)
+            .map(String::as_str),
+        Some("ok")
+    );
+    assert_eq!(
+        app.state
+            .file
+            .command_checklist
+            .get(&ssh_key)
+            .map(String::as_str),
+        Some("ok"),
+        "prod işaretleme local kaydı bozmamalı"
+    );
+
+    // migrate idempotent
+    let before = app.state.file.command_checklist.clone();
+    assert_eq!(
+        migrate_checklist_progress(&mut app.state.file.command_checklist),
+        0
+    );
+    assert_eq!(app.state.file.command_checklist, before);
+}
+
+#[test]
 fn checklist_platform_filter_match_and_no_match() {
     let mut app = app();
     app.select_commands_tab();
@@ -564,12 +915,59 @@ fn checklist_platform_filter_match_and_no_match() {
             .collect::<Vec<_>>()
     );
 
+    // Distro: debian seçilince Arch/pacman yarışını kaybetmeli.
+    let updates = steps
+        .iter()
+        .find(|s| s.id == "security-check-updates")
+        .expect("updates checklist step");
+    app.commands_filters.os = Some("linux".into());
+    app.commands_filters.distro = Some("debian".into());
+    let deb = nova::commands::select_checklist_examples(&updates.examples, &app.commands_filters);
+    assert!(
+        deb.iter().any(|e| e.example.command.contains("apt")),
+        "debian distro apt örneği beklenirdi: {:?}",
+        deb.iter()
+            .map(|e| e.example.command.as_str())
+            .collect::<Vec<_>>()
+    );
+    assert!(
+        deb.iter().all(|e| {
+            !e.example.command.contains("pacman") && !e.example.command.contains("checkupdates")
+        }),
+        "debian süzgeci arch/pacman göstermemeli: {:?}",
+        deb.iter()
+            .map(|e| e.example.command.as_str())
+            .collect::<Vec<_>>()
+    );
+
+    // Shell: powershell → windows net örnekleri.
+    app.commands_filters.clear();
+    app.commands_filters.shell = Some("powershell".into());
+    let pwsh = nova::commands::select_checklist_examples(&fw.examples, &app.commands_filters);
+    assert!(
+        !pwsh.is_empty()
+            && pwsh.iter().all(|e| {
+                e.example
+                    .shell
+                    .as_deref()
+                    .is_some_and(|s| s.to_ascii_lowercase().contains("powershell"))
+                    || e.shells
+                        .iter()
+                        .any(|s| s.to_ascii_lowercase().contains("powershell"))
+            }),
+        "powershell shell süzgeci eşleşmeli: {:?}",
+        pwsh.iter()
+            .map(|e| (e.example.command.as_str(), e.shells.as_slice()))
+            .collect::<Vec<_>>()
+    );
+
     // No-match: docker has no BSD impl (jails ≠ Docker) → empty, no silent substitute.
     // (Windows now has docker examples in the combined #69 catalog.)
     let docker = steps
         .iter()
         .find(|s| s.id == "security-check-docker")
         .expect("docker checklist step");
+    app.commands_filters.clear();
     app.commands_filters.os = Some("bsd".into());
     let empty = nova::commands::select_checklist_examples(&docker.examples, &app.commands_filters);
     assert!(
@@ -595,12 +993,14 @@ fn checklist_platform_filter_match_and_no_match() {
 }
 
 #[test]
-fn enter_never_auto_runs_commands() {
+fn enter_and_nav_keys_never_auto_execute_guide_or_checklist() {
     let mut app = app();
     app.select_commands_tab();
     app.set_commands_mode(CommandsBrowseMode::AllCommands);
     app.focus = nova::app::PanelFocus::CommandsList;
-    let before = app.modal.is_open();
+    let before_modal = app.modal.is_open();
+    assert!(app.install_job.is_none());
+    assert!(app.pending_tty_pm.is_none());
     app.handle_key(crossterm::event::KeyEvent::new(
         crossterm::event::KeyCode::Enter,
         crossterm::event::KeyModifiers::NONE,
@@ -608,15 +1008,87 @@ fn enter_never_auto_runs_commands() {
     .unwrap();
     assert_eq!(
         app.modal.is_open(),
-        before,
+        before_modal,
         "Enter modal/çalıştırma açmamalı"
     );
     assert!(
+        app.install_job.is_none() && app.pending_tty_pm.is_none(),
+        "Enter arka plan / TTY işi başlatmamalı"
+    );
+    assert!(
         app.status_message.contains("Bank")
-            || app.status_message.contains("risk")
-            || app.status_message.contains("çalıştır")
-            || !app.status_message.is_empty(),
-        "bilgi satırı beklenirdi: {}",
+            && (app.status_message.contains("risk")
+                || app.status_message.contains("doğrulama")
+                || app.status_message.contains("verification")),
+        "Enter bilgi satırı Bank+risk/doğrulama içermeli (boş fallback yok): {}",
         app.status_message
     );
+    assert!(
+        !app.status_message
+            .to_ascii_lowercase()
+            .contains("çalıştırılıyor")
+            && !app.status_message.to_ascii_lowercase().contains("running"),
+        "Enter çalıştırma mesajı vermemeli: {}",
+        app.status_message
+    );
+
+    // Gezinme tuşları da çalıştırmaz.
+    for code in [
+        crossterm::event::KeyCode::Down,
+        crossterm::event::KeyCode::Up,
+        crossterm::event::KeyCode::Right,
+        crossterm::event::KeyCode::Left,
+        crossterm::event::KeyCode::Tab,
+    ] {
+        let modal_before = app.modal.is_open();
+        app.handle_key(crossterm::event::KeyEvent::new(
+            code,
+            crossterm::event::KeyModifiers::NONE,
+        ))
+        .unwrap();
+        assert_eq!(app.modal.is_open(), modal_before, "{code:?} modal açmamalı");
+        assert!(
+            app.install_job.is_none() && app.pending_tty_pm.is_none(),
+            "{code:?} iş başlatmamalı"
+        );
+    }
+
+    // Checklist: Enter / oklar durum değiştirmez ve çalıştırmaz.
+    app.set_commands_mode(CommandsBrowseMode::ServerSecurity);
+    app.focus = nova::app::PanelFocus::CommandsList;
+    app.commands_entry_index = 0;
+    let steps = app.filtered_checklist_steps();
+    assert!(!steps.is_empty());
+    let key = steps[0].state_key_for(&app.checklist_target);
+    assert!(!app.state.file.command_checklist.contains_key(&key));
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(
+        !app.state.file.command_checklist.contains_key(&key),
+        "Enter checklist durumunu değiştirmemeli"
+    );
+    assert!(
+        app.status_message.contains("çalıştırılmaz")
+            || app.status_message.contains("never")
+            || app.status_message.contains("tarama")
+            || app.status_message.contains("scan")
+            || app.status_message.contains("Space"),
+        "checklist Enter bilgi satırı çalıştırmama uyarısı içermeli: {}",
+        app.status_message
+    );
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Down,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .unwrap();
+    assert!(
+        app.state.file.command_checklist.is_empty()
+            || !app.state.file.command_checklist.contains_key(&key),
+        "Down checklist işaretlememeli"
+    );
+    assert!(app.install_job.is_none() && app.pending_tty_pm.is_none());
+    assert!(!app.modal.is_open());
 }
