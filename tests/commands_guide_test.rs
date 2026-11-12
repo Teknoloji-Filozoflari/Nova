@@ -2090,3 +2090,250 @@ fn learning_level_filter_at_least_beginner_includes_higher_levels() {
         "belirtilmemiş seviye başlangıç+ sayılmamalı"
     );
 }
+
+#[test]
+fn quick_reference_lines_never_exceed_panel_width() {
+    // Satır, panel genişliğini aşarsa `Paragraph` satırı sarar ve tablo
+    // kayar (filtre satırı kaybolur). Dar panelde de taşma olmamalı.
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::QuickReference);
+    app.commands_filters.clear();
+    for width in [20usize, 30, 34, 40, 45, 60, 80, 100, 140, 170, 220] {
+        for height in [1usize, 2, 3, 4, 8, 12, 40] {
+            let lines = nova::ui::quick_reference::quick_reference_lines(&app, width, height);
+            let longest = lines
+                .iter()
+                .map(|l| {
+                    l.spans
+                        .iter()
+                        .map(|s| s.content.chars().count())
+                        .sum::<usize>()
+                })
+                .max()
+                .unwrap_or(0);
+            assert!(
+                longest <= width,
+                "genişlik {width} yükseklik {height}: satır {longest} karakter taşıyor"
+            );
+        }
+    }
+}
+
+#[test]
+fn quick_reference_narrow_panel_falls_back_to_single_column() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::QuickReference);
+    app.commands_filters.clear();
+    let lines = nova::ui::quick_reference::quick_reference_lines(&app, 30, 8);
+    let text: String = lines
+        .iter()
+        .map(|l| {
+            l.spans
+                .iter()
+                .map(|s| s.content.as_ref())
+                .collect::<String>()
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(
+        !text.contains("SEVİYE") && !text.contains("RİSK"),
+        "dar panelde çok sütunlu başlık olmamalı:\n{text}"
+    );
+    assert!(
+        text.contains("KOMUT"),
+        "dar panelde tek sütunlu başlık görünmeli:\n{text}"
+    );
+    assert!(
+        text.contains("Get-Command") || text.contains("ansible"),
+        "dar panelde komut satırları görünmeli:\n{text}"
+    );
+}
+
+/// Hızlı referans sekme şeridinde **aktif sekme her zaman görünür** olmalı.
+///
+/// Sekme sayısı panel genişliğini aşar; şerit kaydırılır ama aktif sekme
+/// (Hızlı referans) çizilir — kullanıcı bulunduğu modu görmelidir.
+#[test]
+fn quick_reference_tab_strip_always_shows_active_tab() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::QuickReference);
+    app.commands_filters.clear();
+    // Şerit satırı (ilk satır) dar panelde bile aktif sekmeyi göstermeli.
+    for width in [16usize, 20, 30, 40, 60, 90, 130] {
+        let lines = nova::ui::quick_reference::quick_reference_lines(&app, width, 10);
+        let strip = lines
+            .first()
+            .map(|l| {
+                l.spans
+                    .iter()
+                    .map(|s| s.content.as_ref())
+                    .collect::<String>()
+            })
+            .unwrap_or_default();
+        assert!(
+            strip.contains("Hızlı referans"),
+            "genişlik {width}: aktif sekme şeritte görünmeli:\n{strip}"
+        );
+        let strip_w = lines[0]
+            .spans
+            .iter()
+            .map(|s| s.content.chars().count())
+            .sum::<usize>();
+        assert!(
+            strip_w <= width,
+            "genişlik {width}: şerit {strip_w} karakter taşıyor"
+        );
+    }
+}
+
+/// Hızlı referans tablosu, kart kapalıyken **tüm içerik alanını** kullanır.
+///
+/// Detay şeridi kalıcı açıkken tablo sıkışıp satır göstermiyordu.
+#[test]
+fn quick_reference_table_uses_full_height_without_card() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::QuickReference);
+    app.commands_filters.clear();
+    app.terminal_size = Some((170, 34));
+    let lines = render(&app, 170, 34);
+    let command_rows = lines
+        .iter()
+        .filter(|l| l.contains("[güvenli]") || l.contains("[tehlikeli]") || l.contains("[dikkat]"))
+        .count();
+    assert!(
+        command_rows >= 10,
+        "kart kapalıyken tablo en az 10 satır göstermeli, {command_rows} göründü"
+    );
+    assert!(
+        !all_text(&lines).contains("Komut Detay"),
+        "kart kapalıyken detay şeridi çizilmemeli"
+    );
+}
+
+/// Enter kart şeridini açar, Esc kapatır (tasarım-1 kartı tasarım-2 üstünde).
+#[test]
+fn quick_reference_enter_opens_card_and_esc_closes() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::QuickReference);
+    app.commands_filters.clear();
+    app.terminal_size = Some((170, 34));
+    assert!(!app.commands_quick_card, "kart başlangıçta kapalı olmalı");
+
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Enter,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .expect("Enter");
+    assert!(app.commands_quick_card, "Enter kart şeridini açmalı");
+    let text = all_text(&render(&app, 170, 34));
+    assert!(
+        text.contains("Komut Detay"),
+        "kart açıkken detay şeridi görünmeli:\n{text}"
+    );
+
+    app.handle_key(crossterm::event::KeyEvent::new(
+        crossterm::event::KeyCode::Esc,
+        crossterm::event::KeyModifiers::NONE,
+    ))
+    .expect("Esc");
+    assert!(!app.commands_quick_card, "Esc kart şeridini kapatmalı");
+}
+
+/// Kart kutusu **dikdörtgen** olmalı: üst kenar, gövde ve alt kenar aynı
+/// genişlikte (aksi hâlde ╮ ve ╯ hizası bozulur).
+#[test]
+fn command_example_card_is_a_rectangle() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::QuickReference);
+    app.commands_filters.clear();
+    let cmd = app
+        .filtered_bank_commands()
+        .iter()
+        .copied()
+        .find(|c| !c.examples.is_empty())
+        .expect("örnekli banka komutu");
+    for wrap_w in [40usize, 56, 80, 120] {
+        let lines = nova::ui::guide_detail::command_detail_lines(&app, cmd, wrap_w, "");
+        let widths: Vec<usize> = lines
+            .iter()
+            .map(|l| {
+                l.spans
+                    .iter()
+                    .map(|s| s.content.chars().count())
+                    .sum::<usize>()
+            })
+            .collect();
+        // Örnek kartı: `╭─ Başlık …` ile başlar, `╰───╯` ile biter.
+        let top = lines
+            .iter()
+            .position(|l| l.spans.iter().any(|s| s.content.starts_with("╭─ ")))
+            .expect("örnek kartı üst kenarı yok");
+        let bottom = lines
+            .iter()
+            .enumerate()
+            .skip(top + 1)
+            .find(|(_, l)| {
+                l.spans
+                    .iter()
+                    .any(|s| s.content.starts_with('╰') && s.content.ends_with('╯'))
+            })
+            .map(|(i, _)| i)
+            .expect("örnek kartı alt kenarı yok");
+        assert!(
+            widths[top] == widths[bottom],
+            "genişlik {wrap_w}: üst {} alt {} eşit olmalı",
+            widths[top],
+            widths[bottom]
+        );
+        for (i, w) in widths.iter().enumerate().take(bottom + 1).skip(top) {
+            assert!(
+                *w <= wrap_w,
+                "genişlik {wrap_w}: kart satırı {i} {w} karakter taşıyor"
+            );
+        }
+    }
+}
+
+/// Seviye ve risk rozetleri **yedi dilde** de yerel olmalı.
+#[test]
+fn level_and_risk_labels_are_localized() {
+    for (lang, level, risk) in [
+        ("tr", "başlangıç", "tehlikeli"),
+        ("en", "beginner", "dangerous"),
+        ("ru", "начальный", "опасно"),
+        ("az", "başlanğıc", "təhlükəli"),
+        ("uz", "boshlang'ich", "xavfli"),
+        ("kk", "бастапқы", "қауіпті"),
+        ("tk", "başlangyç", "howply"),
+    ] {
+        assert_eq!(
+            LearningLevel::Beginner.label(lang),
+            level,
+            "{lang} seviye etiketi yerel olmalı"
+        );
+        assert_eq!(
+            RiskLevel::Dangerous.label(lang),
+            risk,
+            "{lang} risk etiketi yerel olmalı"
+        );
+        assert_eq!(
+            LearningLevelFilter::All.label(lang),
+            match lang {
+                "tr" => "Tümü",
+                "en" => "All",
+                "ru" => "Все",
+                "az" => "Hamısı",
+                "uz" => "Hammasi",
+                "kk" => "Барлығы",
+                _ => "Hemmesi",
+            },
+            "{lang} süzgeç etiketi yerel olmalı"
+        );
+    }
+}
