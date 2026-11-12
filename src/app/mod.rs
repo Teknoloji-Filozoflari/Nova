@@ -214,6 +214,11 @@ pub struct App {
     pub commands_guide_committed: bool,
     /// Banka süzgeçleri (OS/distro/shell/profil/seviye/risk) — PATH’e uygulanmaz.
     pub commands_filters: commands::CommandsFilters,
+    /// Hızlı referans bölüm süzgeci (`None` = tümü).
+    ///
+    /// Hızlı referans modunda grup sütunu yoktur; bölüm süzgeci kendi
+    /// alanında tutulur ve `b` tuşuyla döngülenir.
+    pub commands_quick_category: Option<String>,
     /// Host OS/distro varsayılanı bir kez uygulandı mı? (kullanıcı `x` ile temizleyebilir).
     pub commands_host_filter_seeded: bool,
     /// Sunucu güvenlik checklist ilerleme hedefi (`local`, host etiketi, …).
@@ -435,6 +440,7 @@ impl App {
             commands_task_drill: None,
             commands_guide_committed: false,
             commands_filters: commands::CommandsFilters::default(),
+            commands_quick_category: None,
             commands_host_filter_seeded: false,
             checklist_target,
             commands_detail_scroll: 0,
@@ -743,9 +749,20 @@ impl App {
 
             if x < list_end || x >= cursor {
                 let n = self.commands_list_len();
-                if let Some(row) =
+                let row = if self.commands_mode.is_quick_reference() {
+                    // Hızlı referans: tablo kenarlıksız ve kendi penceresini
+                    // kaydırır — genel liste eşlemesi kullanılmaz.
+                    crate::ui::quick_reference::row_index_at_y(
+                        y,
+                        panel_top,
+                        panel_h,
+                        self.commands_entry_index,
+                        n,
+                    )
+                } else {
                     list_index_at_y(y, panel_top, panel_h, self.commands_entry_index, n)
-                {
+                };
+                if let Some(row) = row {
                     self.commit_commands_guide();
                     self.commands_entry_index = row;
                     self.focus = PanelFocus::CommandsList;
@@ -755,8 +772,18 @@ impl App {
             // Sağ detay tıklaması: yalnızca odak (bağlantı yok).
         } else {
             let n = self.commands_list_len();
-            if let Some(row) = list_index_at_y(y, panel_top, panel_h, self.commands_entry_index, n)
-            {
+            let row = if self.commands_mode.is_quick_reference() {
+                crate::ui::quick_reference::row_index_at_y(
+                    y,
+                    panel_top,
+                    panel_h,
+                    self.commands_entry_index,
+                    n,
+                )
+            } else {
+                list_index_at_y(y, panel_top, panel_h, self.commands_entry_index, n)
+            };
+            if let Some(row) = row {
                 self.commands_entry_index = row;
                 self.focus = PanelFocus::CommandsList;
             }
@@ -1048,6 +1075,13 @@ impl App {
             KeyCode::Char('r') | KeyCode::Char('R') if self.commands_tab => {
                 self.cycle_commands_risk_filter();
             }
+            // Hızlı referans: bölüm süzgeci (`b`).
+            KeyCode::Char('b') | KeyCode::Char('B')
+                if self.commands_tab
+                    && self.commands_mode == CommandsBrowseMode::QuickReference =>
+            {
+                self.cycle_quick_reference_category();
+            }
             KeyCode::Char('p') | KeyCode::Char('P')
                 if self.commands_tab && self.commands_mode != CommandsBrowseMode::Context =>
             {
@@ -1055,6 +1089,8 @@ impl App {
             }
             KeyCode::Char('x') | KeyCode::Char('X') if self.commands_tab => {
                 self.commands_filters.clear();
+                // Hızlı referans bölüm süzgeci de temizlenir.
+                self.commands_quick_category = None;
                 // Host varsayılanı yeniden dayatılmaz; kullanıcı bilerek temizledi.
                 self.commands_host_filter_seeded = true;
                 self.commands_entry_index = 0;
@@ -2195,6 +2231,13 @@ impl App {
                 if !self.matches_command_search(c) {
                     return false;
                 }
+                if mode == CommandsBrowseMode::QuickReference {
+                    // Hızlı referans: tüm banka + bölüm süzgeci (arama zaten uygulandı).
+                    return match &self.commands_quick_category {
+                        Some(cat) => c.category.eq_ignore_ascii_case(cat),
+                        None => true,
+                    };
+                }
                 if searching {
                     // Arama: katalog genelinde (PATH / checklist değil).
                     return true;
@@ -2214,6 +2257,7 @@ impl App {
                     }
                     CommandsBrowseMode::AllCommands => c.category == cat,
                     CommandsBrowseMode::ServerSecurity | CommandsBrowseMode::SystemPath => false,
+                    CommandsBrowseMode::QuickReference => true,
                 }
             })
             .collect();
@@ -2227,7 +2271,43 @@ impl App {
                     .unwrap_or(usize::MAX)
             });
         }
+        // Hızlı referans: alfabetik — tablo okunabilirliği (komut adı).
+        if mode == CommandsBrowseMode::QuickReference {
+            cmds.sort_by(|a, b| a.name.cmp(&b.name).then(a.id.cmp(&b.id)));
+        }
         cmds
+    }
+
+    /// Hızlı referans tablosunun bölüm süzgeç değerleri (`Tümü` + banka kategorileri).
+    pub fn quick_reference_categories(&self) -> Vec<Option<String>> {
+        let mut out: Vec<Option<String>> = vec![None];
+        for cat in self.commands_bank_categories() {
+            out.push(Some(cat.to_string()));
+        }
+        out
+    }
+
+    /// Bölüm süzgecini döngüle (`Tümü` → ilk kategori → … → `Tümü`).
+    pub fn cycle_quick_reference_category(&mut self) {
+        let values = self.quick_reference_categories();
+        let current = self.commands_quick_category.clone();
+        let next = values
+            .iter()
+            .position(|v| *v == current)
+            .map(|i| values[(i + 1) % values.len()].clone())
+            .unwrap_or(None);
+        self.commands_quick_category = next;
+        self.commands_entry_index = 0;
+        self.commands_detail_scroll = 0;
+        let lang = self.ui_lang();
+        let label = match &self.commands_quick_category {
+            Some(cat) => lang.bank_category(cat).to_string(),
+            None => lang.t(crate::i18n::Msg::CommandsQuickFilterAll).to_string(),
+        };
+        self.status_message = format!(
+            "{}: {label}",
+            lang.t(crate::i18n::Msg::CommandsQuickFilterSection)
+        );
     }
 
     /// Seçili görev kategorisindeki görevler (arama: tüm görevler).
@@ -6529,6 +6609,26 @@ mod tests {
         // Dar modda kategori paneli yok; kenarlık sonrası ilk araç y=3.
         app.handle_mouse(mouse_down(39, 3)).unwrap();
         assert_eq!(app.focus, PanelFocus::Tool);
+    }
+
+    /// Hızlı referans tablosunda fare tıklaması doğru satırı seçmeli.
+    ///
+    /// Tablo kenarlıksız ve kendi penceresini kaydırır; genel liste eşlemesi
+    /// (kenarlık + ratatui kaydırması) burada geçerli değildir.
+    #[test]
+    fn mouse_click_in_quick_reference_selects_table_row() {
+        let mut app = sample_app();
+        app.terminal_size = Some((170, 34));
+        app.select_commands_tab();
+        app.set_commands_mode(CommandsBrowseMode::QuickReference);
+        app.commands_filters.clear();
+        app.focus = PanelFocus::CommandsList;
+        let areas = crate::ui::click_areas((170, 34), false, false, false);
+        // Sekme şeridi + süzgeç satırı + başlık → ilk tablo satırı 3 satır aşağıda.
+        let y = areas.content_top + crate::ui::quick_reference::CHROME_ROWS as u16 + 2;
+        app.handle_mouse(mouse_down(120, y)).unwrap();
+        assert_eq!(app.focus, PanelFocus::CommandsList);
+        assert_eq!(app.commands_entry_index, 2, "tıklanan satır seçilmeli");
     }
 
     #[test]

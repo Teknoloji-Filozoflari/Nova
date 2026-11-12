@@ -40,11 +40,17 @@ fn main() {
     capture_topic_guide_table_rows(&out);
     capture_syntax_list(&out);
     capture_syntax_detail(&out);
+    capture_quick_reference(&out);
+    capture_quick_reference_card(&out);
 
     eprintln!("frames → {}", out.display());
 }
 
 fn base_app() -> App {
+    // Ekran görüntüleri **gömülü (vendored) komut bankasından** üretilir:
+    // kullanıcının disk önbelleği sürüme göre değişirse kareler kaymasın.
+    let cache_dir = std::env::temp_dir().join("nova-capture-commands");
+    std::env::set_var("NOVA_COMMANDS_DIR", &cache_dir);
     let entries = nova::catalog::loader::builtin_catalog().expect("gömülü katalog");
     let catalog = Catalog::from_entries(entries).expect("katalog");
     let mut app = App::new(catalog);
@@ -459,9 +465,50 @@ fn capture_syntax_detail(out: &Path) {
     dump(&mut app, 170, 44, out.join("syntax-highlight-detail.json"));
 }
 
+/// Hızlı referans — geniş tablo + filtre satırı (tasarım-2).
+fn capture_quick_reference(out: &Path) {
+    use nova::config::state::UiScreen;
+    let mut app = base_app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::QuickReference);
+    app.commands_quick_category = Some("system".into());
+    app.search_query = "system".into();
+    let sizes = app.state.file.prefs.pane_sizes.get_mut(UiScreen::Commands);
+    sizes.tabs = Some(18);
+    sizes.secondary = Some(20);
+    app.focus = PanelFocus::CommandsList;
+    app.commands_entry_index = 0;
+    // Durum satırı bağlam cümlesini göstersin (tasarım-2 alt şeridi).
+    app.status_message.clear();
+    dump(&mut app, 170, 34, out.join("commands-quick-reference.json"));
+}
+
+/// Hızlı referans — kart açık (alt şerit): tasarım-1 kart düzeni.
+fn capture_quick_reference_card(out: &Path) {
+    use nova::config::state::UiScreen;
+    let mut app = base_app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::QuickReference);
+    let sizes = app.state.file.prefs.pane_sizes.get_mut(UiScreen::Commands);
+    sizes.tabs = Some(18);
+    sizes.secondary = Some(20);
+    app.focus = PanelFocus::CommandsList;
+    if let Some(idx) = app
+        .filtered_bank_commands()
+        .iter()
+        .position(|c| c.name == "ls")
+    {
+        app.commands_entry_index = idx;
+    }
+    dump(
+        &mut app,
+        170,
+        46,
+        out.join("commands-quick-reference-card.json"),
+    );
+}
+
 fn dump(app: &mut App, width: u16, height: u16, path: PathBuf) {
-    // draw yan-detay eşiklerini area’dan hesaplar; terminal_size odak/test
-    // yardımcıları için senkron tutulur.
     app.terminal_size = Some((width, height));
     app.narrow_mode = width < nova::ui::WIDE_MIN_WIDTH;
 

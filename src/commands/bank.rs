@@ -213,6 +213,9 @@ pub struct CommandSecurity {
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct CommandFlag {
     pub flag: String,
+    /// Uzun biçim (`--all`) — katalogda yoksa boş.
+    #[serde(default)]
+    pub long: Option<String>,
     #[serde(default)]
     pub meaning: LocalizedString,
     #[serde(default)]
@@ -387,6 +390,12 @@ pub struct CommandEntry {
     pub syntax: String,
     #[serde(default)]
     pub description: LocalizedString,
+    /// “Ne zaman işe yarar” ipucu metni — kartın İPUCU bloğu (yoksa blok çizilmez).
+    #[serde(default)]
+    pub when_to_use: LocalizedString,
+    /// Beklenen etki — komutun ne yaptığının kısa özeti.
+    #[serde(default)]
+    pub expected_effect: LocalizedString,
     /// Komut düzeyinde yaygın hatalar (örnek `warnings` ile birleşir).
     #[serde(default)]
     pub common_mistakes: Vec<LocalizedString>,

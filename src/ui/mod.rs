@@ -16,6 +16,7 @@
 
 pub mod guide_detail;
 pub mod modal;
+pub mod quick_reference;
 pub mod syntax;
 pub mod theme;
 
@@ -27,6 +28,7 @@ pub use theme::{heading_caps, ThemePalette, UiTheme};
 
 use crate::app::{App, PanelFocus};
 use crate::catalog::CATEGORIES;
+use crate::commands::CommandsBrowseMode;
 use crate::detection::InstalledStatus;
 use crate::i18n::Msg;
 use crate::store::STORE_CATEGORIES;
@@ -816,6 +818,7 @@ pub fn draw(f: &mut Frame, app: &App) {
     let commands_detail_side = app.commands_tab
         && wide
         && cmd_cols < 2
+        && !app.commands_mode.is_quick_reference()
         && area.width >= detail_side_min_width(panes.tabs, panes.secondary, cmd_cols);
     let tools_tab = !app.store_tab && !app.settings_tab && !app.commands_tab;
     let tool_detail_side = tools_tab && tool_detail_side_layout(wide, area.width, panes.tabs);
@@ -1062,6 +1065,22 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
         && area.width >= detail_side_min_width(tabs, secondary, cols)
         && !(grouped && mode_visible);
     if wide {
+        if app.commands_mode == CommandsBrowseMode::QuickReference {
+            // Hızlı referans: geniş tablo — kategori + mod sütunu yanında,
+            // kalan alanın tamamı tabloya (filtre satırı + başlık + satırlar).
+            let panels = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([
+                    Constraint::Length(tabs),
+                    Constraint::Length(secondary),
+                    Constraint::Min(0),
+                ])
+                .split(area);
+            draw_categories(f, app, panels[0]);
+            draw_commands_mode(f, app, panels[1]);
+            draw_commands_quick_reference(f, app, panels[2]);
+            return;
+        }
         if grouped && mode_visible {
             // Mod + Grup + Liste (detay alt şeritte kalabilir).
             let after_fixed = area
@@ -1159,6 +1178,12 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(src_h), Constraint::Min(3)])
             .split(area);
+        if app.commands_mode == CommandsBrowseMode::QuickReference {
+            // Dar terminalde de aynı tablo — mod paneli üstte, tablo altta.
+            draw_commands_mode(f, app, panels[0]);
+            draw_commands_quick_reference(f, app, panels[1]);
+            return;
+        }
         if mode_visible {
             draw_commands_mode(f, app, panels[0]);
         } else if grouped {
@@ -1168,6 +1193,15 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
         }
         draw_commands_list(f, app, panels[1]);
     }
+}
+
+fn draw_commands_quick_reference(f: &mut Frame, app: &App, area: Rect) {
+    if area.width == 0 || area.height == 0 {
+        return;
+    }
+    let lines =
+        quick_reference::quick_reference_lines(app, area.width as usize, area.height as usize);
+    f.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), area);
 }
 
 fn draw_commands_mode(f: &mut Frame, app: &App, area: Rect) {
@@ -3411,6 +3445,19 @@ fn draw_status(f: &mut Frame, app: &App, area: Rect) {
             Style::default().fg(color),
         ));
         Line::from(spans)
+    } else if app.commands_tab && app.commands_mode == CommandsBrowseMode::QuickReference {
+        // Hızlı referans: bağlam cümlesi (tasarım-2).
+        Line::from(Span::styled(
+            truncate(
+                &format!(
+                    "{} · {}",
+                    crate::commands::COMMANDS_TAB_LABEL,
+                    quick_reference::quick_reference_status(app)
+                ),
+                area.width as usize,
+            ),
+            Style::default().fg(pal.status),
+        ))
     } else if tight {
         Line::from(Span::styled(
             truncate(
@@ -3447,7 +3494,13 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
             "yaz: ara   Enter/Esc: aramadan çık"
         }
     } else if app.commands_tab {
-        if tight {
+        if app.commands_mode == CommandsBrowseMode::QuickReference {
+            if tight {
+                "↑↓ · b · y · r · ?"
+            } else {
+                app.ui_lang().t(Msg::CommandsQuickHint)
+            }
+        } else if tight {
             "↑↓ · Tab · −/+ · ?"
         } else {
             "↑↓ gezinme/liste   Tab panel   Space profil   / ara   F favori   ?"
@@ -3616,6 +3669,15 @@ fn help_full_lines(app: &App, pal: ThemePalette) -> Vec<Line<'static>> {
             ("Enter", lang.t(Msg::CommandsHelpEnterInfo)),
             ("Esc", lang.t(Msg::CommandsHelpEscBack)),
         ]));
+        // Hızlı referans kendi süzgeç tuşlarını ayrı satırda anlatır.
+        if app.commands_mode.is_quick_reference() {
+            lines.push(hl(&[
+                ("B", lang.t(Msg::CommandsQuickFilterSection)),
+                ("Y", lang.t(Msg::CommandsQuickFilterLevel)),
+                ("R", lang.t(Msg::CommandsQuickFilterRisk)),
+                ("/", lang.t(Msg::HelpSearch)),
+            ]));
+        }
     }
     // Mağaza sekmesinin kendi tuşları ayrı satırda anlatılır; sekme
     // görünümü farklı bir gezinme düzeni sunduğu için tek satırlık tablo

@@ -11,6 +11,8 @@ use crate::store::host::{detect_host_os, HostOs};
 pub enum LearningLevelFilter {
     #[default]
     All,
+    /// Başlangıç ve üstü (beginner + intermediate + advanced).
+    AtLeastBeginner,
     Beginner,
     Intermediate,
     Advanced,
@@ -19,8 +21,9 @@ pub enum LearningLevelFilter {
 }
 
 impl LearningLevelFilter {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::All,
+        Self::AtLeastBeginner,
         Self::Beginner,
         Self::Intermediate,
         Self::Advanced,
@@ -35,6 +38,7 @@ impl LearningLevelFilter {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::All => "all",
+            Self::AtLeastBeginner => "at_least_beginner",
             Self::Beginner => "beginner",
             Self::Intermediate => "intermediate",
             Self::Advanced => "advanced",
@@ -42,9 +46,32 @@ impl LearningLevelFilter {
         }
     }
 
+    /// Süzgeç satırında görünen etiket (TR/EN).
+    pub fn label(self, lang: &str) -> &'static str {
+        let en = lang.to_ascii_lowercase().starts_with("en");
+        match (self, en) {
+            (Self::All, false) => "Tümü",
+            (Self::All, true) => "All",
+            (Self::AtLeastBeginner, false) => "Başlangıç+",
+            (Self::AtLeastBeginner, true) => "Beginner+",
+            (Self::Beginner, false) => "Başlangıç",
+            (Self::Beginner, true) => "Beginner",
+            (Self::Intermediate, false) => "Orta",
+            (Self::Intermediate, true) => "Intermediate",
+            (Self::Advanced, false) => "İleri",
+            (Self::Advanced, true) => "Advanced",
+            (Self::Unspecified, false) => "Belirtilmedi",
+            (Self::Unspecified, true) => "Unspecified",
+        }
+    }
+
     fn matches_level(self, level: LearningLevel) -> bool {
         match self {
             Self::All => true,
+            Self::AtLeastBeginner => matches!(
+                level,
+                LearningLevel::Beginner | LearningLevel::Intermediate | LearningLevel::Advanced
+            ),
             Self::Beginner => level == LearningLevel::Beginner,
             Self::Intermediate => level == LearningLevel::Intermediate,
             Self::Advanced => level == LearningLevel::Advanced,

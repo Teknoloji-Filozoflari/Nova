@@ -83,16 +83,19 @@ pub enum CommandsBrowseMode {
     ServerSecurity,
     /// 6 · Sistemde bulunanlar — PATH stub (katalogdan ayrı).
     SystemPath,
+    /// 7 · Hızlı referans — geniş tabloda tüm banka komutları (bölüm/seviye/risk süzgeci).
+    QuickReference,
 }
 
 impl CommandsBrowseMode {
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
         Self::Start,
         Self::ByTask,
         Self::Context,
         Self::AllCommands,
         Self::ServerSecurity,
         Self::SystemPath,
+        Self::QuickReference,
     ];
 
     pub fn index(self) -> usize {
@@ -103,6 +106,7 @@ impl CommandsBrowseMode {
             Self::AllCommands => 3,
             Self::ServerSecurity => 4,
             Self::SystemPath => 5,
+            Self::QuickReference => 6,
         }
     }
 
@@ -134,6 +138,11 @@ impl CommandsBrowseMode {
     /// Checklist listesi mi (Sunucu güvenlik)?
     pub fn is_checklist(self) -> bool {
         matches!(self, Self::ServerSecurity)
+    }
+
+    /// Hızlı referans — geniş tablo görünümü (liste sütunu yerine tablo).
+    pub fn is_quick_reference(self) -> bool {
+        matches!(self, Self::QuickReference)
     }
 }
 
