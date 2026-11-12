@@ -107,7 +107,7 @@ fn tokenize(s: &str) -> Vec<String> {
             let quote = c;
             let mut tok = String::new();
             tok.push(chars.next().unwrap());
-            while let Some(n) = chars.next() {
+            for n in chars.by_ref() {
                 tok.push(n);
                 if n == quote {
                     break;
@@ -123,7 +123,7 @@ fn tokenize(s: &str) -> Vec<String> {
             }
             if n == '[' {
                 tok.push(chars.next().unwrap());
-                while let Some(m) = chars.next() {
+                for m in chars.by_ref() {
                     tok.push(m);
                     if m == ']' {
                         break;
@@ -168,8 +168,7 @@ fn bracket_is_option(tok: &str) -> bool {
     let inner = bracket_body(tok).trim().to_ascii_lowercase();
     // Türkçe 'İ'/'ı' için ekstra kontroller
     let folded = inner
-        .replace('ı', "i")
-        .replace('İ', "i")
+        .replace(['ı', 'İ'], "i")
         .replace('ş', "s")
         .replace('ö', "o")
         .replace('ü', "u")
@@ -214,10 +213,7 @@ fn looks_like_value(tok: &str) -> bool {
             }
         }
     }
-    if tok.chars().all(|c| c.is_ascii_digit()) {
-        return true;
-    }
-    false
+    tok.chars().all(|c| c.is_ascii_digit())
 }
 
 fn classify_token(
