@@ -114,6 +114,8 @@ pub const TOOL_DETAIL_SIDE_MIN_WIDTH: u16 =
 /// Geniş terminalde detay sağ panele taşınır; bu yükseklik yalnızca
 /// dar/orta düzende alt şerit için kullanılır.
 pub const STORE_DETAIL_ROWS: u16 = 16;
+/// Hızlı referans kart şeridi — SÖZDİZİMİ + SEÇENEKLER + ilk ÖRNEK sığsın.
+pub const QUICK_CARD_DETAIL_ROWS: u16 = 22;
 /// Dar Mağaza üst kategori paneli varsayılan / min / max yüksekliği.
 pub const STORE_CAT_HEIGHT_DEFAULT: u16 = 8;
 /// Dar Mağaza kategori paneli alt sınırı.
@@ -235,6 +237,15 @@ pub fn clamp_detail_width(w: u16) -> u16 {
 /// Alt detay yüksekliğini min/max aralığına kırpar.
 pub fn clamp_detail_height(h: u16) -> u16 {
     h.clamp(DETAIL_HEIGHT_MIN, DETAIL_HEIGHT_MAX)
+}
+
+/// Hızlı referans kart şeridi yüksekliği — örnek satırı kırpılmasın.
+fn quick_card_detail_height(preferred: u16, terminal_h: u16, actions_h: u16) -> u16 {
+    let avail = terminal_h.saturating_sub(CONTENT_MIN_HEIGHT + 3 + actions_h);
+    preferred
+        .clamp(QUICK_CARD_DETAIL_ROWS, DETAIL_HEIGHT_MAX)
+        .min(avail)
+        .max(DETAIL_HEIGHT_MIN.min(avail))
 }
 
 /// Dar Mağaza kategori yüksekliğini kırpar.
@@ -479,6 +490,8 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
             } else if commands_quick && !commands_quick_card {
                 // Kart kapalı: tablo tüm alanı kaplar.
                 0
+            } else if commands_quick_card {
+                quick_card_detail_height(panes.detail_height, h, actions_h)
             } else {
                 panes
                     .detail_height
@@ -875,6 +888,8 @@ pub fn draw(f: &mut Frame, app: &App) {
             } else if commands_quick && !commands_quick_card {
                 // Kart kapalı: tablo tüm alanı kaplar.
                 0
+            } else if commands_quick_card {
+                quick_card_detail_height(panes.detail_height, area.height, actions_h)
             } else {
                 panes.detail_height.min(
                     area.height
@@ -2378,6 +2393,8 @@ fn draw_detail(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn commands_detail_lines(app: &App, wrap_w: usize) -> Vec<Line<'static>> {
+    let card_strip =
+        app.commands_tab && app.commands_mode.is_quick_reference() && app.commands_quick_card;
     use crate::commands::{CommandsBrowseMode, CommandsSource, RiskLevel, VerificationStatus};
     let lang = app.ui_lang();
     let lang_id = lang.id();
@@ -2510,7 +2527,7 @@ fn commands_detail_lines(app: &App, wrap_w: usize) -> Vec<Line<'static>> {
             } else {
                 ""
             };
-            return guide_detail::command_detail_lines(app, cmd, wrap_w, fav);
+            return guide_detail::command_detail_lines(app, cmd, wrap_w, fav, card_strip);
         }
         CommandsSource::Local => {
             let ents = app.filtered_local_commands();
@@ -3590,13 +3607,14 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
     // Yardım paneli terminal yüksekliğine göre kısalır; satırlar alana sığmazsa
     // taşmak yerine kırpılır. Mock: cyan tuş + muted etiket.
     let lang = app.ui_lang();
+    let enter_desc = help_enter_label(app);
     let full = help_full_lines(app, pal);
     let compact = vec![help_line_themed(
         &[
             ("↑↓", lang.t(Msg::HelpNavigate)),
             ("←→", lang.t(Msg::HelpPanel)),
             ("/", lang.t(Msg::HelpSearch)),
-            ("Enter", lang.t(Msg::HelpLaunch)),
+            ("Enter", enter_desc),
             ("F", lang.t(Msg::HelpFavorite)),
             ("N", lang.t(Msg::HelpNewTool)),
             ("R", lang.t(Msg::HelpRecents)),
@@ -3638,6 +3656,18 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
         .wrap(Wrap { trim: true })
         .alignment(Alignment::Left);
     f.render_widget(para, area);
+}
+
+/// Enter satır etiketi — Hızlı referansta kart, diğer Komut Rehberi’nde bilgi.
+fn help_enter_label(app: &App) -> &'static str {
+    let lang = app.ui_lang();
+    if app.commands_tab && app.commands_mode.is_quick_reference() {
+        lang.t(Msg::CommandsHelpEnterCard)
+    } else if app.commands_tab {
+        lang.t(Msg::CommandsHelpEnterInfo)
+    } else {
+        lang.t(Msg::HelpLaunch)
+    }
 }
 
 /// Yardım ekranının tam tuş tablosu.
@@ -3697,7 +3727,7 @@ fn help_full_lines(app: &App, pal: ThemePalette) -> Vec<Line<'static>> {
             ("/", lang.t(Msg::HelpSearch)),
         ]));
         lines.push(hl(&[
-            ("Enter", lang.t(Msg::CommandsHelpEnterInfo)),
+            ("Enter", help_enter_label(app)),
             ("Esc", lang.t(Msg::CommandsHelpEscBack)),
         ]));
         // Hızlı referans kendi süzgeç tuşlarını ayrı satırda anlatır.
@@ -3734,7 +3764,7 @@ fn help_full_lines_narrow(app: &App, pal: ThemePalette) -> Vec<Line<'static>> {
         ("↑↓", lang.t(Msg::HelpNavigate)),
         ("←→", lang.t(Msg::HelpPanel)),
         ("/", lang.t(Msg::HelpSearch)),
-        ("Enter", lang.t(Msg::HelpLaunch)),
+        ("Enter", help_enter_label(app)),
         ("?", lang.t(Msg::HelpHelp)),
         ("F", lang.t(Msg::HelpFavorite)),
         ("P", lang.t(Msg::HelpProject)),

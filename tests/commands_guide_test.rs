@@ -1610,7 +1610,7 @@ fn command_detail_uses_bordered_code_and_skips_empty_topic_sections() {
         .iter()
         .find(|c| c.id == "nv124-border-demo")
         .expect("border demo");
-    let detail = nova::ui::guide_detail::command_detail_lines(&app, cmd, 72, "");
+    let detail = nova::ui::guide_detail::command_detail_lines(&app, cmd, 72, "", false);
     let detail_text: String = detail
         .iter()
         .map(|l| {
@@ -1915,7 +1915,7 @@ fn command_card_text(app: &App, name: &str, wrap_w: usize) -> String {
         .iter()
         .find(|c| c.name == name)
         .unwrap_or_else(|| panic!("komut {name}"));
-    let lines = nova::ui::guide_detail::command_detail_lines(app, cmd, wrap_w, "");
+    let lines = nova::ui::guide_detail::command_detail_lines(app, cmd, wrap_w, "", false);
     lines
         .iter()
         .map(|l| {
@@ -2244,6 +2244,56 @@ fn quick_reference_enter_opens_card_and_esc_closes() {
     assert!(!app.commands_quick_card, "Esc kart şeridini kapatmalı");
 }
 
+/// Footer Enter etiketi Hızlı referansta «kartı aç», Başlat değil.
+#[test]
+fn quick_reference_footer_enter_says_open_card_not_launch() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::QuickReference);
+    app.terminal_size = Some((170, 34));
+    let text = all_text(&render(&app, 170, 34));
+    assert!(
+        text.contains("kartı aç") || text.contains("Enter kart"),
+        "footer/status Enter kartı açmalı:\n{text}"
+    );
+    assert!(
+        !text.contains("Enter Başlat"),
+        "Hızlı referansta Enter Başlat olmamalı:\n{text}"
+    );
+}
+
+/// Açık kart şeridi title→özet→SÖZDİZİMİ→SEÇENEKLER→ÖRNEKLER (en az bir örnek).
+#[test]
+fn quick_reference_card_strip_shows_first_example() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::QuickReference);
+    app.commands_filters.clear();
+    if let Some(idx) = app
+        .filtered_bank_commands()
+        .iter()
+        .position(|c| c.name == "ls" && !c.examples.is_empty())
+    {
+        app.commands_entry_index = idx;
+    }
+    app.commands_quick_card = true;
+    app.focus = nova::app::PanelFocus::CommandsDetail;
+    // Kart şeridi için yeterli yükseklik (QUICK_CARD_DETAIL_ROWS).
+    let text = all_text(&render(&app, 170, 48));
+    assert!(
+        text.contains("SÖZDİZİMİ") || text.contains("Sözdizimi"),
+        "{text}"
+    );
+    assert!(
+        text.contains("SEÇENEKLER") || text.contains("Seçenekler") || text.contains("OPTIONS"),
+        "seçenekler görünmeli:\n{text}"
+    );
+    assert!(
+        text.contains("ÖRNEK") || text.contains("Örnekler") || text.contains("$ ls"),
+        "en az bir örnek görünmeli:\n{text}"
+    );
+}
+
 /// Kart kutusu **dikdörtgen** olmalı: üst kenar, gövde ve alt kenar aynı
 /// genişlikte (aksi hâlde ╮ ve ╯ hizası bozulur).
 #[test]
@@ -2259,7 +2309,7 @@ fn command_example_card_is_a_rectangle() {
         .find(|c| !c.examples.is_empty())
         .expect("örnekli banka komutu");
     for wrap_w in [40usize, 56, 80, 120] {
-        let lines = nova::ui::guide_detail::command_detail_lines(&app, cmd, wrap_w, "");
+        let lines = nova::ui::guide_detail::command_detail_lines(&app, cmd, wrap_w, "", false);
         let widths: Vec<usize> = lines
             .iter()
             .map(|l| {
