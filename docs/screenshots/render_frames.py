@@ -95,6 +95,8 @@ def main() -> int:
         "syntax-highlight-detail.json": "syntax-highlight-detail.png",
         "topic-guide-table-polish.json": "topic-guide-table-polish.png",
         "topic-guide-table-rows.json": "topic-guide-table-rows.png",
+        "commands-quick-reference.json": "commands-quick-reference.png",
+        "commands-quick-reference-card.json": "commands-quick-reference-card.png",
     }
     required = {
         k: v
@@ -112,6 +114,7 @@ def main() -> int:
             src_name.startswith("preview-")
             or src_name.startswith("syntax-highlight-")
             or src_name.startswith("topic-guide-table-")
+            or src_name.startswith("commands-quick-reference")
         ):
             continue
         src = frames_dir / src_name
