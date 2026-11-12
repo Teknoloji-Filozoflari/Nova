@@ -52,7 +52,7 @@ pub fn highlight_shell_styled(line: &str, pal: ThemePalette, panel: Style) -> Ve
     let tokens = tokenize(body);
     let mut expect_command = true;
     for (i, tok) in tokens.iter().enumerate() {
-        if i > 0 {
+        if i > 0 && !tight_operator_join(&tokens[i - 1], tok) {
             spans.push(Span::styled(" ".to_string(), prompt));
         }
         let style = classify_token(tok, expect_command, command, flag, path, plain, prompt);
@@ -447,6 +447,22 @@ fn tokenize(s: &str) -> Vec<String> {
 
 fn is_command_reset(tok: &str) -> bool {
     matches!(tok, "|" | "||" | "&&" | ";" | ">" | ">>" | "<")
+}
+
+/// `2>&1` gibi yönlendirmelerde operatörler arasına boşluk koyma.
+fn tight_operator_join(prev: &str, cur: &str) -> bool {
+    let op = |t: &str| t.chars().all(|c| matches!(c, '|' | '&' | ';' | '>' | '<'));
+    let digit = |t: &str| !t.is_empty() && t.chars().all(|c| c.is_ascii_digit());
+    if op(prev) && op(cur) {
+        return true;
+    }
+    if digit(prev) && op(cur) {
+        return true;
+    }
+    if op(prev) && digit(cur) {
+        return true;
+    }
+    false
 }
 
 fn is_flag_like(tok: &str) -> bool {

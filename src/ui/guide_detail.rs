@@ -16,7 +16,8 @@ use crate::commands::{
 };
 use crate::i18n::Msg;
 use crate::ui::syntax::{
-    highlight_output_line, highlight_prompt_line, highlight_shell_styled, highlight_tip_text,
+    highlight_output_line, highlight_prompt_line, highlight_shell, highlight_shell_styled,
+    highlight_tip_text,
 };
 use crate::ui::theme::{heading_caps, ThemePalette};
 use crate::ui::wrap_text;
@@ -71,13 +72,14 @@ fn push_heading(lines: &mut Vec<Line<'static>>, title: &str, pal: ThemePalette) 
     lines.push(Line::from(""));
 }
 
-/// Paragraf boşluklarını koruyarak sar; `**…**` işaretlerini TUI’de yut (düzen).
+/// Paragraf boşluklarını koruyarak sar; `**…**` yut; `` `snippet` `` sözdizimi boya.
 fn push_learning_paragraphs(
     lines: &mut Vec<Line<'static>>,
     body: &str,
     wrap_w: usize,
     text: Style,
     accent: Style,
+    pal: Option<ThemePalette>,
 ) {
     let trimmed = body.trim();
     if trimmed.is_empty() {
@@ -85,19 +87,37 @@ fn push_learning_paragraphs(
     }
     let mut first = true;
     for raw in trimmed.split("\n\n") {
-        let para = raw
+        let raw_lines: Vec<&str> = raw
             .lines()
             .map(str::trim)
             .filter(|l| !l.is_empty())
-            .collect::<Vec<_>>()
-            .join(" ");
-        if para.is_empty() {
+            .collect();
+        if raw_lines.is_empty() {
             continue;
         }
         if !first {
             lines.push(Line::from(""));
         }
         first = false;
+        // Markdown tablosu: satır satır tut (`` `op` `` boyansın).
+        let looks_like_table = raw_lines.iter().filter(|l| l.starts_with('|')).count() >= 2;
+        if looks_like_table {
+            for row in raw_lines {
+                if row.chars().all(|c| matches!(c, '|' | '-' | ':' | ' ')) {
+                    continue; // hizalama satırı
+                }
+                let cleaned = row
+                    .trim_matches('|')
+                    .split('|')
+                    .map(str::trim)
+                    .filter(|c| !c.is_empty())
+                    .collect::<Vec<_>>()
+                    .join("  ·  ");
+                push_learning_body(lines, &strip_md_bold(&cleaned), wrap_w, text, pal);
+            }
+            continue;
+        }
+        let para = raw_lines.join(" ");
         // `**Başlık:** kalan…` → başlık satırı + gövde
         if let Some((label, rest)) = split_leading_md_bold_label(&para) {
             lines.push(Line::from(Span::styled(
@@ -105,16 +125,145 @@ fn push_learning_paragraphs(
                 accent.add_modifier(Modifier::BOLD),
             )));
             if !rest.is_empty() {
-                push_wrapped(lines, &strip_md_bold(rest), wrap_w, text);
+                push_learning_body(lines, &strip_md_bold(rest), wrap_w, text, pal);
             }
+        } else if let Some(heading) = strip_md_heading(&para) {
+            lines.push(Line::from(Span::styled(
+                heading,
+                accent.add_modifier(Modifier::BOLD),
+            )));
         } else {
-            push_wrapped(lines, &strip_md_bold(&para), wrap_w, text);
+            push_learning_body(lines, &strip_md_bold(&para), wrap_w, text, pal);
         }
     }
 }
 
 fn strip_md_bold(s: &str) -> String {
     s.replace("**", "")
+}
+
+/// `## Başlık` → düz başlık metni (satır-içi `` ` `` temizlenir).
+fn strip_md_heading(para: &str) -> Option<String> {
+    let t = para.trim();
+    if !t.starts_with('#') {
+        return None;
+    }
+    let rest = t.trim_start_matches('#').trim();
+    if rest.is_empty() {
+        return None;
+    }
+    // Tek satırlık başlık (uzun paragraf değil)
+    if rest.chars().count() > 60 {
+        return None;
+    }
+    Some(rest.replace('`', ""))
+}
+
+/// Öğrenme gövdesi: `` `…` `` içini highlighter ile boya (`$` ekleme).
+fn push_learning_body(
+    lines: &mut Vec<Line<'static>>,
+    body: &str,
+    wrap_w: usize,
+    text: Style,
+    pal: Option<ThemePalette>,
+) {
+    let Some(pal) = pal else {
+        push_wrapped(lines, body, wrap_w, text);
+        return;
+    };
+    let segments = split_backtick_segments(body);
+    if segments.iter().all(|(code, _)| !code) {
+        push_wrapped(lines, body, wrap_w, text);
+        return;
+    }
+    push_wrapped_segments(lines, &segments, wrap_w, text, pal);
+}
+
+fn split_backtick_segments(s: &str) -> Vec<(bool, String)> {
+    let mut out = Vec::new();
+    let mut cur = String::new();
+    let mut in_code = false;
+    for c in s.chars() {
+        if c == '`' {
+            out.push((in_code, std::mem::take(&mut cur)));
+            in_code = !in_code;
+            continue;
+        }
+        cur.push(c);
+    }
+    out.push((in_code, cur));
+    out.retain(|(_, t)| !t.is_empty());
+    out
+}
+
+fn push_wrapped_segments(
+    lines: &mut Vec<Line<'static>>,
+    segments: &[(bool, String)],
+    wrap_w: usize,
+    text: Style,
+    pal: ThemePalette,
+) {
+    let width = wrap_w.max(8);
+    let mut line_spans: Vec<Span<'static>> = Vec::new();
+    let mut line_len = 0usize;
+
+    let flush = |spans: &mut Vec<Span<'static>>, lines: &mut Vec<Line<'static>>| {
+        if !spans.is_empty() {
+            lines.push(Line::from(std::mem::take(spans)));
+        }
+    };
+
+    for (is_code, part) in segments {
+        if part.is_empty() {
+            continue;
+        }
+        if *is_code {
+            // Kod snippet’ini mümkünse tek parça tut; sığmazsa kendi içinde sar.
+            let code_spans = highlight_shell(part, pal);
+            let code_len = part.chars().count();
+            if line_len > 0 && line_len + code_len > width {
+                flush(&mut line_spans, lines);
+                line_len = 0;
+            }
+            if code_len <= width {
+                line_spans.extend(code_spans);
+                line_len += code_len;
+                continue;
+            }
+            for piece in wrap_text(part, width) {
+                if line_len > 0 {
+                    flush(&mut line_spans, lines);
+                }
+                line_spans.extend(highlight_shell(&piece, pal));
+                flush(&mut line_spans, lines);
+                line_len = 0;
+            }
+            continue;
+        }
+        for word in part.split_inclusive(char::is_whitespace) {
+            let wlen = word.chars().count();
+            if wlen == 0 {
+                continue;
+            }
+            if line_len > 0 && line_len + wlen > width {
+                flush(&mut line_spans, lines);
+                line_len = 0;
+            }
+            if wlen > width {
+                if line_len > 0 {
+                    flush(&mut line_spans, lines);
+                    line_len = 0;
+                }
+                for piece in wrap_text(word, width) {
+                    lines.push(Line::from(Span::styled(piece, text)));
+                }
+                continue;
+            }
+            line_spans.push(Span::styled(word.to_string(), text));
+            line_len += wlen;
+        }
+    }
+    flush(&mut line_spans, lines);
 }
 
 /// `**Etiket:**` veya `**Etiket**` ile başlayan paragrafı ayır.
@@ -366,24 +515,81 @@ pub fn push_table_or_cards(
     muted: Style,
     accent: Style,
 ) {
+    let colored: Vec<(String, String, String, Option<ratatui::style::Color>)> = rows
+        .iter()
+        .map(|(t, d, b)| {
+            let color = accent.fg.filter(|_| !b.is_empty());
+            (t.clone(), d.clone(), b.clone(), color)
+        })
+        .collect();
+    push_table_or_cards_colored(lines, &colored, wrap_w, text, muted, accent, None);
+}
+
+/// Konu rehberi komut tablosu: cyan ad · renkli risk pill · muted amaç · ince ayırıcı.
+pub fn push_topic_command_table(
+    lines: &mut Vec<Line<'static>>,
+    rows: &[(String, String, RiskLevel)],
+    wrap_w: usize,
+    pal: ThemePalette,
+    lang_id: &str,
+) {
+    let colored: Vec<(String, String, String, Option<ratatui::style::Color>)> = rows
+        .iter()
+        .map(|(name, purpose, risk)| {
+            (
+                name.clone(),
+                purpose.clone(),
+                risk.label(lang_id).to_string(),
+                Some(pal.risk_color(*risk)),
+            )
+        })
+        .collect();
+    let muted = Style::default().fg(pal.muted);
+    let accent = Style::default().fg(pal.accent);
+    push_table_or_cards_colored(lines, &colored, wrap_w, muted, muted, accent, Some(pal));
+}
+
+fn push_table_or_cards_colored(
+    lines: &mut Vec<Line<'static>>,
+    rows: &[(String, String, String, Option<ratatui::style::Color>)],
+    wrap_w: usize,
+    text: Style,
+    muted: Style,
+    accent: Style,
+    pal: Option<ThemePalette>,
+) {
     if rows.is_empty() {
         return;
     }
     let narrow = wrap_w < NARROW_TABLE_WIDTH;
-    for (i, (title, detail, badge)) in rows.iter().enumerate() {
+    let rule_w = wrap_w.clamp(8, 48);
+    for (i, (title, detail, badge, badge_color)) in rows.iter().enumerate() {
         if i > 0 {
-            lines.push(Line::from(""));
+            if let Some(p) = pal {
+                // İnce yatay ayırıcı (ağır kart yok).
+                lines.push(Line::from(Span::styled(
+                    "─".repeat(rule_w),
+                    Style::default().fg(p.border),
+                )));
+            } else {
+                lines.push(Line::from(""));
+            }
         }
         if narrow {
-            let head = if badge.is_empty() {
-                title.clone()
-            } else {
-                format!("{title}  · {badge}")
-            };
-            lines.push(Line::from(Span::styled(
-                format!("┌ {head}"),
+            let mut head = vec![Span::styled(
+                format!("┌ {title}"),
                 accent.add_modifier(Modifier::BOLD),
-            )));
+            )];
+            if !badge.is_empty() {
+                let c =
+                    badge_color.unwrap_or_else(|| accent.fg.unwrap_or(ratatui::style::Color::Cyan));
+                head.push(Span::raw(" "));
+                head.push(Span::styled(
+                    format!("[{badge}]"),
+                    Style::default().fg(c).add_modifier(Modifier::BOLD),
+                ));
+            }
+            lines.push(Line::from(head));
             if !detail.is_empty() {
                 let inner = wrap_w.saturating_sub(2).max(8);
                 for part in wrap_text(detail, inner) {
@@ -396,13 +602,7 @@ pub fn push_table_or_cards(
             lines.push(Line::from(Span::styled("└".to_string(), muted)));
             continue;
         }
-        // Geniş: cyan komut + outlined rozet; açıklama alt satırda.
-        let pill_color = if badge.is_empty() {
-            None
-        } else {
-            Some(accent.fg.unwrap_or(ratatui::style::Color::Cyan))
-        };
-        push_title_with_badge_color(lines, title, badge, wrap_w, accent, muted, pill_color);
+        push_title_with_badge_color(lines, title, badge, wrap_w, accent, muted, *badge_color);
         if !detail.is_empty() {
             let inner = wrap_w.saturating_sub(2).max(8);
             for part in wrap_text(detail, inner) {
@@ -558,7 +758,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
     let intro_body = if !intro.is_empty() { intro } else { summary };
     if !intro_body.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicIntro), pal);
-        push_learning_paragraphs(&mut lines, intro_body, wrap_w, text, accent);
+        push_learning_paragraphs(&mut lines, intro_body, wrap_w, text, accent, Some(pal));
     }
 
     // Order — `learning_path` (ref → komut/konu başlığı)
@@ -644,10 +844,10 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         );
     }
 
-    // Command table — risk/seviye satır-içi rozet; sabit id/risk sütunu yok
+    // Command table — cyan ad · renkli risk pill · muted amaç · ince ayırıcı
     if !concept.command_table.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicCmdTable), pal);
-        let rows: Vec<(String, String, String)> = concept
+        let rows: Vec<(String, String, RiskLevel)> = concept
             .command_table
             .iter()
             .map(|row| {
@@ -664,27 +864,14 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                             .unwrap_or_default()
                     }
                 };
-                let badge = if row.learning_level.is_specified() {
-                    row.learning_level.label(lang_id).to_string()
-                } else {
-                    cmd.map(|c| c.risk.label(lang_id).to_string())
-                        .unwrap_or_default()
-                };
-                (name, purpose, badge)
+                let risk = cmd.map(|c| c.risk).unwrap_or(RiskLevel::Safe);
+                (name, purpose, risk)
             })
             .collect();
-        push_table_or_cards(
-            &mut lines,
-            &[lang.t(Msg::CommandsList), lang.t(Msg::CommandsPurpose), ""],
-            &rows,
-            wrap_w,
-            text,
-            muted,
-            accent,
-        );
+        push_topic_command_table(&mut lines, &rows, wrap_w, pal, lang_id);
     } else if !concept.related_commands.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicCmdTable), pal);
-        let rows: Vec<(String, String, String)> = concept
+        let rows: Vec<(String, String, RiskLevel)> = concept
             .related_commands
             .iter()
             .filter_map(|id| {
@@ -692,7 +879,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                 Some((
                     cmd.name.clone(),
                     cmd.summary.pick(lang_id).to_string(),
-                    cmd.risk.label(lang_id).to_string(),
+                    cmd.risk,
                 ))
             })
             .collect();
@@ -712,27 +899,15 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                 accent,
             );
         } else {
-            push_table_or_cards(
-                &mut lines,
-                &[
-                    lang.t(Msg::CommandsList),
-                    lang.t(Msg::CommandsTopicIntro),
-                    lang.t(Msg::CommandsRisk),
-                ],
-                &rows,
-                wrap_w,
-                text,
-                muted,
-                accent,
-            );
+            push_topic_command_table(&mut lines, &rows, wrap_w, pal, lang_id);
         }
     }
 
-    // Learning body — paragraflı, sıkışık duvar değil
+    // Learning body — paragraflı; `` `snippet` `` sözdizimi renkli
     let body = concept.body.pick(lang_id);
     if !body.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsTopicLearning), pal);
-        push_learning_paragraphs(&mut lines, body, wrap_w, text, accent);
+        push_learning_paragraphs(&mut lines, body, wrap_w, text, accent, Some(pal));
     }
 
     // Examples — graded_examples, else related beginner
@@ -1563,6 +1738,7 @@ mod tests {
             40,
             Style::default(),
             Style::default(),
+            None,
         );
         let text = lines_text(&lines);
         assert!(text.contains("İstem (prompt)"), "{text}");
@@ -1572,5 +1748,65 @@ mod tests {
             text.contains("\n\n"),
             "paragraflar arası boşluk beklenir: {text:?}"
         );
+    }
+
+    #[test]
+    fn learning_backticks_are_syntax_colored_without_dollar() {
+        use crate::ui::UiTheme;
+        let pal = UiTheme::Default.palette();
+        let mut lines = Vec::new();
+        push_learning_paragraphs(
+            &mut lines,
+            "Örnek: `ps aux | grep ssh | head` ve `komut > dosya`.",
+            60,
+            Style::default().fg(pal.text),
+            Style::default().fg(pal.accent),
+            Some(pal),
+        );
+        let text = lines_text(&lines);
+        assert!(text.contains("ps aux"), "{text}");
+        assert!(!text.contains('`'), "{text}");
+        assert!(
+            !text.contains("$ ps"),
+            "öğrenme snippet’ine $ eklenmemeli: {text}"
+        );
+        let ps = lines
+            .iter()
+            .flat_map(|l| l.spans.iter())
+            .find(|s| s.content == "ps")
+            .expect("ps span");
+        assert_eq!(ps.style.fg, Some(pal.accent));
+    }
+
+    #[test]
+    fn topic_command_table_uses_risk_colors_and_rules() {
+        use crate::ui::UiTheme;
+        let pal = UiTheme::Default.palette();
+        let rows = vec![
+            ("cat".into(), "birleştir".into(), RiskLevel::Safe),
+            ("tee".into(), "kopyala".into(), RiskLevel::Caution),
+        ];
+        let mut lines = Vec::new();
+        push_topic_command_table(&mut lines, &rows, 60, pal, "tr");
+        let text = lines_text(&lines);
+        assert!(text.contains("cat"), "{text}");
+        assert!(text.contains("güvenli"), "{text}");
+        assert!(text.contains("dikkat"), "{text}");
+        assert!(
+            text.chars().filter(|&c| c == '─').count() >= 8,
+            "satır ayırıcı beklenir: {text}"
+        );
+        let cat = lines
+            .iter()
+            .flat_map(|l| l.spans.iter())
+            .find(|s| s.content.starts_with("cat") || s.content == "cat")
+            .expect("cat");
+        assert_eq!(cat.style.fg, Some(pal.accent));
+        let safe = lines
+            .iter()
+            .flat_map(|l| l.spans.iter())
+            .find(|s| s.content.contains("güvenli"))
+            .expect("pill");
+        assert_eq!(safe.style.fg, Some(pal.success));
     }
 }
