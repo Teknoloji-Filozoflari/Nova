@@ -43,18 +43,37 @@ impl LearningLevel {
         }
     }
 
-    /// Liste/detay rozeti (TR/EN kısa etiket).
+    /// Liste/detay rozeti (kısa etiket — desteklenen 7 dil).
     pub fn label(self, lang: &str) -> &'static str {
-        let en = lang.to_ascii_lowercase().starts_with("en");
-        match (self, en) {
-            (Self::Beginner, false) => "başlangıç",
-            (Self::Beginner, true) => "beginner",
-            (Self::Intermediate, false) => "orta",
-            (Self::Intermediate, true) => "intermediate",
-            (Self::Advanced, false) => "ileri",
-            (Self::Advanced, true) => "advanced",
-            (Self::Unspecified, false) => "belirtilmedi",
-            (Self::Unspecified, true) => "unspecified",
+        match (self, lang.to_ascii_lowercase().as_str()) {
+            (Self::Beginner, "en") => "beginner",
+            (Self::Beginner, "ru") => "начальный",
+            (Self::Beginner, "az") => "başlanğıc",
+            (Self::Beginner, "uz") => "boshlang'ich",
+            (Self::Beginner, "kk") => "бастапқы",
+            (Self::Beginner, "tk") => "başlangyç",
+            (Self::Beginner, _) => "başlangıç",
+            (Self::Intermediate, "en") => "intermediate",
+            (Self::Intermediate, "ru") => "средний",
+            (Self::Intermediate, "az") => "orta",
+            (Self::Intermediate, "uz") => "o'rta",
+            (Self::Intermediate, "kk") => "орташа",
+            (Self::Intermediate, "tk") => "orta",
+            (Self::Intermediate, _) => "orta",
+            (Self::Advanced, "en") => "advanced",
+            (Self::Advanced, "ru") => "продвинутый",
+            (Self::Advanced, "az") => "irəli",
+            (Self::Advanced, "uz") => "yuqori",
+            (Self::Advanced, "kk") => "дамыған",
+            (Self::Advanced, "tk") => "öňe",
+            (Self::Advanced, _) => "ileri",
+            (Self::Unspecified, "en") => "unspecified",
+            (Self::Unspecified, "ru") => "не указан",
+            (Self::Unspecified, "az") => "təyin edilməyib",
+            (Self::Unspecified, "uz") => "belgilanmagan",
+            (Self::Unspecified, "kk") => "көрсетілмеген",
+            (Self::Unspecified, "tk") => "bellälenmedik",
+            (Self::Unspecified, _) => "belirtilmedi",
         }
     }
 
@@ -95,18 +114,37 @@ impl RiskLevel {
         }
     }
 
-    /// Liste/detay rozeti (TR/EN kısa etiket).
+    /// Liste/detay rozeti (kısa etiket — desteklenen 7 dil).
     pub fn label(self, lang: &str) -> &'static str {
-        let en = lang.to_ascii_lowercase().starts_with("en");
-        match (self, en) {
-            (Self::Safe, false) => "güvenli",
-            (Self::Safe, true) => "safe",
-            (Self::Caution, false) => "dikkat",
-            (Self::Caution, true) => "caution",
-            (Self::Dangerous, false) => "tehlikeli",
-            (Self::Dangerous, true) => "dangerous",
-            (Self::Destructive, false) => "yıkıcı",
-            (Self::Destructive, true) => "destructive",
+        match (self, lang.to_ascii_lowercase().as_str()) {
+            (Self::Safe, "en") => "safe",
+            (Self::Safe, "ru") => "безопасно",
+            (Self::Safe, "az") => "təhlükəsiz",
+            (Self::Safe, "uz") => "xavfsiz",
+            (Self::Safe, "kk") => "қауіпсіз",
+            (Self::Safe, "tk") => "howpsuz",
+            (Self::Safe, _) => "güvenli",
+            (Self::Caution, "en") => "caution",
+            (Self::Caution, "ru") => "осторожно",
+            (Self::Caution, "az") => "ehtiyat",
+            (Self::Caution, "uz") => "ehtiyot",
+            (Self::Caution, "kk") => "сақ болыңыз",
+            (Self::Caution, "tk") => "seredelek",
+            (Self::Caution, _) => "dikkat",
+            (Self::Dangerous, "en") => "dangerous",
+            (Self::Dangerous, "ru") => "опасно",
+            (Self::Dangerous, "az") => "təhlükəli",
+            (Self::Dangerous, "uz") => "xavfli",
+            (Self::Dangerous, "kk") => "қауіпті",
+            (Self::Dangerous, "tk") => "howply",
+            (Self::Dangerous, _) => "tehlikeli",
+            (Self::Destructive, "en") => "destructive",
+            (Self::Destructive, "ru") => "разрушительно",
+            (Self::Destructive, "az") => "dağıdıcı",
+            (Self::Destructive, "uz") => "vayron qiluvchi",
+            (Self::Destructive, "kk") => "бүлдіргіш",
+            (Self::Destructive, "tk") => "ýykujy",
+            (Self::Destructive, _) => "yıkıcı",
         }
     }
 
@@ -213,6 +251,9 @@ pub struct CommandSecurity {
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct CommandFlag {
     pub flag: String,
+    /// Uzun biçim (`--all`) — katalogda yoksa boş.
+    #[serde(default)]
+    pub long: Option<String>,
     #[serde(default)]
     pub meaning: LocalizedString,
     #[serde(default)]
@@ -387,6 +428,12 @@ pub struct CommandEntry {
     pub syntax: String,
     #[serde(default)]
     pub description: LocalizedString,
+    /// “Ne zaman işe yarar” ipucu metni — kartın İPUCU bloğu (yoksa blok çizilmez).
+    #[serde(default)]
+    pub when_to_use: LocalizedString,
+    /// Beklenen etki — komutun ne yaptığının kısa özeti.
+    #[serde(default)]
+    pub expected_effect: LocalizedString,
     /// Komut düzeyinde yaygın hatalar (örnek `warnings` ile birleşir).
     #[serde(default)]
     pub common_mistakes: Vec<LocalizedString>,

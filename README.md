@@ -38,6 +38,7 @@ değiştirmez; onları bir araya getirir.
 | **Nova self-update** | **GitHub Releases** ikilisi *ve* repo **`main`** üzerinden `cargo install --git` (ağ + derleme). İkisi birbirinin yerine geçmez |
 | **AI aksiyonları** | Kurulu AI araçta `Enter` → Mağaza tarzı aksiyon modalı (Aç / Devam / Çıkış / Yardım) |
 | **Komut Rehberi** | Görev odaklı bilgi bankası (Başlangıç → Göreve göre…); PATH ≠ katalog; çalıştırma yok; en fazla 3 içerik paneli |
+| **Hızlı referans** | Komut Rehberi’nin 7. modu: geniş tabloda `KOMUT · NE YAPAR · ÖRNEK · SEVİYE · RİSK` + bölüm/seviye/risk/arama süzgeci; `Enter` komut kartını açar |
 | **Tema + dil** | Dokuz tema; `tr` varsayılan — en / ru / az / uz / kk / tk |
 | **Klavye + fare** | Liste tıklama/kaydırma; `Tab`/`Shift+Tab` panel odağı; odaklı panel `-`/`+` ile boyutlanır (ekran başına `state.toml`) |
 
@@ -99,6 +100,8 @@ tmux, …). Emülatör yokken arayüz gezilebilir; başlatma backend bulamazsa h
 | `s` | Ayarlar |
 | `m` | Mağaza |
 | `g` | Komut Rehberi |
+| `b` | Hızlı referans modunda bölüm süzgecini değiştir (`bölüm: Tümü ▾`) |
+| `Enter` | Hızlı referans modunda komut kartını açar / kapatır (alt şerit) |
 | `u` / `U` | Bağlama duyarlı güncelleme (Nova veya Mağaza) |
 | `G` | Nova: repo `main` → `cargo install --git` (güncelleme penceresinde) |
 | `o` | Dosya seçici |
@@ -124,6 +127,14 @@ Onay pencerelerinde `Enter` onaylar, `Esc` vazgeçer.
 
 <p align="center">
   <img alt="Nova Komut Rehberi sunucu güvenlik kontrolü" src="docs/screenshots/commands-security-checklist.png" width="820">
+</p>
+
+<p align="center">
+  <img alt="Nova Komut Rehberi hızlı referans" src="docs/screenshots/commands-quick-reference.png" width="820">
+</p>
+
+<p align="center">
+  <img alt="Nova Komut kartı" src="docs/screenshots/commands-quick-reference-card.png" width="820">
 </p>
 
 ## Kurulu uygulamalar vs Mağaza

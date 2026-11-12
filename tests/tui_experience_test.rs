@@ -574,6 +574,8 @@ fn ai_tool_actions_open_in_magaza_style_modal() {
         actions_count: action_count,
         panes: nova::ui::PaneWidths::default(),
         secondary_cols: 1,
+        commands_quick: false,
+        commands_quick_card: false,
     });
     assert!(areas.tool_detail_side);
     assert_eq!(areas.actions_height, 0);

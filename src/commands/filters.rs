@@ -11,6 +11,8 @@ use crate::store::host::{detect_host_os, HostOs};
 pub enum LearningLevelFilter {
     #[default]
     All,
+    /// Başlangıç ve üstü (beginner + intermediate + advanced).
+    AtLeastBeginner,
     Beginner,
     Intermediate,
     Advanced,
@@ -19,8 +21,9 @@ pub enum LearningLevelFilter {
 }
 
 impl LearningLevelFilter {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::All,
+        Self::AtLeastBeginner,
         Self::Beginner,
         Self::Intermediate,
         Self::Advanced,
@@ -35,6 +38,7 @@ impl LearningLevelFilter {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::All => "all",
+            Self::AtLeastBeginner => "at_least_beginner",
             Self::Beginner => "beginner",
             Self::Intermediate => "intermediate",
             Self::Advanced => "advanced",
@@ -42,9 +46,61 @@ impl LearningLevelFilter {
         }
     }
 
+    /// Süzgeç satırında görünen etiket (desteklenen 7 dil).
+    pub fn label(self, lang: &str) -> &'static str {
+        match (self, lang.to_ascii_lowercase().as_str()) {
+            (Self::All, "en") => "All",
+            (Self::All, "ru") => "Все",
+            (Self::All, "az") => "Hamısı",
+            (Self::All, "uz") => "Hammasi",
+            (Self::All, "kk") => "Барлығы",
+            (Self::All, "tk") => "Hemmesi",
+            (Self::All, _) => "Tümü",
+            (Self::AtLeastBeginner, "en") => "Beginner+",
+            (Self::AtLeastBeginner, "ru") => "Начальный+",
+            (Self::AtLeastBeginner, "az") => "Başlanğıc+",
+            (Self::AtLeastBeginner, "uz") => "Boshlang'ich+",
+            (Self::AtLeastBeginner, "kk") => "Бастапқы+",
+            (Self::AtLeastBeginner, "tk") => "Başlangyç+",
+            (Self::AtLeastBeginner, _) => "Başlangıç+",
+            (Self::Beginner, "en") => "Beginner",
+            (Self::Beginner, "ru") => "Начальный",
+            (Self::Beginner, "az") => "Başlanğıc",
+            (Self::Beginner, "uz") => "Boshlang'ich",
+            (Self::Beginner, "kk") => "Бастапқы",
+            (Self::Beginner, "tk") => "Başlangyç",
+            (Self::Beginner, _) => "Başlangıç",
+            (Self::Intermediate, "en") => "Intermediate",
+            (Self::Intermediate, "ru") => "Средний",
+            (Self::Intermediate, "az") => "Orta",
+            (Self::Intermediate, "uz") => "O'rta",
+            (Self::Intermediate, "kk") => "Орташа",
+            (Self::Intermediate, "tk") => "Orta",
+            (Self::Intermediate, _) => "Orta",
+            (Self::Advanced, "en") => "Advanced",
+            (Self::Advanced, "ru") => "Продвинутый",
+            (Self::Advanced, "az") => "İrəli",
+            (Self::Advanced, "uz") => "Yuqori",
+            (Self::Advanced, "kk") => "Дамыған",
+            (Self::Advanced, "tk") => "Öňe",
+            (Self::Advanced, _) => "İleri",
+            (Self::Unspecified, "en") => "Unspecified",
+            (Self::Unspecified, "ru") => "Не указан",
+            (Self::Unspecified, "az") => "Təyin edilməyib",
+            (Self::Unspecified, "uz") => "Belgilanmagan",
+            (Self::Unspecified, "kk") => "Көрсетілмеген",
+            (Self::Unspecified, "tk") => "Bellälenmedik",
+            (Self::Unspecified, _) => "Belirtilmedi",
+        }
+    }
+
     fn matches_level(self, level: LearningLevel) -> bool {
         match self {
             Self::All => true,
+            Self::AtLeastBeginner => matches!(
+                level,
+                LearningLevel::Beginner | LearningLevel::Intermediate | LearningLevel::Advanced
+            ),
             Self::Beginner => level == LearningLevel::Beginner,
             Self::Intermediate => level == LearningLevel::Intermediate,
             Self::Advanced => level == LearningLevel::Advanced,

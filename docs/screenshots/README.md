@@ -30,10 +30,16 @@ python3 docs/screenshots/render_frames.py docs/screenshots/frames docs/screensho
 | `commands-start.png` | Komut Rehberi · Başlangıç (Mod+Liste+Detay) |
 | `commands-task-detail.png` | Komut Rehberi · görev drill + yan detay (Grup+Liste+Detay) |
 | `commands-security-checklist.png` | Komut Rehberi · Sunucu güvenlik kontrolü |
+| `commands-quick-reference.png` | Komut Rehberi · Hızlı referans (geniş tablo + filtre satırı) |
+| `commands-quick-reference-card.png` | Komut Rehberi · Hızlı referans + komut kartı (alt şerit) |
 
 Komut Rehberi kareleri **en fazla 3 içerik paneli** kuralına uyar (#62): eski
 Mod+Grup+Liste+Detay (4 sütun) düzeni yakalanmaz. Commit sonrası breadcrumb
 görev yolunu gösterir; komutlar otomatik çalıştırılmaz.
+
+Hızlı referans kareleri **gömülü (vendored) komut bankasından** üretilir:
+kullanıcının disk önbelleği (`~/.local/share/nova/commands`) sürüme göre
+değişirse kareler kaymasın diye `NOVA_COMMANDS_DIR` boş bir dizine yönlendirilir.
 
 Kurulu görünüm için yakalayıcı, katalogda seçili araçları
 `InstalledStatus::Installed` işaretler (PATH taraması yapmaz). Mağaza ve

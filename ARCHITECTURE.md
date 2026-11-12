@@ -179,6 +179,57 @@ Tüm metin kesme işlemleri `truncate()` ile karakter bazında yapılır (bayt d
 
 `narrow_mode` `app` durumunda tutulur, çünkü tuş davranışını da etkiler (dar modda `h`/`←` odak değiştirmez). `Resize` olayında güncellenir ve dar moda geçilirse odak araç paneline alınır.
 
+## Komut Rehberi Görünümleri (komut kartı + hızlı referans)
+
+Komut Rehberi iki farklı görünüm sunar.
+
+### Komut kartı (`ui::guide_detail::command_detail_lines`)
+
+Detay paneli tek duvar metin değildir; bölüm sırası sabittir:
+
+```
+başlık + rozetler → özet → SÖZDİZİMİ → SEÇENEKLER → ÖRNEKLER → İPUCU
+                  → NE ZAMAN İŞE YARAR → platform / risk / paket / ilişkili
+```
+
+- `SEÇENEKLER` iki sütunlu **hizalı** tablodur (bayrak + uzun bayrak + açıklama); dar
+  panelde (`< NARROW_TABLE_WIDTH`) kart düzenine düşer.
+- `ÖRNEKLER` her örnek için yuvarlak çerçeveli kart çizer: başlık, sağda zorluk/risk
+  rozetleri, `$` istemli komut satırı ve açıklama. Zorluk sıralaması yalnız açık
+  `difficulty` alanına bakar (risk asla sıralama anahtarı değildir).
+- `İPUCU` **yalnız gerçek veriden** gelir: `when_to_use`, yoksa `expected_effect`. Veri
+  yoksa blok hiç çizilmez.
+- Katalogda örnek **çıktısı** alanı bulunmadığı için örnek kartında çıktı bloğu
+  çizilmez — uydurma çıktı gösterilmez.
+
+Banka modeli buna üç **isteğe bağlı (additive)** alan ekler: `when_to_use`,
+`expected_effect` (komut düzeyi) ve `long` (bayrak uzun biçimi). Alanlar yoksa
+`serde` varsayılanıyla boş gelir; eski kataloglar çalışmaya devam eder.
+
+### Hızlı referans (`ui::quick_reference`, `CommandsBrowseMode::QuickReference`)
+
+Komut Rehberi’nin **yedinci** gezinme modudur. Kategori ve mod sütunlarının yanında
+kalan alanın tamamını geniş tabloya verir:
+
+- Üstte mod **sekme şeridi** (aktif sekme altı çizili), altında **süzgeç satırı**
+  (`bölüm` / `seviye` / `risk` / `süz`) ve sağda satır sayısı.
+- Tablo sütunları: `KOMUT · NE YAPAR · ÖRNEK · SEVİYE · RİSK`. Örnek sütunu katalogdaki
+  ilk örnektir; örnek çıktısı olmadığı için çıktı sütunu yoktur.
+- `bölüm` süzgeci mod başına ayrı alanda tutulur (`commands_quick_category`); `b` tuşu
+  döngüler, `x` temizler. `seviye` (`Başlangıç+` dâhil — `LearningLevelFilter::AtLeastBeginner`)
+  ve `risk` mevcut banka süzgeçlerini paylaşır.
+- Bu modda yan detay sütunu açılmaz. Tablo **birincil görünümdür**: kart şeridi
+  kapalıyken tablo tüm içerik alanını kaplar. `Enter` kartı açar (aynı
+  `commands_detail_lines`, alt şeritte), `Esc` kapatır — tasarım-1 kartı tasarım-2
+  tablosunun üstüne gelir.
+- Tablo yerleşimi **tek kaynaktan** hesaplanır (`ui::quick_reference::table_layout`):
+  çizim (`ui::draw`) ve fare eşlemesi (`row_index_at_y`) aynı `top`/`height`
+  değerlerini kullanır. Ayrı hesaplanırsa tıklamalar satır kayar.
+
+**Karar:** mevcut altı mod korunur; hızlı referans yedinci mod olarak **eklenir**.
+Görev odaklı bilgi mimarisi (Başlangıç → Göreve göre → Kullanım bağlamı → …) bozulmaz,
+ileride mod şeridi tamamen sekmeye dönüşürse tek değişiklikle yapılabilir.
+
 ## Kullanıcı Geri Bildirimi
 
 `app.status_message` anlık geri bildirim taşır: favori eklendi/çıkarıldı, arama sonucu sayısı, başlatma reddi, "başlatma henüz bağlı değil" mesajı.

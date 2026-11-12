@@ -20,7 +20,7 @@ use crate::ui::syntax::{
     highlight_tip_text,
 };
 use crate::ui::theme::{heading_caps, ThemePalette};
-use crate::ui::wrap_text;
+use crate::ui::{truncate, wrap_text};
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 
@@ -666,6 +666,160 @@ fn risk_color(pal: ThemePalette, risk: RiskLevel) -> ratatui::style::Color {
     pal.risk_color(risk)
 }
 
+/// İki sütunlu hizalı tablo — **SEÇENEKLER** (bayrak + açıklama).
+///
+/// Geniş: sol sütun sabit, açıklama sütuna hizalı sarar (tasarım-1).
+/// Dar (< [`NARROW_TABLE_WIDTH`]): kart düzenine düşer.
+pub fn push_two_column_table(
+    lines: &mut Vec<Line<'static>>,
+    rows: &[(String, String)],
+    wrap_w: usize,
+    text: Style,
+    muted: Style,
+    accent: Style,
+) {
+    if rows.is_empty() {
+        return;
+    }
+    if wrap_w < NARROW_TABLE_WIDTH {
+        for (i, (key, detail)) in rows.iter().enumerate() {
+            if i > 0 {
+                lines.push(Line::from(""));
+            }
+            lines.push(Line::from(Span::styled(
+                format!("┌ {key}"),
+                accent.add_modifier(Modifier::BOLD),
+            )));
+            let inner = wrap_w.saturating_sub(2).max(8);
+            for part in wrap_text(detail, inner) {
+                lines.push(Line::from(vec![
+                    Span::styled("│ ".to_string(), muted),
+                    Span::styled(part, text),
+                ]));
+            }
+            lines.push(Line::from(Span::styled("└".to_string(), muted)));
+        }
+        return;
+    }
+    // Sol sütun: en uzun anahtar (genişlik sınırı: panelin üçte biri).
+    let key_w = rows
+        .iter()
+        .map(|(k, _)| k.chars().count())
+        .max()
+        .unwrap_or(0)
+        .min((wrap_w / 3).max(6));
+    let desc_w = wrap_w.saturating_sub(key_w + 2).max(12);
+    for (key, detail) in rows {
+        let key_text = truncate(key, key_w);
+        let pad = key_w.saturating_sub(key_text.chars().count());
+        let mut spans = vec![
+            Span::styled(key_text.to_string(), accent.add_modifier(Modifier::BOLD)),
+            Span::styled(" ".repeat(pad + 2), muted),
+        ];
+        let parts = wrap_text(detail, desc_w);
+        if let Some(first) = parts.first() {
+            spans.push(Span::styled(first.clone(), text));
+        }
+        lines.push(Line::from(spans));
+        for part in parts.iter().skip(1) {
+            lines.push(Line::from(vec![
+                Span::styled(" ".repeat(key_w + 2), muted),
+                Span::styled(part.clone(), text),
+            ]));
+        }
+    }
+}
+
+/// Örnek kartı — başlık + satır-içi rozet + komut satırı (tasarım-1).
+///
+/// Yuvarlak çerçeve; komut satırı `$` istemiyle renklendirilir.
+/// Çıktı bloğu **çizilmez**: katalogda örnek çıktısı yoktur, uydurulmaz.
+pub fn push_example_card(
+    lines: &mut Vec<Line<'static>>,
+    title: &str,
+    badges: &[Span<'static>],
+    command: &str,
+    explanation: &str,
+    wrap_w: usize,
+    pal: ThemePalette,
+) {
+    // Kart **dikdörtgendir**: üst kenar, gövde ve alt kenar aynı genişlikte.
+    let card_w = wrap_w.max(16);
+    let muted = Style::default().fg(pal.muted);
+    let border = Style::default().fg(pal.code_border);
+    let panel = Style::default().bg(pal.bg_panel);
+
+    // `╭─ ` + ` ` + ` ─╮` — başlık ve rozetlerin dışında kalan sabit kısım.
+    const CHROME: usize = 7;
+
+    // Rozetler sığmayan kadarı atlanır (rozet = kısa etiket).
+    let badge_room = card_w.saturating_sub(CHROME + 2);
+    let mut badge_texts: Vec<(String, Style)> = Vec::new();
+    let mut badge_w = 0usize;
+    for b in badges {
+        let text = b.content.to_string();
+        let len = text.chars().count();
+        if badge_w + len > badge_room {
+            break;
+        }
+        badge_w += len;
+        badge_texts.push((text, b.style));
+    }
+
+    // Başlık kırpılır; dolgu (─) en az 1 karakter bırakılır.
+    let title_max = card_w
+        .saturating_sub(CHROME + badge_w)
+        .saturating_sub(1)
+        .max(1);
+    let title_text = truncate(title.trim(), title_max);
+    let fill = card_w.saturating_sub(CHROME + badge_w + title_text.chars().count());
+
+    // Başlık çubuğu: `╭─ Başlık ───────── [rozet] ─╮`
+    let mut head: Vec<Span<'static>> = vec![Span::styled("╭─ ", border.patch(panel))];
+    if !title_text.is_empty() {
+        head.push(Span::styled(
+            title_text,
+            Style::default().fg(pal.text).patch(panel),
+        ));
+    }
+    head.push(Span::styled(" ".to_string(), muted.patch(panel)));
+    head.push(Span::styled("─".repeat(fill), border.patch(panel)));
+    for (text, style) in badge_texts {
+        head.push(Span::styled(text, style.patch(panel)));
+    }
+    head.push(Span::styled(" ─╮", border.patch(panel)));
+    lines.push(Line::from(head));
+
+    // Komut satırı — `$` istemi + renkli tokenlar.
+    let body_w = card_w.saturating_sub(2);
+    let display = if command.trim_start().starts_with('$') {
+        command.trim().to_string()
+    } else {
+        format!("$ {}", command.trim())
+    };
+    for part in wrap_text(&display, body_w) {
+        let mut spans = vec![Span::styled("│ ", border.patch(panel))];
+        spans.extend(
+            highlight_prompt_line(&part, pal)
+                .into_iter()
+                .map(|s| Span::styled(s.content, s.style.patch(panel))),
+        );
+        lines.push(Line::from(spans));
+    }
+    if !explanation.trim().is_empty() {
+        for part in wrap_text(explanation.trim(), body_w) {
+            lines.push(Line::from(vec![
+                Span::styled("│ ", border.patch(panel)),
+                Span::styled(part, muted.patch(panel)),
+            ]));
+        }
+    }
+    lines.push(Line::from(Span::styled(
+        format!("╰{}╯", "─".repeat(card_w.saturating_sub(2))),
+        border.patch(panel),
+    )));
+}
+
 fn bank_cmd<'a>(app: &'a App, id: &str) -> Option<&'a CommandEntry> {
     app.commands_bank.commands.iter().find(|c| c.id == id)
 }
@@ -1186,32 +1340,7 @@ pub fn command_detail_lines(
         );
     }
 
-    // When
-    let purpose = cmd.purpose.pick(lang_id);
-    let mut when_bits: Vec<String> = cmd.tags.clone();
-    when_bits.extend(cmd.intent.all_for_lang(lang_id).iter().cloned());
-    when_bits.sort();
-    when_bits.dedup();
-    let desc = cmd.description.pick(lang_id);
-    if !purpose.is_empty() || !when_bits.is_empty() || (!desc.is_empty() && desc != summary) {
-        push_heading(&mut lines, lang.t(Msg::CommandsWhenUseful), pal);
-        if !purpose.is_empty() {
-            push_wrapped(&mut lines, purpose, wrap_w, text);
-        }
-        if !when_bits.is_empty() {
-            push_wrapped(
-                &mut lines,
-                &format!("  {}", when_bits.join(", ")),
-                wrap_w,
-                muted,
-            );
-        }
-        if !desc.is_empty() && desc != summary && desc != purpose {
-            push_wrapped(&mut lines, desc, wrap_w, text);
-        }
-    }
-
-    // Syntax — katalog `syntax` varsa onu boya; yoksa komut adı.
+    // SÖZDİZİMİ — kartın ikinci bloğu (tasarım-1).
     push_heading(&mut lines, lang.t(Msg::CommandsSyntax), pal);
     let syntax_src = if !cmd.syntax.trim().is_empty() {
         cmd.syntax.trim()
@@ -1235,66 +1364,26 @@ pub fn command_detail_lines(
         )));
     }
 
-    // Beginner example
-    if let Some(ex) = beginner_example(&cmd.examples, &app.commands_filters) {
-        push_heading(&mut lines, lang.t(Msg::CommandsBeginnerExample), pal);
-        let title = ex.title.pick(lang_id);
-        let mut head = Vec::new();
-        if !title.is_empty() {
-            head.push(Span::styled(format!("· {title}"), muted));
-        }
-        let diff = ex.difficulty.unwrap_or(LearningLevel::Unspecified);
-        if diff.is_specified() {
-            head.push(Span::raw("  "));
-            head.push(pal.pill(diff.label(lang_id), pal.level_color(diff)));
-        }
-        if !head.is_empty() {
-            lines.push(Line::from(head));
-        }
-        push_example_code(&mut lines, &ex.command, wrap_w, pal);
-        let expl = ex.explanation.pick(lang_id);
-        if !expl.is_empty() {
-            push_heading(&mut lines, lang.t(Msg::CommandsExpectedEffect), pal);
-            push_wrapped(&mut lines, &format!("  {expl}"), wrap_w, muted);
-        }
-    } else if !cmd.examples.is_empty() {
-        // Filtre eşleşmesi yok — dürüst boş
-        push_heading(&mut lines, lang.t(Msg::CommandsBeginnerExample), pal);
-        lines.push(Line::from(Span::styled(
-            format!("  {}", lang.t(Msg::CommandsFilterNoMatch)),
-            warn,
-        )));
-    }
-
-    // Flags
+    // SEÇENEKLER — hizalı iki sütun (tasarım-1).
     if !cmd.flags.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsFlags), pal);
-        let rows: Vec<(String, String, String)> = cmd
+        push_heading(&mut lines, lang.t(Msg::CommandsOptions), pal);
+        let rows: Vec<(String, String)> = cmd
             .flags
             .iter()
             .take(12)
             .map(|f| {
-                let ver = if f.verified { "✓" } else { "" };
-                (
-                    format!("{}{ver}", f.flag),
-                    f.meaning.pick(lang_id).to_string(),
-                    String::new(),
-                )
+                let mut key = f.flag.clone();
+                if let Some(long) = f.long.as_deref().filter(|s| !s.is_empty()) {
+                    key.push(' ');
+                    key.push_str(long);
+                }
+                if f.verified {
+                    key.push_str(" ✓");
+                }
+                (key, f.meaning.pick(lang_id).to_string())
             })
             .collect();
-        push_table_or_cards(
-            &mut lines,
-            &[
-                lang.t(Msg::CommandsFlags),
-                lang.t(Msg::CommandsTopicIntro),
-                "",
-            ],
-            &rows,
-            wrap_w,
-            text,
-            muted,
-            accent,
-        );
+        push_two_column_table(&mut lines, &rows, wrap_w, text, muted, accent);
         if cmd.flags.len() > 12 {
             lines.push(Line::from(Span::styled(
                 format!("  … +{}", cmd.flags.len() - 12),
@@ -1303,67 +1392,90 @@ pub fn command_detail_lines(
         }
     }
 
-    // More examples (easy→adv), beginner zaten üstte
-    if cmd.examples.len() > 1 {
-        push_heading(&mut lines, lang.t(Msg::CommandsExamplesEasyAdv), pal);
-        let filtered = select_command_examples(&cmd.examples, &app.commands_filters);
-        if filtered.is_empty() {
-            lines.push(Line::from(Span::styled(
-                format!("  {}", lang.t(Msg::CommandsFilterNoMatch)),
-                warn,
-            )));
-        } else {
-            let mut examples: Vec<_> = filtered.into_iter().cloned().collect();
-            sort_examples_by_difficulty(&mut examples);
-            // Skip the beginner example already shown above (once).
-            let skip_cmd =
-                beginner_example(&cmd.examples, &app.commands_filters).map(|b| b.command.clone());
-            let mut skipped = false;
-            let mut n = 0usize;
-            for ex in examples.iter() {
-                if !skipped && skip_cmd.as_deref() == Some(ex.command.as_str()) {
-                    skipped = true;
-                    continue;
-                }
-                if n >= 6 {
-                    break;
-                }
-                let title = ex.title.pick(lang_id);
-                let elev = if ex.requires_elevated || ex.privilege.as_deref() == Some("elevated") {
-                    " · sudo"
-                } else {
-                    ""
-                };
-                let diff = ex.difficulty.unwrap_or(LearningLevel::Unspecified);
-                let mut head = Vec::new();
-                if !title.is_empty() {
-                    head.push(Span::styled(format!("· {title}"), muted));
-                }
-                if diff.is_specified() {
-                    head.push(Span::raw("  "));
-                    head.push(pal.pill(diff.label(lang_id), pal.level_color(diff)));
-                }
-                head.push(Span::raw(" "));
-                head.push(pal.pill(
-                    &format!("{}{elev}", ex.risk.label(lang_id)),
-                    pal.risk_color(ex.risk),
-                ));
-                if !head.is_empty() {
-                    lines.push(Line::from(head));
-                }
-                push_example_code(&mut lines, &ex.command, wrap_w, pal);
-                let expl = ex.explanation.pick(lang_id);
-                if !expl.is_empty() {
-                    push_wrapped(&mut lines, &format!("  {expl}"), wrap_w, muted);
-                }
-                for w in &ex.warnings {
-                    let wt = w.pick(lang_id);
-                    if !wt.is_empty() {
-                        push_callout(&mut lines, CalloutKind::Warn, "!", wt, wrap_w, warn, muted);
-                    }
-                }
-                n += 1;
+    // ÖRNEKLER — kartlar (kolay → ileri); tasarım-1 kart düzeni.
+    let filtered_examples = select_command_examples(&cmd.examples, &app.commands_filters);
+    if !filtered_examples.is_empty() {
+        push_heading(&mut lines, lang.t(Msg::CommandsExamples), pal);
+        let mut examples: Vec<CommandExample> = filtered_examples.into_iter().cloned().collect();
+        sort_examples_by_difficulty(&mut examples);
+        for (i, ex) in examples.iter().take(6).enumerate() {
+            if i > 0 {
+                lines.push(Line::from(""));
             }
+            let title = ex.title.pick(lang_id).to_string();
+            let mut badges: Vec<Span<'static>> = Vec::new();
+            let diff = ex.difficulty.unwrap_or(LearningLevel::Unspecified);
+            if diff.is_specified() {
+                badges.push(pal.pill(diff.label(lang_id), pal.level_color(diff)));
+            }
+            let elev = if ex.requires_elevated || ex.privilege.as_deref() == Some("elevated") {
+                "sudo"
+            } else {
+                ex.risk.label(lang_id)
+            };
+            badges.push(pal.pill(elev, pal.risk_color(ex.risk)));
+            push_example_card(
+                &mut lines,
+                &title,
+                &badges,
+                &ex.command,
+                ex.explanation.pick(lang_id),
+                wrap_w,
+                pal,
+            );
+            for w in &ex.warnings {
+                let wt = w.pick(lang_id);
+                if !wt.is_empty() {
+                    push_callout(&mut lines, CalloutKind::Warn, "!", wt, wrap_w, warn, muted);
+                }
+            }
+        }
+    }
+
+    // İPUCU — gerçek veri (`when_to_use`); yoksa beklenen etik.
+    let tip_body = {
+        let w = cmd.when_to_use.pick(lang_id);
+        if w.is_empty() {
+            cmd.expected_effect.pick(lang_id).to_string()
+        } else {
+            w.to_string()
+        }
+    };
+    if !tip_body.trim().is_empty() {
+        push_callout_themed(
+            &mut lines,
+            CalloutKind::Tip,
+            lang.t(Msg::CommandsTip),
+            &tip_body,
+            wrap_w,
+            Style::default().fg(pal.tip),
+            muted,
+            Some(pal),
+        );
+    }
+
+    // NE ZAMAN İŞE YARAR — ipucundan sonra, bağlam ayrıntısı.
+    let purpose = cmd.purpose.pick(lang_id);
+    let mut when_bits: Vec<String> = cmd.tags.clone();
+    when_bits.extend(cmd.intent.all_for_lang(lang_id).iter().cloned());
+    when_bits.sort();
+    when_bits.dedup();
+    let desc = cmd.description.pick(lang_id);
+    if !purpose.is_empty() || !when_bits.is_empty() || (!desc.is_empty() && desc != summary) {
+        push_heading(&mut lines, lang.t(Msg::CommandsWhenUseful), pal);
+        if !purpose.is_empty() {
+            push_wrapped(&mut lines, purpose, wrap_w, text);
+        }
+        if !when_bits.is_empty() {
+            push_wrapped(
+                &mut lines,
+                &format!("  {}", when_bits.join(", ")),
+                wrap_w,
+                muted,
+            );
+        }
+        if !desc.is_empty() && desc != summary && desc != purpose {
+            push_wrapped(&mut lines, desc, wrap_w, text);
         }
     }
 
