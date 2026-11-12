@@ -151,12 +151,15 @@ fn commands_detail_shows_purpose_safe_example_risk_sudo() {
     let text = all_text(&render(&app, 180, 42));
     assert!(
         text.contains("Ne zaman işe yarar")
+            || text.contains("NE ZAMAN İŞE YARAR")
             || text.contains("When it helps")
             || text.contains("Ne işe yarar")
             || text.contains("What is it for")
             || text.contains("Platform")
+            || text.contains("PLATFORM")
             || text.contains("risk")
             || text.contains("Risk")
+            || text.contains("RİSK")
             || text.contains("dikkat")
             || text.contains("güvenli")
             || text.contains("caution")
@@ -165,15 +168,21 @@ fn commands_detail_shows_purpose_safe_example_risk_sudo() {
     );
     assert!(
         text.contains("Güvenli örnek")
+            || text.contains("GÜVENLİ ÖRNEK")
             || text.contains("Beklenen etki")
+            || text.contains("BEKLENEN ETKİ")
             || text.contains("Örnekler")
+            || text.contains("ÖRNEKLER")
             || text.contains("Examples")
             || text.contains("Bayrak")
+            || text.contains("BAYRAK")
             || text.contains("Flags")
             || text.contains("sudo")
             || text.contains("çalıştırılmaz")
             || text.contains("Yetki")
-            || text.contains("Privilege"),
+            || text.contains("Privilege")
+            || text.contains("SÖZDİZİMİ")
+            || text.contains("SEÇENEKLER"),
         "detay alanları yok:\n{text}"
     );
     assert!(
@@ -1276,13 +1285,19 @@ fn start_topic_detail_shows_related_commands_tasks_learning() {
     app.narrow_mode = false;
     let text = all_text(&render(&app, 140, 40));
     assert!(
-        text.contains("Konular") || text.contains("Topics") || text.contains("Öğrenme"),
+        text.contains("Konular")
+            || text.contains("Topics")
+            || text.contains("Öğrenme")
+            || text.contains("ÖĞRENME")
+            || text.contains("KONULAR"),
         "konu listesi/öğrenme yok:\n{text}"
     );
     assert!(
         text.contains("İlgili komut")
+            || text.contains("İLGİLİ KOMUT")
             || text.contains("Related command")
             || text.contains("Öğrenme")
+            || text.contains("ÖĞRENME")
             || text.contains("Learning"),
         "konu detayında related/learning yok:\n{text}"
     );
@@ -1546,7 +1561,11 @@ fn command_detail_uses_bordered_code_and_skips_empty_topic_sections() {
         "boş exercises bölümü uydurulmamalı:\n{topic}"
     );
     assert!(
-        topic.contains("Giriş") || topic.contains("Intro") || topic.contains("Öğrenme"),
+        topic.contains("Giriş")
+            || topic.contains("GİRİŞ")
+            || topic.contains("Intro")
+            || topic.contains("Öğrenme")
+            || topic.contains("ÖĞRENME"),
         "intro/öğrenme beklenir:\n{topic}"
     );
 
@@ -1580,9 +1599,30 @@ fn command_detail_uses_bordered_code_and_skips_empty_topic_sections() {
         text.contains('┌') && text.contains('│') && text.contains('└'),
         "kenarlıklı kod bloğu yok:\n{text}"
     );
+    // Tam örnek satırı panel yüksekliğinde kırpılabilir — satır üreticisinden doğrula.
+    let cmd = app
+        .commands_bank
+        .commands
+        .iter()
+        .find(|c| c.id == "nv124-border-demo")
+        .expect("border demo");
+    let detail = nova::ui::guide_detail::command_detail_lines(&app, cmd, 72, "");
+    let detail_text: String = detail
+        .iter()
+        .map(|l| {
+            l.spans
+                .iter()
+                .map(|s| s.content.as_ref())
+                .collect::<String>()
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
     assert!(
-        text.contains("echo hello-nv124") || text.contains("$ echo"),
-        "örnek komut yok:\n{text}"
+        text.contains("echo hello-nv124")
+            || text.contains("$ echo")
+            || detail_text.contains("echo hello-nv124")
+            || detail_text.contains("$ echo"),
+        "örnek komut yok:\n{text}\n---\n{detail_text}"
     );
     // Enter çalıştırmaz
     app.handle_key(crossterm::event::KeyEvent::new(
@@ -1680,7 +1720,7 @@ fn topic_additive_fields_render_when_present() {
         "exercises yok:\n{text}"
     );
     assert!(
-        text.contains("Sıradaki") || text.contains("Next"),
+        text.contains("Sıradaki") || text.contains("SIRADAKİ") || text.contains("Next"),
         "next bölümü yok:\n{text}"
     );
 }
@@ -1775,7 +1815,7 @@ fn topic_guide_wide_pane_shows_full_titles_no_id_risk_ellipsis() {
     // Öğrenme paragraf boşluğu
     if !concept.body.pick("tr").is_empty() {
         assert!(
-            wide.contains("Öğrenme") || wide.contains("Learning"),
+            wide.contains("Öğrenme") || wide.contains("ÖĞRENME") || wide.contains("Learning"),
             "öğrenme bölümü:\n{wide}"
         );
         assert!(
@@ -1828,10 +1868,13 @@ fn topic_guide_readable_at_80x24_and_preserves_stack_on_resize_width() {
     );
     assert!(
         classic.contains("Komut tablosu")
+            || classic.contains("KOMUT TABLOSU")
             || classic.contains("Command table")
             || classic.contains("Öğrenme")
+            || classic.contains("ÖĞRENME")
             || classic.contains("Learning")
             || classic.contains("Giriş")
+            || classic.contains("GİRİŞ")
             || classic.contains("Intro"),
         "80’de bölüm başlıkları:\n{classic}"
     );

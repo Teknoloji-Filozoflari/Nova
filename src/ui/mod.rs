@@ -18,7 +18,7 @@ pub mod guide_detail;
 pub mod modal;
 pub mod theme;
 
-pub use theme::{ThemePalette, UiTheme};
+pub use theme::{heading_caps, ThemePalette, UiTheme};
 
 use crate::app::{App, PanelFocus};
 use crate::catalog::CATEGORIES;
@@ -1175,34 +1175,15 @@ fn draw_commands_mode(f: &mut Frame, app: &App, area: Rect) {
         .map(|mode| {
             let selected = app.commands_mode == *mode;
             let focused = selected && app.focus == PanelFocus::CommandsSource;
-            let style = if focused {
-                Style::default()
-                    .fg(pal.accent_on)
-                    .bg(pal.accent)
-                    .add_modifier(Modifier::BOLD)
-            } else if selected {
-                Style::default().fg(pal.accent)
-            } else {
-                Style::default().fg(pal.text)
-            };
+            let style = row_style(pal, selected, focused);
             let label = truncate(
                 crate::i18n::commands_mode_label(*mode, lang),
                 area.width.saturating_sub(6) as usize,
             );
-            ListItem::new(Line::from(vec![
-                Span::styled(
-                    if selected { "▶ " } else { "  " },
-                    Style::default().add_modifier(Modifier::BOLD),
-                ),
-                Span::styled(label, style),
-            ]))
+            list_row(selected, label, style)
         })
         .collect();
-    let border = if app.focus == PanelFocus::CommandsSource {
-        Style::default().fg(pal.accent)
-    } else {
-        Style::default().fg(pal.muted)
-    };
+    let border = pal.border_style(app.focus == PanelFocus::CommandsSource);
     let title = if fav_n > 0 {
         format!(" {} · ★{fav_n} ", lang.t(Msg::CommandsSourceTitle))
     } else {
@@ -1295,11 +1276,7 @@ fn draw_commands_group(f: &mut Frame, app: &App, area: Rect) {
         }
         _ => (String::new(), Vec::new()),
     };
-    let border = if app.focus == PanelFocus::CommandsCategory {
-        Style::default().fg(pal.accent)
-    } else {
-        Style::default().fg(pal.muted)
-    };
+    let border = pal.border_style(app.focus == PanelFocus::CommandsCategory);
     let list = List::new(items)
         .block(
             Block::default()
@@ -1313,35 +1290,24 @@ fn draw_commands_group(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn risk_color(pal: ThemePalette, risk: crate::commands::RiskLevel) -> Color {
-    use crate::commands::RiskLevel;
-    match risk {
-        RiskLevel::Safe => pal.success,
-        RiskLevel::Caution => pal.warn,
-        RiskLevel::Dangerous | RiskLevel::Destructive => pal.error,
-    }
+    pal.risk_color(risk)
 }
 
 fn row_style(pal: ThemePalette, selected: bool, focused: bool) -> Style {
     if focused {
-        Style::default()
-            .fg(pal.accent_on)
-            .bg(pal.accent)
-            .add_modifier(Modifier::BOLD)
+        pal.selection()
     } else if selected {
-        Style::default().fg(pal.accent)
+        pal.selected()
+            .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
     } else {
-        Style::default().fg(pal.text)
+        pal.body()
     }
 }
 
+/// Seçim satırı: dolu cyan çubuk tüm satırı (▸ + etiket) kaplar.
 fn list_row(selected: bool, label: String, style: Style) -> ListItem<'static> {
-    ListItem::new(Line::from(vec![
-        Span::styled(
-            if selected { "▶ " } else { "  " },
-            Style::default().add_modifier(Modifier::BOLD),
-        ),
-        Span::styled(label, style),
-    ]))
+    let mark = if selected { "▸ " } else { "  " };
+    ListItem::new(Line::from(Span::styled(format!("{mark}{label}"), style)))
 }
 
 fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
@@ -1350,245 +1316,266 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
     let lang = app.ui_lang();
     let lang_id = lang.id();
     let searching = !app.search_query.is_empty();
-    let (title, items): (String, Vec<ListItem>) =
-        if app.commands_mode == CommandsBrowseMode::ServerSecurity {
-            let steps = app.filtered_checklist_steps();
-            let items = if steps.is_empty() {
-                vec![ListItem::new(Span::styled(
-                    lang.t(Msg::EmptyCommandsCategory),
-                    Style::default().fg(pal.muted),
-                ))]
-            } else {
-                steps
-                    .iter()
-                    .enumerate()
-                    .map(|(i, step)| {
-                        let selected = i == app.commands_entry_index;
-                        let focused = selected && app.focus == PanelFocus::CommandsList;
-                        let mut style = row_style(pal, selected, focused);
-                        if !selected {
-                            style = style.fg(risk_color(pal, step.risk));
-                        }
-                        let st = app.checklist_step_state(step);
-                        let label = truncate(
-                            &format!(
-                                "{} {} · {}",
-                                st.marker(),
-                                step.title.pick(lang_id),
-                                step.risk.label(lang_id)
-                            ),
-                            area.width.saturating_sub(6) as usize,
-                        );
-                        list_row(selected, label, style)
-                    })
-                    .collect()
-            };
-            let title = format!(
-                " {} · {} ({}) ",
-                lang.t(Msg::CommandsChecklistList),
-                truncate(&app.checklist_target_display_name(), 18),
-                steps.len()
-            );
-            (title, items)
-        } else if app.commands_mode == CommandsBrowseMode::SystemPath {
-            let ents = app.filtered_local_commands();
-            let items = if ents.is_empty() {
-                vec![ListItem::new(Span::styled(
-                    lang.t(Msg::EmptyLocalCommands),
-                    Style::default().fg(pal.muted),
-                ))]
-            } else {
-                ents.iter()
-                    .enumerate()
-                    .map(|(i, ent)| {
-                        let selected = i == app.commands_entry_index;
-                        let focused = selected && app.focus == PanelFocus::CommandsList;
-                        let style = row_style(pal, selected, focused);
-                        let bank = if ent.bank_id.is_some() {
-                            lang.t(Msg::CommandsCatalogMaybeMark)
-                        } else {
-                            lang.t(Msg::CommandsOnlyPathMark)
-                        };
-                        let label = truncate(
-                            &format!("{}{bank}", ent.name),
-                            area.width.saturating_sub(6) as usize,
-                        );
-                        list_row(selected, label, style)
-                    })
-                    .collect()
-            };
-            let title = if searching {
-                format!(
-                    " {} /{} ({}) ",
-                    lang.t(Msg::CommandsLocalList),
-                    truncate(&app.search_query, 12),
-                    ents.len()
-                )
-            } else {
-                format!(" {} ({}) ", lang.t(Msg::CommandsLocalList), ents.len())
-            };
-            (title, items)
-        } else if app.commands_list_shows_tasks() {
-            let tasks = app.filtered_tasks();
-            let items = if tasks.is_empty() {
-                vec![ListItem::new(Span::styled(
-                    if searching {
-                        lang.t(Msg::EmptyCommandsSearch)
-                    } else {
-                        lang.t(Msg::CommandsEmptyTaskGroup)
-                    },
-                    Style::default().fg(pal.muted),
-                ))]
-            } else {
-                tasks
-                    .iter()
-                    .enumerate()
-                    .map(|(i, task)| {
-                        let selected = i == app.commands_entry_index;
-                        let focused = selected && app.focus == PanelFocus::CommandsList;
-                        let style = row_style(pal, selected, focused);
-                        let draft = if task.verification.status == VerificationStatus::Draft {
-                            " ·draft"
-                        } else {
-                            ""
-                        };
-                        let label = truncate(
-                            &format!("{}{draft}", task.name.pick(lang_id)),
-                            area.width.saturating_sub(6) as usize,
-                        );
-                        list_row(selected, label, style)
-                    })
-                    .collect()
-            };
-            let title = if searching {
-                format!(
-                    " {} /{} ({}) ",
-                    lang.t(Msg::CommandsTasksList),
-                    truncate(&app.search_query, 12),
-                    tasks.len()
-                )
-            } else {
-                format!(" {} ({}) ", lang.t(Msg::CommandsTasksList), tasks.len())
-            };
-            (title, items)
-        } else if app.commands_list_shows_concepts() {
-            let concepts = app.filtered_concepts();
-            let items = if concepts.is_empty() {
-                vec![ListItem::new(Span::styled(
-                    lang.t(Msg::CommandsFilterNoMatch),
-                    Style::default().fg(pal.muted),
-                ))]
-            } else {
-                concepts
-                    .iter()
-                    .enumerate()
-                    .map(|(i, concept)| {
-                        let selected = i == app.commands_entry_index;
-                        let focused = selected && app.focus == PanelFocus::CommandsList;
-                        let style = row_style(pal, selected, focused);
-                        let draft = if concept.verification.status == VerificationStatus::Draft {
-                            " ·draft"
-                        } else {
-                            ""
-                        };
-                        let diff = concept
-                            .difficulty
-                            .as_deref()
-                            .map(|d| format!(" [{d}]"))
-                            .unwrap_or_default();
-                        let label = truncate(
-                            &format!("{}{diff}{draft}", concept.title.pick(lang_id)),
-                            area.width.saturating_sub(6) as usize,
-                        );
-                        list_row(selected, label, style)
-                    })
-                    .collect()
-            };
-            let title = format!(" {} ({}) ", lang.t(Msg::CommandsTopicsList), concepts.len());
-            (title, items)
+    let (title, items): (String, Vec<ListItem>) = if app.commands_mode
+        == CommandsBrowseMode::ServerSecurity
+    {
+        let steps = app.filtered_checklist_steps();
+        let items = if steps.is_empty() {
+            vec![ListItem::new(Span::styled(
+                lang.t(Msg::EmptyCommandsCategory),
+                Style::default().fg(pal.muted),
+            ))]
         } else {
-            let cmds = app.filtered_bank_commands();
-            let items = if cmds.is_empty() {
-                let empty = if searching {
+            steps
+                .iter()
+                .enumerate()
+                .map(|(i, step)| {
+                    let selected = i == app.commands_entry_index;
+                    let focused = selected && app.focus == PanelFocus::CommandsList;
+                    let mut style = row_style(pal, selected, focused);
+                    if !selected {
+                        style = style.fg(risk_color(pal, step.risk));
+                    }
+                    let st = app.checklist_step_state(step);
+                    let label = truncate(
+                        &format!(
+                            "{} {} · {}",
+                            st.marker(),
+                            step.title.pick(lang_id),
+                            step.risk.label(lang_id)
+                        ),
+                        area.width.saturating_sub(6) as usize,
+                    );
+                    list_row(selected, label, style)
+                })
+                .collect()
+        };
+        let title = format!(
+            " {} · {} ({}) ",
+            lang.t(Msg::CommandsChecklistList),
+            truncate(&app.checklist_target_display_name(), 18),
+            steps.len()
+        );
+        (title, items)
+    } else if app.commands_mode == CommandsBrowseMode::SystemPath {
+        let ents = app.filtered_local_commands();
+        let items = if ents.is_empty() {
+            vec![ListItem::new(Span::styled(
+                lang.t(Msg::EmptyLocalCommands),
+                Style::default().fg(pal.muted),
+            ))]
+        } else {
+            ents.iter()
+                .enumerate()
+                .map(|(i, ent)| {
+                    let selected = i == app.commands_entry_index;
+                    let focused = selected && app.focus == PanelFocus::CommandsList;
+                    let style = row_style(pal, selected, focused);
+                    let bank = if ent.bank_id.is_some() {
+                        lang.t(Msg::CommandsCatalogMaybeMark)
+                    } else {
+                        lang.t(Msg::CommandsOnlyPathMark)
+                    };
+                    let label = truncate(
+                        &format!("{}{bank}", ent.name),
+                        area.width.saturating_sub(6) as usize,
+                    );
+                    list_row(selected, label, style)
+                })
+                .collect()
+        };
+        let title = if searching {
+            format!(
+                " {} /{} ({}) ",
+                lang.t(Msg::CommandsLocalList),
+                truncate(&app.search_query, 12),
+                ents.len()
+            )
+        } else {
+            format!(" {} ({}) ", lang.t(Msg::CommandsLocalList), ents.len())
+        };
+        (title, items)
+    } else if app.commands_list_shows_tasks() {
+        let tasks = app.filtered_tasks();
+        let items = if tasks.is_empty() {
+            vec![ListItem::new(Span::styled(
+                if searching {
                     lang.t(Msg::EmptyCommandsSearch)
-                } else if app.commands_filters.is_active() {
-                    lang.t(Msg::CommandsFilterNoMatch)
-                } else if app.command_favorite_only {
-                    lang.t(Msg::EmptyCommandsFavorites)
-                } else if app.commands_mode == CommandsBrowseMode::Context
-                    && app.commands_selected_profiles.is_empty()
-                {
-                    lang.t(Msg::CommandsEmptySelectProfile)
-                } else if app.commands_task_drill.is_some() {
-                    lang.t(Msg::CommandsEmptyTaskCommands)
                 } else {
-                    lang.t(Msg::EmptyCommandsCategory)
-                };
-                vec![ListItem::new(Span::styled(
-                    empty,
-                    Style::default().fg(pal.muted),
-                ))]
+                    lang.t(Msg::CommandsEmptyTaskGroup)
+                },
+                Style::default().fg(pal.muted),
+            ))]
+        } else {
+            tasks
+                .iter()
+                .enumerate()
+                .map(|(i, task)| {
+                    let selected = i == app.commands_entry_index;
+                    let focused = selected && app.focus == PanelFocus::CommandsList;
+                    let style = row_style(pal, selected, focused);
+                    let draft = if task.verification.status == VerificationStatus::Draft {
+                        " ·draft"
+                    } else {
+                        ""
+                    };
+                    let label = truncate(
+                        &format!("{}{draft}", task.name.pick(lang_id)),
+                        area.width.saturating_sub(6) as usize,
+                    );
+                    list_row(selected, label, style)
+                })
+                .collect()
+        };
+        let title = if searching {
+            format!(
+                " {} /{} ({}) ",
+                lang.t(Msg::CommandsTasksList),
+                truncate(&app.search_query, 12),
+                tasks.len()
+            )
+        } else {
+            format!(" {} ({}) ", lang.t(Msg::CommandsTasksList), tasks.len())
+        };
+        (title, items)
+    } else if app.commands_list_shows_concepts() {
+        let concepts = app.filtered_concepts();
+        let items = if concepts.is_empty() {
+            vec![ListItem::new(Span::styled(
+                lang.t(Msg::CommandsFilterNoMatch),
+                Style::default().fg(pal.muted),
+            ))]
+        } else {
+            concepts
+                .iter()
+                .enumerate()
+                .map(|(i, concept)| {
+                    let selected = i == app.commands_entry_index;
+                    let focused = selected && app.focus == PanelFocus::CommandsList;
+                    let style = row_style(pal, selected, focused);
+                    let draft = if concept.verification.status == VerificationStatus::Draft {
+                        " ·draft"
+                    } else {
+                        ""
+                    };
+                    let diff = concept
+                        .difficulty
+                        .as_deref()
+                        .map(|d| format!(" [{d}]"))
+                        .unwrap_or_default();
+                    let label = truncate(
+                        &format!("{}{diff}{draft}", concept.title.pick(lang_id)),
+                        area.width.saturating_sub(6) as usize,
+                    );
+                    list_row(selected, label, style)
+                })
+                .collect()
+        };
+        let title = format!(" {} ({}) ", lang.t(Msg::CommandsTopicsList), concepts.len());
+        (title, items)
+    } else {
+        let cmds = app.filtered_bank_commands();
+        let items = if cmds.is_empty() {
+            let empty = if searching {
+                lang.t(Msg::EmptyCommandsSearch)
+            } else if app.commands_filters.is_active() {
+                lang.t(Msg::CommandsFilterNoMatch)
+            } else if app.command_favorite_only {
+                lang.t(Msg::EmptyCommandsFavorites)
+            } else if app.commands_mode == CommandsBrowseMode::Context
+                && app.commands_selected_profiles.is_empty()
+            {
+                lang.t(Msg::CommandsEmptySelectProfile)
+            } else if app.commands_task_drill.is_some() {
+                lang.t(Msg::CommandsEmptyTaskCommands)
             } else {
-                cmds.iter()
-                    .enumerate()
-                    .map(|(i, cmd)| {
-                        let selected = i == app.commands_entry_index;
-                        let focused = selected && app.focus == PanelFocus::CommandsList;
-                        let style = row_style(pal, selected, focused);
-                        let fav = if app.is_command_favorite(&cmd.id) {
-                            "★"
-                        } else {
-                            " "
-                        };
-                        let draft = if cmd.verification.status == VerificationStatus::Draft {
-                            "·draft"
-                        } else {
-                            ""
-                        };
-                        let risk = cmd.risk.marker();
-                        let cat = if searching
-                            || matches!(
-                                app.commands_mode,
-                                CommandsBrowseMode::Start | CommandsBrowseMode::Context
-                            )
-                            || app.commands_task_drill.is_some()
-                        {
-                            format!(" [{}]", lang.bank_category(&cmd.category))
-                        } else {
-                            String::new()
-                        };
+                lang.t(Msg::EmptyCommandsCategory)
+            };
+            vec![ListItem::new(Span::styled(
+                empty,
+                Style::default().fg(pal.muted),
+            ))]
+        } else {
+            cmds.iter()
+                .enumerate()
+                .map(|(i, cmd)| {
+                    let selected = i == app.commands_entry_index;
+                    let focused = selected && app.focus == PanelFocus::CommandsList;
+                    let style = row_style(pal, selected, focused);
+                    let fav = if app.is_command_favorite(&cmd.id) {
+                        "★"
+                    } else {
+                        " "
+                    };
+                    let draft = if cmd.verification.status == VerificationStatus::Draft {
+                        "·draft"
+                    } else {
+                        ""
+                    };
+                    let cat = if searching
+                        || matches!(
+                            app.commands_mode,
+                            CommandsBrowseMode::Start | CommandsBrowseMode::Context
+                        )
+                        || app.commands_task_drill.is_some()
+                    {
+                        format!(" [{}]", lang.bank_category(&cmd.category))
+                    } else {
+                        String::new()
+                    };
+                    // Seçili: dolu cyan çubuk. Değil: cyan komut + outlined risk pill.
+                    if focused || selected {
                         let label = truncate(
-                            &format!("{fav}{}{risk}{draft}{cat}", cmd.name),
+                            &format!("{fav}{}{draft}{cat}", cmd.name),
                             area.width.saturating_sub(6) as usize,
                         );
                         list_row(selected, label, style)
-                    })
-                    .collect()
-            };
-            let list_title = match app.commands_mode {
-                CommandsBrowseMode::Start => lang.t(Msg::CommandsLearningList),
-                CommandsBrowseMode::Context => lang.t(Msg::CommandsContextList),
-                CommandsBrowseMode::ByTask => lang.t(Msg::CommandsRelatedList),
-                _ => lang.t(Msg::CommandsList),
-            };
-            let mut title = format!(" {list_title} ({}) ", cmds.len());
-            if app.command_favorite_only {
-                title = format!(" {list_title} ★ ");
-            }
-            if searching {
-                title = format!(
-                    " {list_title} /{} ({}) ",
-                    truncate(&app.search_query, 12),
-                    cmds.len()
-                );
-            }
-            (title, items)
+                    } else {
+                        let mark = "  ";
+                        let name = truncate(
+                            &format!("{fav}{}", cmd.name),
+                            area.width.saturating_sub(14) as usize,
+                        );
+                        let name_style = if matches!(
+                            cmd.risk,
+                            crate::commands::RiskLevel::Dangerous
+                                | crate::commands::RiskLevel::Destructive
+                        ) {
+                            Style::default().fg(pal.warn).add_modifier(Modifier::BOLD)
+                        } else {
+                            Style::default().fg(pal.accent).add_modifier(Modifier::BOLD)
+                        };
+                        ListItem::new(Line::from(vec![
+                            Span::styled(mark.to_string(), style),
+                            Span::styled(name, name_style),
+                            Span::raw(" "),
+                            pal.pill(cmd.risk.label(lang_id), pal.risk_color(cmd.risk)),
+                            Span::styled(format!("{draft}{cat}"), Style::default().fg(pal.muted)),
+                        ]))
+                    }
+                })
+                .collect()
         };
-    let border = if app.focus == PanelFocus::CommandsList {
-        Style::default().fg(pal.accent)
-    } else {
-        Style::default().fg(pal.muted)
+        let list_title = match app.commands_mode {
+            CommandsBrowseMode::Start => lang.t(Msg::CommandsLearningList),
+            CommandsBrowseMode::Context => lang.t(Msg::CommandsContextList),
+            CommandsBrowseMode::ByTask => lang.t(Msg::CommandsRelatedList),
+            _ => lang.t(Msg::CommandsList),
+        };
+        let mut title = format!(" {list_title} ({}) ", cmds.len());
+        if app.command_favorite_only {
+            title = format!(" {list_title} ★ ");
+        }
+        if searching {
+            title = format!(
+                " {list_title} /{} ({}) ",
+                truncate(&app.search_query, 12),
+                cmds.len()
+            );
+        }
+        (title, items)
     };
+    let border = pal.border_style(app.focus == PanelFocus::CommandsList);
     let list = List::new(items)
         .block(
             Block::default()
@@ -1693,7 +1680,7 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
             } else {
                 Style::default().fg(pal.text)
             };
-            let prefix = if selected { "▶ " } else { "  " };
+            let prefix = if selected { "▸ " } else { "  " };
             let lang = app.ui_lang();
             let label = truncate(
                 &format!("{} ({count})", lang.catalog_short(cat)),
@@ -1729,7 +1716,7 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
     );
     items.push(ListItem::new(Line::from(vec![
         Span::styled(
-            if commands_selected { "▶ " } else { "  " },
+            if commands_selected { "▸ " } else { "  " },
             Style::default().add_modifier(Modifier::BOLD),
         ),
         Span::styled(commands_label, commands_style),
@@ -1756,7 +1743,7 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
     );
     items.push(ListItem::new(Line::from(vec![
         Span::styled(
-            if store_selected { "▶ " } else { "  " },
+            if store_selected { "▸ " } else { "  " },
             Style::default().add_modifier(Modifier::BOLD),
         ),
         Span::styled(store_label, store_style),
@@ -1776,7 +1763,7 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
     };
     items.push(ListItem::new(Line::from(vec![
         Span::styled(
-            if settings_selected { "▶ " } else { "  " },
+            if settings_selected { "▸ " } else { "  " },
             Style::default().add_modifier(Modifier::BOLD),
         ),
         Span::styled(
@@ -1785,11 +1772,7 @@ fn draw_categories(f: &mut Frame, app: &App, area: Rect) {
         ),
     ])));
 
-    let border = if app.focus == PanelFocus::Category {
-        Style::default().fg(pal.accent)
-    } else {
-        Style::default().fg(pal.muted)
-    };
+    let border = pal.border_style(app.focus == PanelFocus::Category);
     // Satır stilleri zaten seçimi gösteriyor; List’in varsayılan REVERSED
     // vurgusu açık temada kategori adlarını siler — kapatılır.
     let list = List::new(items)
@@ -1861,7 +1844,7 @@ fn draw_settings_panel(f: &mut Frame, app: &App, area: Rect) {
             } else {
                 Style::default().fg(pal.text)
             };
-            let prefix = if selected { "▶ " } else { "  " };
+            let prefix = if selected { "▸ " } else { "  " };
             ListItem::new(Line::from(vec![
                 Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
                 Span::styled(format!("[{title}]  "), style),
@@ -1908,7 +1891,7 @@ fn draw_theme_picker(f: &mut Frame, app: &App, area: Rect) {
                 Style::default().fg(pal.text)
             };
             let mark = if *theme == current { "● " } else { "○ " };
-            let prefix = if selected { "▶ " } else { "  " };
+            let prefix = if selected { "▸ " } else { "  " };
             ListItem::new(Line::from(vec![
                 Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
                 Span::styled(mark, Style::default().fg(pal.accent)),
@@ -1955,7 +1938,7 @@ fn draw_language_picker(f: &mut Frame, app: &App, area: Rect) {
                 Style::default().fg(pal.text)
             };
             let mark = if *language == current { "● " } else { "○ " };
-            let prefix = if selected { "▶ " } else { "  " };
+            let prefix = if selected { "▸ " } else { "  " };
             ListItem::new(Line::from(vec![
                 Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
                 Span::styled(mark, Style::default().fg(pal.accent)),
@@ -2005,8 +1988,8 @@ fn draw_store_categories(f: &mut Frame, app: &App, area: Rect) {
             } else {
                 Style::default().fg(pal.text)
             };
-            let prefix = if selected { "▶ " } else { "  " };
-            // Panelin iç genişliği (kenarlıklar düşülmüş) ve "▶ " öneki
+            let prefix = if selected { "▸ " } else { "  " };
+            // Panelin iç genişliği (kenarlıklar düşülmüş) ve "▸ " öneki
             // hesaba katılır; kategori adı ile sayı birlikte sığmalıdır.
             let label = truncate(
                 &format!("{} ({count})", app.ui_lang().store_category(cat)),
@@ -2038,6 +2021,7 @@ fn draw_store_categories(f: &mut Frame, app: &App, area: Rect) {
 
 /// Mağaza uygulama listesi panelini çizer.
 fn draw_store_apps(f: &mut Frame, app: &App, area: Rect) {
+    let pal = palette(app);
     let apps = app.filtered_store_apps();
     let inner_width = area.width.saturating_sub(2) as usize;
     let items: Vec<ListItem> = apps
@@ -2046,33 +2030,31 @@ fn draw_store_apps(f: &mut Frame, app: &App, area: Rect) {
         .map(|(i, entry)| {
             let selected = i == app.store_app_index;
             let focused = selected && app.focus == PanelFocus::StoreApp;
-            let style = if focused {
-                Style::default()
-                    .bg(Color::Cyan)
-                    .fg(Color::Black)
-                    .add_modifier(Modifier::BOLD)
-            } else if selected {
-                Style::default().fg(Color::Cyan)
-            } else {
-                Style::default()
-            };
-            let prefix = if selected { "▶ " } else { "  " };
+            let style = row_style(pal, selected, focused);
+            let prefix = if selected { "▸ " } else { "  " };
 
             // Durum işareti: yeni sürüm / PM güncellemesi varsa ↑, kuruluysa ✓.
             let has_update = app.store_has_pending_update(&entry.id);
             let (marker, marker_style) = if has_update {
-                ("↑ ", Style::default().fg(Color::Yellow))
+                ("↑ ", Style::default().fg(pal.warn))
             } else if app.store_status(&entry.id) == crate::detection::InstalledStatus::Installed {
-                ("✓ ", Style::default().fg(Color::Green))
+                ("✓ ", Style::default().fg(pal.success))
             } else {
-                ("· ", Style::default().fg(Color::DarkGray))
+                ("· ", pal.dim())
             };
 
             // Güven rozeti (manual/hash) liste satırında gösterilmez; detay panelinde kalır.
             let name = truncate(&entry.name, inner_width.saturating_sub(6));
+            // Seçimde marker da aynı dolguya otursun.
+            let mark_style = if focused { style } else { marker_style };
+            let prefix_style = if focused {
+                style
+            } else {
+                Style::default().add_modifier(Modifier::BOLD).fg(pal.accent)
+            };
             ListItem::new(Line::from(vec![
-                Span::styled(prefix, Style::default().add_modifier(Modifier::BOLD)),
-                Span::styled(marker, marker_style),
+                Span::styled(prefix, prefix_style),
+                Span::styled(marker, mark_style),
                 Span::styled(name, style),
             ]))
         })
@@ -2095,11 +2077,7 @@ fn draw_store_apps(f: &mut Frame, app: &App, area: Rect) {
         )
     };
 
-    let border = if app.focus == PanelFocus::StoreApp {
-        Style::default().fg(Color::Cyan)
-    } else {
-        Style::default()
-    };
+    let border = pal.border_style(app.focus == PanelFocus::StoreApp);
     let list = List::new(items).block(
         Block::default()
             .borders(Borders::ALL)
@@ -2134,10 +2112,11 @@ pub fn tool_row_widths(inner: usize, max_width: usize) -> (usize, usize) {
 }
 
 fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
+    let pal = palette(app);
     let tools = app.filtered_tools();
     // Kenarlıklar (2 sütun) satır içeriğine dahil değildir.
     let inner_width = area.width.saturating_sub(2) as usize;
-    // highlight_symbol ("▶ ") 2 sütun kaplar; ada kalan yer.
+    // highlight_symbol ("▸ ") 2 sütun kaplar; ada kalan yer.
     let name_width = tool_row_name_width(
         inner_width,
         inner_width.saturating_sub(TOOL_ROW_FIXED_WIDTH),
@@ -2151,15 +2130,20 @@ fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
             let entry = tools[idx];
             let fav = if entry.favorite { "★" } else { "☆" };
             let name = truncate(&entry.name, name_width.max(1));
+            let st = match entry.status {
+                InstalledStatus::Installed => pal.success,
+                InstalledStatus::Missing => pal.error,
+                InstalledStatus::Unknown => pal.warn,
+            };
             ListItem::new(Line::from(vec![
-                Span::styled(fav, Style::default().fg(Color::Yellow)),
+                Span::styled(fav, Style::default().fg(pal.warn)),
+                Span::raw(" "),
+                Span::styled(entry.status.symbol(), Style::default().fg(st)),
                 Span::raw(" "),
                 Span::styled(
-                    entry.status.symbol(),
-                    Style::default().fg(status_color(entry.status)),
+                    name,
+                    Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
                 ),
-                Span::raw(" "),
-                Span::styled(name, Style::default().add_modifier(Modifier::BOLD)),
             ]))
         })
         .collect();
@@ -2190,11 +2174,7 @@ fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
         )
     };
 
-    let border = if app.focus == PanelFocus::Tool {
-        Style::default().fg(Color::Cyan)
-    } else {
-        Style::default()
-    };
+    let border = pal.border_style(app.focus == PanelFocus::Tool);
 
     let block = Block::default()
         .borders(Borders::ALL)
@@ -2209,25 +2189,17 @@ fn draw_tools(f: &mut Frame, app: &App, area: Rect) {
         } else {
             "Bu kategoride araç yok. Özel araç eklemek için ? yardımındaki yapılandırma yoluna bak."
         };
-        let para = Paragraph::new(Line::from(Span::styled(
-            empty,
-            Style::default().fg(Color::DarkGray),
-        )))
-        .wrap(Wrap { trim: true })
-        .block(block);
+        let para = Paragraph::new(Line::from(Span::styled(empty, pal.dim())))
+            .wrap(Wrap { trim: true })
+            .block(block);
         f.render_widget(para, area);
         return;
     }
 
     let list = List::new(items)
         .block(block)
-        .highlight_style(
-            Style::default()
-                .bg(Color::Cyan)
-                .fg(Color::Black)
-                .add_modifier(Modifier::BOLD),
-        )
-        .highlight_symbol("▶ ");
+        .highlight_style(pal.selection())
+        .highlight_symbol("▸ ");
     f.render_stateful_widget(list, area, &mut state);
 }
 
@@ -2236,11 +2208,7 @@ fn draw_store_detail_panel(f: &mut Frame, app: &App, area: Rect) {
     let lang = app.ui_lang();
     let pal = palette(app);
     let focused = app.focus == PanelFocus::StoreDetail;
-    let border = if focused {
-        Style::default().fg(Color::Cyan)
-    } else {
-        Style::default().fg(pal.muted)
-    };
+    let border = pal.border_style(focused);
     let lines = store_detail_lines(app, area);
     let detail = Paragraph::new(lines).wrap(Wrap { trim: true }).block(
         Block::default()
@@ -2254,11 +2222,7 @@ fn draw_store_detail_panel(f: &mut Frame, app: &App, area: Rect) {
 fn draw_commands_detail_panel(f: &mut Frame, app: &App, area: Rect) {
     let pal = palette(app);
     let focused = app.focus == PanelFocus::CommandsDetail;
-    let border = if focused {
-        Style::default().fg(pal.accent)
-    } else {
-        Style::default().fg(pal.muted)
-    };
+    let border = pal.border_style(focused);
     let wrap_w = area.width.saturating_sub(4).max(12) as usize;
     let lines = commands_detail_lines(app, wrap_w);
     let detail = Paragraph::new(lines)
@@ -2832,7 +2796,7 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
                     .fg(Color::Blue)
                     .add_modifier(Modifier::UNDERLINED)
             };
-            let mark = if selected { "▶ " } else { "  " };
+            let mark = if selected { "▸ " } else { "  " };
             lines.push(Line::from(vec![
                 Span::styled(mark, Style::default().add_modifier(Modifier::BOLD)),
                 Span::styled(
@@ -2967,7 +2931,7 @@ fn tool_detail_info_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD)
         };
-        let mark = if selected { "▶ " } else { "  " };
+        let mark = if selected { "▸ " } else { "  " };
         let label = format!(
             "Güncelle — {}",
             truncate(&offer.full_command(), inner_w.saturating_sub(14).max(1))
@@ -3171,7 +3135,7 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
                     .fg(Color::Blue)
                     .add_modifier(Modifier::UNDERLINED)
             };
-            let mark = if selected { "▶ " } else { "  " };
+            let mark = if selected { "▸ " } else { "  " };
             lines.push(Line::from(vec![
                 Span::styled(mark, Style::default().add_modifier(Modifier::BOLD)),
                 Span::styled(
@@ -3386,12 +3350,19 @@ fn store_detail_lines<'a>(app: &'a App, area: Rect) -> Vec<Line<'a>> {
 
 fn draw_status(f: &mut Frame, app: &App, area: Rect) {
     let tight = area.width < TIGHT_HINT_WIDTH;
+    let pal = palette(app);
 
     // Anlık geri bildirim (favori eklendi, Enter sonucu, reddedilen başlatma)
     // her zaman önceliklidir; aksi hâlde kullanıcı eyleminin sonucunu göremez.
     // Mesaj yokken odaklı panel adı + −/+ boyut kısayolu gösterilir.
+    // Mock: sarı durum satırı.
     let line = if !app.status_message.is_empty() {
-        let color = message_color(&app.status_message);
+        let color = match message_color(&app.status_message) {
+            Color::Green => pal.success,
+            Color::Red => pal.error,
+            Color::Yellow => pal.status,
+            other => other,
+        };
         let mut spans = Vec::new();
         // Başarı ve hata yalnızca renkle değil simgeyle de ayrılır: renk
         // körlüğü olan kullanıcı da sonucu ayırt edebilmelidir.
@@ -3409,27 +3380,28 @@ fn draw_status(f: &mut Frame, app: &App, area: Rect) {
     } else if tight {
         Line::from(Span::styled(
             truncate(
-                &format!("▶ {}  −/+", app.focus_panel_name()),
+                &format!("▸ {}  −/+", app.focus_panel_name()),
                 area.width as usize,
             ),
-            Style::default().fg(Color::Cyan),
+            Style::default().fg(pal.status),
         ))
     } else {
         Line::from(Span::styled(
             truncate(
                 &format!(
-                    "▶ {}  −/+ boyut   Tab/Shift+Tab panel",
+                    "▸ {}  −/+ boyut   Tab/Shift+Tab panel",
                     app.focus_panel_name()
                 ),
                 area.width as usize,
             ),
-            Style::default().fg(Color::Cyan),
+            Style::default().fg(pal.status),
         ))
     };
     f.render_widget(Paragraph::new(line), area);
 }
 
 fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
+    let pal = palette(app);
     let tight = area.width < TIGHT_HINT_WIDTH;
     // Kısa yardım satırı: dar terminalde tek satır, gezinme sırasında ipucu.
     // Çok dar terminallerde yalnızca en gerekli tuşlar söylenir; uzun metni
@@ -3491,37 +3463,37 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
     let narrow = area.width < WIDE_MIN_WIDTH;
     if !tall && !app.show_help {
         f.render_widget(
-            Paragraph::new(Line::from(Span::styled(
-                short,
-                Style::default().fg(Color::DarkGray),
-            ))),
+            Paragraph::new(Line::from(Span::styled(short, pal.dim()))),
             area,
         );
         return;
     }
 
     // Yardım paneli terminal yüksekliğine göre kısalır; satırlar alana sığmazsa
-    // taşmak yerine kırpılır.
+    // taşmak yerine kırpılır. Mock: cyan tuş + muted etiket.
     let lang = app.ui_lang();
-    let full = help_full_lines(app);
-    let compact = vec![help_line(&[
-        ("↑↓", lang.t(Msg::HelpNavigate)),
-        ("←→", lang.t(Msg::HelpPanel)),
-        ("/", lang.t(Msg::HelpSearch)),
-        ("Enter", lang.t(Msg::HelpLaunch)),
-        ("F", lang.t(Msg::HelpFavorite)),
-        ("N", lang.t(Msg::HelpNewTool)),
-        ("R", lang.t(Msg::HelpRecents)),
-        ("P", lang.t(Msg::HelpProject)),
-        ("M", lang.t(Msg::Store)),
-        ("?", lang.t(Msg::HelpHelp)),
-    ])];
+    let full = help_full_lines(app, pal);
+    let compact = vec![help_line_themed(
+        &[
+            ("↑↓", lang.t(Msg::HelpNavigate)),
+            ("←→", lang.t(Msg::HelpPanel)),
+            ("/", lang.t(Msg::HelpSearch)),
+            ("Enter", lang.t(Msg::HelpLaunch)),
+            ("F", lang.t(Msg::HelpFavorite)),
+            ("N", lang.t(Msg::HelpNewTool)),
+            ("R", lang.t(Msg::HelpRecents)),
+            ("P", lang.t(Msg::HelpProject)),
+            ("M", lang.t(Msg::Store)),
+            ("?", lang.t(Msg::HelpHelp)),
+        ],
+        Some(pal),
+    )];
 
     let mut lines = if app.show_help && narrow {
         // Dar terminalde yardım açıkken tam tablo sığmaz ve yükseklik de
         // arttıkça ilk satırlarda kalır; en sık kullanılan tuşlar öne alınır
         // ki kırpma anlamlı bir şeyi kessin.
-        help_full_lines_narrow(app)
+        help_full_lines_narrow(app, pal)
     } else if app.show_help {
         full
     } else {
@@ -3531,14 +3503,18 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
     // Satır sarması yerine sığdığı kadarını göster: ayrılmış yükseklik sabit.
     // Açık yardım ekranı tek satıra indirilmez; kullanıcı tam tabloyu istedi.
     if tight && !app.show_help {
-        lines = vec![short_line(short)];
+        lines = vec![short_line_themed(short, pal)];
     }
     let capacity = area.height.saturating_sub(1) as usize;
     lines.truncate(capacity.max(1));
 
     let block = Block::default()
         .borders(Borders::TOP)
-        .title(format!(" {} ", lang.t(Msg::Keyboard)));
+        .border_style(Style::default().fg(pal.border))
+        .title(Span::styled(
+            format!(" {} ", lang.t(Msg::Keyboard)),
+            pal.dim(),
+        ));
     let para = Paragraph::new(lines)
         .block(block)
         .wrap(Wrap { trim: true })
@@ -3552,32 +3528,33 @@ fn draw_help(f: &mut Frame, app: &App, area: Rect, tall: bool) {
 /// her tuş uygulamada çalışır, uygulamadaki her ana ekran tuşu burada
 /// listelenir. Dosya yolları da burada gösterilir; kullanıcı yapılandırmayı
 /// aramadan bulabilir.
-fn help_full_lines(app: &App) -> Vec<Line<'static>> {
+fn help_full_lines(app: &App, pal: ThemePalette) -> Vec<Line<'static>> {
     let lang = app.ui_lang();
+    let hl = |items: &[(&'static str, &'static str)]| help_line_themed(items, Some(pal));
     let mut lines = vec![
-        help_line(&[
+        hl(&[
             ("↑↓/jk", lang.t(Msg::HelpNavigate)),
             ("←→/hl", lang.t(Msg::HelpPanel)),
             ("Tab/S-Tab", lang.t(Msg::HelpSwitchPanel)),
             ("/", lang.t(Msg::HelpSearch)),
         ]),
-        help_line(&[
+        hl(&[
             ("Enter", lang.t(Msg::HelpLaunchInfo)),
             ("Esc", lang.t(Msg::HelpCloseSearch)),
             ("?", lang.t(Msg::HelpHelp)),
         ]),
-        help_line(&[
+        hl(&[
             ("F", lang.t(Msg::HelpFavorite)),
             ("C", lang.t(Msg::HelpFavOnly)),
         ]),
-        help_line(&[
+        hl(&[
             ("N", lang.t(Msg::HelpNewTool)),
             ("D", lang.t(Msg::HelpDeleteTool)),
             ("R", lang.t(Msg::HelpRecents)),
             ("P", lang.t(Msg::HelpProjects)),
             ("S", lang.t(Msg::HelpSettings)),
         ]),
-        help_line(&[
+        hl(&[
             ("G", lang.t(Msg::HelpCommandsTab)),
             ("M", lang.t(Msg::HelpStoreTab)),
             ("U", lang.t(Msg::HelpUpdateCheck)),
@@ -3585,23 +3562,23 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
             ("A", lang.t(Msg::HelpDefaultAi)),
             ("−/+", "odaklı panel boyutu"),
         ]),
-        help_line(&[
+        hl(&[
             ("Q", lang.t(Msg::HelpQuit)),
             ("Ctrl+C", lang.t(Msg::HelpQuit)),
         ]),
     ];
     if app.commands_tab {
-        lines.push(help_line(&[(
+        lines.push(hl(&[(
             lang.t(Msg::CommandsGuide),
             lang.t(Msg::CommandsHelpIa),
         )]));
-        lines.push(help_line(&[
+        lines.push(hl(&[
             ("F", lang.t(Msg::HelpCommandFavorite)),
             ("C", lang.t(Msg::HelpCommandFavOnly)),
             ("Space", lang.t(Msg::CommandsHelpSpaceProfile)),
             ("/", lang.t(Msg::HelpSearch)),
         ]));
-        lines.push(help_line(&[
+        lines.push(hl(&[
             ("Enter", lang.t(Msg::CommandsHelpEnterInfo)),
             ("Esc", lang.t(Msg::CommandsHelpEscBack)),
         ]));
@@ -3610,13 +3587,10 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
     // görünümü farklı bir gezinme düzeni sunduğu için tek satırlık tablo
     // yetersiz kalır.
     if app.store_tab {
-        lines.push(help_line(&[(
-            lang.t(Msg::Store),
-            lang.t(Msg::HelpStoreNav),
-        )]));
-        lines.push(help_line(&[("U", lang.t(Msg::HelpStoreUpdate))]));
+        lines.push(hl(&[(lang.t(Msg::Store), lang.t(Msg::HelpStoreNav))]));
+        lines.push(hl(&[("U", lang.t(Msg::HelpStoreUpdate))]));
     }
-    let (config_line, state_line, workdir_line) = help_info_lines(app);
+    let (config_line, state_line, workdir_line) = help_info_lines(app, pal);
     lines.push(config_line);
     lines.push(state_line);
     lines.push(workdir_line);
@@ -3627,7 +3601,7 @@ fn help_full_lines(app: &App) -> Vec<Line<'static>> {
 ///
 /// Yükseklik sınırlı olduğu için kırpma kaçınılmaz; bu sıralama kırpılan
 /// kısmın en az kritik tuşlar olmasını sağlar.
-fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
+fn help_full_lines_narrow(app: &App, pal: ThemePalette) -> Vec<Line<'static>> {
     let lang = app.ui_lang();
     let entries: [(&'static str, &'static str); 17] = [
         ("↑↓", lang.t(Msg::HelpNavigate)),
@@ -3650,9 +3624,9 @@ fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
     ];
     let mut lines: Vec<Line<'static>> = entries
         .iter()
-        .map(|(key, desc)| help_line(&[(*key, *desc)]))
+        .map(|(key, desc)| help_line_themed(&[(*key, *desc)], Some(pal)))
         .collect();
-    let (config_line, state_line, workdir_line) = help_info_lines(app);
+    let (config_line, state_line, workdir_line) = help_info_lines(app, pal);
     lines.push(config_line);
     lines.push(state_line);
     lines.push(workdir_line);
@@ -3663,7 +3637,7 @@ fn help_full_lines_narrow(app: &App) -> Vec<Line<'static>> {
 ///
 /// Uzun yollar karakter sayılarak yalnızca görsel sığdırma için kesilir; bilgi
 /// kaybı yalnızca ekrandadır, uygulama tam yolu kullanmaya devam eder.
-fn help_info_lines(app: &App) -> (Line<'static>, Line<'static>, Line<'static>) {
+fn help_info_lines(app: &App, pal: ThemePalette) -> (Line<'static>, Line<'static>, Line<'static>) {
     // Dinamik satırlar: yollar ve etkin yol. Uzun yollar karakter sayılarak
     // yalnızca görsel sığdırma için kesilir; bilgi kaybı yalnızca ekrandadır.
     let lang = app.ui_lang();
@@ -3673,8 +3647,8 @@ fn help_info_lines(app: &App) -> (Line<'static>, Line<'static>, Line<'static>) {
         ("state", &app.state_path_display),
     ] {
         info.push(Line::from(vec![
-            Span::styled(format!("{key}: "), Style::default().fg(Color::DarkGray)),
-            Span::styled(value.clone(), Style::default().fg(Color::Gray)),
+            Span::styled(format!("{key}: "), pal.dim()),
+            Span::styled(value.clone(), pal.body()),
         ]));
     }
     let workdir = match (
@@ -3686,11 +3660,8 @@ fn help_info_lines(app: &App) -> (Line<'static>, Line<'static>, Line<'static>) {
         (None, None) => app.home_dir.display().to_string(),
     };
     info.push(Line::from(vec![
-        Span::styled(
-            format!("{}: ", lang.t(Msg::WorkingDir)),
-            Style::default().fg(Color::DarkGray),
-        ),
-        Span::styled(workdir, Style::default().fg(Color::Gray)),
+        Span::styled(format!("{}: ", lang.t(Msg::WorkingDir)), pal.dim()),
+        Span::styled(workdir, pal.body()),
     ]));
     let mut it = info.into_iter();
     (
@@ -3700,28 +3671,33 @@ fn help_info_lines(app: &App) -> (Line<'static>, Line<'static>, Line<'static>) {
     )
 }
 
-/// Düz metinden tek satırlık yardım satırı üretir.
-fn short_line(text: &str) -> Line<'static> {
-    Line::from(Span::styled(
-        text.to_string(),
-        Style::default().fg(Color::DarkGray),
-    ))
+fn short_line_themed(text: &str, pal: ThemePalette) -> Line<'static> {
+    Line::from(Span::styled(text.to_string(), pal.dim()))
 }
 
 /// `(tuş, açıklama)` çiftlerinden tek bir yardım satırı üretir.
-fn help_line(items: &[(&'static str, &'static str)]) -> Line<'static> {
+fn help_line_themed(
+    items: &[(&'static str, &'static str)],
+    pal: Option<ThemePalette>,
+) -> Line<'static> {
+    let key_style = pal.map(|p| p.key()).unwrap_or_else(|| {
+        Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD)
+    });
+    let label_style = pal
+        .map(|p| p.key_label())
+        .unwrap_or_else(|| Style::default().fg(Color::DarkGray));
     let mut spans = Vec::new();
     for (i, (key, desc)) in items.iter().enumerate() {
         if i > 0 {
-            spans.push(Span::raw("   "));
+            // Üç boşluk: mock dili (cyan tuş + muted etiket) korunur; ` · `
+            // ayırıcı satırı uzatıp yardım panelinde çalışma dizini satırını
+            // kırpıyordu (tui_experience_test).
+            spans.push(Span::styled("   ".to_string(), label_style));
         }
-        spans.push(Span::styled(
-            (*key).to_string(),
-            Style::default()
-                .fg(Color::Cyan)
-                .add_modifier(Modifier::BOLD),
-        ));
-        spans.push(Span::raw(format!(" {desc}")));
+        spans.push(Span::styled((*key).to_string(), key_style));
+        spans.push(Span::styled(format!(" {desc}"), label_style));
     }
     Line::from(spans)
 }

@@ -19,6 +19,14 @@ use ratatui::widgets::ListState;
 use ratatui::widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap};
 use ratatui::Frame;
 
+/// Modal vurgu — varsayılan mock cyan (`#00e5ff`); seçim dolgusu koyu zemin.
+fn modal_accent() -> Color {
+    crate::ui::UiTheme::Default.palette().accent
+}
+fn modal_accent_on() -> Color {
+    crate::ui::UiTheme::Default.palette().accent_on
+}
+
 /// Modallar için en fazla kutu genişliği.
 const MODAL_MAX_WIDTH: u16 = 84;
 /// Kutunun ekran kenarına bırakacağı en az boşluk (her yanda).
@@ -175,7 +183,7 @@ fn draw_job_progress(f: &mut Frame, screen: Rect, view: JobProgressView<'_>) {
     let frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
     let spin = frames[(spinner as usize) % frames.len()];
     let (header_fg, mark) = match done {
-        None => (Color::Cyan, spin.to_string()),
+        None => (modal_accent(), spin.to_string()),
         Some(Ok(_)) => (Color::Green, "✓".into()),
         Some(Err(_)) => (Color::Red, "✗".into()),
     };
@@ -224,7 +232,7 @@ fn draw_job_progress(f: &mut Frame, screen: Rect, view: JobProgressView<'_>) {
         Style::default().fg(if matches!(done, Some(Err(_))) {
             Color::Red
         } else {
-            Color::Cyan
+            modal_accent()
         }),
     )));
     lines.push(Line::from(Span::styled(
@@ -263,7 +271,7 @@ fn draw_job_progress(f: &mut Frame, screen: Rect, view: JobProgressView<'_>) {
     };
     lines.push(Line::from(Span::styled(
         footer,
-        Style::default().fg(Color::Cyan),
+        Style::default().fg(modal_accent()),
     )));
 
     let block = Block::default()
@@ -283,7 +291,7 @@ fn draw_store_installed_menu(f: &mut Frame, screen: Rect, name: &str, index: usi
         Line::from(Span::styled(
             format!("'{name}' kurulu — ne yapılsın?"),
             Style::default()
-                .fg(Color::Cyan)
+                .fg(modal_accent())
                 .add_modifier(Modifier::BOLD),
         )),
         Line::from(""),
@@ -294,8 +302,8 @@ fn draw_store_installed_menu(f: &mut Frame, screen: Rect, name: &str, index: usi
             format!("{} {label}", if selected { "▶" } else { " " }),
             if selected {
                 Style::default()
-                    .fg(Color::Black)
-                    .bg(Color::Cyan)
+                    .fg(modal_accent_on())
+                    .bg(modal_accent())
                     .add_modifier(Modifier::BOLD)
             } else {
                 Style::default().fg(Color::White)
@@ -523,7 +531,7 @@ fn draw_tool_actions_menu(
         .min(screen.width.saturating_sub(MODAL_MARGIN * 2))
         .max(48);
     let inner_w = width.saturating_sub(4) as usize;
-    let accent = Color::Cyan;
+    let accent = modal_accent();
     let lang = app.ui_lang();
     let title = lang.t(crate::i18n::Msg::Actions);
 
@@ -652,7 +660,7 @@ fn draw_update_confirm(
     lines.push(Line::from(Span::styled(
         "Enter kur  ·  Esc vazgeç",
         Style::default()
-            .fg(Color::Cyan)
+            .fg(modal_accent())
             .add_modifier(Modifier::BOLD),
     )));
 
@@ -678,7 +686,7 @@ fn draw_update_check(
             lines.push(Line::from(Span::styled(
                 "Nova güncellemesi",
                 Style::default()
-                    .fg(Color::Cyan)
+                    .fg(modal_accent())
                     .add_modifier(Modifier::BOLD),
             )));
             lines.push(Line::from(""));
@@ -733,7 +741,7 @@ fn draw_update_check(
                 )));
                 lines.push(Line::from(Span::styled(
                     "Enter/U yeniden  ·  G repo  ·  Esc kapat",
-                    Style::default().fg(Color::Cyan),
+                    Style::default().fg(modal_accent()),
                 )));
             }
             Some(UpdateCheck::NoPublishedRelease { current }) => {
@@ -756,7 +764,7 @@ fn draw_update_check(
                 )));
                 lines.push(Line::from(Span::styled(
                     "Enter/U yeniden  ·  G repo  ·  Esc kapat",
-                    Style::default().fg(Color::Cyan),
+                    Style::default().fg(modal_accent()),
                 )));
             }
             Some(UpdateCheck::UpdateAvailable {
@@ -796,7 +804,7 @@ fn draw_update_check(
                 lines.push(Line::from(Span::styled(
                     "Enter onay  ·  G repo main  ·  Esc kapat",
                     Style::default()
-                        .fg(Color::Cyan)
+                        .fg(modal_accent())
                         .add_modifier(Modifier::BOLD),
                 )));
             }
@@ -807,7 +815,7 @@ fn draw_update_check(
                 )));
                 lines.push(Line::from(Span::styled(
                     "Enter/U denetle  ·  Esc kapat",
-                    Style::default().fg(Color::Cyan),
+                    Style::default().fg(modal_accent()),
                 )));
             }
             Some(UpdateCheck::Error(msg)) => {
@@ -817,7 +825,7 @@ fn draw_update_check(
                 )));
                 lines.push(Line::from(Span::styled(
                     "Enter/U yeniden  ·  Esc kapat",
-                    Style::default().fg(Color::Cyan),
+                    Style::default().fg(modal_accent()),
                 )));
             }
         },
@@ -853,11 +861,11 @@ fn draw_file_picker(f: &mut Frame, area: Rect, state: &FilePickerState) {
             let focused = selected;
             let style = if focused {
                 Style::default()
-                    .bg(Color::Cyan)
-                    .fg(Color::Black)
+                    .bg(modal_accent())
+                    .fg(modal_accent_on())
                     .add_modifier(Modifier::BOLD)
             } else if entry.is_dir {
-                Style::default().fg(Color::Cyan)
+                Style::default().fg(modal_accent())
             } else {
                 Style::default()
             };
@@ -887,12 +895,12 @@ fn draw_file_picker(f: &mut Frame, area: Rect, state: &FilePickerState) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Cyan))
+                .border_style(Style::default().fg(modal_accent()))
                 .title(title),
         )
         .highlight_style(
             Style::default()
-                .bg(Color::Cyan)
+                .bg(modal_accent())
                 .fg(Color::Black)
                 .add_modifier(Modifier::BOLD),
         )
@@ -930,7 +938,7 @@ fn frame(f: &mut Frame, area: Rect, title: &str) -> Rect {
     let block = Block::default()
         .title(format!(" {title} "))
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Cyan));
+        .border_style(Style::default().fg(modal_accent()));
     let inner = block.inner(area);
     f.render_widget(Clear, area);
     f.render_widget(block, area);
@@ -979,7 +987,7 @@ fn draw_confirm(f: &mut Frame, screen: Rect, question: &str, action: &ConfirmAct
     text.push(Line::from(Span::styled(
         hint,
         Style::default()
-            .fg(Color::Cyan)
+            .fg(modal_accent())
             .add_modifier(Modifier::BOLD),
     )));
     f.render_widget(Paragraph::new(text).wrap(Wrap { trim: false }), inner);
@@ -993,10 +1001,10 @@ fn draw_store_confirm(f: &mut Frame, screen: Rect, question: &str, action: &Conf
     let inner_w = width.saturating_sub(4) as usize;
 
     let (title, accent) = match action {
-        ConfirmAction::InstallStoreApp { .. } => ("Kurulum onayı", Color::Cyan),
+        ConfirmAction::InstallStoreApp { .. } => ("Kurulum onayı", modal_accent()),
         ConfirmAction::UpdateStoreApp { .. } => ("Güncelleme onayı", Color::Yellow),
         ConfirmAction::UninstallStoreApp { .. } => ("Kaldırma onayı", Color::Red),
-        _ => ("Onay gerekli", Color::Cyan),
+        _ => ("Onay gerekli", modal_accent()),
     };
 
     let mut lines: Vec<Line> = Vec::new();
@@ -1090,7 +1098,7 @@ fn draw_form(f: &mut Frame, screen: Rect, form: &ToolForm, lang: crate::i18n::La
         let focused = i == form.focus;
         let label_style = if focused {
             Style::default()
-                .fg(Color::Cyan)
+                .fg(modal_accent())
                 .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(Color::Gray)
@@ -1200,7 +1208,7 @@ fn draw_review(
     lines.push(Line::from(Span::styled(
         "Enter: kaydet   Esc: forma dön",
         Style::default()
-            .fg(Color::Cyan)
+            .fg(modal_accent())
             .add_modifier(Modifier::BOLD),
     )));
     let area = modal_area(screen, width, lines.len() as u16);
@@ -1229,7 +1237,7 @@ fn draw_picker(f: &mut Frame, screen: Rect, app: &App, index: usize) {
             Style::default().fg(Color::Red)
         } else if i == index {
             Style::default()
-                .fg(Color::Cyan)
+                .fg(modal_accent())
                 .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(Color::Gray)
@@ -1274,7 +1282,7 @@ fn draw_project_add(f: &mut Frame, screen: Rect, input: &str, error: Option<&str
     let mut lines = vec![Line::from(vec![
         Span::styled("Yol: ", Style::default().fg(Color::Gray)),
         Span::styled(input.to_string(), Style::default().fg(Color::White)),
-        Span::styled("▏", Style::default().fg(Color::Cyan)),
+        Span::styled("▏", Style::default().fg(modal_accent())),
     ])];
     if let Some(err) = error {
         lines.push(Line::from(Span::styled(
@@ -1322,7 +1330,7 @@ fn draw_checklist_target_picker(f: &mut Frame, screen: Rect, app: &App, index: u
         };
         let style = if i == index {
             Style::default()
-                .fg(Color::Cyan)
+                .fg(modal_accent())
                 .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(Color::Gray)
@@ -1378,7 +1386,7 @@ fn draw_checklist_target_add(
             Style::default().fg(Color::Gray),
         ),
         Span::styled(input.to_string(), Style::default().fg(Color::White)),
-        Span::styled("▏", Style::default().fg(Color::Cyan)),
+        Span::styled("▏", Style::default().fg(modal_accent())),
     ])];
     if let Some(err) = error {
         lines.push(Line::from(Span::styled(
@@ -1423,7 +1431,7 @@ fn draw_history(f: &mut Frame, screen: Rect, app: &App) {
     let capacity = screen.height.saturating_sub(8) as usize;
     for entry in recents.iter().take(capacity.max(1)) {
         lines.push(Line::from(vec![
-            Span::styled("• ", Style::default().fg(Color::Cyan)),
+            Span::styled("• ", Style::default().fg(modal_accent())),
             Span::styled(entry.name.clone(), Style::default().fg(Color::White)),
             Span::styled(
                 format!(
@@ -1532,7 +1540,7 @@ fn draw_settings(
                 format!("{marker}{label}: "),
                 if active {
                     Style::default()
-                        .fg(Color::Cyan)
+                        .fg(modal_accent())
                         .add_modifier(Modifier::BOLD)
                 } else {
                     Style::default().fg(Color::Gray)
@@ -1586,7 +1594,7 @@ fn draw_settings(
     }
     lines.push(Line::from(Span::styled(
         lang.t(Msg::AdvKeys),
-        Style::default().fg(Color::Cyan),
+        Style::default().fg(modal_accent()),
     )));
     let area = modal_area(screen, width, lines.len() as u16);
     let inner = frame(f, area, lang.t(Msg::Settings));
