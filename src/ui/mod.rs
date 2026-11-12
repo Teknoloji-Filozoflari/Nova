@@ -3691,7 +3691,10 @@ fn help_line_themed(
     let mut spans = Vec::new();
     for (i, (key, desc)) in items.iter().enumerate() {
         if i > 0 {
-            spans.push(Span::styled("  ·  ".to_string(), label_style));
+            // Üç boşluk: mock dili (cyan tuş + muted etiket) korunur; ` · `
+            // ayırıcı satırı uzatıp yardım panelinde çalışma dizini satırını
+            // kırpıyordu (tui_experience_test).
+            spans.push(Span::styled("   ".to_string(), label_style));
         }
         spans.push(Span::styled((*key).to_string(), key_style));
         spans.push(Span::styled(format!(" {desc}"), label_style));
