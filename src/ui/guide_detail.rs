@@ -15,7 +15,7 @@ use crate::commands::{
     TopicLearningStep, VerificationStatus,
 };
 use crate::i18n::Msg;
-use crate::ui::theme::ThemePalette;
+use crate::ui::theme::{heading_caps, ThemePalette};
 use crate::ui::wrap_text;
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -47,11 +47,11 @@ fn push_wrapped(lines: &mut Vec<Line<'static>>, text: &str, width: usize, style:
     }
 }
 
-fn push_heading(lines: &mut Vec<Line<'static>>, title: &str) {
+fn push_heading(lines: &mut Vec<Line<'static>>, title: &str, pal: ThemePalette) {
     lines.push(Line::from(""));
     lines.push(Line::from(Span::styled(
-        format!("{title}:"),
-        Style::default().add_modifier(Modifier::BOLD),
+        format!("{}:", heading_caps(title)),
+        pal.heading(),
     )));
     // Kısa nefes — başlık ile içerik arası sıkışmasın.
     lines.push(Line::from(""));
@@ -115,7 +115,7 @@ fn split_leading_md_bold_label(para: &str) -> Option<(String, &str)> {
     Some((label.to_string(), after))
 }
 
-/// Kenarlıklı kod satırı (`$ cmd`).
+/// Sol cyan şeritli kod satırı (`$ cmd` + argüman rengi).
 pub fn push_code_block(
     lines: &mut Vec<Line<'static>>,
     code: &str,
@@ -123,25 +123,83 @@ pub fn push_code_block(
     accent: Style,
     muted: Style,
 ) {
+    push_code_block_themed(lines, code, wrap_w, accent, muted, None);
+}
+
+/// Palet biliniyorsa argüman rengi + sol accent şerit.
+pub fn push_code_block_themed(
+    lines: &mut Vec<Line<'static>>,
+    code: &str,
+    wrap_w: usize,
+    accent: Style,
+    muted: Style,
+    pal: Option<ThemePalette>,
+) {
+    let border = pal
+        .map(|p| Style::default().fg(p.code_border))
+        .unwrap_or(accent);
+    let arg = pal.map(|p| Style::default().fg(p.arg)).unwrap_or(accent);
+    let panel = pal
+        .map(|p| Style::default().bg(p.bg_panel))
+        .unwrap_or_default();
     let inner = wrap_w.saturating_sub(4).max(8);
-    let top = format!("┌ {}", "─".repeat(inner.saturating_sub(2).min(40)));
-    lines.push(Line::from(Span::styled(top, muted)));
-    let cmd = if code.starts_with('$') {
-        code.to_string()
+    let cmd = if code.trim_start().starts_with('$') {
+        code.trim().to_string()
     } else {
         format!("$ {code}")
     };
+    // İnce üst/alt çerçeve + sol cyan şerit (mock: kod kartı).
+    let top = format!("┌{}", "─".repeat(inner.saturating_sub(1).min(48)));
+    lines.push(Line::from(Span::styled(top, muted.patch(panel))));
     for part in wrap_text(&cmd, inner) {
-        lines.push(Line::from(vec![
-            Span::styled("│ ".to_string(), muted),
-            Span::styled(part, accent.add_modifier(Modifier::BOLD)),
-        ]));
+        let mut spans = vec![Span::styled("│ ".to_string(), border.patch(panel))];
+        spans.extend(style_shell_line(&part, accent, muted, arg, panel));
+        lines.push(Line::from(spans));
     }
-    let bot = format!("└ {}", "─".repeat(inner.saturating_sub(2).min(40)));
-    lines.push(Line::from(Span::styled(bot, muted)));
+    let bot = format!("└{}", "─".repeat(inner.saturating_sub(1).min(48)));
+    lines.push(Line::from(Span::styled(bot, muted.patch(panel))));
 }
 
-/// İpucu / risk / uyarı / draft callout — kompakt blok, bölümler arası nefes.
+/// `$ cmd -flags args` — prompt muted, komut cyan, bayrak/arg amber.
+fn style_shell_line(
+    line: &str,
+    accent: Style,
+    muted: Style,
+    arg: Style,
+    panel: Style,
+) -> Vec<Span<'static>> {
+    let accent = accent.add_modifier(Modifier::BOLD).patch(panel);
+    let muted = muted.patch(panel);
+    let arg = arg.patch(panel);
+    let trimmed = line.trim_start();
+    let lead = line.len().saturating_sub(trimmed.len());
+    let mut spans = Vec::new();
+    if lead > 0 {
+        spans.push(Span::styled(" ".repeat(lead), muted));
+    }
+    let body = trimmed;
+    let (prompt, rest) = if let Some(r) = body.strip_prefix("$ ") {
+        spans.push(Span::styled("$ ".to_string(), muted));
+        (true, r)
+    } else if body == "$" {
+        spans.push(Span::styled("$".to_string(), muted));
+        return spans;
+    } else {
+        (false, body)
+    };
+    let _ = prompt;
+    let mut parts = rest.split_whitespace();
+    if let Some(cmd) = parts.next() {
+        spans.push(Span::styled(cmd.to_string(), accent));
+    }
+    for p in parts {
+        spans.push(Span::styled(" ".to_string(), muted));
+        spans.push(Span::styled(p.to_string(), arg));
+    }
+    spans
+}
+
+/// İpucu / risk / uyarı / draft callout — tip için sol amber şerit (mock İPUCU).
 pub fn push_callout(
     lines: &mut Vec<Line<'static>>,
     kind: CalloutKind,
@@ -154,19 +212,16 @@ pub fn push_callout(
     if body.trim().is_empty() {
         return;
     }
-    let marker = match kind {
-        CalloutKind::Tip => "·",
-        CalloutKind::Risk | CalloutKind::Warn | CalloutKind::Draft => "!",
-    };
-    // Tip: tek satırlı hafif işaret (iç içe kutu yığını azalt).
+    // Tip: sol amber şerit + etiket (mock callout).
     if matches!(kind, CalloutKind::Tip) {
-        let head = if label.is_empty() {
-            format!("{marker} ")
+        let tag = if label.is_empty() {
+            "İPUCU".to_string()
         } else {
-            format!("{marker} {label}: ")
+            heading_caps(label)
         };
-        let inner = wrap_w.saturating_sub(head.chars().count()).max(8);
-        let mut parts = wrap_text(body, inner).into_iter();
+        let head = format!("▍ {tag} ");
+        let budget = wrap_w.saturating_sub(head.chars().count()).max(8);
+        let mut parts = wrap_text(body, budget).into_iter();
         if let Some(first) = parts.next() {
             lines.push(Line::from(vec![
                 Span::styled(head, style.add_modifier(Modifier::BOLD)),
@@ -174,10 +229,14 @@ pub fn push_callout(
             ]));
         }
         for part in parts {
-            lines.push(Line::from(Span::styled(format!("  {part}"), style)));
+            lines.push(Line::from(vec![
+                Span::styled("│ ".to_string(), style),
+                Span::styled(part, style),
+            ]));
         }
         return;
     }
+    let marker = "!";
     let head = format!("╭ {marker} {label}");
     lines.push(Line::from(Span::styled(
         head,
@@ -236,8 +295,13 @@ pub fn push_table_or_cards(
             lines.push(Line::from(Span::styled("└".to_string(), muted)));
             continue;
         }
-        // Geniş: tam başlık + rozet; açıklama alt satırda sarılır.
-        push_title_with_badge(lines, title, badge, wrap_w, accent, muted);
+        // Geniş: cyan komut + outlined rozet; açıklama alt satırda.
+        let pill_color = if badge.is_empty() {
+            None
+        } else {
+            Some(accent.fg.unwrap_or(ratatui::style::Color::Cyan))
+        };
+        push_title_with_badge_color(lines, title, badge, wrap_w, accent, muted, pill_color);
         if !detail.is_empty() {
             let inner = wrap_w.saturating_sub(2).max(8);
             for part in wrap_text(detail, inner) {
@@ -247,13 +311,14 @@ pub fn push_table_or_cards(
     }
 }
 
-fn push_title_with_badge(
+fn push_title_with_badge_color(
     lines: &mut Vec<Line<'static>>,
     title: &str,
     badge: &str,
     wrap_w: usize,
     accent: Style,
     muted: Style,
+    badge_color: Option<ratatui::style::Color>,
 ) {
     let title = title.trim();
     let badge = badge.trim();
@@ -261,16 +326,32 @@ fn push_title_with_badge(
         push_wrapped(lines, title, wrap_w, accent.add_modifier(Modifier::BOLD));
         return;
     }
-    let badge_bit = format!("  · {badge}");
-    let budget = wrap_w.saturating_sub(badge_bit.chars().count()).max(8);
+    let pill = if badge_color.is_some() {
+        format!("  [{badge}]")
+    } else {
+        format!("  · {badge}")
+    };
+    let pill_style = if let Some(c) = badge_color {
+        Style::default().fg(c).add_modifier(Modifier::BOLD)
+    } else {
+        muted
+    };
+    let budget = wrap_w.saturating_sub(pill.chars().count()).max(8);
     let mut title_parts = wrap_text(title, budget).into_iter();
     if let Some(first) = title_parts.next() {
         lines.push(Line::from(vec![
             Span::styled(first, accent.add_modifier(Modifier::BOLD)),
-            Span::styled(badge_bit, muted),
+            Span::styled(pill, pill_style),
         ]));
     } else {
-        lines.push(Line::from(Span::styled(format!("· {badge}"), muted)));
+        lines.push(Line::from(Span::styled(
+            if badge_color.is_some() {
+                format!("[{badge}]")
+            } else {
+                format!("· {badge}")
+            },
+            pill_style,
+        )));
     }
     for part in title_parts {
         lines.push(Line::from(Span::styled(
@@ -281,11 +362,7 @@ fn push_title_with_badge(
 }
 
 fn risk_color(pal: ThemePalette, risk: RiskLevel) -> ratatui::style::Color {
-    match risk {
-        RiskLevel::Safe => pal.success,
-        RiskLevel::Caution => pal.warn,
-        RiskLevel::Dangerous | RiskLevel::Destructive => pal.error,
-    }
+    pal.risk_color(risk)
 }
 
 fn bank_cmd<'a>(app: &'a App, id: &str) -> Option<&'a CommandEntry> {
@@ -352,21 +429,16 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
     // Başlık
     lines.push(Line::from(Span::styled(
         concept.title.pick(lang_id).to_string(),
-        Style::default()
-            .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
-            .fg(pal.accent),
+        Style::default().add_modifier(Modifier::BOLD).fg(pal.accent),
     )));
+    let mut badge_row = Vec::new();
     if let Some(ref diff) = concept.difficulty {
-        lines.push(Line::from(Span::styled(
-            format!("[{diff}] · {}", concept.verification.status.as_str()),
-            Style::default().fg(pal.search),
-        )));
-    } else {
-        lines.push(Line::from(Span::styled(
-            concept.verification.status.as_str().to_string(),
-            muted,
-        )));
+        badge_row.push(pal.pill(diff, pal.accent));
+        badge_row.push(Span::raw(" "));
     }
+    let ver = concept.verification.status.as_str();
+    badge_row.push(pal.pill(ver, pal.muted));
+    lines.push(Line::from(badge_row));
     if concept.verification.status == VerificationStatus::Draft {
         push_callout(
             &mut lines,
@@ -384,13 +456,13 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
     let summary = concept.summary.pick(lang_id);
     let intro_body = if !intro.is_empty() { intro } else { summary };
     if !intro_body.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicIntro));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicIntro), pal);
         push_learning_paragraphs(&mut lines, intro_body, wrap_w, text, accent);
     }
 
     // Order — `learning_path` (ref → komut/konu başlığı)
     if !concept.learning_path.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicOrder));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicOrder), pal);
         for (i, step) in concept.learning_path.iter().enumerate() {
             let label = resolve_learning_ref(app, step, lang_id);
             let note = step.note.pick(lang_id);
@@ -408,7 +480,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
 
     // Subtopics — tam başlık + açıklama; id sütunu yok (ellipsis tuzağı)
     if !concept.subtopics.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicSubtopics));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicSubtopics), pal);
         let rows: Vec<(String, String, String)> = concept
             .subtopics
             .iter()
@@ -434,7 +506,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
             accent,
         );
     } else if !concept.related_concepts.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicSubtopics));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicSubtopics), pal);
         let rows: Vec<(String, String, String)> = concept
             .related_concepts
             .iter()
@@ -473,7 +545,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
 
     // Command table — risk/seviye satır-içi rozet; sabit id/risk sütunu yok
     if !concept.command_table.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicCmdTable));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicCmdTable), pal);
         let rows: Vec<(String, String, String)> = concept
             .command_table
             .iter()
@@ -510,7 +582,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
             accent,
         );
     } else if !concept.related_commands.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicCmdTable));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicCmdTable), pal);
         let rows: Vec<(String, String, String)> = concept
             .related_commands
             .iter()
@@ -558,7 +630,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
     // Learning body — paragraflı, sıkışık duvar değil
     let body = concept.body.pick(lang_id);
     if !body.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicLearning));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicLearning), pal);
         push_learning_paragraphs(&mut lines, body, wrap_w, text, accent);
     }
 
@@ -567,14 +639,14 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
     if !concept.graded_examples.is_empty() {
         let filtered = select_command_examples(&concept.graded_examples, &app.commands_filters);
         if filtered.is_empty() {
-            push_heading(&mut lines, lang.t(Msg::CommandsExamples));
+            push_heading(&mut lines, lang.t(Msg::CommandsExamples), pal);
             lines.push(Line::from(Span::styled(
                 format!("  {}", lang.t(Msg::CommandsFilterNoMatch)),
                 warn,
             )));
             shown_examples = 1; // section shown; skip fallback
         } else {
-            push_heading(&mut lines, lang.t(Msg::CommandsExamples));
+            push_heading(&mut lines, lang.t(Msg::CommandsExamples), pal);
             let mut exs: Vec<_> = filtered.into_iter().cloned().collect();
             sort_examples_by_difficulty(&mut exs);
             for (i, ex) in exs.iter().take(6).enumerate() {
@@ -588,7 +660,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                         ex.risk.label(lang_id)
                     )));
                 }
-                push_code_block(&mut lines, &ex.command, wrap_w, accent, muted);
+                push_code_block_themed(&mut lines, &ex.command, wrap_w, accent, muted, Some(pal));
                 let expl = ex.explanation.pick(lang_id);
                 if !expl.is_empty() {
                     push_wrapped(&mut lines, expl, wrap_w, muted);
@@ -610,13 +682,13 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
             }
         }
         if !collected.is_empty() {
-            push_heading(&mut lines, lang.t(Msg::CommandsExamples));
+            push_heading(&mut lines, lang.t(Msg::CommandsExamples), pal);
             for (i, (name, ex)) in collected.into_iter().enumerate() {
                 if i > 0 {
                     lines.push(Line::from(""));
                 }
                 lines.push(Line::from(Span::styled(format!("· {name}"), muted)));
-                push_code_block(&mut lines, &ex.command, wrap_w, accent, muted);
+                push_code_block_themed(&mut lines, &ex.command, wrap_w, accent, muted, Some(pal));
                 let expl = ex.explanation.pick(lang_id);
                 if !expl.is_empty() {
                     push_wrapped(&mut lines, expl, wrap_w, muted);
@@ -640,7 +712,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
         })
         .collect();
     if !tips.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicTips));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicTips), pal);
         for (i, tip) in tips.into_iter().enumerate() {
             let t = tip.text.pick(lang_id);
             if t.is_empty() {
@@ -656,13 +728,13 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                 "",
                 t,
                 wrap_w,
-                Style::default().fg(pal.success),
+                Style::default().fg(pal.tip),
                 muted,
             );
         }
     }
     if !warns.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicWarnings));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicWarnings), pal);
         for (i, w) in warns.into_iter().enumerate() {
             let wt = w.text.pick(lang_id);
             if wt.is_empty() {
@@ -690,7 +762,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
 
     // Exercises
     if !concept.safe_exercises.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicExercises));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicExercises), pal);
         for (i, ex) in concept.safe_exercises.iter().enumerate() {
             let title = ex.title.pick(lang_id);
             let prompt = ex.prompt.pick(lang_id);
@@ -724,7 +796,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
     // Related tasks
     let related_tasks = app.commands_bank.related_tasks_for_concept(concept);
     if !related_tasks.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicRelatedTasks));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicRelatedTasks), pal);
         let names: Vec<String> = related_tasks
             .iter()
             .take(8)
@@ -735,7 +807,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
 
     // Next steps — başlık + not; id sütunu yok
     if !concept.next_steps.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsTopicNext));
+        push_heading(&mut lines, lang.t(Msg::CommandsTopicNext), pal);
         let rows: Vec<(String, String, String)> = concept
             .next_steps
             .iter()
@@ -786,13 +858,40 @@ pub fn command_detail_lines(
     let accent = Style::default().fg(pal.accent);
     let warn = Style::default().fg(pal.warn);
 
-    // Name
-    lines.push(Line::from(Span::styled(
+    // Name + outlined seviye/risk/doğrulama pill'leri (mock detay başlığı).
+    let mut title_spans = vec![Span::styled(
         format!("{fav_prefix}{}", cmd.name),
-        Style::default()
-            .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
-            .fg(pal.accent),
-    )));
+        Style::default().add_modifier(Modifier::BOLD).fg(pal.accent),
+    )];
+    if cmd.learning_level.is_specified() {
+        title_spans.push(Span::raw("  "));
+        title_spans.push(pal.pill(
+            cmd.learning_level.label(lang_id),
+            pal.level_color(cmd.learning_level),
+        ));
+    }
+    title_spans.push(Span::raw(" "));
+    title_spans.push(pal.pill(cmd.risk.label(lang_id), pal.risk_color(cmd.risk)));
+    let ver_label = match cmd.verification.status {
+        VerificationStatus::Verified => {
+            if lang_id.to_ascii_lowercase().starts_with("en") {
+                "verified"
+            } else {
+                "doğrulandı"
+            }
+        }
+        VerificationStatus::Reviewed => {
+            if lang_id.to_ascii_lowercase().starts_with("en") {
+                "reviewed"
+            } else {
+                "incelendi"
+            }
+        }
+        VerificationStatus::Draft => "draft",
+    };
+    title_spans.push(Span::raw(" "));
+    title_spans.push(pal.pill(ver_label, pal.muted));
+    lines.push(Line::from(title_spans));
     let summary = cmd.summary.pick(lang_id);
     if !summary.is_empty() {
         push_wrapped(&mut lines, summary, wrap_w, text);
@@ -817,7 +916,7 @@ pub fn command_detail_lines(
     when_bits.dedup();
     let desc = cmd.description.pick(lang_id);
     if !purpose.is_empty() || !when_bits.is_empty() || (!desc.is_empty() && desc != summary) {
-        push_heading(&mut lines, lang.t(Msg::CommandsWhenUseful));
+        push_heading(&mut lines, lang.t(Msg::CommandsWhenUseful), pal);
         if !purpose.is_empty() {
             push_wrapped(&mut lines, purpose, wrap_w, text);
         }
@@ -835,8 +934,8 @@ pub fn command_detail_lines(
     }
 
     // Syntax
-    push_heading(&mut lines, lang.t(Msg::CommandsSyntax));
-    push_code_block(&mut lines, &cmd.name, wrap_w, accent, muted);
+    push_heading(&mut lines, lang.t(Msg::CommandsSyntax), pal);
+    push_code_block_themed(&mut lines, &cmd.name, wrap_w, accent, muted, Some(pal));
     if !cmd.aliases.is_empty() {
         lines.push(Line::from(format!(
             "  {}: {}",
@@ -847,20 +946,29 @@ pub fn command_detail_lines(
 
     // Beginner example
     if let Some(ex) = beginner_example(&cmd.examples, &app.commands_filters) {
-        push_heading(&mut lines, lang.t(Msg::CommandsBeginnerExample));
+        push_heading(&mut lines, lang.t(Msg::CommandsBeginnerExample), pal);
         let title = ex.title.pick(lang_id);
+        let mut head = Vec::new();
         if !title.is_empty() {
-            lines.push(Line::from(format!("  · {title}")));
+            head.push(Span::styled(format!("· {title}"), muted));
         }
-        push_code_block(&mut lines, &ex.command, wrap_w, accent, muted);
+        let diff = ex.difficulty.unwrap_or(LearningLevel::Unspecified);
+        if diff.is_specified() {
+            head.push(Span::raw("  "));
+            head.push(pal.pill(diff.label(lang_id), pal.level_color(diff)));
+        }
+        if !head.is_empty() {
+            lines.push(Line::from(head));
+        }
+        push_code_block_themed(&mut lines, &ex.command, wrap_w, accent, muted, Some(pal));
         let expl = ex.explanation.pick(lang_id);
         if !expl.is_empty() {
-            push_heading(&mut lines, lang.t(Msg::CommandsExpectedEffect));
+            push_heading(&mut lines, lang.t(Msg::CommandsExpectedEffect), pal);
             push_wrapped(&mut lines, &format!("  {expl}"), wrap_w, muted);
         }
     } else if !cmd.examples.is_empty() {
         // Filtre eşleşmesi yok — dürüst boş
-        push_heading(&mut lines, lang.t(Msg::CommandsBeginnerExample));
+        push_heading(&mut lines, lang.t(Msg::CommandsBeginnerExample), pal);
         lines.push(Line::from(Span::styled(
             format!("  {}", lang.t(Msg::CommandsFilterNoMatch)),
             warn,
@@ -869,7 +977,7 @@ pub fn command_detail_lines(
 
     // Flags
     if !cmd.flags.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsFlags));
+        push_heading(&mut lines, lang.t(Msg::CommandsFlags), pal);
         let rows: Vec<(String, String, String)> = cmd
             .flags
             .iter()
@@ -906,7 +1014,7 @@ pub fn command_detail_lines(
 
     // More examples (easy→adv), beginner zaten üstte
     if cmd.examples.len() > 1 {
-        push_heading(&mut lines, lang.t(Msg::CommandsExamplesEasyAdv));
+        push_heading(&mut lines, lang.t(Msg::CommandsExamplesEasyAdv), pal);
         let filtered = select_command_examples(&cmd.examples, &app.commands_filters);
         if filtered.is_empty() {
             lines.push(Line::from(Span::styled(
@@ -935,14 +1043,24 @@ pub fn command_detail_lines(
                 } else {
                     ""
                 };
+                let diff = ex.difficulty.unwrap_or(LearningLevel::Unspecified);
+                let mut head = Vec::new();
                 if !title.is_empty() {
-                    lines.push(Line::from(format!(
-                        "  · {title} [{}{}]",
-                        ex.risk.label(lang_id),
-                        elev
-                    )));
+                    head.push(Span::styled(format!("· {title}"), muted));
                 }
-                push_code_block(&mut lines, &ex.command, wrap_w, accent, muted);
+                if diff.is_specified() {
+                    head.push(Span::raw("  "));
+                    head.push(pal.pill(diff.label(lang_id), pal.level_color(diff)));
+                }
+                head.push(Span::raw(" "));
+                head.push(pal.pill(
+                    &format!("{}{elev}", ex.risk.label(lang_id)),
+                    pal.risk_color(ex.risk),
+                ));
+                if !head.is_empty() {
+                    lines.push(Line::from(head));
+                }
+                push_code_block_themed(&mut lines, &ex.command, wrap_w, accent, muted, Some(pal));
                 let expl = ex.explanation.pick(lang_id);
                 if !expl.is_empty() {
                     push_wrapped(&mut lines, &format!("  {expl}"), wrap_w, muted);
@@ -959,7 +1077,7 @@ pub fn command_detail_lines(
     }
 
     // OS / shell
-    push_heading(&mut lines, lang.t(Msg::CommandsPlatforms));
+    push_heading(&mut lines, lang.t(Msg::CommandsPlatforms), pal);
     let os_label = if !cmd.operating_systems.is_empty() {
         cmd.operating_systems.join("/")
     } else if !cmd.platforms.is_empty() {
@@ -1006,7 +1124,7 @@ pub fn command_detail_lines(
     )));
 
     // Risk callout
-    push_heading(&mut lines, lang.t(Msg::CommandsSideEffects));
+    push_heading(&mut lines, lang.t(Msg::CommandsSideEffects), pal);
     let risk_why = match cmd.risk {
         RiskLevel::Safe => lang.t(Msg::CommandsRiskWhySafe),
         RiskLevel::Caution => lang.t(Msg::CommandsRiskWhyCaution),
@@ -1065,7 +1183,7 @@ pub fn command_detail_lines(
     mistakes.sort();
     mistakes.dedup();
     if !mistakes.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsMistakes));
+        push_heading(&mut lines, lang.t(Msg::CommandsMistakes), pal);
         for m in mistakes.iter().take(6) {
             push_callout(&mut lines, CalloutKind::Warn, "!", m, wrap_w, warn, muted);
         }
@@ -1074,7 +1192,7 @@ pub fn command_detail_lines(
     // Packages — honest distro
     let is_arch = crate::commands::host_is_arch();
     if cmd.has_package_hints() {
-        push_heading(&mut lines, lang.t(Msg::CommandsPackages));
+        push_heading(&mut lines, lang.t(Msg::CommandsPackages), pal);
         let pkgs = package_lines_for_filter(cmd, &app.commands_filters, is_arch);
         if pkgs.is_empty() {
             lines.push(Line::from(Span::styled(
@@ -1111,7 +1229,7 @@ pub fn command_detail_lines(
     related.sort();
     related.dedup();
     if !related.is_empty() || !cmd.nova.concepts.is_empty() {
-        push_heading(&mut lines, lang.t(Msg::CommandsRelated));
+        push_heading(&mut lines, lang.t(Msg::CommandsRelated), pal);
         if !related.is_empty() {
             push_wrapped(
                 &mut lines,
@@ -1139,7 +1257,7 @@ pub fn command_detail_lines(
     }
 
     // Sources
-    push_heading(&mut lines, lang.t(Msg::CommandsSources));
+    push_heading(&mut lines, lang.t(Msg::CommandsSources), pal);
     if cmd.verification.sources.is_empty() {
         lines.push(Line::from(Span::styled("  —", muted)));
     } else {

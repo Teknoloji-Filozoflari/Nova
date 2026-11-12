@@ -16,8 +16,8 @@ from PIL import Image, ImageDraw, ImageFont
 CELL_W = 9
 CELL_H = 18
 PAD = 16
-DEFAULT_BG = (18, 22, 28, 255)
-DEFAULT_FG = (230, 234, 240, 255)
+DEFAULT_BG = (13, 17, 23, 255)  # mock #0d1117
+DEFAULT_FG = (165, 179, 207, 255)  # mock #a5b3cf
 FONT_CANDIDATES = [
     "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
     "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",

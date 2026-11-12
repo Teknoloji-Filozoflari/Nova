@@ -360,7 +360,7 @@ fn color_rgba(c: Color) -> [u8; 4] {
         Color::Yellow => [230, 190, 70, 255],
         Color::Blue => [70, 130, 220, 255],
         Color::Magenta => [200, 90, 180, 255],
-        Color::Cyan => [64, 200, 210, 255],
+        Color::Cyan => [0, 229, 255, 255],
         Color::Gray => [160, 168, 180, 255],
         Color::DarkGray => [90, 98, 110, 255],
         Color::LightRed => [255, 120, 120, 255],
