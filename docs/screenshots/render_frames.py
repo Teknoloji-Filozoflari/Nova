@@ -94,6 +94,7 @@ def main() -> int:
         "syntax-highlight-list.json": "syntax-highlight-list.png",
         "syntax-highlight-detail.json": "syntax-highlight-detail.png",
         "topic-guide-table-polish.json": "topic-guide-table-polish.png",
+        "topic-guide-table-rows.json": "topic-guide-table-rows.png",
     }
     required = {
         k: v
@@ -110,7 +111,7 @@ def main() -> int:
         if not (
             src_name.startswith("preview-")
             or src_name.startswith("syntax-highlight-")
-            or src_name.startswith("topic-guide-table-polish")
+            or src_name.startswith("topic-guide-table-")
         ):
             continue
         src = frames_dir / src_name

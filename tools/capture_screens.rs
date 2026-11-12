@@ -37,6 +37,7 @@ fn main() {
     capture_topic_guide_wide(&out);
     capture_topic_guide_learning(&out);
     capture_topic_guide_table_polish(&out);
+    capture_topic_guide_table_rows(&out);
     capture_syntax_list(&out);
     capture_syntax_detail(&out);
 
@@ -303,6 +304,36 @@ fn capture_topic_guide_table_polish(out: &Path) {
             .into();
     // Tablo + öğrenme ``snippet`` aynı karede.
     dump(&mut app, 160, 54, out.join("topic-guide-table-polish.json"));
+}
+
+/// KOMUT TABLOSU satırları — cyan ad · risk pill · ince ayırıcı (yakın plan).
+fn capture_topic_guide_table_rows(out: &Path) {
+    let mut app = base_app();
+    select_topic_guide(&mut app, "shell-pipes-redirection");
+    widen_commands_detail(&mut app);
+    app.focus = PanelFocus::CommandsDetail;
+    let wrap_w = 72usize;
+    let concept = app
+        .commands_bank
+        .concepts
+        .iter()
+        .find(|c| c.id == "shell-pipes-redirection")
+        .expect("shell-pipes-redirection");
+    let lines = nova::ui::guide_detail::topic_guide_lines(&app, concept, wrap_w);
+    let scroll = lines
+        .iter()
+        .position(|l| {
+            let t: String = l.spans.iter().map(|s| s.content.as_ref()).collect();
+            let t = t.trim();
+            t.starts_with("KOMUT TABLOSU")
+                || t.starts_with("Komut tablosu")
+                || t == "Command table:"
+        })
+        .unwrap_or(0) as u16;
+    app.commands_detail_scroll = scroll.saturating_sub(1);
+    app.status_message =
+        "Konu Rehberi · KOMUT TABLOSU — cyan ad · risk pill · ince ayırıcı.".into();
+    dump(&mut app, 160, 40, out.join("topic-guide-table-rows.json"));
 }
 
 /// Aynı konu — Öğrenme bölümüne kaydırılmış (paragraf boşlukları).
