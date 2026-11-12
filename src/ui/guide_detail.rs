@@ -1274,11 +1274,13 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
 }
 
 /// Komut detay görünümü (banka kaydı).
+/// `card_strip`: Hızlı referans alt kartı — daha az bayrak, en az bir örnek erken.
 pub fn command_detail_lines(
     app: &App,
     cmd: &CommandEntry,
     wrap_w: usize,
     fav_prefix: &str,
+    card_strip: bool,
 ) -> Vec<Line<'static>> {
     let lang = app.ui_lang();
     let lang_id = lang.id();
@@ -1367,10 +1369,11 @@ pub fn command_detail_lines(
     // SEÇENEKLER — hizalı iki sütun (tasarım-1).
     if !cmd.flags.is_empty() {
         push_heading(&mut lines, lang.t(Msg::CommandsOptions), pal);
+        let flag_cap = if card_strip { 4 } else { 12 };
         let rows: Vec<(String, String)> = cmd
             .flags
             .iter()
-            .take(12)
+            .take(flag_cap)
             .map(|f| {
                 let mut key = f.flag.clone();
                 if let Some(long) = f.long.as_deref().filter(|s| !s.is_empty()) {
@@ -1384,9 +1387,9 @@ pub fn command_detail_lines(
             })
             .collect();
         push_two_column_table(&mut lines, &rows, wrap_w, text, muted, accent);
-        if cmd.flags.len() > 12 {
+        if cmd.flags.len() > flag_cap {
             lines.push(Line::from(Span::styled(
-                format!("  … +{}", cmd.flags.len() - 12),
+                format!("  … +{}", cmd.flags.len() - flag_cap),
                 muted,
             )));
         }
@@ -1398,7 +1401,8 @@ pub fn command_detail_lines(
         push_heading(&mut lines, lang.t(Msg::CommandsExamples), pal);
         let mut examples: Vec<CommandExample> = filtered_examples.into_iter().cloned().collect();
         sort_examples_by_difficulty(&mut examples);
-        for (i, ex) in examples.iter().take(6).enumerate() {
+        let example_cap = if card_strip { 2 } else { 6 };
+        for (i, ex) in examples.iter().take(example_cap).enumerate() {
             if i > 0 {
                 lines.push(Line::from(""));
             }
