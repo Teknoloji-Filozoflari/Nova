@@ -500,6 +500,9 @@ fn capture_quick_reference_card(out: &Path) {
     {
         app.commands_entry_index = idx;
     }
+    // Kart şeridi açık (Enter ile açılır) — tasarım-1 kartı.
+    app.commands_quick_card = true;
+    app.focus = PanelFocus::CommandsDetail;
     dump(
         &mut app,
         170,

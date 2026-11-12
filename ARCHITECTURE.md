@@ -218,8 +218,13 @@ kalan alanın tamamını geniş tabloya verir:
 - `bölüm` süzgeci mod başına ayrı alanda tutulur (`commands_quick_category`); `b` tuşu
   döngüler, `x` temizler. `seviye` (`Başlangıç+` dâhil — `LearningLevelFilter::AtLeastBeginner`)
   ve `risk` mevcut banka süzgeçlerini paylaşır.
-- Bu modda yan detay sütunu açılmaz; komut kartı **alt şeritte** açılır (aynı
-  `commands_detail_lines`).
+- Bu modda yan detay sütunu açılmaz. Tablo **birincil görünümdür**: kart şeridi
+  kapalıyken tablo tüm içerik alanını kaplar. `Enter` kartı açar (aynı
+  `commands_detail_lines`, alt şeritte), `Esc` kapatır — tasarım-1 kartı tasarım-2
+  tablosunun üstüne gelir.
+- Tablo yerleşimi **tek kaynaktan** hesaplanır (`ui::quick_reference::table_layout`):
+  çizim (`ui::draw`) ve fare eşlemesi (`row_index_at_y`) aynı `top`/`height`
+  değerlerini kullanır. Ayrı hesaplanırsa tıklamalar satır kayar.
 
 **Karar:** mevcut altı mod korunur; hızlı referans yedinci mod olarak **eklenir**.
 Görev odaklı bilgi mimarisi (Başlangıç → Göreve göre → Kullanım bağlamı → …) bozulmaz,
