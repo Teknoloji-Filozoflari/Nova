@@ -2280,7 +2280,10 @@ fn quick_reference_card_strip_shows_first_example() {
     app.focus = nova::app::PanelFocus::CommandsDetail;
     // Kart şeridi için yeterli yükseklik (QUICK_CARD_DETAIL_ROWS).
     let text = all_text(&render(&app, 170, 48));
-    assert!(text.contains("SÖZDİZİMİ") || text.contains("Sözdizimi"), "{text}");
+    assert!(
+        text.contains("SÖZDİZİMİ") || text.contains("Sözdizimi"),
+        "{text}"
+    );
     assert!(
         text.contains("SEÇENEKLER") || text.contains("Seçenekler") || text.contains("OPTIONS"),
         "seçenekler görünmeli:\n{text}"
