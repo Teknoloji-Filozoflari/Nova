@@ -91,6 +91,8 @@ def main() -> int:
         # PR önizleme kareleri (isteğe bağlı; yoksa atlanır)
         "preview-topic-guide-wide.json": "preview-topic-guide-wide.png",
         "preview-topic-guide-learning.json": "preview-topic-guide-learning.png",
+        "syntax-highlight-list.json": "syntax-highlight-list.png",
+        "syntax-highlight-detail.json": "syntax-highlight-detail.png",
     }
     required = {
         k: v
@@ -104,7 +106,9 @@ def main() -> int:
             return 1
         render_frame(json.loads(src.read_text()), out_dir / dst_name)
     for src_name, dst_name in mapping.items():
-        if not src_name.startswith("preview-"):
+        if not (
+            src_name.startswith("preview-") or src_name.startswith("syntax-highlight-")
+        ):
             continue
         src = frames_dir / src_name
         if src.exists():

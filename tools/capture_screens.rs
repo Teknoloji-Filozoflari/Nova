@@ -36,6 +36,8 @@ fn main() {
     capture_commands_security_checklist(&out);
     capture_topic_guide_wide(&out);
     capture_topic_guide_learning(&out);
+    capture_syntax_list(&out);
+    capture_syntax_detail(&out);
 
     eprintln!("frames → {}", out.display());
 }
@@ -313,6 +315,73 @@ fn widen_commands_detail(app: &mut App) {
     sizes.list = Some(22);
     sizes.secondary = Some(16);
     sizes.tabs = Some(14);
+}
+
+/// Tüm komutlar listesi — ÖRNEK sütunu sözdizimi renkleri (geniş liste).
+fn capture_syntax_list(out: &Path) {
+    use nova::config::state::UiScreen;
+    let mut app = base_app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    app.commit_commands_guide();
+    // Dosya kategorisi — ls/cd/grep örnekleri.
+    let cats = app.commands_bank_categories();
+    if let Some(idx) = cats
+        .iter()
+        .position(|c| *c == "files" || *c == "filesystem")
+    {
+        app.commands_category_index = idx;
+    }
+    let sizes = app.state.file.prefs.pane_sizes.get_mut(UiScreen::Commands);
+    sizes.list = Some(56);
+    sizes.secondary = Some(18);
+    sizes.tabs = Some(16);
+    sizes.detail_width = Some(40);
+    app.focus = PanelFocus::CommandsList;
+    // Seçimi alta al ki üst satırlar renkli ÖRNEK göstersin.
+    if app.filtered_bank_commands().len() > 3 {
+        app.commands_entry_index = 3;
+    }
+    app.status_message =
+        "Komut Rehberi · Tüm komutlar — ÖRNEK sözdizimi: $ muted · cmd cyan · flag sarı · path yeşil."
+            .into();
+    dump(&mut app, 160, 40, out.join("syntax-highlight-list.json"));
+}
+
+/// ls detay — SÖZDİZİMİ + ÖRNEKLER renkli.
+fn capture_syntax_detail(out: &Path) {
+    use nova::config::state::UiScreen;
+    let mut app = base_app();
+    app.select_commands_tab();
+    app.set_commands_mode(CommandsBrowseMode::AllCommands);
+    app.commit_commands_guide();
+    let cats = app.commands_bank_categories();
+    if let Some(idx) = cats.iter().position(|c| {
+        app.commands_bank
+            .by_category(c)
+            .iter()
+            .any(|cmd| cmd.name == "ls")
+    }) {
+        app.commands_category_index = idx;
+    }
+    if let Some(idx) = app
+        .filtered_bank_commands()
+        .iter()
+        .position(|c| c.name == "ls")
+    {
+        app.commands_entry_index = idx;
+    }
+    let sizes = app.state.file.prefs.pane_sizes.get_mut(UiScreen::Commands);
+    sizes.detail_width = Some(nova::ui::DETAIL_PANEL_WIDTH_MAX);
+    sizes.list = Some(18);
+    sizes.secondary = Some(16);
+    sizes.tabs = Some(14);
+    app.focus = PanelFocus::CommandsDetail;
+    app.commands_detail_scroll = 0;
+    app.status_message =
+        "Komut Rehberi · ls — SÖZDİZİMİ / ÖRNEKLER sözdizimi renklendirme; Enter çalıştırmaz."
+            .into();
+    dump(&mut app, 170, 44, out.join("syntax-highlight-detail.json"));
 }
 
 fn dump(app: &mut App, width: u16, height: u16, path: PathBuf) {

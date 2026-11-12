@@ -382,6 +382,9 @@ pub struct CommandEntry {
     /// Kısa amaç cümlesi (özetten ayrı; yoksa boş).
     #[serde(default)]
     pub purpose: LocalizedString,
+    /// Sözdizimi şablonu (`ls [OPTION]...`); boşsa ad kullanılır.
+    #[serde(default)]
+    pub syntax: String,
     #[serde(default)]
     pub description: LocalizedString,
     /// Komut düzeyinde yaygın hatalar (örnek `warnings` ile birleşir).

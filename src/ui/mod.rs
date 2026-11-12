@@ -16,8 +16,10 @@
 
 pub mod guide_detail;
 pub mod modal;
+pub mod syntax;
 pub mod theme;
 
+pub use syntax::{highlight_command_line, highlight_shell, highlight_shell_prefixed};
 pub use theme::{heading_caps, ThemePalette, UiTheme};
 
 use crate::app::{App, PanelFocus};
@@ -1316,265 +1318,300 @@ fn draw_commands_list(f: &mut Frame, app: &App, area: Rect) {
     let lang = app.ui_lang();
     let lang_id = lang.id();
     let searching = !app.search_query.is_empty();
-    let (title, items): (String, Vec<ListItem>) = if app.commands_mode
-        == CommandsBrowseMode::ServerSecurity
-    {
-        let steps = app.filtered_checklist_steps();
-        let items = if steps.is_empty() {
-            vec![ListItem::new(Span::styled(
-                lang.t(Msg::EmptyCommandsCategory),
-                Style::default().fg(pal.muted),
-            ))]
-        } else {
-            steps
-                .iter()
-                .enumerate()
-                .map(|(i, step)| {
-                    let selected = i == app.commands_entry_index;
-                    let focused = selected && app.focus == PanelFocus::CommandsList;
-                    let mut style = row_style(pal, selected, focused);
-                    if !selected {
-                        style = style.fg(risk_color(pal, step.risk));
-                    }
-                    let st = app.checklist_step_state(step);
-                    let label = truncate(
-                        &format!(
-                            "{} {} · {}",
-                            st.marker(),
-                            step.title.pick(lang_id),
-                            step.risk.label(lang_id)
-                        ),
-                        area.width.saturating_sub(6) as usize,
-                    );
-                    list_row(selected, label, style)
-                })
-                .collect()
-        };
-        let title = format!(
-            " {} · {} ({}) ",
-            lang.t(Msg::CommandsChecklistList),
-            truncate(&app.checklist_target_display_name(), 18),
-            steps.len()
-        );
-        (title, items)
-    } else if app.commands_mode == CommandsBrowseMode::SystemPath {
-        let ents = app.filtered_local_commands();
-        let items = if ents.is_empty() {
-            vec![ListItem::new(Span::styled(
-                lang.t(Msg::EmptyLocalCommands),
-                Style::default().fg(pal.muted),
-            ))]
-        } else {
-            ents.iter()
-                .enumerate()
-                .map(|(i, ent)| {
-                    let selected = i == app.commands_entry_index;
-                    let focused = selected && app.focus == PanelFocus::CommandsList;
-                    let style = row_style(pal, selected, focused);
-                    let bank = if ent.bank_id.is_some() {
-                        lang.t(Msg::CommandsCatalogMaybeMark)
-                    } else {
-                        lang.t(Msg::CommandsOnlyPathMark)
-                    };
-                    let label = truncate(
-                        &format!("{}{bank}", ent.name),
-                        area.width.saturating_sub(6) as usize,
-                    );
-                    list_row(selected, label, style)
-                })
-                .collect()
-        };
-        let title = if searching {
-            format!(
-                " {} /{} ({}) ",
-                lang.t(Msg::CommandsLocalList),
-                truncate(&app.search_query, 12),
-                ents.len()
-            )
-        } else {
-            format!(" {} ({}) ", lang.t(Msg::CommandsLocalList), ents.len())
-        };
-        (title, items)
-    } else if app.commands_list_shows_tasks() {
-        let tasks = app.filtered_tasks();
-        let items = if tasks.is_empty() {
-            vec![ListItem::new(Span::styled(
-                if searching {
-                    lang.t(Msg::EmptyCommandsSearch)
-                } else {
-                    lang.t(Msg::CommandsEmptyTaskGroup)
-                },
-                Style::default().fg(pal.muted),
-            ))]
-        } else {
-            tasks
-                .iter()
-                .enumerate()
-                .map(|(i, task)| {
-                    let selected = i == app.commands_entry_index;
-                    let focused = selected && app.focus == PanelFocus::CommandsList;
-                    let style = row_style(pal, selected, focused);
-                    let draft = if task.verification.status == VerificationStatus::Draft {
-                        " ·draft"
-                    } else {
-                        ""
-                    };
-                    let label = truncate(
-                        &format!("{}{draft}", task.name.pick(lang_id)),
-                        area.width.saturating_sub(6) as usize,
-                    );
-                    list_row(selected, label, style)
-                })
-                .collect()
-        };
-        let title = if searching {
-            format!(
-                " {} /{} ({}) ",
-                lang.t(Msg::CommandsTasksList),
-                truncate(&app.search_query, 12),
-                tasks.len()
-            )
-        } else {
-            format!(" {} ({}) ", lang.t(Msg::CommandsTasksList), tasks.len())
-        };
-        (title, items)
-    } else if app.commands_list_shows_concepts() {
-        let concepts = app.filtered_concepts();
-        let items = if concepts.is_empty() {
-            vec![ListItem::new(Span::styled(
-                lang.t(Msg::CommandsFilterNoMatch),
-                Style::default().fg(pal.muted),
-            ))]
-        } else {
-            concepts
-                .iter()
-                .enumerate()
-                .map(|(i, concept)| {
-                    let selected = i == app.commands_entry_index;
-                    let focused = selected && app.focus == PanelFocus::CommandsList;
-                    let style = row_style(pal, selected, focused);
-                    let draft = if concept.verification.status == VerificationStatus::Draft {
-                        " ·draft"
-                    } else {
-                        ""
-                    };
-                    let diff = concept
-                        .difficulty
-                        .as_deref()
-                        .map(|d| format!(" [{d}]"))
-                        .unwrap_or_default();
-                    let label = truncate(
-                        &format!("{}{diff}{draft}", concept.title.pick(lang_id)),
-                        area.width.saturating_sub(6) as usize,
-                    );
-                    list_row(selected, label, style)
-                })
-                .collect()
-        };
-        let title = format!(" {} ({}) ", lang.t(Msg::CommandsTopicsList), concepts.len());
-        (title, items)
-    } else {
-        let cmds = app.filtered_bank_commands();
-        let items = if cmds.is_empty() {
-            let empty = if searching {
-                lang.t(Msg::EmptyCommandsSearch)
-            } else if app.commands_filters.is_active() {
-                lang.t(Msg::CommandsFilterNoMatch)
-            } else if app.command_favorite_only {
-                lang.t(Msg::EmptyCommandsFavorites)
-            } else if app.commands_mode == CommandsBrowseMode::Context
-                && app.commands_selected_profiles.is_empty()
-            {
-                lang.t(Msg::CommandsEmptySelectProfile)
-            } else if app.commands_task_drill.is_some() {
-                lang.t(Msg::CommandsEmptyTaskCommands)
+    let (title, items): (String, Vec<ListItem>) =
+        if app.commands_mode == CommandsBrowseMode::ServerSecurity {
+            let steps = app.filtered_checklist_steps();
+            let items = if steps.is_empty() {
+                vec![ListItem::new(Span::styled(
+                    lang.t(Msg::EmptyCommandsCategory),
+                    Style::default().fg(pal.muted),
+                ))]
             } else {
-                lang.t(Msg::EmptyCommandsCategory)
-            };
-            vec![ListItem::new(Span::styled(
-                empty,
-                Style::default().fg(pal.muted),
-            ))]
-        } else {
-            cmds.iter()
-                .enumerate()
-                .map(|(i, cmd)| {
-                    let selected = i == app.commands_entry_index;
-                    let focused = selected && app.focus == PanelFocus::CommandsList;
-                    let style = row_style(pal, selected, focused);
-                    let fav = if app.is_command_favorite(&cmd.id) {
-                        "★"
-                    } else {
-                        " "
-                    };
-                    let draft = if cmd.verification.status == VerificationStatus::Draft {
-                        "·draft"
-                    } else {
-                        ""
-                    };
-                    let cat = if searching
-                        || matches!(
-                            app.commands_mode,
-                            CommandsBrowseMode::Start | CommandsBrowseMode::Context
-                        )
-                        || app.commands_task_drill.is_some()
-                    {
-                        format!(" [{}]", lang.bank_category(&cmd.category))
-                    } else {
-                        String::new()
-                    };
-                    // Seçili: dolu cyan çubuk. Değil: cyan komut + outlined risk pill.
-                    if focused || selected {
+                steps
+                    .iter()
+                    .enumerate()
+                    .map(|(i, step)| {
+                        let selected = i == app.commands_entry_index;
+                        let focused = selected && app.focus == PanelFocus::CommandsList;
+                        let mut style = row_style(pal, selected, focused);
+                        if !selected {
+                            style = style.fg(risk_color(pal, step.risk));
+                        }
+                        let st = app.checklist_step_state(step);
                         let label = truncate(
-                            &format!("{fav}{}{draft}{cat}", cmd.name),
+                            &format!(
+                                "{} {} · {}",
+                                st.marker(),
+                                step.title.pick(lang_id),
+                                step.risk.label(lang_id)
+                            ),
                             area.width.saturating_sub(6) as usize,
                         );
                         list_row(selected, label, style)
-                    } else {
-                        let mark = "  ";
-                        let name = truncate(
-                            &format!("{fav}{}", cmd.name),
-                            area.width.saturating_sub(14) as usize,
-                        );
-                        let name_style = if matches!(
-                            cmd.risk,
-                            crate::commands::RiskLevel::Dangerous
-                                | crate::commands::RiskLevel::Destructive
-                        ) {
-                            Style::default().fg(pal.warn).add_modifier(Modifier::BOLD)
-                        } else {
-                            Style::default().fg(pal.accent).add_modifier(Modifier::BOLD)
-                        };
-                        ListItem::new(Line::from(vec![
-                            Span::styled(mark.to_string(), style),
-                            Span::styled(name, name_style),
-                            Span::raw(" "),
-                            pal.pill(cmd.risk.label(lang_id), pal.risk_color(cmd.risk)),
-                            Span::styled(format!("{draft}{cat}"), Style::default().fg(pal.muted)),
-                        ]))
-                    }
-                })
-                .collect()
-        };
-        let list_title = match app.commands_mode {
-            CommandsBrowseMode::Start => lang.t(Msg::CommandsLearningList),
-            CommandsBrowseMode::Context => lang.t(Msg::CommandsContextList),
-            CommandsBrowseMode::ByTask => lang.t(Msg::CommandsRelatedList),
-            _ => lang.t(Msg::CommandsList),
-        };
-        let mut title = format!(" {list_title} ({}) ", cmds.len());
-        if app.command_favorite_only {
-            title = format!(" {list_title} ★ ");
-        }
-        if searching {
-            title = format!(
-                " {list_title} /{} ({}) ",
-                truncate(&app.search_query, 12),
-                cmds.len()
+                    })
+                    .collect()
+            };
+            let title = format!(
+                " {} · {} ({}) ",
+                lang.t(Msg::CommandsChecklistList),
+                truncate(&app.checklist_target_display_name(), 18),
+                steps.len()
             );
-        }
-        (title, items)
-    };
+            (title, items)
+        } else if app.commands_mode == CommandsBrowseMode::SystemPath {
+            let ents = app.filtered_local_commands();
+            let items = if ents.is_empty() {
+                vec![ListItem::new(Span::styled(
+                    lang.t(Msg::EmptyLocalCommands),
+                    Style::default().fg(pal.muted),
+                ))]
+            } else {
+                ents.iter()
+                    .enumerate()
+                    .map(|(i, ent)| {
+                        let selected = i == app.commands_entry_index;
+                        let focused = selected && app.focus == PanelFocus::CommandsList;
+                        let style = row_style(pal, selected, focused);
+                        let bank = if ent.bank_id.is_some() {
+                            lang.t(Msg::CommandsCatalogMaybeMark)
+                        } else {
+                            lang.t(Msg::CommandsOnlyPathMark)
+                        };
+                        let label = truncate(
+                            &format!("{}{bank}", ent.name),
+                            area.width.saturating_sub(6) as usize,
+                        );
+                        list_row(selected, label, style)
+                    })
+                    .collect()
+            };
+            let title = if searching {
+                format!(
+                    " {} /{} ({}) ",
+                    lang.t(Msg::CommandsLocalList),
+                    truncate(&app.search_query, 12),
+                    ents.len()
+                )
+            } else {
+                format!(" {} ({}) ", lang.t(Msg::CommandsLocalList), ents.len())
+            };
+            (title, items)
+        } else if app.commands_list_shows_tasks() {
+            let tasks = app.filtered_tasks();
+            let items = if tasks.is_empty() {
+                vec![ListItem::new(Span::styled(
+                    if searching {
+                        lang.t(Msg::EmptyCommandsSearch)
+                    } else {
+                        lang.t(Msg::CommandsEmptyTaskGroup)
+                    },
+                    Style::default().fg(pal.muted),
+                ))]
+            } else {
+                tasks
+                    .iter()
+                    .enumerate()
+                    .map(|(i, task)| {
+                        let selected = i == app.commands_entry_index;
+                        let focused = selected && app.focus == PanelFocus::CommandsList;
+                        let style = row_style(pal, selected, focused);
+                        let draft = if task.verification.status == VerificationStatus::Draft {
+                            " ·draft"
+                        } else {
+                            ""
+                        };
+                        let label = truncate(
+                            &format!("{}{draft}", task.name.pick(lang_id)),
+                            area.width.saturating_sub(6) as usize,
+                        );
+                        list_row(selected, label, style)
+                    })
+                    .collect()
+            };
+            let title = if searching {
+                format!(
+                    " {} /{} ({}) ",
+                    lang.t(Msg::CommandsTasksList),
+                    truncate(&app.search_query, 12),
+                    tasks.len()
+                )
+            } else {
+                format!(" {} ({}) ", lang.t(Msg::CommandsTasksList), tasks.len())
+            };
+            (title, items)
+        } else if app.commands_list_shows_concepts() {
+            let concepts = app.filtered_concepts();
+            let items = if concepts.is_empty() {
+                vec![ListItem::new(Span::styled(
+                    lang.t(Msg::CommandsFilterNoMatch),
+                    Style::default().fg(pal.muted),
+                ))]
+            } else {
+                concepts
+                    .iter()
+                    .enumerate()
+                    .map(|(i, concept)| {
+                        let selected = i == app.commands_entry_index;
+                        let focused = selected && app.focus == PanelFocus::CommandsList;
+                        let style = row_style(pal, selected, focused);
+                        let draft = if concept.verification.status == VerificationStatus::Draft {
+                            " ·draft"
+                        } else {
+                            ""
+                        };
+                        let diff = concept
+                            .difficulty
+                            .as_deref()
+                            .map(|d| format!(" [{d}]"))
+                            .unwrap_or_default();
+                        let label = truncate(
+                            &format!("{}{diff}{draft}", concept.title.pick(lang_id)),
+                            area.width.saturating_sub(6) as usize,
+                        );
+                        list_row(selected, label, style)
+                    })
+                    .collect()
+            };
+            let title = format!(" {} ({}) ", lang.t(Msg::CommandsTopicsList), concepts.len());
+            (title, items)
+        } else {
+            let cmds = app.filtered_bank_commands();
+            let items = if cmds.is_empty() {
+                let empty = if searching {
+                    lang.t(Msg::EmptyCommandsSearch)
+                } else if app.commands_filters.is_active() {
+                    lang.t(Msg::CommandsFilterNoMatch)
+                } else if app.command_favorite_only {
+                    lang.t(Msg::EmptyCommandsFavorites)
+                } else if app.commands_mode == CommandsBrowseMode::Context
+                    && app.commands_selected_profiles.is_empty()
+                {
+                    lang.t(Msg::CommandsEmptySelectProfile)
+                } else if app.commands_task_drill.is_some() {
+                    lang.t(Msg::CommandsEmptyTaskCommands)
+                } else {
+                    lang.t(Msg::EmptyCommandsCategory)
+                };
+                vec![ListItem::new(Span::styled(
+                    empty,
+                    Style::default().fg(pal.muted),
+                ))]
+            } else {
+                cmds.iter()
+                    .enumerate()
+                    .map(|(i, cmd)| {
+                        let selected = i == app.commands_entry_index;
+                        let focused = selected && app.focus == PanelFocus::CommandsList;
+                        let style = row_style(pal, selected, focused);
+                        let fav = if app.is_command_favorite(&cmd.id) {
+                            "★"
+                        } else {
+                            " "
+                        };
+                        let draft = if cmd.verification.status == VerificationStatus::Draft {
+                            "·draft"
+                        } else {
+                            ""
+                        };
+                        let cat = if searching
+                            || matches!(
+                                app.commands_mode,
+                                CommandsBrowseMode::Start | CommandsBrowseMode::Context
+                            )
+                            || app.commands_task_drill.is_some()
+                        {
+                            format!(" [{}]", lang.bank_category(&cmd.category))
+                        } else {
+                            String::new()
+                        };
+                        // Seçili: dolu cyan çubuk. Değil: cyan komut + ÖRNEK sözdizimi + risk pill.
+                        let example = cmd
+                            .examples
+                            .iter()
+                            .min_by_key(|ex| {
+                                ex.difficulty
+                                    .unwrap_or(crate::commands::LearningLevel::Unspecified)
+                                    .sort_key()
+                            })
+                            .map(|ex| ex.command.as_str())
+                            .unwrap_or("");
+                        let show_example = !example.is_empty() && area.width >= 52;
+                        if focused || selected {
+                            let label = if show_example {
+                                let budget = area.width.saturating_sub(8) as usize;
+                                let name_bit = truncate(&format!("{fav}{}", cmd.name), 12);
+                                let rest = budget.saturating_sub(name_bit.chars().count() + 3);
+                                let ex_bit = truncate(&format!("$ {example}"), rest.max(8));
+                                format!("{name_bit}  {ex_bit}{draft}{cat}")
+                            } else {
+                                format!("{fav}{}{draft}{cat}", cmd.name)
+                            };
+                            list_row(
+                                selected,
+                                truncate(&label, area.width.saturating_sub(6) as usize),
+                                style,
+                            )
+                        } else {
+                            let mark = "  ";
+                            let name_budget = if show_example { 14 } else { 18 };
+                            let name = truncate(&format!("{fav}{}", cmd.name), name_budget);
+                            let name_style = if matches!(
+                                cmd.risk,
+                                crate::commands::RiskLevel::Dangerous
+                                    | crate::commands::RiskLevel::Destructive
+                            ) {
+                                Style::default().fg(pal.warn).add_modifier(Modifier::BOLD)
+                            } else {
+                                Style::default().fg(pal.accent).add_modifier(Modifier::BOLD)
+                            };
+                            let mut spans = vec![
+                                Span::styled(mark.to_string(), style),
+                                Span::styled(name, name_style),
+                            ];
+                            if show_example {
+                                spans.push(Span::raw("  "));
+                                let used = spans
+                                    .iter()
+                                    .map(|s| s.content.chars().count())
+                                    .sum::<usize>()
+                                    + 10; // pill approx
+                                let ex_w = (area.width as usize)
+                                    .saturating_sub(used)
+                                    .saturating_sub(2)
+                                    .max(8);
+                                let ex_line = truncate(&format!("$ {example}"), ex_w);
+                                spans.extend(highlight_command_line(&ex_line, pal));
+                            }
+                            spans.push(Span::raw(" "));
+                            spans.push(pal.pill(cmd.risk.label(lang_id), pal.risk_color(cmd.risk)));
+                            spans.push(Span::styled(
+                                format!("{draft}{cat}"),
+                                Style::default().fg(pal.muted),
+                            ));
+                            ListItem::new(Line::from(spans))
+                        }
+                    })
+                    .collect()
+            };
+            let list_title = match app.commands_mode {
+                CommandsBrowseMode::Start => lang.t(Msg::CommandsLearningList),
+                CommandsBrowseMode::Context => lang.t(Msg::CommandsContextList),
+                CommandsBrowseMode::ByTask => lang.t(Msg::CommandsRelatedList),
+                _ => lang.t(Msg::CommandsList),
+            };
+            let mut title = format!(" {list_title} ({}) ", cmds.len());
+            if app.command_favorite_only {
+                title = format!(" {list_title} ★ ");
+            }
+            if searching {
+                title = format!(
+                    " {list_title} /{} ({}) ",
+                    truncate(&app.search_query, 12),
+                    cmds.len()
+                );
+            }
+            (title, items)
+        };
     let border = pal.border_style(app.focus == PanelFocus::CommandsList);
     let list = List::new(items)
         .block(
@@ -2354,10 +2391,7 @@ fn commands_detail_lines(app: &App, wrap_w: usize) -> Vec<Line<'static>> {
                 format!("{}:", lang.t(Msg::CommandsSafeExample)),
                 Style::default().add_modifier(Modifier::BOLD),
             )));
-            lines.push(Line::from(Span::styled(
-                format!("  $ {cmd}"),
-                Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
-            )));
+            lines.push(Line::from(highlight_shell_prefixed("  ", cmd, pal)));
             lines.push(Line::from(vec![
                 Span::raw("  "),
                 Span::styled(
@@ -2590,10 +2624,7 @@ fn checklist_detail_lines(app: &App) -> Vec<Line<'static>> {
             if !title.is_empty() {
                 lines.push(Line::from(format!("  · {title}")));
             }
-            lines.push(Line::from(Span::styled(
-                format!("  $ {}", ex.command),
-                Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
-            )));
+            lines.push(Line::from(highlight_shell_prefixed("  ", &ex.command, pal)));
             if !ex.warnings.is_empty() {
                 for w in &ex.warnings {
                     let text = w.pick(lang_id);
