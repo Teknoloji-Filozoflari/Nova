@@ -12,12 +12,59 @@ use crate::app::App;
 use crate::commands::{CommandEntry, CommandsBrowseMode, LearningLevel};
 use crate::i18n::{commands_mode_label, Msg};
 use crate::ui::syntax::highlight_prompt_line;
-use crate::ui::{truncate, wrap_text};
+use crate::ui::{truncate, wrap_text, PaneWidths};
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
 
 /// Sekme şeridi + filtre satırı + tablo başlığı için ayrılan satır sayısı.
 pub const CHROME_ROWS: usize = 3;
+
+/// Hızlı referans tablosunun ekran yerleşimi.
+///
+/// **Tek kaynak:** hem çizim (`ui::draw`) hem fare eşlemesi (`row_index_at_y`)
+/// bu değerleri kullanır; ayrı hesaplanırsa tıklamalar satır kayar.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TableLayout {
+    /// Tablonun ekrandaki ilk satırı.
+    pub top: u16,
+    /// Tablonun yüksekliği (satır).
+    pub height: u16,
+}
+
+/// Dar düzende üstteki kaynak (mod) panelinin yüksekliği.
+///
+/// Çizim (`draw_commands_content`) ve fare eşlemesi aynı sayıyı kullanır.
+pub fn source_panel_height(panes: &PaneWidths, content_height: u16) -> u16 {
+    panes
+        .secondary_height
+        .min(content_height.saturating_sub(3))
+        .max(3)
+        .min(content_height)
+}
+
+/// Hızlı referans tablosunun yerleşimi.
+///
+/// Geniş terminalde tablo tüm içerik alanını kaplar; dar terminalde mod
+/// panelinin altında başlar.
+pub fn table_layout(
+    content_top: u16,
+    content_height: u16,
+    panes: &PaneWidths,
+    wide: bool,
+) -> TableLayout {
+    if wide {
+        TableLayout {
+            top: content_top,
+            height: content_height,
+        }
+    } else {
+        let src = source_panel_height(panes, content_height);
+        TableLayout {
+            top: content_top.saturating_add(src),
+            height: content_height.saturating_sub(src),
+        }
+    }
+}
 
 /// Tablo sütun genişlikleri.
 #[derive(Debug, Clone, Copy)]
@@ -29,25 +76,44 @@ struct Cols {
     risk: usize,
 }
 
-/// Genişliğe göre sütun payı — daralan panelde önce örnek, sonra komut daralır.
+/// Genişliğe göre sütun payı — **toplam genişlik panel genişliğini aşmaz**.
 ///
-/// Toplam genişlik: seçim işareti (2) + sütunlar + aralar (2'şer) = panel genişliği.
+/// Sıra: önce açıklama sütunu daralır (örnek → komut), sonra rozet sütunları
+/// (seviye → risk). Asgari değerler altında tablo okunmaz ama **taşmaz**.
 fn compute_cols(width: usize) -> Cols {
-    let gap = 2usize;
-    let marker = 2usize;
-    let level = 11usize;
-    let risk = 11usize;
-    let fixed = marker + level + risk + gap * 4;
+    const MARKER: usize = 2; // seçim işareti
+    const GAPS: usize = 8; // sütun arası boşluk (4 × 2)
+    const BASE: usize = MARKER + GAPS;
+    let mut level = 13usize;
+    let mut risk = 13usize;
     let mut cmd = 16usize;
     let mut example = 24usize;
-    // Genişlik sığmıyorsa önce örnek, sonra komut daralt (asla taşma yok).
-    while fixed + cmd + example + 14 > width && example > 10 {
+
+    let total =
+        |cmd: usize, example: usize, level: usize, risk: usize| BASE + cmd + example + level + risk;
+
+    // 1) Açıklama sütunu: en az 14 karakter hedeflenir; gerekirse örnek/komut daralır.
+    while width.saturating_sub(total(cmd, example, level, risk)) < 14 && example > 10 {
         example -= 1;
     }
-    while fixed + cmd + example + 8 > width && cmd > 8 {
+    while width.saturating_sub(total(cmd, example, level, risk)) < 8 && cmd > 8 {
         cmd -= 1;
     }
-    let desc = width.saturating_sub(fixed + cmd + example);
+    // 2) Hâlâ sığmıyorsa rozet sütunları daralır.
+    while total(cmd, example, level, risk) > width && level > 6 {
+        level -= 1;
+    }
+    while total(cmd, example, level, risk) > width && risk > 6 {
+        risk -= 1;
+    }
+    // 3) Son çare: örnek ve komut.
+    while total(cmd, example, level, risk) > width && example > 6 {
+        example -= 1;
+    }
+    while total(cmd, example, level, risk) > width && cmd > 6 {
+        cmd -= 1;
+    }
+    let desc = width.saturating_sub(total(cmd, example, level, risk));
     Cols {
         cmd,
         desc,
@@ -69,50 +135,121 @@ fn tab_label(mode: CommandsBrowseMode, lang: crate::i18n::Language) -> String {
 }
 
 /// Sekme şeridi — aktif sekme cyan + altı çizili.
+///
+/// Satır **panel genişliğini aşmaz**; sığmayan sekmeler çizilmez. Aktif sekme
+/// daima görünür: şeride sığmıyorsa pencere aktif sekmeye kaydırılır ve sol
+/// tarafta `‹` işareti çizilir (daha fazla sekme var).
 fn tab_strip(app: &App, width: usize) -> Line<'static> {
     let pal = app.ui_theme().palette();
     let lang = app.ui_lang();
-    let mut spans: Vec<Span<'static>> = Vec::new();
+    const SEP: &str = " │ ";
+    const SEP_LEN: usize = 3;
+    const MORE: &str = "‹ ";
+    const MORE_LEN: usize = 2;
+
+    let modes = CommandsBrowseMode::ALL;
+    let labels: Vec<String> = modes.iter().map(|m| tab_label(*m, lang)).collect();
+    // Etiketler " Başlangıç " biçiminde çizilir.
+    let item_w: Vec<usize> = labels.iter().map(|l| l.chars().count() + 2).collect();
+    let active_idx = modes
+        .iter()
+        .position(|m| *m == app.commands_mode)
+        .unwrap_or(0);
+
+    // 1) Baştan doldur — sığan sekmeler.
+    let mut start = 0usize;
+    let mut end = 0usize;
     let mut used = 0usize;
-    for mode in CommandsBrowseMode::ALL {
-        let label = tab_label(mode, lang);
-        let active = mode == app.commands_mode;
-        let text = format!(" {label} ");
-        used += text.chars().count();
-        if used > width {
+    for (i, w) in item_w.iter().enumerate() {
+        let add = if i == 0 { *w } else { SEP_LEN + w };
+        if used + add > width {
             break;
+        }
+        used += add;
+        end = i + 1;
+    }
+
+    let mut show_more = false;
+    if active_idx >= end {
+        start = active_idx;
+        end = active_idx + 1;
+        used = item_w[active_idx];
+        while start > 0 {
+            let add = SEP_LEN + item_w[start - 1];
+            let extra = if start - 1 == 0 { 0 } else { MORE_LEN };
+            if used + add + extra > width {
+                break;
+            }
+            used += add;
+            start -= 1;
+        }
+        show_more = start > 0 && used + MORE_LEN <= width;
+        if show_more {
+            used += MORE_LEN;
+        }
+        let mut i = active_idx + 1;
+        while i < item_w.len() && used + SEP_LEN + item_w[i] <= width {
+            used += SEP_LEN + item_w[i];
+            end = i + 1;
+            i += 1;
+        }
+    }
+
+    let mut spans: Vec<Span<'static>> = Vec::new();
+    if show_more {
+        spans.push(Span::styled(
+            MORE.to_string(),
+            Style::default().fg(pal.muted),
+        ));
+    }
+    for (i, label) in labels.iter().enumerate().take(end).skip(start) {
+        let active = i == active_idx;
+        let text = format!(" {label} ");
+        if i > start {
+            spans.push(Span::styled(
+                SEP.to_string(),
+                Style::default().fg(pal.border),
+            ));
         }
         if active {
             spans.push(Span::styled(
-                text.clone(),
+                text,
                 Style::default()
                     .fg(pal.accent)
                     .add_modifier(Modifier::BOLD | Modifier::UNDERLINED),
             ));
         } else {
-            spans.push(Span::styled(text.clone(), Style::default().fg(pal.muted)));
+            spans.push(Span::styled(text, Style::default().fg(pal.muted)));
         }
-        spans.push(Span::styled(" │ ", Style::default().fg(pal.border)));
     }
     Line::from(spans)
 }
 
 /// Filtre satırı — bölüm / seviye / risk + arama; sağda satır sayısı.
+///
+/// Sığmayan parçalar **atlanır** (satır panel genişliğini aşmaz).
 fn filter_row(app: &App, width: usize, count: usize) -> Line<'static> {
     let pal = app.ui_theme().palette();
     let lang = app.ui_lang();
     let lang_id = lang.id();
     let mut spans: Vec<Span<'static>> = Vec::new();
-    let push = |spans: &mut Vec<Span<'static>>, label: &str, value: &str| {
-        spans.push(Span::styled(
-            format!("{label}: "),
-            Style::default().fg(pal.muted),
-        ));
+    let mut used = 0usize;
+
+    // Sırayla dene; sığmayan parça atlanır (süzgeç değeri kaybolmaz).
+    let push_chip = |spans: &mut Vec<Span<'static>>, used: &mut usize, label: &str, value: &str| {
+        let head = format!("{label}: ");
+        let tail = format!("{value} ▾   ");
+        let need = head.chars().count() + tail.chars().count();
+        if *used + need > width {
+            return;
+        }
+        spans.push(Span::styled(head, Style::default().fg(pal.muted)));
         spans.push(Span::styled(
             format!("{value} ▾"),
             Style::default().fg(pal.accent),
         ));
         spans.push(Span::styled("   ", Style::default().fg(pal.muted)));
+        *used += need;
     };
 
     // Bölüm — `None` = tümü.
@@ -120,38 +257,49 @@ fn filter_row(app: &App, width: usize, count: usize) -> Line<'static> {
         Some(cat) => lang.bank_category(cat).to_string(),
         None => lang.t(Msg::CommandsQuickFilterAll).to_string(),
     };
-    push(
+    push_chip(
         &mut spans,
+        &mut used,
         lang.t(Msg::CommandsQuickFilterSection),
         &section,
     );
 
     // Seviye — `Başlangıç+` dahil.
     let level = app.commands_filters.learning.label(lang_id).to_string();
-    push(&mut spans, lang.t(Msg::CommandsQuickFilterLevel), &level);
+    push_chip(
+        &mut spans,
+        &mut used,
+        lang.t(Msg::CommandsQuickFilterLevel),
+        &level,
+    );
 
     // Risk — `None` = tümü.
     let risk = match app.commands_filters.risk {
         Some(r) => r.label(lang_id).to_string(),
         None => lang.t(Msg::CommandsQuickFilterAll).to_string(),
     };
-    push(&mut spans, lang.t(Msg::CommandsQuickFilterRisk), &risk);
+    push_chip(
+        &mut spans,
+        &mut used,
+        lang.t(Msg::CommandsQuickFilterRisk),
+        &risk,
+    );
 
     // Arama ("süz").
-    spans.push(Span::styled(
-        format!("{}: ", lang.t(Msg::CommandsQuickFilterQuery)),
-        Style::default().fg(pal.muted),
-    ));
-    if app.search_query.is_empty() {
-        spans.push(Span::styled(
-            lang.t(Msg::CommandsQuickFilterEmpty).to_string(),
-            Style::default().fg(pal.muted),
-        ));
+    let query = if app.search_query.is_empty() {
+        lang.t(Msg::CommandsQuickFilterEmpty).to_string()
     } else {
-        spans.push(Span::styled(
-            app.search_query.clone(),
-            Style::default().fg(pal.search),
-        ));
+        app.search_query.clone()
+    };
+    let head = format!("{}: ", lang.t(Msg::CommandsQuickFilterQuery));
+    if used + head.chars().count() + query.chars().count() <= width {
+        spans.push(Span::styled(head.clone(), Style::default().fg(pal.muted)));
+        let style = if app.search_query.is_empty() {
+            Style::default().fg(pal.muted)
+        } else {
+            Style::default().fg(pal.search)
+        };
+        spans.push(Span::styled(query.clone(), style));
     }
 
     // Sağda: kaç komut listeleniyor.
@@ -177,8 +325,9 @@ fn header_row(app: &App, cols: Cols) -> Line<'static> {
     let head = Style::default().fg(pal.muted).add_modifier(Modifier::BOLD);
     let mut spans: Vec<Span<'static>> = vec![Span::styled("  ".to_string(), head)];
     let push = |spans: &mut Vec<Span<'static>>, label: &str, width: usize| {
+        // Etiket sütun genişliğine kırpılır — başlık satırı paneli taşırmaz.
         spans.push(Span::styled(
-            format!("{:<width$}", label, width = width),
+            format!("{:<width$}", truncate(label, width), width = width),
             head,
         ));
         spans.push(Span::styled("  ".to_string(), head));
@@ -280,7 +429,11 @@ fn command_row(app: &App, cmd: &CommandEntry, cols: Cols, selected: bool) -> Lin
     };
     let level_text = format!("[{level_label}]");
     spans.push(Span::styled(
-        format!("{:<width$}", level_text, width = cols.level),
+        format!(
+            "{:<width$}",
+            truncate(&level_text, cols.level),
+            width = cols.level
+        ),
         Style::default()
             .fg(pal.level_color(level))
             .add_modifier(Modifier::BOLD),
@@ -293,7 +446,11 @@ fn command_row(app: &App, cmd: &CommandEntry, cols: Cols, selected: bool) -> Lin
     // RİSK — risk rozeti.
     let risk_text = format!("[{}]", cmd.risk.label(lang_id));
     spans.push(Span::styled(
-        format!("{:<width$}", risk_text, width = cols.risk),
+        format!(
+            "{:<width$}",
+            truncate(&risk_text, cols.risk),
+            width = cols.risk
+        ),
         Style::default()
             .fg(pal.risk_color(cmd.risk))
             .add_modifier(Modifier::BOLD),
@@ -316,20 +473,21 @@ pub fn window_start(selected: usize, total: usize, visible: usize) -> usize {
 /// Hızlı referans tablosunda tıklanan satırın **mutlak** indeksi.
 ///
 /// Tablo kenarlıksız ve kendi penceresini kaydırır; `list_index_at_y` yerine
-/// bu eşleme kullanılır.
+/// bu eşleme kullanılır. `table_top` / `table_height` çizimle aynı olmalıdır
+/// ([`table_layout`]).
 pub fn row_index_at_y(
     y: u16,
-    panel_top: u16,
-    panel_height: u16,
+    table_top: u16,
+    table_height: u16,
     selected: usize,
     len: usize,
 ) -> Option<usize> {
     let chrome = CHROME_ROWS as u16;
-    if panel_height <= chrome || len == 0 {
+    if table_height <= chrome || len == 0 {
         return None;
     }
-    let list_top = panel_top.saturating_add(chrome);
-    let visible = panel_height.saturating_sub(chrome) as usize;
+    let list_top = table_top.saturating_add(chrome);
+    let visible = table_height.saturating_sub(chrome) as usize;
     if y < list_top {
         return None;
     }
@@ -340,6 +498,9 @@ pub fn row_index_at_y(
     let idx = window_start(selected, len, visible) + visual;
     (idx < len).then_some(idx)
 }
+
+/// Tablo sütunlarının asgari genişliği — altında tek sütunlu liste çizilir.
+pub const MIN_TABLE_WIDTH: usize = 34;
 
 /// Hızlı referans görünümünün satırları (sekme şeridi + filtre + tablo).
 ///
@@ -361,7 +522,15 @@ pub fn quick_reference_lines(app: &App, width: usize, height: usize) -> Vec<Line
     }
 
     let cols = compute_cols(width);
-    lines.push(header_row(app, cols));
+    if width < MIN_TABLE_WIDTH {
+        // Çok dar panel: tablo sığmaz — tek sütun (ad + özet) çizilir.
+        lines.push(Line::from(Span::styled(
+            app.ui_lang().t(Msg::CommandsQuickColCommand).to_string(),
+            Style::default().fg(pal.muted).add_modifier(Modifier::BOLD),
+        )));
+    } else {
+        lines.push(header_row(app, cols));
+    }
 
     // Görünür pencere — seçili satır ortada kalacak şekilde kaydırılır.
     let visible = height.saturating_sub(CHROME_ROWS);
@@ -371,7 +540,11 @@ pub fn quick_reference_lines(app: &App, width: usize, height: usize) -> Vec<Line
     let selected = app.commands_entry_index.min(cmds.len().saturating_sub(1));
     let start = window_start(selected, cmds.len(), visible);
     for (i, cmd) in cmds.iter().enumerate().skip(start).take(visible) {
-        lines.push(command_row(app, cmd, cols, i == selected));
+        if width < MIN_TABLE_WIDTH {
+            lines.push(simple_row(app, cmd, width, i == selected));
+        } else {
+            lines.push(command_row(app, cmd, cols, i == selected));
+        }
     }
     if cmds.is_empty() {
         lines.push(Line::from(Span::styled(
@@ -380,6 +553,27 @@ pub fn quick_reference_lines(app: &App, width: usize, height: usize) -> Vec<Line
         )));
     }
     lines
+}
+
+/// Çok dar panelde tek satırlık komut satırı — ad + özet.
+fn simple_row(app: &App, cmd: &CommandEntry, width: usize, selected: bool) -> Line<'static> {
+    let pal = app.ui_theme().palette();
+    let lang_id = app.ui_lang().id();
+    let name = truncate(&cmd.name, width.saturating_sub(5).max(4));
+    let rest = width.saturating_sub(name.chars().count() + 5);
+    let summary = truncate(cmd.summary.pick(lang_id), rest);
+    Line::from(vec![
+        Span::styled(
+            if selected { "▸ " } else { "  " },
+            Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            name,
+            Style::default().fg(pal.accent).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(" · ", Style::default().fg(pal.muted)),
+        Span::styled(summary, Style::default().fg(pal.text)),
+    ])
 }
 
 /// Durum satırı metni — tasarımdaki bağlam cümlesi.

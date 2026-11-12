@@ -46,22 +46,51 @@ impl LearningLevelFilter {
         }
     }
 
-    /// Süzgeç satırında görünen etiket (TR/EN).
+    /// Süzgeç satırında görünen etiket (desteklenen 7 dil).
     pub fn label(self, lang: &str) -> &'static str {
-        let en = lang.to_ascii_lowercase().starts_with("en");
-        match (self, en) {
-            (Self::All, false) => "Tümü",
-            (Self::All, true) => "All",
-            (Self::AtLeastBeginner, false) => "Başlangıç+",
-            (Self::AtLeastBeginner, true) => "Beginner+",
-            (Self::Beginner, false) => "Başlangıç",
-            (Self::Beginner, true) => "Beginner",
-            (Self::Intermediate, false) => "Orta",
-            (Self::Intermediate, true) => "Intermediate",
-            (Self::Advanced, false) => "İleri",
-            (Self::Advanced, true) => "Advanced",
-            (Self::Unspecified, false) => "Belirtilmedi",
-            (Self::Unspecified, true) => "Unspecified",
+        match (self, lang.to_ascii_lowercase().as_str()) {
+            (Self::All, "en") => "All",
+            (Self::All, "ru") => "Все",
+            (Self::All, "az") => "Hamısı",
+            (Self::All, "uz") => "Hammasi",
+            (Self::All, "kk") => "Барлығы",
+            (Self::All, "tk") => "Hemmesi",
+            (Self::All, _) => "Tümü",
+            (Self::AtLeastBeginner, "en") => "Beginner+",
+            (Self::AtLeastBeginner, "ru") => "Начальный+",
+            (Self::AtLeastBeginner, "az") => "Başlanğıc+",
+            (Self::AtLeastBeginner, "uz") => "Boshlang'ich+",
+            (Self::AtLeastBeginner, "kk") => "Бастапқы+",
+            (Self::AtLeastBeginner, "tk") => "Başlangyç+",
+            (Self::AtLeastBeginner, _) => "Başlangıç+",
+            (Self::Beginner, "en") => "Beginner",
+            (Self::Beginner, "ru") => "Начальный",
+            (Self::Beginner, "az") => "Başlanğıc",
+            (Self::Beginner, "uz") => "Boshlang'ich",
+            (Self::Beginner, "kk") => "Бастапқы",
+            (Self::Beginner, "tk") => "Başlangyç",
+            (Self::Beginner, _) => "Başlangıç",
+            (Self::Intermediate, "en") => "Intermediate",
+            (Self::Intermediate, "ru") => "Средний",
+            (Self::Intermediate, "az") => "Orta",
+            (Self::Intermediate, "uz") => "O'rta",
+            (Self::Intermediate, "kk") => "Орташа",
+            (Self::Intermediate, "tk") => "Orta",
+            (Self::Intermediate, _) => "Orta",
+            (Self::Advanced, "en") => "Advanced",
+            (Self::Advanced, "ru") => "Продвинутый",
+            (Self::Advanced, "az") => "İrəli",
+            (Self::Advanced, "uz") => "Yuqori",
+            (Self::Advanced, "kk") => "Дамыған",
+            (Self::Advanced, "tk") => "Öňe",
+            (Self::Advanced, _) => "İleri",
+            (Self::Unspecified, "en") => "Unspecified",
+            (Self::Unspecified, "ru") => "Не указан",
+            (Self::Unspecified, "az") => "Təyin edilməyib",
+            (Self::Unspecified, "uz") => "Belgilanmagan",
+            (Self::Unspecified, "kk") => "Көрсетілмеген",
+            (Self::Unspecified, "tk") => "Bellälenmedik",
+            (Self::Unspecified, _) => "Belirtilmedi",
         }
     }
 

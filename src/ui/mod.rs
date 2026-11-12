@@ -330,6 +330,10 @@ pub struct ClickAreas {
     pub actions_top: u16,
     /// AI aksiyon şeridi yüksekliği (yoksa 0).
     pub actions_height: u16,
+    /// Hızlı referans tablosunun ilk satırı (fare eşlemesi).
+    pub commands_quick_top: u16,
+    /// Hızlı referans tablosunun yüksekliği (fare eşlemesi).
+    pub commands_quick_height: u16,
 }
 
 /// Kurulu araçlarda Mağaza ile aynı yan-detay düzeni açılsın mı?
@@ -401,6 +405,10 @@ pub struct ClickAreasInput {
     pub panes: PaneWidths,
     /// Yan-detay eşiği için ikincil sütun sayısı (Mağaza/yerel=1, banka=2).
     pub secondary_cols: u16,
+    /// Komut Rehberi hızlı referans modunda mı? (yan detay açılmaz).
+    pub commands_quick: bool,
+    /// Hızlı referans kart şeridi açık mı?
+    pub commands_quick_card: bool,
 }
 
 /// Terminal boyutuna göre fare tıklama alanlarını hesaplar.
@@ -419,6 +427,8 @@ pub fn click_areas(
         actions_count: 0,
         panes: PaneWidths::default(),
         secondary_cols: 1,
+        commands_quick: false,
+        commands_quick_card: false,
     })
 }
 
@@ -433,6 +443,8 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
         actions_count,
         panes,
         secondary_cols,
+        commands_quick,
+        commands_quick_card,
     } = input;
     let (w, h) = size;
     let wide = w >= WIDE_MIN_WIDTH;
@@ -440,9 +452,11 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
     let store_detail_side =
         store_tab && wide && w >= detail_side_min_width(panes.tabs, panes.secondary, 1);
     // secondary_cols==2 ⇒ Mod+Grup; yan detay max-3 kuralını bozar.
+    // Hızlı referansta yan detay hiç açılmaz (tablo birincil görünüm).
     let commands_detail_side = commands_tab
         && wide
         && secondary_cols < 2
+        && !commands_quick
         && w >= detail_side_min_width(panes.tabs, panes.secondary, secondary_cols);
     let show_detail = w >= MEDIUM_MIN_WIDTH && h >= 10;
     let tall = h >= TALL_MIN_HEIGHT;
@@ -461,6 +475,9 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
             }
         } else if commands_tab {
             if commands_detail_side {
+                0
+            } else if commands_quick && !commands_quick_card {
+                // Kart kapalı: tablo tüm alanı kaplar.
                 0
             } else {
                 panes
@@ -548,6 +565,8 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
         .secondary_height
         .min(content_height.saturating_sub(3))
         .max(STORE_CAT_HEIGHT_MIN);
+    // Hızlı referans tablosunun ekran yerleşimi — çizimle aynı hesap.
+    let quick_layout = quick_reference::table_layout(content_top, content_height, &panes, wide);
     ClickAreas {
         content_top,
         content_height,
@@ -573,6 +592,8 @@ pub fn click_areas_ex(input: ClickAreasInput) -> ClickAreas {
         tool_detail_side,
         actions_top,
         actions_height: actions_h,
+        commands_quick_top: quick_layout.top,
+        commands_quick_height: quick_layout.height,
     }
 }
 
@@ -639,7 +660,12 @@ const _: () = assert!(SECONDARY_PANEL_WIDTH_DEFAULT > SECONDARY_PANEL_WIDTH_MIN)
 const _: () = assert!(LIST_PANEL_WIDTH_DEFAULT >= LIST_PANEL_WIDTH_MIN);
 
 /// Metni en fazla `max` karakter olacak şekilde keser (UTF-8 güvenli).
+///
+/// `max == 0` → boş metin (sütun genişliği sıfırsa hücre boş kalır).
 pub fn truncate(text: &str, max: usize) -> String {
+    if max == 0 {
+        return String::new();
+    }
     if text.chars().count() <= max {
         return text.to_string();
     }
@@ -815,6 +841,10 @@ pub fn draw(f: &mut Frame, app: &App) {
         && area.width >= detail_side_min_width(panes.tabs, panes.secondary, 1);
     // secondary_cols==2 ⇒ Mod+Grup görünür; yan detay 4. panel olur → kapalı.
     let cmd_cols = app.pane_secondary_cols();
+    // Hızlı referans: tablo birincil görünüm — yan detay açılmaz, kart
+    // alt şeritte **açılınca** görünür (tablo tam yükseklikte kalır).
+    let commands_quick = app.commands_tab && app.commands_mode.is_quick_reference();
+    let commands_quick_card = commands_quick && app.commands_quick_card;
     let commands_detail_side = app.commands_tab
         && wide
         && cmd_cols < 2
@@ -841,6 +871,9 @@ pub fn draw(f: &mut Frame, app: &App) {
             }
         } else if app.commands_tab {
             if commands_detail_side {
+                0
+            } else if commands_quick && !commands_quick_card {
+                // Kart kapalı: tablo tüm alanı kaplar.
                 0
             } else {
                 panes.detail_height.min(
@@ -1170,10 +1203,8 @@ fn draw_commands_content(f: &mut Frame, app: &App, area: Rect, wide: bool, panes
             draw_commands_list(f, app, panels[2]);
         }
     } else {
-        let src_h = panes
-            .secondary_height
-            .min(area.height.saturating_sub(3))
-            .max(3);
+        // Kaynak (mod) paneli üstte; fare eşlemesiyle aynı yükseklik hesabı.
+        let src_h = quick_reference::source_panel_height(&panes, area.height);
         let panels = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(src_h), Constraint::Min(3)])
@@ -3851,6 +3882,8 @@ mod tests {
             actions_count: 0,
             panes: PaneWidths::default(),
             secondary_cols: 1,
+            commands_quick: false,
+            commands_quick_card: false,
         });
         let with_actions = click_areas_ex(ClickAreasInput {
             size: (120, 30),
@@ -3861,6 +3894,8 @@ mod tests {
             actions_count: 4,
             panes: PaneWidths::default(),
             secondary_cols: 1,
+            commands_quick: false,
+            commands_quick_card: false,
         });
         assert!(plain.tool_detail_side);
         assert!(with_actions.tool_detail_side);
@@ -3891,6 +3926,8 @@ mod tests {
             actions_count: 0,
             panes: PaneWidths::default(),
             secondary_cols: 1,
+            commands_quick: false,
+            commands_quick_card: false,
         });
         assert_eq!(
             mid.tools_end_x,
@@ -3909,6 +3946,8 @@ mod tests {
             actions_count: 0,
             panes: store_panes,
             secondary_cols: 1,
+            commands_quick: false,
+            commands_quick_card: false,
         });
         assert_eq!(store.category_end_x, CATEGORY_PANEL_WIDTH);
     }

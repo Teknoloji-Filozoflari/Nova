@@ -219,6 +219,11 @@ pub struct App {
     /// Hızlı referans modunda grup sütunu yoktur; bölüm süzgeci kendi
     /// alanında tutulur ve `b` tuşuyla döngülenir.
     pub commands_quick_category: Option<String>,
+    /// Hızlı referansta komut kartı alt şeridi açık mı?
+    ///
+    /// Varsayılan kapalı: tablo tüm içerik alanını kaplar. `Enter` kartı
+    /// açar/kapatır (tasarım-1 kartı tasarım-2 tablosunun üstüne gelir).
+    pub commands_quick_card: bool,
     /// Host OS/distro varsayılanı bir kez uygulandı mı? (kullanıcı `x` ile temizleyebilir).
     pub commands_host_filter_seeded: bool,
     /// Sunucu güvenlik checklist ilerleme hedefi (`local`, host etiketi, …).
@@ -441,6 +446,7 @@ impl App {
             commands_guide_committed: false,
             commands_filters: commands::CommandsFilters::default(),
             commands_quick_category: None,
+            commands_quick_card: false,
             commands_host_filter_seeded: false,
             checklist_target,
             commands_detail_scroll: 0,
@@ -599,6 +605,8 @@ impl App {
             actions_count,
             panes,
             secondary_cols: self.pane_secondary_cols(),
+            commands_quick: self.commands_tab && self.commands_mode.is_quick_reference(),
+            commands_quick_card: self.commands_quick_card,
         });
 
         match mouse.kind {
@@ -751,11 +759,12 @@ impl App {
                 let n = self.commands_list_len();
                 let row = if self.commands_mode.is_quick_reference() {
                     // Hızlı referans: tablo kenarlıksız ve kendi penceresini
-                    // kaydırır — genel liste eşlemesi kullanılmaz.
+                    // kaydırır — genel liste eşlemesi kullanılmaz. Tablo
+                    // yerleşimi çizimle aynı hesaptan gelir.
                     crate::ui::quick_reference::row_index_at_y(
                         y,
-                        panel_top,
-                        panel_h,
+                        areas.commands_quick_top,
+                        areas.commands_quick_height,
                         self.commands_entry_index,
                         n,
                     )
@@ -775,8 +784,8 @@ impl App {
             let row = if self.commands_mode.is_quick_reference() {
                 crate::ui::quick_reference::row_index_at_y(
                     y,
-                    panel_top,
-                    panel_h,
+                    areas.commands_quick_top,
+                    areas.commands_quick_height,
                     self.commands_entry_index,
                     n,
                 )
@@ -1029,6 +1038,9 @@ impl App {
                         .ui_lang()
                         .t(crate::i18n::Msg::CommandsStatusTaskBack)
                         .to_string();
+                } else if self.commands_tab && self.commands_quick_card {
+                    // Hızlı referans: kart şeridini kapat, tabloya dön.
+                    self.close_quick_reference_card();
                 } else if self.commands_tab && self.commands_guide_committed {
                     // Progressive breadcrumb: grup/liste seviyesinden moda geri.
                     self.commands_guide_committed = false;
@@ -1813,6 +1825,10 @@ impl App {
         self.commands_task_drill = None;
         self.commands_guide_committed = false;
         self.commands_detail_scroll = 0;
+        // Kart şeridi yalnız hızlı referansta geçerli.
+        if mode != CommandsBrowseMode::QuickReference {
+            self.commands_quick_card = false;
+        }
         if mode == CommandsBrowseMode::SystemPath {
             self.refresh_local_commands_stub();
         }
@@ -2310,6 +2326,36 @@ impl App {
         );
     }
 
+    /// Hızlı referans kart şeridini aç/kapat (Enter).
+    ///
+    /// Tablo birincil görünümdür; kart açılınca tablo küçülür, komutun
+    /// tam kartı (sözdizimi · seçenekler · örnekler · ipucu) alt şeritte
+    /// çizilir.
+    pub fn toggle_quick_reference_card(&mut self) {
+        if self.commands_quick_card {
+            self.close_quick_reference_card();
+        } else {
+            self.commands_quick_card = true;
+            self.commands_detail_scroll = 0;
+            self.focus = PanelFocus::CommandsDetail;
+            self.status_message = self
+                .ui_lang()
+                .t(crate::i18n::Msg::CommandsQuickCardOpen)
+                .to_string();
+        }
+    }
+
+    /// Hızlı referans kart şeridini kapat (Esc) — tabloya dön.
+    pub fn close_quick_reference_card(&mut self) {
+        self.commands_quick_card = false;
+        self.commands_detail_scroll = 0;
+        self.focus = PanelFocus::CommandsList;
+        self.status_message = self
+            .ui_lang()
+            .t(crate::i18n::Msg::CommandsQuickCardClose)
+            .to_string();
+    }
+
     /// Seçili görev kategorisindeki görevler (arama: tüm görevler).
     pub fn filtered_tasks(&self) -> Vec<&commands::TaskEntry> {
         let cats = self.commands_bank.task_categories();
@@ -2511,6 +2557,11 @@ impl App {
             // yan detay ayrı `*_side_active` kontrolleriyle eklenir.
             return false;
         };
+        // Hızlı referansta kart şeridi yalnız açıkken görünür.
+        if self.commands_tab && self.commands_mode.is_quick_reference() && !self.commands_quick_card
+        {
+            return false;
+        }
         w >= crate::ui::MEDIUM_MIN_WIDTH && h >= 10
     }
 
@@ -3034,6 +3085,11 @@ impl App {
 
     /// Liste satırında Enter: görev drill veya bilgi (asla çalıştırmaz).
     fn activate_commands_list_item(&mut self) {
+        if self.commands_mode == CommandsBrowseMode::QuickReference {
+            // Hızlı referansta Enter kart şeridini açar/kapatır (tasarım-1).
+            self.toggle_quick_reference_card();
+            return;
+        }
         if self.commands_mode == CommandsBrowseMode::ServerSecurity {
             let steps = self.filtered_checklist_steps();
             let Some(step) =
@@ -6614,7 +6670,8 @@ mod tests {
     /// Hızlı referans tablosunda fare tıklaması doğru satırı seçmeli.
     ///
     /// Tablo kenarlıksız ve kendi penceresini kaydırır; genel liste eşlemesi
-    /// (kenarlık + ratatui kaydırması) burada geçerli değildir.
+    /// (kenarlık + ratatui kaydırması) burada geçerli değildir. Eşleme,
+    /// çizimle **aynı** tablo yerleşimini kullanmalıdır.
     #[test]
     fn mouse_click_in_quick_reference_selects_table_row() {
         let mut app = sample_app();
@@ -6623,12 +6680,50 @@ mod tests {
         app.set_commands_mode(CommandsBrowseMode::QuickReference);
         app.commands_filters.clear();
         app.focus = PanelFocus::CommandsList;
-        let areas = crate::ui::click_areas((170, 34), false, false, false);
+        let areas = quick_click_areas(&app, (170, 34));
         // Sekme şeridi + süzgeç satırı + başlık → ilk tablo satırı 3 satır aşağıda.
-        let y = areas.content_top + crate::ui::quick_reference::CHROME_ROWS as u16 + 2;
+        let y = areas.commands_quick_top + crate::ui::quick_reference::CHROME_ROWS as u16 + 2;
         app.handle_mouse(mouse_down(120, y)).unwrap();
         assert_eq!(app.focus, PanelFocus::CommandsList);
         assert_eq!(app.commands_entry_index, 2, "tıklanan satır seçilmeli");
+    }
+
+    /// Dar terminalde hızlı referans tablosu mod panelinin **altında** çizilir;
+    /// fare eşlemesi de aynı yeri görmeli (kayma olmamalı).
+    #[test]
+    fn mouse_click_in_narrow_quick_reference_selects_table_row() {
+        let mut app = sample_app();
+        app.terminal_size = Some((60, 30));
+        app.narrow_mode = true;
+        app.select_commands_tab();
+        app.set_commands_mode(CommandsBrowseMode::QuickReference);
+        app.commands_filters.clear();
+        app.focus = PanelFocus::CommandsList;
+        let areas = quick_click_areas(&app, (60, 30));
+        assert!(
+            areas.commands_quick_top > areas.content_top,
+            "dar modda tablo mod panelinin altında olmalı"
+        );
+        let y = areas.commands_quick_top + crate::ui::quick_reference::CHROME_ROWS as u16;
+        app.handle_mouse(mouse_down(20, y)).unwrap();
+        assert_eq!(app.focus, PanelFocus::CommandsList);
+        assert_eq!(app.commands_entry_index, 0, "ilk tablo satırı seçilmeli");
+    }
+
+    /// Hızlı referans fare eşlemesi için tıklama alanları (uygulama ile aynı).
+    fn quick_click_areas(app: &App, size: (u16, u16)) -> crate::ui::ClickAreas {
+        crate::ui::click_areas_ex(crate::ui::ClickAreasInput {
+            size,
+            show_help: app.show_help,
+            store_tab: app.store_tab,
+            commands_tab: app.commands_tab,
+            tool_detail_side: false,
+            actions_count: 0,
+            panes: app.pane_widths(),
+            secondary_cols: app.pane_secondary_cols(),
+            commands_quick: true,
+            commands_quick_card: app.commands_quick_card,
+        })
     }
 
     #[test]

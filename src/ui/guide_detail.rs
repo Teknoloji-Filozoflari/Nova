@@ -743,38 +743,61 @@ pub fn push_example_card(
     wrap_w: usize,
     pal: ThemePalette,
 ) {
-    let inner = wrap_w.saturating_sub(4).max(16);
+    // Kart **dikdörtgendir**: üst kenar, gövde ve alt kenar aynı genişlikte.
+    let card_w = wrap_w.max(16);
     let muted = Style::default().fg(pal.muted);
     let border = Style::default().fg(pal.code_border);
     let panel = Style::default().bg(pal.bg_panel);
 
+    // `╭─ ` + ` ` + ` ─╮` — başlık ve rozetlerin dışında kalan sabit kısım.
+    const CHROME: usize = 7;
+
+    // Rozetler sığmayan kadarı atlanır (rozet = kısa etiket).
+    let badge_room = card_w.saturating_sub(CHROME + 2);
+    let mut badge_texts: Vec<(String, Style)> = Vec::new();
+    let mut badge_w = 0usize;
+    for b in badges {
+        let text = b.content.to_string();
+        let len = text.chars().count();
+        if badge_w + len > badge_room {
+            break;
+        }
+        badge_w += len;
+        badge_texts.push((text, b.style));
+    }
+
+    // Başlık kırpılır; dolgu (─) en az 1 karakter bırakılır.
+    let title_max = card_w
+        .saturating_sub(CHROME + badge_w)
+        .saturating_sub(1)
+        .max(1);
+    let title_text = truncate(title.trim(), title_max);
+    let fill = card_w.saturating_sub(CHROME + badge_w + title_text.chars().count());
+
     // Başlık çubuğu: `╭─ Başlık ───────── [rozet] ─╮`
     let mut head: Vec<Span<'static>> = vec![Span::styled("╭─ ", border.patch(panel))];
-    let title_text = title.trim();
     if !title_text.is_empty() {
         head.push(Span::styled(
-            truncate(title_text, inner.saturating_sub(4)),
+            title_text,
             Style::default().fg(pal.text).patch(panel),
         ));
     }
-    let badge_w: usize = badges.iter().map(|b| b.content.chars().count()).sum();
-    let used = title_text.chars().count().min(inner) + badge_w;
-    let fill = inner.saturating_sub(used + 4).max(1);
     head.push(Span::styled(" ".to_string(), muted.patch(panel)));
     head.push(Span::styled("─".repeat(fill), border.patch(panel)));
-    for b in badges {
-        head.push(Span::styled(b.content.clone(), b.style.patch(panel)));
+    for (text, style) in badge_texts {
+        head.push(Span::styled(text, style.patch(panel)));
     }
     head.push(Span::styled(" ─╮", border.patch(panel)));
     lines.push(Line::from(head));
 
     // Komut satırı — `$` istemi + renkli tokenlar.
+    let body_w = card_w.saturating_sub(2);
     let display = if command.trim_start().starts_with('$') {
         command.trim().to_string()
     } else {
         format!("$ {}", command.trim())
     };
-    for part in wrap_text(&display, inner) {
+    for part in wrap_text(&display, body_w) {
         let mut spans = vec![Span::styled("│ ", border.patch(panel))];
         spans.extend(
             highlight_prompt_line(&part, pal)
@@ -784,7 +807,7 @@ pub fn push_example_card(
         lines.push(Line::from(spans));
     }
     if !explanation.trim().is_empty() {
-        for part in wrap_text(explanation.trim(), inner) {
+        for part in wrap_text(explanation.trim(), body_w) {
             lines.push(Line::from(vec![
                 Span::styled("│ ", border.patch(panel)),
                 Span::styled(part, muted.patch(panel)),
@@ -792,7 +815,7 @@ pub fn push_example_card(
         }
     }
     lines.push(Line::from(Span::styled(
-        format!("╰{}╯", "─".repeat(inner.saturating_sub(1))),
+        format!("╰{}╯", "─".repeat(card_w.saturating_sub(2))),
         border.patch(panel),
     )));
 }
