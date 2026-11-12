@@ -19,7 +19,10 @@ pub mod modal;
 pub mod syntax;
 pub mod theme;
 
-pub use syntax::{highlight_command_line, highlight_shell, highlight_shell_prefixed};
+pub use syntax::{
+    highlight_command_line, highlight_output_line, highlight_prompt_line, highlight_shell,
+    highlight_shell_prefixed, highlight_tip_text,
+};
 pub use theme::{heading_caps, ThemePalette, UiTheme};
 
 use crate::app::{App, PanelFocus};

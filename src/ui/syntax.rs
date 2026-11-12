@@ -1,16 +1,17 @@
 //! Terminal komut satırı sözdizimi renklendirme.
 //!
-//! Mock dili:
-//! - `$` → muted
-//! - komut → cyan (`accent`)
-//! - bayrak / alt-komut / `[seçenekler]` → sarı (`flag`)
-//! - yol / değer / tırnaklı / `[dizin]` → yeşil (`path`)
+//! Mock `$` kuralları:
+//! - **Girdi** satırında `$` muted (yalnızca istem); ardından cyan cmd · gold flag · green path
+//! - **Çıktı** satırında `$` yok — tüm satır muted
+//! - **Sözdizimi** kutusunda `$` yok — çıplak `ls [seçenekler] [dizin]`
+//! - **İpucu** gövdesinde satır-içi snippet: `$` yok (prompt satırı değilse); cmd/flag/path boyanır
 
 use crate::ui::theme::ThemePalette;
 use ratatui::style::{Modifier, Style};
 use ratatui::text::Span;
 
-/// Tek bir kabuk satırını (`$ cmd -f arg`) Span listesine boyar.
+/// Tek bir kabuk satırını boyar. Satırda zaten `$` varsa muted prompt olarak bırakır;
+/// yoksa **eklemez** (sözdizimi / satır-içi snippet).
 pub fn highlight_shell(line: &str, pal: ThemePalette) -> Vec<Span<'static>> {
     highlight_shell_styled(line, pal, Style::default())
 }
@@ -31,6 +32,12 @@ pub fn highlight_shell_styled(line: &str, pal: ThemePalette, panel: Style) -> Ve
     let mut spans = Vec::new();
     if lead > 0 {
         spans.push(Span::styled(" ".repeat(lead), prompt));
+    }
+
+    // Çıktı satırı (ls listesi, ağaç, …): `$` yok, tamamen muted.
+    if looks_like_output(trimmed) {
+        spans.push(Span::styled(trimmed.to_string(), prompt));
+        return spans;
     }
 
     let mut body = trimmed;
@@ -59,17 +66,41 @@ pub fn highlight_shell_styled(line: &str, pal: ThemePalette, panel: Style) -> Ve
     spans
 }
 
-/// `$ cmd …` önekli boyalı satır (liste ÖRNEK / detay örnekleri).
-pub fn highlight_command_line(line: &str, pal: ThemePalette) -> Vec<Span<'static>> {
-    let cmd = if line.trim_start().starts_with('$') {
-        line.trim().to_string()
+/// Örnek **girdi** satırı: `$` yoksa ekler, sonra boyar.
+pub fn highlight_prompt_line(line: &str, pal: ThemePalette) -> Vec<Span<'static>> {
+    let trimmed = line.trim();
+    if trimmed.is_empty() {
+        return Vec::new();
+    }
+    // Çıktıya yanlışlıkla prompt basma.
+    if looks_like_output(trimmed) && !trimmed.starts_with('$') {
+        return highlight_output_line(trimmed, pal);
+    }
+    let cmd = if trimmed.starts_with("$ ") || trimmed == "$" {
+        trimmed.to_string()
+    } else if let Some(rest) = trimmed.strip_prefix('$') {
+        // `$ls` → `$ ls`
+        format!("$ {}", rest.trim_start())
     } else {
-        format!("$ {line}")
+        format!("$ {trimmed}")
     };
     highlight_shell(&cmd, pal)
 }
 
-/// Satır başına önek (ör. `"  "`) ile boyalı kabuk satırı.
+/// Geriye dönük ad — [`highlight_prompt_line`].
+pub fn highlight_command_line(line: &str, pal: ThemePalette) -> Vec<Span<'static>> {
+    highlight_prompt_line(line, pal)
+}
+
+/// Örnek **çıktı** satırı: `$` yok, muted.
+pub fn highlight_output_line(line: &str, pal: ThemePalette) -> Vec<Span<'static>> {
+    vec![Span::styled(
+        line.to_string(),
+        Style::default().fg(pal.muted),
+    )]
+}
+
+/// Satır başına önek + prompt girdi satırı (`$` eklenir).
 pub fn highlight_shell_prefixed(prefix: &str, line: &str, pal: ThemePalette) -> Vec<Span<'static>> {
     let mut spans = Vec::new();
     if !prefix.is_empty() {
@@ -78,8 +109,282 @@ pub fn highlight_shell_prefixed(prefix: &str, line: &str, pal: ThemePalette) -> 
             Style::default().fg(pal.muted),
         ));
     }
-    spans.extend(highlight_command_line(line, pal));
+    spans.extend(highlight_prompt_line(line, pal));
     spans
+}
+
+/// İpucu / düzyazı: satır-içi cmd/flag/path boyaması.
+/// `$` yalnızca gerçek istem gibi durduğunda (sonraki token komut/bayrak) muted kalır;
+/// aksi halde eklenmez ve düz metin gibi işlenir.
+pub fn highlight_tip_text(text: &str, pal: ThemePalette, tip: Style) -> Vec<Span<'static>> {
+    let prompt = Style::default().fg(pal.muted);
+    let command = Style::default().fg(pal.accent).add_modifier(Modifier::BOLD);
+    let flag = Style::default().fg(pal.flag);
+    let path = Style::default().fg(pal.path);
+
+    let mut spans = Vec::new();
+    let parts = split_ws_keep(text);
+    let mut i = 0usize;
+    while i < parts.len() {
+        let part = &parts[i];
+        if part.chars().all(char::is_whitespace) {
+            spans.push(Span::styled(part.clone(), tip));
+            i += 1;
+            continue;
+        }
+        // `$` + komut → gerçek prompt
+        if part.as_str() == "$" {
+            let next = parts[i + 1..]
+                .iter()
+                .find(|p| !p.chars().all(char::is_whitespace));
+            if next.is_some_and(|n| is_flag_like(n) || is_command_word(n) || looks_like_value(n)) {
+                spans.push(Span::styled("$".to_string(), prompt));
+                i += 1;
+                // sonraki boşluktan sonra komut beklentisi: bir sonraki non-ws'i komut gibi boya
+                continue;
+            }
+            spans.push(Span::styled(part.clone(), tip));
+            i += 1;
+            continue;
+        }
+        if is_flag_like(part) {
+            spans.push(Span::styled(part.clone(), flag));
+        } else if looks_like_value(part) || is_bracket_placeholder(part) {
+            let style = if is_bracket_placeholder(part) && bracket_is_option(part) {
+                flag
+            } else {
+                path
+            };
+            spans.push(Span::styled(part.clone(), style));
+        } else if is_command_word(part) || next_non_ws_is_flag(&parts, i) {
+            spans.push(Span::styled(part.clone(), command));
+        } else {
+            // Noktalama yapışık olabilir: `ls,` / `kullanın;`
+            let (core, trail) = split_trailing_punct(part);
+            if !core.is_empty()
+                && (is_command_word(core)
+                    || is_flag_like(core)
+                    || looks_like_value(core)
+                    || next_non_ws_is_flag(&parts, i))
+            {
+                if is_flag_like(core) {
+                    spans.push(Span::styled(core.to_string(), flag));
+                } else if looks_like_value(core) {
+                    spans.push(Span::styled(core.to_string(), path));
+                } else {
+                    spans.push(Span::styled(core.to_string(), command));
+                }
+                if !trail.is_empty() {
+                    spans.push(Span::styled(trail.to_string(), tip));
+                }
+            } else {
+                spans.push(Span::styled(part.clone(), tip));
+            }
+        }
+        i += 1;
+    }
+    spans
+}
+
+fn split_ws_keep(s: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut cur = String::new();
+    let mut in_ws = false;
+    let mut first = true;
+    for c in s.chars() {
+        let ws = c.is_whitespace();
+        if first {
+            in_ws = ws;
+            first = false;
+            cur.push(c);
+            continue;
+        }
+        if ws == in_ws {
+            cur.push(c);
+        } else {
+            out.push(std::mem::take(&mut cur));
+            in_ws = ws;
+            cur.push(c);
+        }
+    }
+    if !cur.is_empty() {
+        out.push(cur);
+    }
+    out
+}
+
+fn next_non_ws_is_flag(parts: &[String], i: usize) -> bool {
+    parts[i + 1..]
+        .iter()
+        .find(|p| !p.chars().all(char::is_whitespace))
+        .is_some_and(|p| {
+            let (core, _) = split_trailing_punct(p);
+            is_flag_like(core)
+        })
+}
+
+fn split_trailing_punct(tok: &str) -> (&str, &str) {
+    let trim_at = tok
+        .char_indices()
+        .rev()
+        .take_while(|(_, c)| matches!(c, ',' | ';' | '.' | ':' | '!' | '?' | ')' | ']' | '»' | '"'))
+        .last()
+        .map(|(i, _)| i);
+    match trim_at {
+        Some(i) if i > 0 => (&tok[..i], &tok[i..]),
+        _ => (tok, ""),
+    }
+}
+
+fn looks_like_output(line: &str) -> bool {
+    let t = line.trim_start();
+    if t.is_empty() || t.starts_with('$') {
+        return false;
+    }
+    t.starts_with("total ")
+        || t.starts_with("-rw")
+        || t.starts_with("-r-")
+        || t.starts_with("drw")
+        || t.starts_with("lrw")
+        || t.starts_with("crw")
+        || t.starts_with("brw")
+        || t.starts_with('├')
+        || t.starts_with('└')
+        || t.starts_with('│')
+        || t.starts_with("├──")
+        || t.starts_with("└──")
+}
+
+fn is_command_word(tok: &str) -> bool {
+    const CMDS: &[&str] = &[
+        "ls",
+        "cd",
+        "pwd",
+        "cp",
+        "mv",
+        "rm",
+        "mkdir",
+        "rmdir",
+        "touch",
+        "cat",
+        "head",
+        "tail",
+        "grep",
+        "find",
+        "chmod",
+        "chown",
+        "chgrp",
+        "ln",
+        "tree",
+        "tar",
+        "gzip",
+        "curl",
+        "wget",
+        "ssh",
+        "scp",
+        "systemctl",
+        "journalctl",
+        "docker",
+        "git",
+        "pacman",
+        "apt",
+        "dnf",
+        "brew",
+        "echo",
+        "printf",
+        "which",
+        "whereis",
+        "whoami",
+        "id",
+        "ps",
+        "kill",
+        "top",
+        "htop",
+        "df",
+        "du",
+        "mount",
+        "umount",
+        "lsblk",
+        "ip",
+        "ping",
+        "dig",
+        "host",
+        "nmap",
+        "sudo",
+        "su",
+        "chmod",
+        "tee",
+        "xargs",
+        "sort",
+        "uniq",
+        "wc",
+        "cut",
+        "sed",
+        "awk",
+        "jq",
+        "vim",
+        "nano",
+        "less",
+        "more",
+        "man",
+        "file",
+        "stat",
+        "realpath",
+        "basename",
+        "dirname",
+        "env",
+        "export",
+        "source",
+        "bash",
+        "zsh",
+        "sh",
+        "python",
+        "python3",
+        "node",
+        "npm",
+        "cargo",
+        "rustc",
+        "make",
+        "cmake",
+        "gcc",
+        "clang",
+        "nginx",
+        "systemctl",
+        "service",
+        "crontab",
+        "uname",
+        "hostname",
+        "free",
+        "uptime",
+        "date",
+        "cal",
+        "history",
+        "clear",
+        "reset",
+        "alias",
+        "unalias",
+        "type",
+        "command",
+        "builtin",
+        "hash",
+        "help",
+        "true",
+        "false",
+        "test",
+        "restic",
+        "aws",
+        "terraform",
+        "kubectl",
+        "virsh",
+        "strace",
+        "nft",
+        "mysql",
+        "nix",
+    ];
+    let lower = tok
+        .trim_matches(|c: char| matches!(c, '`' | '"' | '\''))
+        .to_ascii_lowercase();
+    CMDS.contains(&lower.as_str())
 }
 
 fn tokenize(s: &str) -> Vec<String> {
@@ -166,7 +471,6 @@ fn bracket_body(tok: &str) -> &str {
 
 fn bracket_is_option(tok: &str) -> bool {
     let inner = bracket_body(tok).trim().to_ascii_lowercase();
-    // Türkçe 'İ'/'ı' için ekstra kontroller
     let folded = inner
         .replace(['ı', 'İ'], "i")
         .replace('ş', "s")
@@ -204,6 +508,10 @@ fn looks_like_value(tok: &str) -> bool {
         return true;
     }
     if tok.contains('*') || tok.contains('?') {
+        return true;
+    }
+    // gizli dosya / uzantı
+    if tok.starts_with('.') && tok.len() > 1 && !tok[1..].chars().all(|c| c == '.') {
         return true;
     }
     if tok.contains('.') {
@@ -269,55 +577,116 @@ mod tests {
     }
 
     #[test]
-    fn highlights_prompt_command_flag_path() {
+    fn prompt_line_adds_dollar_input_only() {
         let pal = UiTheme::Default.palette();
-        let spans = highlight_shell("$ ls -lh /var/log", pal);
+        let spans = highlight_prompt_line("ls -lh /var/log", pal);
         assert_eq!(text(&spans), "$ ls -lh /var/log");
-        let ls = spans.iter().find(|s| s.content == "ls").unwrap();
-        let flag = spans.iter().find(|s| s.content == "-lh").unwrap();
-        let path = spans.iter().find(|s| s.content == "/var/log").unwrap();
-        assert_eq!(ls.style.fg, Some(pal.accent));
-        assert_eq!(flag.style.fg, Some(pal.flag));
-        assert_eq!(path.style.fg, Some(pal.path));
         assert_eq!(spans[0].style.fg, Some(pal.muted));
+        assert_eq!(
+            spans.iter().find(|s| s.content == "ls").unwrap().style.fg,
+            Some(pal.accent)
+        );
+        assert_eq!(
+            spans.iter().find(|s| s.content == "-lh").unwrap().style.fg,
+            Some(pal.flag)
+        );
+        assert_eq!(
+            spans
+                .iter()
+                .find(|s| s.content == "/var/log")
+                .unwrap()
+                .style
+                .fg,
+            Some(pal.path)
+        );
+    }
+
+    #[test]
+    fn syntax_line_has_no_dollar() {
+        let pal = UiTheme::Default.palette();
+        let spans = highlight_shell("ls [seçenekler] [dizin]", pal);
+        assert!(!text(&spans).starts_with('$'));
+        assert_eq!(
+            spans
+                .iter()
+                .find(|s| s.content.as_ref() == "[seçenekler]")
+                .unwrap()
+                .style
+                .fg,
+            Some(pal.flag)
+        );
+        assert_eq!(
+            spans
+                .iter()
+                .find(|s| s.content.as_ref() == "[dizin]")
+                .unwrap()
+                .style
+                .fg,
+            Some(pal.path)
+        );
+    }
+
+    #[test]
+    fn output_line_never_gets_dollar() {
+        let pal = UiTheme::Default.palette();
+        let out = "-rw-r--r--  1 ahmet dev  4.2K not.txt";
+        let spans = highlight_prompt_line(out, pal);
+        assert!(!text(&spans).contains('$'));
+        assert!(spans.iter().all(|s| s.style.fg == Some(pal.muted)));
+        let tree = highlight_shell("├── proje/", pal);
+        assert!(!text(&tree).starts_with('$'));
+        assert_eq!(tree[0].style.fg, Some(pal.muted));
+    }
+
+    #[test]
+    fn tip_inline_has_no_dollar_but_colors_cmd() {
+        let pal = UiTheme::Default.palette();
+        let tip = Style::default().fg(pal.tip);
+        let spans = highlight_tip_text(
+            "Gizli dosyalar için ls -a kullanın; .bashrc görünür.",
+            pal,
+            tip,
+        );
+        assert!(!text(&spans).contains('$'));
+        assert_eq!(
+            spans.iter().find(|s| s.content == "ls").unwrap().style.fg,
+            Some(pal.accent)
+        );
+        assert_eq!(
+            spans.iter().find(|s| s.content == "-a").unwrap().style.fg,
+            Some(pal.flag)
+        );
+        assert_eq!(
+            spans
+                .iter()
+                .find(|s| s.content == ".bashrc")
+                .unwrap()
+                .style
+                .fg,
+            Some(pal.path)
+        );
     }
 
     #[test]
     fn highlights_quoted_and_subcommand() {
         let pal = UiTheme::Default.palette();
-        let spans = highlight_shell("$ grep -rn \"TODO\" proje/", pal);
-        assert!(text(&spans).contains("\"TODO\""));
+        let spans = highlight_prompt_line("grep -rn \"TODO\" proje/", pal);
+        assert!(text(&spans).starts_with("$ "));
         let q = spans.iter().find(|s| s.content == "\"TODO\"").unwrap();
         assert_eq!(q.style.fg, Some(pal.path));
-        let spans2 = highlight_shell("$ systemctl status ssh", pal);
-        assert_eq!(text(&spans2), "$ systemctl status ssh");
-        let status = spans2.iter().find(|s| s.content == "status").unwrap();
-        let ssh = spans2.iter().find(|s| s.content == "ssh").unwrap();
-        assert_eq!(status.style.fg, Some(pal.flag));
-        assert_eq!(ssh.style.fg, Some(pal.path));
-    }
-
-    #[test]
-    fn highlights_syntax_placeholders() {
-        let pal = UiTheme::Default.palette();
-        let spans = highlight_shell("ls [seçenekler] [dizin]", pal);
-        let opt = spans
-            .iter()
-            .find(|s| s.content.as_ref() == "[seçenekler]")
-            .unwrap();
-        let dir = spans
-            .iter()
-            .find(|s| s.content.as_ref() == "[dizin]")
-            .unwrap();
-        assert_eq!(opt.style.fg, Some(pal.flag));
-        assert_eq!(dir.style.fg, Some(pal.path));
-        let spans2 = highlight_shell("ls [OPTION]... [FILE]...", pal);
-        let opt2 = spans2
-            .iter()
-            .find(|s| s.content.contains("OPTION"))
-            .unwrap();
-        let file = spans2.iter().find(|s| s.content.contains("FILE")).unwrap();
-        assert_eq!(opt2.style.fg, Some(pal.flag));
-        assert_eq!(file.style.fg, Some(pal.path));
+        let spans2 = highlight_prompt_line("systemctl status ssh", pal);
+        assert_eq!(
+            spans2
+                .iter()
+                .find(|s| s.content == "status")
+                .unwrap()
+                .style
+                .fg,
+            Some(pal.flag)
+        );
+        assert_eq!(
+            spans2.iter().find(|s| s.content == "ssh").unwrap().style.fg,
+            Some(pal.path)
+        );
     }
 }
