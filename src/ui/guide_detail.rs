@@ -15,10 +15,24 @@ use crate::commands::{
     TopicLearningStep, VerificationStatus,
 };
 use crate::i18n::Msg;
+use crate::ui::syntax::{
+    highlight_output_line, highlight_prompt_line, highlight_shell_styled, highlight_tip_text,
+};
 use crate::ui::theme::{heading_caps, ThemePalette};
 use crate::ui::wrap_text;
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
+
+/// Kod kartı türü — `$` yalnızca [`CodeBlockKind::Prompt`] girdilerinde.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CodeBlockKind {
+    /// SÖZDİZİMİ — çıplak şablon, `$` yok.
+    Syntax,
+    /// Örnek girdi — muted `$` + renkli tokenlar.
+    Prompt,
+    /// Örnek çıktı — muted, `$` yok.
+    Output,
+}
 
 /// Kart düzenine düşülecek iç genişlik eşiği (tablo sütunları sığmaz).
 pub const NARROW_TABLE_WIDTH: usize = 48;
@@ -115,7 +129,7 @@ fn split_leading_md_bold_label(para: &str) -> Option<(String, &str)> {
     Some((label.to_string(), after))
 }
 
-/// Sol cyan şeritli kod satırı (`$ cmd` + argüman rengi).
+/// Sol cyan şeritli kod satırı — varsayılan: örnek **girdi** (`$` eklenir).
 pub fn push_code_block(
     lines: &mut Vec<Line<'static>>,
     code: &str,
@@ -123,10 +137,18 @@ pub fn push_code_block(
     accent: Style,
     muted: Style,
 ) {
-    push_code_block_themed(lines, code, wrap_w, accent, muted, None);
+    push_code_block_themed(
+        lines,
+        code,
+        wrap_w,
+        accent,
+        muted,
+        None,
+        CodeBlockKind::Prompt,
+    );
 }
 
-/// Palet biliniyorsa argüman rengi + sol accent şerit.
+/// Paletli kod kartı — `kind` `$` kuralını belirler.
 pub fn push_code_block_themed(
     lines: &mut Vec<Line<'static>>,
     code: &str,
@@ -134,72 +156,130 @@ pub fn push_code_block_themed(
     accent: Style,
     muted: Style,
     pal: Option<ThemePalette>,
+    kind: CodeBlockKind,
 ) {
     let border = pal
         .map(|p| Style::default().fg(p.code_border))
         .unwrap_or(accent);
-    let arg = pal.map(|p| Style::default().fg(p.arg)).unwrap_or(accent);
     let panel = pal
         .map(|p| Style::default().bg(p.bg_panel))
         .unwrap_or_default();
     let inner = wrap_w.saturating_sub(4).max(8);
-    let cmd = if code.trim_start().starts_with('$') {
-        code.trim().to_string()
-    } else {
-        format!("$ {code}")
+    let raw = code.trim();
+    let display = match kind {
+        CodeBlockKind::Prompt => {
+            if raw.starts_with("$ ") || raw == "$" {
+                raw.to_string()
+            } else if let Some(rest) = raw.strip_prefix('$') {
+                format!("$ {}", rest.trim_start())
+            } else {
+                format!("$ {raw}")
+            }
+        }
+        // Sözdizimi / çıktı: `$` ekleme; yanlışlıkla gelmiş istemi çıkar.
+        CodeBlockKind::Syntax | CodeBlockKind::Output => raw
+            .strip_prefix("$ ")
+            .or_else(|| raw.strip_prefix('$').map(str::trim_start))
+            .unwrap_or(raw)
+            .to_string(),
     };
-    // İnce üst/alt çerçeve + sol cyan şerit (mock: kod kartı).
     let top = format!("┌{}", "─".repeat(inner.saturating_sub(1).min(48)));
     lines.push(Line::from(Span::styled(top, muted.patch(panel))));
-    for part in wrap_text(&cmd, inner) {
+    for part in wrap_text(&display, inner) {
         let mut spans = vec![Span::styled("│ ".to_string(), border.patch(panel))];
-        spans.extend(style_shell_line(&part, accent, muted, arg, panel));
+        if let Some(p) = pal {
+            match kind {
+                CodeBlockKind::Prompt => {
+                    // Sarılmış devam satırlarında ikinci `$` ekleme.
+                    if part.trim_start().starts_with('$') {
+                        spans.extend(highlight_shell_styled(&part, p, panel));
+                    } else if display.trim_start().starts_with('$')
+                        && !part.trim_start().starts_with('$')
+                    {
+                        // İlk satır `$ …` idi; devam satırı yalnızca token boyaması.
+                        spans.extend(highlight_shell_styled(&part, p, panel));
+                    } else {
+                        spans.extend(
+                            highlight_prompt_line(&part, p)
+                                .into_iter()
+                                .map(|s| Span::styled(s.content, s.style.patch(panel))),
+                        );
+                    }
+                }
+                CodeBlockKind::Syntax => {
+                    spans.extend(highlight_shell_styled(&part, p, panel));
+                }
+                CodeBlockKind::Output => {
+                    spans.extend(
+                        highlight_output_line(&part, p)
+                            .into_iter()
+                            .map(|s| Span::styled(s.content, s.style.patch(panel))),
+                    );
+                }
+            }
+        } else {
+            spans.push(Span::styled(
+                part,
+                match kind {
+                    CodeBlockKind::Output => muted.patch(panel),
+                    _ => accent.add_modifier(Modifier::BOLD).patch(panel),
+                },
+            ));
+        }
         lines.push(Line::from(spans));
     }
     let bot = format!("└{}", "─".repeat(inner.saturating_sub(1).min(48)));
     lines.push(Line::from(Span::styled(bot, muted.patch(panel))));
 }
 
-/// `$ cmd -flags args` — prompt muted, komut cyan, bayrak/arg amber.
-fn style_shell_line(
-    line: &str,
-    accent: Style,
-    muted: Style,
-    arg: Style,
-    panel: Style,
-) -> Vec<Span<'static>> {
-    let accent = accent.add_modifier(Modifier::BOLD).patch(panel);
-    let muted = muted.patch(panel);
-    let arg = arg.patch(panel);
-    let trimmed = line.trim_start();
-    let lead = line.len().saturating_sub(trimmed.len());
-    let mut spans = Vec::new();
-    if lead > 0 {
-        spans.push(Span::styled(" ".repeat(lead), muted));
+/// Örnek komut **girdi** satırı — muted `$` + renkli tokenlar.
+pub fn push_example_code(
+    lines: &mut Vec<Line<'static>>,
+    code: &str,
+    wrap_w: usize,
+    pal: ThemePalette,
+) {
+    let muted = Style::default().fg(pal.muted);
+    let accent = Style::default().fg(pal.accent);
+    push_code_block_themed(
+        lines,
+        code,
+        wrap_w,
+        accent,
+        muted,
+        Some(pal),
+        CodeBlockKind::Prompt,
+    );
+}
+
+/// Örnek **çıktı** satırları — `$` yok, muted.
+pub fn push_example_output(
+    lines: &mut Vec<Line<'static>>,
+    output: &str,
+    wrap_w: usize,
+    pal: ThemePalette,
+) {
+    let muted = Style::default().fg(pal.muted);
+    let accent = Style::default().fg(pal.accent);
+    for line in output.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        push_code_block_themed(
+            lines,
+            line,
+            wrap_w,
+            accent,
+            muted,
+            Some(pal),
+            CodeBlockKind::Output,
+        );
     }
-    let body = trimmed;
-    let (prompt, rest) = if let Some(r) = body.strip_prefix("$ ") {
-        spans.push(Span::styled("$ ".to_string(), muted));
-        (true, r)
-    } else if body == "$" {
-        spans.push(Span::styled("$".to_string(), muted));
-        return spans;
-    } else {
-        (false, body)
-    };
-    let _ = prompt;
-    let mut parts = rest.split_whitespace();
-    if let Some(cmd) = parts.next() {
-        spans.push(Span::styled(cmd.to_string(), accent));
-    }
-    for p in parts {
-        spans.push(Span::styled(" ".to_string(), muted));
-        spans.push(Span::styled(p.to_string(), arg));
-    }
-    spans
 }
 
 /// İpucu / risk / uyarı / draft callout — tip için sol amber şerit (mock İPUCU).
+///
+/// `pal` verilirse ipucu gövdesinde satır-içi cmd/flag/path boyanır (`$` eklenmez).
 pub fn push_callout(
     lines: &mut Vec<Line<'static>>,
     kind: CalloutKind,
@@ -209,10 +289,25 @@ pub fn push_callout(
     style: Style,
     muted: Style,
 ) {
+    push_callout_themed(lines, kind, label, body, wrap_w, style, muted, None);
+}
+
+/// [`push_callout`] + isteğe bağlı palet (İPUCU satır-içi sözdizimi).
+#[allow(clippy::too_many_arguments)]
+pub fn push_callout_themed(
+    lines: &mut Vec<Line<'static>>,
+    kind: CalloutKind,
+    label: &str,
+    body: &str,
+    wrap_w: usize,
+    style: Style,
+    muted: Style,
+    pal: Option<ThemePalette>,
+) {
     if body.trim().is_empty() {
         return;
     }
-    // Tip: sol amber şerit + etiket (mock callout).
+    // Tip: sol amber şerit + etiket (mock callout); gövdede `$` yok.
     if matches!(kind, CalloutKind::Tip) {
         let tag = if label.is_empty() {
             "İPUCU".to_string()
@@ -223,16 +318,22 @@ pub fn push_callout(
         let budget = wrap_w.saturating_sub(head.chars().count()).max(8);
         let mut parts = wrap_text(body, budget).into_iter();
         if let Some(first) = parts.next() {
-            lines.push(Line::from(vec![
-                Span::styled(head, style.add_modifier(Modifier::BOLD)),
-                Span::styled(first, style),
-            ]));
+            let mut spans = vec![Span::styled(head, style.add_modifier(Modifier::BOLD))];
+            if let Some(p) = pal {
+                spans.extend(highlight_tip_text(&first, p, style));
+            } else {
+                spans.push(Span::styled(first, style));
+            }
+            lines.push(Line::from(spans));
         }
         for part in parts {
-            lines.push(Line::from(vec![
-                Span::styled("│ ".to_string(), style),
-                Span::styled(part, style),
-            ]));
+            let mut spans = vec![Span::styled("│ ".to_string(), style)];
+            if let Some(p) = pal {
+                spans.extend(highlight_tip_text(&part, p, style));
+            } else {
+                spans.push(Span::styled(part, style));
+            }
+            lines.push(Line::from(spans));
         }
         return;
     }
@@ -660,7 +761,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                         ex.risk.label(lang_id)
                     )));
                 }
-                push_code_block_themed(&mut lines, &ex.command, wrap_w, accent, muted, Some(pal));
+                push_example_code(&mut lines, &ex.command, wrap_w, pal);
                 let expl = ex.explanation.pick(lang_id);
                 if !expl.is_empty() {
                     push_wrapped(&mut lines, expl, wrap_w, muted);
@@ -688,7 +789,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                     lines.push(Line::from(""));
                 }
                 lines.push(Line::from(Span::styled(format!("· {name}"), muted)));
-                push_code_block_themed(&mut lines, &ex.command, wrap_w, accent, muted, Some(pal));
+                push_example_code(&mut lines, &ex.command, wrap_w, pal);
                 let expl = ex.explanation.pick(lang_id);
                 if !expl.is_empty() {
                     push_wrapped(&mut lines, expl, wrap_w, muted);
@@ -722,7 +823,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                 lines.push(Line::from(""));
             }
             // Bölüm başlığı zaten var — tekrar "İpuçları:" etiketi yok.
-            push_callout(
+            push_callout_themed(
                 &mut lines,
                 CalloutKind::Tip,
                 "",
@@ -730,6 +831,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                 wrap_w,
                 Style::default().fg(pal.tip),
                 muted,
+                Some(pal),
             );
         }
     }
@@ -780,7 +882,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                 push_wrapped(&mut lines, &format!("     {prompt}"), wrap_w, muted);
             }
             if !hint.is_empty() {
-                push_callout(
+                push_callout_themed(
                     &mut lines,
                     CalloutKind::Tip,
                     "hint",
@@ -788,6 +890,7 @@ pub fn topic_guide_lines(app: &App, concept: &ConceptEntry, wrap_w: usize) -> Ve
                     wrap_w,
                     muted,
                     muted,
+                    Some(pal),
                 );
             }
         }
@@ -933,9 +1036,22 @@ pub fn command_detail_lines(
         }
     }
 
-    // Syntax
+    // Syntax — katalog `syntax` varsa onu boya; yoksa komut adı.
     push_heading(&mut lines, lang.t(Msg::CommandsSyntax), pal);
-    push_code_block_themed(&mut lines, &cmd.name, wrap_w, accent, muted, Some(pal));
+    let syntax_src = if !cmd.syntax.trim().is_empty() {
+        cmd.syntax.trim()
+    } else {
+        cmd.name.as_str()
+    };
+    push_code_block_themed(
+        &mut lines,
+        syntax_src,
+        wrap_w,
+        accent,
+        muted,
+        Some(pal),
+        CodeBlockKind::Syntax,
+    );
     if !cmd.aliases.is_empty() {
         lines.push(Line::from(format!(
             "  {}: {}",
@@ -960,7 +1076,7 @@ pub fn command_detail_lines(
         if !head.is_empty() {
             lines.push(Line::from(head));
         }
-        push_code_block_themed(&mut lines, &ex.command, wrap_w, accent, muted, Some(pal));
+        push_example_code(&mut lines, &ex.command, wrap_w, pal);
         let expl = ex.explanation.pick(lang_id);
         if !expl.is_empty() {
             push_heading(&mut lines, lang.t(Msg::CommandsExpectedEffect), pal);
@@ -1060,7 +1176,7 @@ pub fn command_detail_lines(
                 if !head.is_empty() {
                     lines.push(Line::from(head));
                 }
-                push_code_block_themed(&mut lines, &ex.command, wrap_w, accent, muted, Some(pal));
+                push_example_code(&mut lines, &ex.command, wrap_w, pal);
                 let expl = ex.explanation.pick(lang_id);
                 if !expl.is_empty() {
                     push_wrapped(&mut lines, &format!("  {expl}"), wrap_w, muted);

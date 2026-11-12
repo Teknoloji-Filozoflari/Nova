@@ -139,7 +139,11 @@ pub struct ThemePalette {
     pub error: Color,
     /// İpucu amber (İPUCU callout).
     pub tip: Color,
-    /// Örnek satırında argüman / bayrak rengi.
+    /// Bayrak / alt-komut rengi (sarı-altın; sözdizimi).
+    pub flag: Color,
+    /// Yol / değer / tırnaklı argüman (yeşil; sözdizimi).
+    pub path: Color,
+    /// Geriye dönük: bayrak rengi (`flag` ile aynı).
     pub arg: Color,
     /// Durum satırı (sarı bağlam).
     pub status: Color,
@@ -256,6 +260,8 @@ impl UiTheme {
                 warn: Color::Rgb(240, 180, 41),
                 error: Color::Rgb(255, 107, 129),
                 tip: Color::Rgb(240, 180, 41),
+                flag: Color::Rgb(230, 190, 70),
+                path: Color::Rgb(80, 200, 120),
                 arg: Color::Rgb(230, 190, 70),
                 status: Color::Rgb(230, 190, 70),
                 search: Color::Rgb(240, 180, 41),
@@ -274,6 +280,8 @@ impl UiTheme {
                 warn: Color::Rgb(180, 100, 20),
                 error: Color::Red,
                 tip: Color::Rgb(180, 100, 20),
+                flag: Color::Rgb(160, 90, 20),
+                path: Color::Rgb(30, 140, 70),
                 arg: Color::Rgb(160, 90, 20),
                 status: Color::Rgb(160, 90, 20),
                 search: Color::Rgb(0, 120, 200),
@@ -292,6 +300,8 @@ impl UiTheme {
                 warn: Color::Yellow,
                 error: Color::Red,
                 tip: Color::Yellow,
+                flag: Color::LightYellow,
+                path: Color::LightGreen,
                 arg: Color::LightYellow,
                 status: Color::Yellow,
                 search: Color::LightGreen,
@@ -310,6 +320,8 @@ impl UiTheme {
                 warn: Color::LightYellow,
                 error: Color::Red,
                 tip: Color::LightYellow,
+                flag: Color::Yellow,
+                path: Color::Green,
                 arg: Color::Yellow,
                 status: Color::Yellow,
                 search: Color::Yellow,
@@ -328,6 +340,8 @@ impl UiTheme {
                 warn: Color::Yellow,
                 error: Color::LightRed,
                 tip: Color::Yellow,
+                flag: Color::LightYellow,
+                path: Color::LightGreen,
                 arg: Color::LightYellow,
                 status: Color::Yellow,
                 search: Color::LightBlue,
@@ -346,6 +360,8 @@ impl UiTheme {
                 warn: Color::Yellow,
                 error: Color::Red,
                 tip: Color::Yellow,
+                flag: Color::LightYellow,
+                path: Color::LightGreen,
                 arg: Color::LightYellow,
                 status: Color::Yellow,
                 search: Color::LightBlue,
@@ -364,6 +380,8 @@ impl UiTheme {
                 warn: Color::Yellow,
                 error: Color::LightRed,
                 tip: Color::Yellow,
+                flag: Color::LightYellow,
+                path: Color::LightGreen,
                 arg: Color::LightYellow,
                 status: Color::Yellow,
                 search: Color::LightMagenta,
@@ -382,6 +400,8 @@ impl UiTheme {
                 warn: Color::Yellow,
                 error: Color::Red,
                 tip: Color::Yellow,
+                flag: Color::LightYellow,
+                path: Color::LightGreen,
                 arg: Color::LightYellow,
                 status: Color::Yellow,
                 search: Color::White,
@@ -400,6 +420,8 @@ impl UiTheme {
                 warn: Color::Yellow,
                 error: Color::Red,
                 tip: Color::Yellow,
+                flag: Color::LightYellow,
+                path: Color::LightGreen,
                 arg: Color::LightYellow,
                 status: Color::Yellow,
                 search: Color::LightRed,
@@ -453,6 +475,8 @@ mod tests {
         assert_eq!(pal.bg, Color::Rgb(13, 17, 23));
         assert_eq!(pal.text, Color::Rgb(165, 179, 207));
         assert_eq!(pal.muted, Color::Rgb(98, 114, 164));
+        assert_eq!(pal.flag, Color::Rgb(230, 190, 70));
+        assert_eq!(pal.path, Color::Rgb(80, 200, 120));
         assert!(pal.surface.is_some());
         assert_eq!(heading_caps("sözdizimi"), "SÖZDİZİMİ");
     }
