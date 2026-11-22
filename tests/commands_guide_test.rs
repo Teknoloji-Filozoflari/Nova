@@ -1495,6 +1495,65 @@ fn distro_filter_no_arch_collapse_on_debian_only_package() {
 }
 
 #[test]
+fn start_curriculum_surfaces_software_topic_guide() {
+    let mut app = app();
+    app.select_commands_tab();
+    app.commands_filters.clear();
+    assert!(
+        app.commands_list_shows_concepts(),
+        "Başlangıç konu listesi göstermeli"
+    );
+    let idx = app
+        .filtered_concepts()
+        .iter()
+        .position(|c| c.id == "software")
+        .expect("software konusu Başlangıç listesinde olmalı");
+    let (format, sub_len, table_len, sub_title) = {
+        let software = app
+            .commands_bank
+            .concepts
+            .iter()
+            .find(|c| c.id == "software")
+            .expect("software bankada");
+        (
+            software.format.clone(),
+            software.subtopics.len(),
+            software.command_table.len(),
+            software.subtopics[0].title.pick("tr").to_string(),
+        )
+    };
+    assert_eq!(format.as_deref(), Some("topic-guide"));
+    assert!(sub_len > 0);
+    assert!(table_len > 0);
+
+    app.commands_entry_index = idx;
+    app.terminal_size = Some((150, 42));
+    app.narrow_mode = false;
+    let text = all_text(&render(&app, 150, 42));
+    assert!(
+        text.contains("Yazılım") || text.contains("Software"),
+        "Software konu başlığı görünmeli:\n{text}"
+    );
+    assert!(
+        text.contains("Konu Rehberi") || text.contains("Topic Guide"),
+        "topic-guide paneli:\n{text}"
+    );
+    // Alt konular öğrenme yolu altında; tam rehber satırlarında doğrula.
+    let guide = topic_lines_text(&app, "software", 100);
+    assert!(
+        guide.contains("ALT KONULAR")
+            || guide.contains("Alt konular")
+            || guide.contains("SUBTOPICS")
+            || guide.contains("Subtopics"),
+        "Software alt konuları:\n{guide}"
+    );
+    assert!(
+        !sub_title.is_empty() && guide.contains(&sub_title),
+        "ilk alt konu başlığı rehberde olmalı ({sub_title}):\n{guide}"
+    );
+}
+
+#[test]
 fn topic_guide_vs_command_detail_panel_titles() {
     let mut app = app();
     app.select_commands_tab();
