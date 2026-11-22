@@ -6,7 +6,7 @@
 //!    (`assets/commands/catalog.json`, Nova-Commands `metadata/`).
 //! 2. **Mağaza** — `crate::store` (installable apps; bu modül değil).
 //! 3. **Sistemimde Bulunan Komutlar** — `kind: nova-local-commands`
-//!    (PATH keşfi stub'ı; bank `verified` miras almaz).
+//!    (PATH keşfi v1; bank `verified` miras almaz).
 //!
 //! Bilgi mimarisi (görev odaklı): Başlangıç → Göreve göre → Kullanım bağlamı
 //! → Tüm komutlar → Sistemde bulunanlar. Komutlar asla otomatik çalıştırılmaz.
@@ -45,7 +45,7 @@ pub use loader::{
     load_bank, load_bank_preferring_cache, load_manifest, load_search_index, CommandsManifest,
     SearchEntry, SearchIndex, SearchName,
 };
-pub use local::{LocalCommandsSnapshot, LocalEntry, LOCAL_KIND};
+pub use local::{LocalCommandsSnapshot, LocalEntry, DEFAULT_PATH_DISCOVERY_LIMIT, LOCAL_KIND};
 pub use remote::{
     format_refresh_note, refresh_or_keep_trusted, try_refresh_from_remote, BankCatalogRefresh,
     TrustedBankPaths,
@@ -87,7 +87,7 @@ pub enum CommandsBrowseMode {
     AllCommands,
     /// 5 · Sunucu güvenlik kontrolü — sıralı checklist (çalıştırmaz).
     ServerSecurity,
-    /// 6 · Sistemde bulunanlar — PATH stub (katalogdan ayrı).
+    /// 6 · Sistemde bulunanlar — PATH keşfi (katalogdan ayrı).
     SystemPath,
     /// 7 · Hızlı referans — geniş tabloda tüm banka komutları (bölüm/seviye/risk süzgeci).
     QuickReference,

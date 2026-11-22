@@ -1,6 +1,6 @@
-# Nova Mimari Belgesi (Faz 5)
+# Nova Mimari Belgesi
 
-Bu belge Nova projesinin kritik mimari tercihlerini, modül sınırlarını ve tasarım kararlarını açıklar. Faz 0 (iskelet + terminal dayanıklılığı), Faz 1 (TUI deneyimi + katalog), Faz 2 (yeni Konsole sekmesinde başlatma), Faz 3 (TOML kataloğu, kullanıcı yapılandırması, başlatma türleri), Faz 4 (kişiselleştirme, kalıcı durum, özel araçlar) ve Faz 5 (test, uyumluluk, yayın hazırlığı) kararlarını birlikte kapsar.
+Bu belge Nova projesinin kritik mimari tercihlerini, modül sınırlarını ve tasarım kararlarını açıklar. Erken fazlar (0–5: iskelet, TUI, launcher, katalog, kişiselleştirme, test/yayın) ile sonraki mağaza, komut rehberi, i18n, imzalı katalog ve güncelleme kararlarını birlikte kapsar.
 
 ## Genel Yaklaşım
 
@@ -12,30 +12,39 @@ Katalog modeli UI'dan bağımsızdır: `catalog` ve `catalog::loader` modülleri
 
 | Modül | Sorumluluk | Bağımlılıklar |
 |-------|-----------|--------------|
-| `app` | Uygulama durumu, ana döngü, olay yönlendirme, tuş işleme, filtreleme kararları, modal akışları | `catalog`, `ui`, `event`, `error`, `config::state` |
+| `app` | Uygulama durumu, ana döngü, olay yönlendirme, tuş işleme, filtreleme, modal/sekme akışları | `catalog`, `ui`, `event`, `error`, `config::state`, `commands`, `store`, `update` |
 | `app::state` | `AppState`: favoriler/geçmiş/proje dizinleri yardımcıları, yol normalizasyonu, göreli zaman | `config::state` |
 | `app::form` | Özel araç formu: alanlar, doğrulama, gözden geçirme satırları, kimlik üretimi — yan etkisiz | `catalog`, `config` |
 | `app::modal` | Modal durumları, ayar/form ekranları ve onay eylemleri (saf veri) | `app::form` |
-| `ui` | Ratatui ile ekran çizimi, uyarlanabilir düzen, metin kesme | `app` (salt okunur referans) |
+| `ui` | Ratatui çizimi, uyarlanabilir düzen, tema, sözdizimi vurgusu, rehber detay/hızlı ref | `app` (salt okunur), `i18n`, `commands` |
+| `ui::theme` | 9 UI teması + palet (`varsayilan` … `kizil`) | — |
+| `i18n` | Arayüz dili (`Msg` tabloları, 7 dil) + kategori etiketleri | — |
 | `event` | Klavye / terminal olaylarını okuma ve sınıflandırma | `crossterm` |
 | `error` | Hata türleri (`NovaError`) ve dönüşümleri | `std`, `toml` |
 | `config` | TOML yapıları (serde tipleri), başlatma türü, kullanıcı dosyası yolu, okuma/yazma | `serde`, `toml` |
-| `config::state` | `state.toml` şeması, atomik yazma, bozuk dosya yedekleme | `serde`, `toml` |
-| `catalog` | Araç modeli, filtreleme, arama, Türkçe normalizasyon, çalışma dizini modeli, `ToolEntry → CatalogEntry` dönüşümü ve doğrulaması | `config`, `detection`, `launcher::resolve_directory` |
-| `catalog::loader` | Gömülü katalog (TOML, `include_str!`), ayrıştırma, kullanıcı dosyasıyla `id` üzerinden birleştirme | `catalog`, `config` |
+| `config::state` | `state.toml` şeması (prefs, favoriler, checklist, panel boyutları), atomik yazma | `serde`, `toml` |
+| `catalog` | Araç modeli, filtreleme, arama, Türkçe normalizasyon, çalışma dizini modeli | `config`, `detection`, `launcher::resolve_directory` |
+| `catalog::loader` | Gömülü katalog (TOML, `include_str!`), kullanıcı dosyasıyla `id` birleştirme | `catalog`, `config` |
+| `commands` | Komut Rehberi: banka modeli, filtreler, checklist, PATH keşfi, repo senkronu | `serde_json`, `store::net` |
+| `commands::bank` | `nova-commands-bank` şeması (komut/konsept/görev/profil, verification) | — |
+| `commands::local` | `nova-local-commands` PATH keşfi v1 (`stub` = kesildi mi) | `commands::bank` |
+| `commands::repo_sync` | İmzasız `main` HTTPS banka senkronu + `content_sha256` | `commands::loader`, `store::net` |
 | `launcher` | Başlatma orkestrasyonu: istek → adapter → ayrık süreç | `catalog`, `error`, `which` |
-| `launcher::request` | `LaunchRequest` ve çalışma dizini doğrulaması (yan etkisiz; `from_entry_with_project` etkin projeyi geçersiz kılar) | `catalog`, `error` |
-| `launcher::terminal` | `TerminalAdapter` trait'i ve emülatör adapterleri (`$TERMINAL` + bilinen liste; yalnızca argüman üretir) | `launcher::request`, `error` |
-| `detection` | PATH **ve mağaza `bin` dizinleri** üzerinden kurulum durumunu belirleme (üç durumlu) | `which`, `store` |
-| `store` | Mağaza kataloğu modeli, kategori listesi, katalog doğrulama kuralları, kurulum dizini çözümü | `serde` |
-| `store::loader` | Gömülü mağaza kataloğu (`assets/store/*.toml`, `include_str!`) ve doğrulaması | `store` |
-| `store::install` | SHA-256 doğrulama, yol geçişi korumalı arşiv çıkarma, kullanıcı alanı kontrolü, kurulum orkestrasyonu | `store`, `sha2`, `flate2`, `tar` |
-| `store::http` | Gerçek HTTPS indirici (`ureq`); gövdeyi dosyaya akıtır, boyut sınırlar | `store::install`, `ureq` |
-| `store::manifest` | Canlı sürüm takibi: `ReleaseSource`, `ResolvedRelease`, `ReleaseProvider` arayüzü, önbellek (`ETag` + TTL) | `update::Version`, `serde` |
-| `store::github` | GitHub Releases çözümleyicisi: API sorgusu, `ETag` ile koşullu istek, upstream checksum dosyası okuma | `store::manifest`, `serde_json` |
-| `file_picker` | Salt okunur dosya seçici durumu (dizin gezinme, sıralama, seçim) | — |
-| `media_launcher` | Dosyayı yapılandırılmış uygulamayla **kabuksuz** açma (ayrı argüman) | `error` |
-| `update` | Sürüm karşılaştırma (`semver`-uyumlu, yerel), güncelleme sağlayıcı arayüzü | — |
+| `launcher::request` | `LaunchRequest` ve çalışma dizini doğrulaması | `catalog`, `error` |
+| `launcher::terminal` | `TerminalAdapter` + emülatör listesi (yalnızca argüman üretir) | `launcher::request`, `error` |
+| `detection` | PATH **ve mağaza `bin` dizinleri** üzerinden kurulum durumu (üç durumlu) | `which`, `store` |
+| `store` | Mağaza kataloğu modeli, trust A–D, kurulum/uninstall, yıldız önbelleği | `serde` |
+| `store::loader` | Gömülü mağaza kataloğu (`assets/store/*.toml`) | `store` |
+| `store::remote` | İmzalı Nova-Store Releases istemcisi (minisign + trusted cache) | `minisign_verify`, `ureq` |
+| `store::repo_sync` | İmzalı yenileme + imzasız `main` repo yedek senkronu | `store::remote` |
+| `store::stars` | GitHub yıldız oturum önbelleği (kimliksiz rate limit duyarlı) | `ureq` |
+| `store::install` | SHA-256, zip-slip korumalı çıkarma, PM / arşiv kurulum | `sha2`, `flate2`, `tar` |
+| `store::http` / `store::net` | HTTPS indirme (boyut/zaman sınırı) | `ureq` |
+| `store::manifest` / `store::github` | Canlı sürüm takibi + Releases API | `update::Version`, `serde_json` |
+| `file_picker` | Salt okunur dosya seçici durumu | — |
+| `media_launcher` | Dosyayı yapılandırılmış uygulamayla **kabuksuz** açma | `error` |
+| `update` | Nova self-update (Releases ikili + `cargo install --git`), asset seçimi, restart | `ureq`, `sha2` |
+| `progress` / `browser` | İlerleme durumları; `xdg-open` tarayıcı yardımcısı | — |
 
 **Kural:** `ui` modülü sadece çizer; iş mantığı içermez. `app` modülü durum tutar, karar verir ve `ui` üzerinden render edilir.
 
@@ -515,33 +524,31 @@ olduğu için ana ekran kısayolları (arama, `U`, gezinme) mağaza sekmesinde d
 `d` sil/gizle) mağazada karşılığı olmadığı için bilinçli olarak yoksayılır ve
 kullanıcıya durum satırında açıklanır.
 
-## Bilinen Eksiklikler (Faz 5 sonu)
+## Bilinen Eksiklikler (güncel)
 
-- **Terminal seçimi çoklu emülatör.** Otomatik sıra: `$TERMINAL` → xdg-terminal-exec → kitty → alacritty → wezterm → gnome-terminal → konsole → foot → xterm → tmux. Ayarlarda bu adlardan biri seçilebilir; bilinmeyen `$TERMINAL` basename sessizce yok sayılır.
-- **Sekme açıldığı doğrulanmıyor.** Mesaj bilinçli olarak "istendi" der; IPC ile sekme izleme yok.
-- **`background` / `detached` çalıştırma biçimleri yok**; reddedilir.
-- **Form aracı düzenleme yok.** Var olan özel araç düzenlenemez; silinip yeniden eklenir.
-- **Form türleri sınırlı.** Form `interactive` ve `custom_command` seçtirir; `command_help` ve `shell_integration_info` ek sabit metin gerektirdiği için elle `config.toml` içinde tanımlanır.
-- **Form tek satırlık argüman kabul eder.** Boşluk/tırnak yorumlanmadığı için boşluk içeren yollar bu formdan tanımlanamaz; `config.toml` ile mümkündür.
-- **Kullanıcı dosyası otomatik oluşturulmuyor.** Yoksa yalnızca gömülü katalog kullanılır; örnek dosya üretilmez.
-- **Konsole dahili sayfalayıcı modunu başlatamazsa** yardım dosyası özel geçici klasöründe kalabilir. Dosya `0600`, klasör `0700` izinlidir; normal akışta sayfalayıcı kapanınca ikisi de silinir.
-- **`Özel Araçlar` gömülü katalogda boş.** UI boş kategori mesajı gösterir; araçlar kullanıcı dosyasından veya formdan gelir. Gömülü `lazygit`, `Git ve Geliştirici Araçları` kategorisindedir.
-- **SSH için ayrı profil ekranı yok.** Profiller `custom_command` kayıtları olarak TOML'da tanımlanır.
-- **Cloudflare örneği varsayılan olarak 25 MB indirir** ve `curl` ortalama indirme hızını gösterir; `executable` ve `args` kullanıcı `config.toml` dosyasından değiştirilebilir.
-- **Fare desteği ana ekran listelerinde.** Kategori, araç, mağaza ve Ayarlar/tema panellerinde tıklama (kenarlık + kaydırma penceresi hesaba katılır) ve kaydırma çalışır; dosya seçici / onay / form modallarında fare yok sayılır.
-- **Arama sıralaması yok.** Sonuçlar katalog sırasındadır; alaka sırasına göre sıralama yapılmaz.
-- **Süreç yeniden sahiplenilmiyor.** Konsole süreci Nova tarafından `wait` edilmez (bilinçli); PID yalnızca raporlama içindir.
-- **Asgari Rust sürümü doğrulanmadı.** Bağımlılıkların `rust-version` alanları ≥1.74 öneriyor; yalnızca 1.99.1 ile derleme/test yapıldı.
-- **Tema tercihleri uygulanır** (`varsayilan` / `acik` / `orman` / `amber`); Ayarlar sekmesinden döngülenir ve `state.toml`’a yazılır.
-- **PTY kapanınca alt ekrandan çıkış dizisi yazılamaz.** Terminal (tty) yoksa `leave_alternate_screen` IO hatası verir; hook bunu bilinçli olarak yutar ve Nova panik üretmeden çıkar.
-- **GitHub Releases ikili yayınları vardır**; crates.io / AUR / distro paketi henüz yok. Proje SPDX `MIT OR Apache-2.0` çift lisanslıdır (`LICENSE.md` seçim özeti; metinler `LICENSE-MIT` / `LICENSE-APACHE`). Akış: `docs/VERSIONING.md`, otomasyon: `.github/workflows/release.yml`.
-- **Mağaza sürüm denetimi kullanıcı isteğine bağlı.** Otomatik denetim yok; kullanıcı mağazada `U` tuşuna bastığında GitHub Releases sorgulanır.
-- **Mağaza kataloğu imzalı uzaktan güncellenebilir.** Varsayılan gömülü `assets/store/*.toml` (veya diskteki son doğrulanmış kopya) kullanılır. Mağazada `U` ile Nova-Store Releases’tan imzalı katalog denenir; **minisign imzası gömülü anahtarla doğrulanmazsa uzak veri uygulanmaz** (bkz. `store::remote`, "İmzalı Nova-Store kataloğu").
-- **GitHub API hız sınırı kimliksiz IP başına saatte 60 istek.** `GITHUB_TOKEN` ile saatte 5000'e yükseltilebilir; 6 saatlik önbellek taze kayıtları ağa hiç çıkarmadığı için sınırı büyük ölçüde azaltır. `ETag` yalnızca bant genişliği tasarrufu sağlar (`304` de sınırdan düşer).
-- **Mağazada 6 uygulama indirilebilir.** Kalan 13 kayıt `manual` yöntemdedir; upstream doğrulanabilir SHA-256 özeti yayımlamadığı için "Kur" eylemi sunulmaz.
-- **Tek çalıştırılabilir dosya kurulur.** Arşivdeki man sayfaları, tamamlayıcılar ve ek belgeler kurulmaz; yalnızca katalogdaki `executable` yerleştirilir.
-- **Güncelleme sağlayıcısı GitHub Releases’a bağlıdır** (`Teknoloji-Filozoflari/Nova`). Ayarlar→Güncelle / `U` denetimi durumu durum satırında ve modalda gösterir (`denetleniyor` / `yayın yok` / `güncel` / `yeni sürüm` / `hata`). Yayın yoksa (`404`) “ikili yayın yok” sonucudur — `cargo`/kaynak güncellemesi yapılmaz. Uygun Linux ikilisi varsa kullanıcı onayından sonra `~/.local/bin/nova` kurulur.
-- **Bağımlılık güvenliği CI'da.** `cargo audit` ve `cargo deny check` (bkz. `deny.toml`) her PR/push'ta ve haftalık zamanlamada çalışır; Dependabot Cargo ve Actions güncellemelerini açar.
+- **`app` / `ui` monolit.** `app/mod.rs` ve `ui/mod.rs` hâlâ büyük gövdeler; yeni özellik maliyeti yüksek. Bölme (ör. `app/commands`, `ui/footer`) bilinçli olarak kademeli.
+- **Komut bankası imzalı Releases istemcisi yok.** `commands::repo_sync` yalnızca imzasız `main` HTTPS + `content_sha256`. Nova-Commands sözleşmesindeki `catalog-v*` + minisign yolu henüz uygulanmadı (ayrı iş akışı).
+- **Nova-Store imzalı Releases kanalı boş olabilir.** İstemci (`store::remote`) hazır; yayın yoksa soft-fail → gömülü / son güvenilen kopya. Runtime’da “imzalı güncel” sanılmamalı.
+- **Bank içerik i18n fiilen TR/EN.** `LocalizedString` 7 dil alanlı; gömülü içerik çoğunlukla `tr`/`en`. Chrome i18n (7 dil) içerik dilinden ayrıdır.
+- **PATH keşfi v1 sınırlı.** `$PATH` salt okunur taranır; paket eşlemesi / shell-hash yok. Limit aşımında `stub: true`.
+- **Draft-ağır banka.** Gömülü bankada draft oranı yüksek; liste rozetleri + isteğe bağlı “taslakları gizle” tercihi var, içerik doğrulama oranı Commands tarafında yükseltilmeli.
+- **Revendor / SSOT senkronu insan sürecine bağlı.** `tools/sync_*.sh`; CI drift alarmı yok.
+- **Self-update / paketleme geriliği.** Yayınlar ve distro paketleri release iş akışına bağlı; aarch64 asset seçimi / çok platform paketler ayrı paketleme işi.
+- **Terminal seçimi çoklu emülatör.** Otomatik sıra: `$TERMINAL` → xdg-terminal-exec → kitty → … → tmux. Bilinmeyen `$TERMINAL` basename sessizce yok sayılır.
+- **Sekme açıldığı doğrulanmıyor.** Mesaj bilinçli olarak "istendi" der; IPC yok.
+- **`background` / `detached` yok**; reddedilir.
+- **Form aracı düzenleme yok**; türler sınırlı; boşluklu argüman formdan yok.
+- **Fare: ana listelerde var, modallarda yok.**
+- **Arama alaka sıralaması yok.**
+- **Asgari Rust sürümü pin’li değil** (`rust-version` yok).
+- **Temalar:** 9 tema (`varsayilan`, `acik`, `orman`, `amber`, `okyanus`, `gece`, `gul`, `arduvaz`, `kizil`) Ayarlar’dan seçilir ve `state.toml`’a yazılır.
+- **GitHub Releases ikili yayınları vardır**; crates.io / AUR / distro paketi (ve CHANGELOG disiplini) paketleme işine bağlı. SPDX `MIT OR Apache-2.0`.
+- **Mağaza sürüm denetimi kullanıcı isteğine bağlı** (`U`); otomatik yok.
+- **Gömülü mağaza ~519 uygulama** (`assets/store/*.toml`). İndirilebilir / PM / manual karışımı; “Kur” yalnızca doğrulanabilir kurulum yollarında.
+- **Tek çalıştırılabilir dosya kurulur** (man/completion yok).
+- **GitHub stars oturum önbelleği**; kalıcı cache yok; kimliksiz 60 req/saat.
+- **Nova ikili imzası yok** (SHA256SUMS var; minisign/cosign yok) — store katalog modeliyle asimetrik.
+- **Bağımlılık güvenliği CI'da.** `cargo audit` / `cargo deny`; Dependabot açık.
 
 ## Proje Dizinini Geçersiz Kılma (Faz 5)
 

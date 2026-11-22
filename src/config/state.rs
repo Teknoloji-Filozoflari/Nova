@@ -168,6 +168,12 @@ pub struct Prefs {
     /// Ekran + panel türüne göre kalıcı boyutlar (çapraz ekran sızıntısı yok).
     #[serde(default, skip_serializing_if = "PaneSizesByScreen::is_empty")]
     pub pane_sizes: PaneSizesByScreen,
+    /// Komut Rehberi listelerinde `verification.status = draft` kayıtlarını gizle.
+    ///
+    /// Varsayılan `false` — draft’lar görünür (rozetle). Açıkken yalnızca
+    /// `reviewed` / `verified` banka kayıtları listelenir.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub hide_command_drafts: bool,
 }
 
 /// Hangi ana sekme / ekran.

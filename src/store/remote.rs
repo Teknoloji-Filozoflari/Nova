@@ -10,9 +10,11 @@
 //!    diske yazılır; sonraki açılışlarda bu kopya yeniden doğrulanır.
 //!
 //! Uzak adresler Nova-Store GitHub Releases’a stub’lanmıştır; yayın yokken
-//! istekler yumuşak başarısız olur. `NOVA_STORE_CATALOG_URL` /
-//! `NOVA_STORE_CATALOG_SIG_URL` ile geçersiz kılınabilir.
-//! `NOVA_STORE_CATALOG_DISABLE_REMOTE=1` uzak denemeyi kapatır.
+//! istekler yumuşak başarısız olur (KeptTrusted → gömülü/son güvenilen).
+//! İstemci imza yoluna hazırdır; **ilk imzalı `store-catalog.toml` yayını
+//! Nova-Store release işine bağlıdır** (bu depoda imza üretimi yok).
+//! `NOVA_STORE_CATALOG_URL` / `NOVA_STORE_CATALOG_SIG_URL` ile geçersiz
+//! kılınabilir. `NOVA_STORE_CATALOG_DISABLE_REMOTE=1` uzak denemeyi kapatır.
 
 use crate::store::loader::{self, load_builtin_store};
 use crate::store::net::{self, MAX_TEXT_BYTES};
@@ -377,5 +379,19 @@ mod tests {
     fn require_https_on_fetch() {
         let err = fetch_https_text("http://example.org/x").unwrap_err();
         assert!(err.contains("https"), "{err}");
+    }
+
+    #[test]
+    fn refresh_or_keep_trusted_soft_fails_without_network_in_tests() {
+        let current = load_builtin_store().unwrap_or_default();
+        let before = current.entries().len();
+        let (kept, outcome) = refresh_or_keep_trusted(&current);
+        assert_eq!(kept.entries().len(), before);
+        match outcome {
+            CatalogRefresh::KeptTrusted { reason } => {
+                assert!(!reason.is_empty(), "{reason}");
+            }
+            CatalogRefresh::Updated { .. } => panic!("test ortamında uzak güncelleme beklenmez"),
+        }
     }
 }

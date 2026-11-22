@@ -1,7 +1,10 @@
-//! Yerel PATH keşfi stub'ı (`nova-local-commands`).
+//! Yerel PATH keşfi (`nova-local-commands`).
 //!
 //! Nova-Commands reposu yalnızca sözleşmeyi tutar; tarama Nova istemcisinde
 //! yapılır. Bu modül **bankayı kirletmez**: PATH varlığı `verified` yapmaz.
+//!
+//! v1: tüm `$PATH` dizinlerini salt okunur tarar; makul bir üst sınırla
+//! kesilirse `stub: true`, tarama sınıra takılmadan biterse `stub: false`.
 
 use crate::commands::bank::CommandBank;
 use serde::{Deserialize, Serialize};
@@ -13,6 +16,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Yerel keşif `kind` — bank `nova-commands-bank` ile karıştırılmaz.
 pub const LOCAL_KIND: &str = "nova-local-commands";
+
+/// UI / varsayılan keşif üst sınırı (isim başına bir giriş).
+///
+/// Tipik masaüstü PATH’leri bunun altında kalır; aşıldığında snapshot
+/// `stub: true` kalır ve UI “kesildi” bilgisini gösterebilir.
+pub const DEFAULT_PATH_DISCOVERY_LIMIT: usize = 4096;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -62,7 +71,7 @@ pub struct LocalCommandsSnapshot {
     pub hostname_hash: Option<String>,
     pub scanned_at: String,
     pub entries: Vec<LocalEntry>,
-    /// Stub mü? (tam tarama değil, sınırlı örnek).
+    /// Stub mü? (`true` = tarama kesildi / örnek; `false` = PATH tamamlandı).
     #[serde(default)]
     pub stub: bool,
 }
@@ -93,21 +102,36 @@ impl LocalCommandsSnapshot {
     }
 }
 
-/// PATH üzerindeki yürütülebilir dosyaları **salt okunur** tarar (stub).
+/// PATH üzerindeki yürütülebilir dosyaları **salt okunur** tarar (v1).
 ///
 /// - Binary çalıştırılmaz.
-/// - En fazla `limit` giriş (UI stub; tam indeks değil).
+/// - En fazla `limit` benzersiz ad (PATH sırası; ilk bulunan yol kazanır).
+/// - Tüm PATH dizinleri `limit`’e takılmadan biterse `stub: false`.
 /// - Bank eşleşmesi yalnız `bank_id` / `bank_match` ile; `verified` kopyalanmaz.
-pub fn discover_path_stub(bank: Option<&CommandBank>, limit: usize) -> LocalCommandsSnapshot {
+pub fn discover_path(bank: Option<&CommandBank>, limit: usize) -> LocalCommandsSnapshot {
     let mut seen = BTreeSet::new();
     let mut entries = Vec::new();
+    let mut truncated = false;
 
     let path_var = env::var_os("PATH").unwrap_or_default();
     for dir in env::split_paths(&path_var) {
         if entries.len() >= limit {
+            truncated = true;
             break;
         }
+        let before = entries.len();
         scan_dir(&dir, bank, limit, &mut seen, &mut entries);
+        // scan_dir limit’te durduysa ve dizin bitmeden kesildiyse truncated.
+        if entries.len() >= limit && entries.len() > before {
+            // Daha fazla dizin kaldı mı diye bakmak yerine: limit doluysa
+            // sonraki döngü truncated işaretler; burada da işaretle.
+            truncated = true;
+        }
+    }
+
+    // Limit dolmadan tüm dizinler bittiyse keşif tamamdır.
+    if entries.len() < limit {
+        truncated = false;
     }
 
     LocalCommandsSnapshot {
@@ -116,8 +140,13 @@ pub fn discover_path_stub(bank: Option<&CommandBank>, limit: usize) -> LocalComm
         hostname_hash: None,
         scanned_at: now_rfc3339(),
         entries,
-        stub: true,
+        stub: truncated,
     }
+}
+
+/// Eski ad — [`discover_path`] ile aynı (geriye dönük çağrılar için).
+pub fn discover_path_stub(bank: Option<&CommandBank>, limit: usize) -> LocalCommandsSnapshot {
+    discover_path(bank, limit)
 }
 
 fn scan_dir(
@@ -192,11 +221,30 @@ mod tests {
     }
 
     #[test]
-    fn discover_stub_does_not_claim_bank_kind() {
-        let s = discover_path_stub(None, 8);
+    fn discover_respects_limit_and_marks_stub_when_truncated() {
+        let s = discover_path(None, 8);
         assert_eq!(s.kind, LOCAL_KIND);
         assert_ne!(s.kind, crate::commands::bank::BANK_KIND);
-        assert!(s.stub);
         assert!(s.entries.len() <= 8);
+        // Limit 8 tipik PATH’te dolu olur → stub.
+        if s.entries.len() == 8 {
+            assert!(s.stub, "limit dolduysa stub olmalı");
+        }
+    }
+
+    #[test]
+    fn discover_complete_enough_clears_stub() {
+        // Çok yüksek limit: tüm PATH taranır → stub false (veya PATH boşsa da false).
+        let s = discover_path(None, DEFAULT_PATH_DISCOVERY_LIMIT);
+        assert_eq!(s.kind, LOCAL_KIND);
+        assert!(
+            s.entries.len() < DEFAULT_PATH_DISCOVERY_LIMIT,
+            "test ortamı varsayılan limiti doldurmamalı"
+        );
+        assert!(
+            !s.stub,
+            "limit’e takılmayan keşif stub:false olmalı (entries={})",
+            s.entries.len()
+        );
     }
 }

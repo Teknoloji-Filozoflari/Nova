@@ -11,6 +11,7 @@ use crate::app::modal::{ConfirmAction, Modal, UpdateStatus};
 use crate::app::state::relative_time;
 use crate::app::App;
 use crate::file_picker::FilePickerState;
+use crate::i18n::Msg;
 use crate::update::{GitHubRelease, UpdateCheck, Version};
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Modifier, Style};
@@ -93,7 +94,14 @@ pub fn draw(f: &mut Frame, app: &App) {
             status,
             check,
             error,
-        } => draw_update_check(f, area, status, check.as_ref(), error.as_deref()),
+        } => draw_update_check(
+            f,
+            area,
+            app.ui_lang(),
+            status,
+            check.as_ref(),
+            error.as_deref(),
+        ),
         Modal::UpdateConfirm {
             current,
             latest,
@@ -673,6 +681,7 @@ fn draw_update_confirm(
 fn draw_update_check(
     f: &mut Frame,
     screen: Rect,
+    lang: crate::i18n::Language,
     status: &UpdateStatus,
     check: Option<&UpdateCheck>,
     error: Option<&str>,
@@ -746,7 +755,7 @@ fn draw_update_check(
             }
             Some(UpdateCheck::NoPublishedRelease { current }) => {
                 lines.push(Line::from(Span::styled(
-                    "Henüz yayınlanmış Nova ikilisi yok.",
+                    lang.t(Msg::ModalNoNovaBinary),
                     Style::default().fg(Color::Yellow),
                 )));
                 lines.push(Line::from(vec![
@@ -1418,7 +1427,7 @@ fn draw_history(f: &mut Frame, screen: Rect, app: &App) {
     let mut lines = Vec::new();
     if recents.is_empty() {
         lines.push(Line::from(Span::styled(
-            "Henüz başlatma denemesi yok.",
+            app.ui_lang().t(Msg::ModalNoLaunchAttempts),
             Style::default().fg(Color::DarkGray),
         )));
     } else {
