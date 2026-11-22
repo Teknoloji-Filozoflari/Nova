@@ -130,9 +130,9 @@ pub struct GitHubRelease {
     pub draft: bool,
     /// Yayın ön sürüm mı?
     pub prerelease: bool,
-    /// Linux x86_64 kurulum varlığının adı (varsa).
+    /// Bu host için seçilen kurulum varlığının adı (varsa).
     pub asset_name: Option<String>,
-    /// Linux x86_64 kurulum varlığının https indirme adresi (varsa).
+    /// Bu host için seçilen kurulum varlığının https indirme adresi (varsa).
     pub download_url: Option<String>,
 }
 
@@ -271,9 +271,8 @@ pub fn cargo_user_bin_dir() -> PathBuf {
     if let Some(home) = std::env::var_os("CARGO_HOME").filter(|h| !h.is_empty()) {
         return PathBuf::from(home).join("bin");
     }
-    std::env::var_os("HOME")
-        .filter(|h| !h.is_empty())
-        .map(|h| PathBuf::from(h).join(".cargo").join("bin"))
+    user_home_dir()
+        .map(|h| h.join(".cargo").join("bin"))
         .unwrap_or_else(|| PathBuf::from(".cargo/bin"))
 }
 
@@ -282,7 +281,8 @@ pub fn parse_cargo_installing_nova_path(line: &str) -> Option<PathBuf> {
     let t = line.trim();
     let rest = t.strip_prefix("Installing ")?;
     let path = PathBuf::from(rest.trim());
-    if path.file_name().and_then(|n| n.to_str()) == Some("nova") && path.is_absolute() {
+    let name = path.file_name().and_then(|n| n.to_str())?;
+    if is_nova_archive_member(name) && path.is_absolute() {
         Some(path)
     } else {
         None
@@ -296,9 +296,14 @@ fn resolve_cargo_nova_binary(from_log: Option<&Path>) -> Result<PathBuf, String>
             return Ok(path.to_path_buf());
         }
     }
-    let candidate = cargo_user_bin_dir().join("nova");
+    let candidate = cargo_user_bin_dir().join(nova_binary_name());
     if candidate.is_file() {
         return Ok(candidate);
+    }
+    // Windows dışı ortamlarda yalnızca `nova` adı da denenir.
+    let unix_name = cargo_user_bin_dir().join("nova");
+    if unix_name != candidate && unix_name.is_file() {
+        return Ok(unix_name);
     }
     Err(format!(
         "cargo install tamamlandı ama nova ikilisi bulunamadı ({}). \
@@ -411,7 +416,7 @@ pub const NOVA_GIT_SOURCE_URL: &str = "https://github.com/Teknoloji-Filozoflari/
 ///
 /// Yayın yoksa (`404`) `Ok(None)` döner — bu "güncelsiniz / yayın yok"
 /// anlamına gelir; hata sayılmaz. İkili indirme için yayın varlıkları
-/// arasından Linux x86_64 adayı seçilir ([`pick_linux_asset`]).
+/// arasından bu host’a uygun aday seçilir ([`pick_release_asset`]).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct DefaultUpdateProvider;
 
@@ -495,7 +500,7 @@ pub fn parse_github_release_json(body: &str) -> Result<Option<GitHubRelease>, St
     }
     let version = Version::parse(&api.tag_name)
         .map_err(|e| format!("yayın etiketi ayrıştırılamadı '{}': {e}", api.tag_name))?;
-    let (asset_name, download_url) = pick_linux_asset_from(
+    let (asset_name, download_url) = pick_release_asset_from(
         api.assets
             .iter()
             .map(|a| (a.name.as_str(), a.browser_download_url.as_str())),
@@ -514,8 +519,48 @@ pub fn parse_github_release_json(body: &str) -> Result<Option<GitHubRelease>, St
     }))
 }
 
-/// Yayın JSON'undan Linux x86_64 ikili/arşiv adayını seçer.
-pub fn pick_linux_asset(body: &str) -> Result<(String, String), String> {
+/// Bu host’un işletim sistemi etiketi (varlık skorlaması için).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HostOs {
+    Linux,
+    Windows,
+    MacOs,
+}
+
+/// Bu host’un CPU mimarisi (varlık skorlaması için).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HostArch {
+    X86_64,
+    Aarch64,
+}
+
+/// Çalışan ikilinin OS/arch bilgisini döner.
+pub fn host_platform() -> (HostOs, HostArch) {
+    let os = if cfg!(target_os = "windows") {
+        HostOs::Windows
+    } else if cfg!(target_os = "macos") {
+        HostOs::MacOs
+    } else {
+        HostOs::Linux
+    };
+    let arch = if cfg!(target_arch = "aarch64") {
+        HostArch::Aarch64
+    } else {
+        HostArch::X86_64
+    };
+    (os, arch)
+}
+
+/// Yayın JSON'undan bu host için uygun ikili/arşiv adayını seçer.
+pub fn pick_release_asset(body: &str) -> Result<(String, String), String> {
+    pick_release_asset_for(body, host_platform())
+}
+
+/// Yayın JSON'undan verilen OS/arch için aday seçer.
+pub fn pick_release_asset_for(
+    body: &str,
+    platform: (HostOs, HostArch),
+) -> Result<(String, String), String> {
     #[derive(serde::Deserialize)]
     struct ApiRelease {
         #[serde(default)]
@@ -528,48 +573,125 @@ pub fn pick_linux_asset(body: &str) -> Result<(String, String), String> {
     }
     let api: ApiRelease =
         serde_json::from_str(body).map_err(|e| format!("GitHub JSON okunamadı: {e}"))?;
-    pick_linux_asset_from(
+    pick_release_asset_from_for(
         api.assets
             .iter()
             .map(|a| (a.name.as_str(), a.browser_download_url.as_str())),
+        platform,
     )
 }
 
-/// Varlık listesinden en uygun Linux x86_64 adayını seçer.
-pub fn pick_linux_asset_from<'a, I>(assets: I) -> Result<(String, String), String>
+/// Varlık listesinden bu host için en uygun adayı seçer.
+pub fn pick_release_asset_from<'a, I>(assets: I) -> Result<(String, String), String>
 where
     I: IntoIterator<Item = (&'a str, &'a str)>,
 {
+    pick_release_asset_from_for(assets, host_platform())
+}
+
+/// Varlık listesinden verilen OS/arch için en uygun adayı seçer.
+///
+/// Distro paketleri (`.deb` / `.rpm`) ve checksum dosyaları elenir; tercih
+/// sırası: platform eşleşmesi → arch eşleşmesi → `tar.gz`/`zip` arşivi.
+pub fn pick_release_asset_from_for<'a, I>(
+    assets: I,
+    platform: (HostOs, HostArch),
+) -> Result<(String, String), String>
+where
+    I: IntoIterator<Item = (&'a str, &'a str)>,
+{
+    let (want_os, want_arch) = platform;
     let mut scored: Vec<(i32, String, String)> = Vec::new();
     for (name, url) in assets {
         let n = name.to_lowercase();
+        if n.contains("sha256")
+            || n.contains("minisig")
+            || n.ends_with(".deb")
+            || n.ends_with(".rpm")
+            || n.contains("nix-expr")
+            || n.contains("checksum")
+        {
+            continue;
+        }
         if !(n.contains("nova")
             || n.ends_with(".tar.gz")
             || n.ends_with(".tgz")
             || n == "nova"
+            || n == "nova.exe"
             || n.ends_with(".zip"))
         {
             continue;
         }
+
         let mut score = 0;
-        if n.contains("linux") {
-            score += 5;
+        let is_linux = n.contains("linux") || n.contains("unknown-linux");
+        let is_windows = n.contains("windows") || n.contains("pc-windows") || n.ends_with(".exe");
+        let is_macos = n.contains("darwin") || n.contains("apple-darwin") || n.contains("macos");
+
+        match want_os {
+            HostOs::Linux => {
+                if is_linux {
+                    score += 10;
+                }
+                if is_windows || is_macos {
+                    score -= 30;
+                }
+            }
+            HostOs::Windows => {
+                if is_windows {
+                    score += 10;
+                }
+                if n.ends_with(".zip") {
+                    score += 3;
+                }
+                if is_linux || is_macos {
+                    score -= 30;
+                }
+            }
+            HostOs::MacOs => {
+                if is_macos {
+                    score += 10;
+                }
+                if is_linux || is_windows {
+                    score -= 30;
+                }
+            }
         }
-        if n.contains("x86_64") || n.contains("amd64") || n.contains("x64") {
-            score += 5;
+
+        let is_x86 = n.contains("x86_64") || n.contains("amd64") || n.contains("x64");
+        let is_arm = n.contains("aarch64") || n.contains("arm64");
+        match want_arch {
+            HostArch::X86_64 => {
+                if is_x86 {
+                    score += 8;
+                }
+                if is_arm {
+                    score -= 20;
+                }
+            }
+            HostArch::Aarch64 => {
+                if is_arm {
+                    score += 8;
+                }
+                if is_x86 {
+                    score -= 20;
+                }
+            }
         }
+
         if n.contains("nova") {
             score += 3;
         }
         if n.ends_with(".tar.gz") || n.ends_with(".tgz") {
             score += 2;
         }
-        if n.contains("musl") || n.contains("gnu") {
+        if n.ends_with(".zip") && want_os == HostOs::Windows {
+            score += 2;
+        }
+        if n.contains("musl") || n.contains("gnu") || n.contains("msvc") {
             score += 1;
         }
-        if n.contains("darwin") || n.contains("windows") || n.contains("macos") {
-            score -= 20;
-        }
+
         scored.push((score, name.to_string(), url.to_string()));
     }
     scored.sort_by_key(|a| std::cmp::Reverse(a.0));
@@ -578,10 +700,27 @@ where
         .find(|(s, _, _)| *s > 0)
         .map(|(_, name, url)| (name, url))
         .ok_or_else(|| {
-            "Yayında Linux x86_64 Nova ikilisi/arşivi bulunamadı. \
-             Kaynak koddan derleyin veya uygun bir GitHub release varlığı ekleyin."
-                .into()
+            format!(
+                "Yayında bu platform ({want_os:?}/{want_arch:?}) için Nova ikilisi/arşivi bulunamadı. \
+                 Kaynak koddan derleyin veya uygun bir GitHub release varlığı ekleyin."
+            )
         })
+}
+
+/// Yayın JSON'undan Linux x86_64 ikili/arşiv adayını seçer.
+///
+/// Geriye dönük uyumluluk: eski çağrılar ve testler için korunur; her zaman
+/// Linux + x86_64 skorlaması kullanır.
+pub fn pick_linux_asset(body: &str) -> Result<(String, String), String> {
+    pick_release_asset_for(body, (HostOs::Linux, HostArch::X86_64))
+}
+
+/// Varlık listesinden en uygun Linux x86_64 adayını seçer.
+pub fn pick_linux_asset_from<'a, I>(assets: I) -> Result<(String, String), String>
+where
+    I: IntoIterator<Item = (&'a str, &'a str)>,
+{
+    pick_release_asset_from_for(assets, (HostOs::Linux, HostArch::X86_64))
 }
 
 /// Kullanıcı alanına Nova ikilisi kurar (`~/.local/bin/nova`).
@@ -608,14 +747,15 @@ pub fn install_nova_from_url(
     .map_err(|e| format!("Nova indirme başarısız: {e}"))?;
 
     let bin_dir = crate::store::path::user_local_bin_dir().unwrap_or_else(dirs_fallback_local_bin);
-    std::fs::create_dir_all(&bin_dir).map_err(|e| format!("~/.local/bin oluşturulamadı: {e}"))?;
-    let dest = bin_dir.join("nova");
+    std::fs::create_dir_all(&bin_dir)
+        .map_err(|e| format!("kullanıcı bin dizini oluşturulamadı: {e}"))?;
+    let dest = bin_dir.join(nova_binary_name());
 
     let lower = asset_name.to_lowercase();
     if lower.ends_with(".tar.gz") || lower.ends_with(".tgz") {
         extract_nova_binary_from_tar_gz(&archive_path, &dest)?;
     } else if lower.ends_with(".zip") {
-        return Err("zip arşivleri henüz desteklenmiyor; tar.gz kullanın".into());
+        extract_nova_binary_from_zip(&archive_path, &dest)?;
     } else {
         std::fs::copy(&archive_path, &dest).map_err(|e| format!("ikili kopyalanamadı: {e}"))?;
     }
@@ -639,6 +779,15 @@ pub fn install_nova_from_url(
             dest.display()
         ),
     })
+}
+
+/// Kurulum hedefi ikili adı (`nova` / `nova.exe`).
+pub fn nova_binary_name() -> &'static str {
+    if cfg!(target_os = "windows") {
+        "nova.exe"
+    } else {
+        "nova"
+    }
 }
 
 /// Self-update sonrası yeniden başlatılacak ikiliyi doğrular.
@@ -710,10 +859,21 @@ pub fn restart_into(binary: &Path) -> Result<(), String> {
 }
 
 fn dirs_fallback_local_bin() -> PathBuf {
-    std::env::var_os("HOME")
-        .map(PathBuf::from)
+    user_home_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join(".local/bin")
+        .join(".local")
+        .join("bin")
+}
+
+fn user_home_dir() -> Option<PathBuf> {
+    std::env::var_os("HOME")
+        .filter(|h| !h.is_empty())
+        .or_else(|| std::env::var_os("USERPROFILE").filter(|h| !h.is_empty()))
+        .map(PathBuf::from)
+}
+
+fn is_nova_archive_member(name: &str) -> bool {
+    matches!(name, "nova" | "nova.exe")
 }
 
 fn extract_nova_binary_from_tar_gz(archive: &Path, dest: &Path) -> Result<(), String> {
@@ -734,28 +894,61 @@ fn extract_nova_binary_from_tar_gz(archive: &Path, dest: &Path) -> Result<(), St
             .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or_default();
-        if name != "nova" {
+        if !is_nova_archive_member(name) {
             continue;
         }
-        {
-            let tmp = dest.with_extension("tmp");
-            {
-                let mut out = std::fs::File::create(&tmp)
-                    .map_err(|e| format!("geçici ikili yazılamadı: {e}"))?;
-                std::io::copy(&mut entry, &mut out)
-                    .map_err(|e| format!("ikili çıkarılamadı: {e}"))?;
-            }
-            std::fs::rename(&tmp, dest).map_err(|e| {
-                let _ = std::fs::remove_file(&tmp);
-                format!("ikili yerine konamadı: {e}")
-            })?;
-        }
+        write_extracted_binary(&mut entry, dest)?;
         found = true;
         break;
     }
     if !found {
-        return Err("arşivde 'nova' adlı ikili bulunamadı".into());
+        return Err("arşivde 'nova' / 'nova.exe' adlı ikili bulunamadı".into());
     }
+    Ok(())
+}
+
+fn extract_nova_binary_from_zip(archive: &Path, dest: &Path) -> Result<(), String> {
+    let file = std::fs::File::open(archive).map_err(|e| format!("zip açılamadı: {e}"))?;
+    let mut zip = zip::ZipArchive::new(file).map_err(|e| format!("zip okunamadı: {e}"))?;
+    let mut found = false;
+    for i in 0..zip.len() {
+        let mut entry = zip
+            .by_index(i)
+            .map_err(|e| format!("zip girişi okunamadı: {e}"))?;
+        if entry.is_dir() {
+            continue;
+        }
+        let raw_name = entry
+            .name()
+            .map_err(|e| format!("zip yolu okunamadı: {e}"))?;
+        let name = Path::new(raw_name.as_ref())
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or_default();
+        if !is_nova_archive_member(name) {
+            continue;
+        }
+        write_extracted_binary(&mut entry, dest)?;
+        found = true;
+        break;
+    }
+    if !found {
+        return Err("zip içinde 'nova' / 'nova.exe' adlı ikili bulunamadı".into());
+    }
+    Ok(())
+}
+
+fn write_extracted_binary(reader: &mut impl std::io::Read, dest: &Path) -> Result<(), String> {
+    let tmp = dest.with_extension("tmp");
+    {
+        let mut out =
+            std::fs::File::create(&tmp).map_err(|e| format!("geçici ikili yazılamadı: {e}"))?;
+        std::io::copy(reader, &mut out).map_err(|e| format!("ikili çıkarılamadı: {e}"))?;
+    }
+    std::fs::rename(&tmp, dest).map_err(|e| {
+        let _ = std::fs::remove_file(&tmp);
+        format!("ikili yerine konamadı: {e}")
+    })?;
     Ok(())
 }
 
@@ -912,7 +1105,6 @@ mod tests {
     #[test]
     fn pick_linux_asset_rejects_non_linux_fixture() {
         // Canlı GitHub olmadan: yalnız Darwin asset’i Linux seçiciden elenir.
-        // (Host-arch / aarch64 skoru paketleme işine bırakılır.)
         let err = pick_linux_asset_from([(
             "nova-v0.2.0-aarch64-apple-darwin.tar.gz",
             "https://example/darwin",
@@ -922,6 +1114,120 @@ mod tests {
             err.contains("bulunamadı") || err.to_lowercase().contains("linux"),
             "{err}"
         );
+    }
+
+    #[test]
+    fn pick_release_asset_linux_aarch64() {
+        let assets = [
+            (
+                "nova-v0.2.0-x86_64-unknown-linux-gnu.tar.gz",
+                "https://example/linux-x64",
+            ),
+            (
+                "nova-v0.2.0-aarch64-unknown-linux-gnu.tar.gz",
+                "https://example/linux-arm",
+            ),
+            (
+                "nova-v0.2.0-x86_64-unknown-linux-gnu.deb",
+                "https://example/deb",
+            ),
+        ];
+        let (name, url) =
+            pick_release_asset_from_for(assets, (HostOs::Linux, HostArch::Aarch64)).unwrap();
+        assert!(name.contains("aarch64"));
+        assert!(name.ends_with(".tar.gz"));
+        assert_eq!(url, "https://example/linux-arm");
+    }
+
+    #[test]
+    fn pick_release_asset_windows_zip() {
+        let assets = [
+            (
+                "nova-v0.2.0-x86_64-unknown-linux-gnu.tar.gz",
+                "https://example/linux",
+            ),
+            (
+                "nova-v0.2.0-x86_64-pc-windows-msvc.zip",
+                "https://example/win",
+            ),
+        ];
+        let (name, url) =
+            pick_release_asset_from_for(assets, (HostOs::Windows, HostArch::X86_64)).unwrap();
+        assert!(name.contains("windows"));
+        assert!(name.ends_with(".zip"));
+        assert_eq!(url, "https://example/win");
+    }
+
+    #[test]
+    fn pick_release_asset_macos_aarch64() {
+        let assets = [
+            (
+                "nova-v0.2.0-x86_64-apple-darwin.tar.gz",
+                "https://example/mac-x64",
+            ),
+            (
+                "nova-v0.2.0-aarch64-apple-darwin.tar.gz",
+                "https://example/mac-arm",
+            ),
+            (
+                "nova-v0.2.0-aarch64-unknown-linux-gnu.tar.gz",
+                "https://example/linux-arm",
+            ),
+        ];
+        let (name, url) =
+            pick_release_asset_from_for(assets, (HostOs::MacOs, HostArch::Aarch64)).unwrap();
+        assert!(name.contains("aarch64") && name.contains("darwin"));
+        assert_eq!(url, "https://example/mac-arm");
+    }
+
+    #[test]
+    fn pick_linux_x86_64_still_ignores_aarch64_and_foreign_os() {
+        let (name, _) = pick_linux_asset_from([
+            (
+                "nova-v0.2.0-aarch64-unknown-linux-gnu.tar.gz",
+                "https://example/arm",
+            ),
+            (
+                "nova-v0.2.0-x86_64-pc-windows-msvc.zip",
+                "https://example/win",
+            ),
+            (
+                "nova-v0.2.0-x86_64-unknown-linux-gnu.tar.gz",
+                "https://example/x64",
+            ),
+        ])
+        .unwrap();
+        assert!(name.contains("x86_64") && name.contains("linux"));
+    }
+
+    #[test]
+    fn extract_nova_binary_from_zip_reads_nova_exe() {
+        let dir = std::env::temp_dir().join(format!(
+            "nova-zip-extract-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let zip_path = dir.join("nova.zip");
+        {
+            let file = std::fs::File::create(&zip_path).unwrap();
+            let mut zip = zip::ZipWriter::new(file);
+            let opts = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Stored);
+            zip.start_file("nova-v0.2.0-x86_64-pc-windows-msvc/nova.exe", opts)
+                .unwrap();
+            use std::io::Write;
+            zip.write_all(b"fake-nova-windows-binary").unwrap();
+            zip.finish().unwrap();
+        }
+        let dest = dir.join("out-nova.exe");
+        extract_nova_binary_from_zip(&zip_path, &dest).unwrap();
+        assert_eq!(std::fs::read(&dest).unwrap(), b"fake-nova-windows-binary");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

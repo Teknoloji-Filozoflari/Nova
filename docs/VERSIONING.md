@@ -1,11 +1,13 @@
 # Sürümleme ve paketleme
 
-Bu belge Nova sürümleme ve dağıtım akışını tanımlar. crates.io / AUR / distro
-paketleri hâlâ açık onay ister. **GitHub Releases** ikili yayınları
-`.github/workflows/release.yml` ile `v*.*.*` etiketlerinde (veya elle
-`gh release`) üretilir; varlık adı
-`nova-vX.Y.Z-x86_64-unknown-linux-gnu.tar.gz` + `SHA256SUMS.txt` olmalıdır
-(Ayarlar→Güncelle / `pick_linux_asset` bunları seçer).
+Bu belge Nova sürümleme ve dağıtım akışını tanımlar. crates.io / AUR hâlâ açık
+onay ister. **GitHub Releases** ikili ve distro paketleri
+`.github/workflows/release.yml` ile `v*.*.*` etiketlerinde (veya
+`workflow_dispatch` + tag) üretilir.
+
+Self-update (`Ayarlar → Güncelle` / `U`) varlıkları
+`update::pick_release_asset*` ile host OS/arch’a göre seçer. Linux x86_64
+için `pick_linux_asset*` geriye dönük olarak aynı davranışı korur.
 
 ## Sürüm numarası
 
@@ -33,11 +35,15 @@ paketleri hâlâ açık onay ister. **GitHub Releases** ikili yayınları
    `Cargo.toml` `license = "MIT OR Apache-2.0"` alanı birbiriyle uyumlu mu?
 7. `cargo build --release` ve `./target/release/nova` ile duman testi.
 8. Etiket ve yayın yalnızca proje sahibinin onayıyla.
+9. Etiket itildiğinde `release.yml` matrix paketleri + `SHA256SUMS.txt`
+   üretir. Tag **itilmezse** Release oluşmaz; `workflow_dispatch` ile tag
+   verilerek de yayınlanabilir. Bu repo otomatik tag oluşturmaz.
 
 ## Derleme ve ikili dosya
 
-- Tek ikili: `nova`. Katalog (`assets/catalog/*.toml`) `include_str!` ile ikiliye
-  gömülüdür; çalışma zamanında ayrı veri dosyası gerekmez.
+- Tek ikili: `nova` (`nova.exe` on Windows). Katalog (`assets/catalog/*.toml`)
+  `include_str!` ile ikiliye gömülüdür; çalışma zamanında ayrı veri dosyası
+  gerekmez.
 - Çalışma zamanı verisi: `$XDG_CONFIG_HOME/nova/config.toml` (kullanıcı,
   isteğe bağlı) ve `$XDG_CONFIG_HOME/nova/state.toml` (Nova yazar); XDG
   değişkeni tanımlı değilse `~/.config/nova/` kullanılır. Hiçbiri ikili ile
@@ -46,20 +52,41 @@ paketleri hâlâ açık onay ister. **GitHub Releases** ikili yayınları
   (`$TERMINAL` / xdg-terminal-exec / kitty / alacritty / wezterm /
   gnome-terminal / konsole / foot / xterm / tmux); `command_help` türleri
   ayrıca `less` veya `more` ister.
-- Hedef platform: Linux x86_64. macOS/Windows desteklenmiyor.
+- Hedef platformlar: Linux x86_64 + aarch64 (birincil); Windows x86_64 ve
+  macOS x86_64/aarch64 paketleri yayımlanır (Linux-first TUI; bazı mağaza
+  yolları Linux paket yöneticilerine bağlıdır).
 
 ## Paketleme seçenekleri
 
 | Yol | Ne gerekir | Durum |
 |-----|-----------|-------|
 | Kaynaktan derleme (`cargo build --release`) | Rust araç zinciri | Doğrulandı |
-| GitHub release (ikili) | `v*` etiket + `release.yml` veya `gh release`; tar.gz içinde `nova` | `v0.1.0` ile başladı |
+| GitHub release (tar.gz / zip) | `v*` etiket + `release.yml`; arşivde `nova` / `nova.exe` | `v0.2.0` matrix |
+| Debian / Ubuntu (`.deb`) | `release.yml` + nfpm (`packaging/`) | `v0.2.0` (amd64 + arm64) |
+| Fedora / RHEL-like (`.rpm`) | `release.yml` + nfpm | `v0.2.0` (x86_64 + aarch64) |
+| NixOS (`packaging/nix`) | Nix flake / `default.nix` | Expression shipped; `nix run` README’de |
+| Windows zip | `windows-latest` MSVC | `v0.2.0` |
+| macOS tar.gz | `macos-13` / `macos-14` | `v0.2.0` |
 | `cargo install --path .` | Rust araç zinciri | Denenmedi |
 | crates.io | Lisans metinleri, `license` alanı, yayın onayı | Yapılmadı |
-| AUR / distro paketi | Paketçi, lisans, kaynak tarball | Yapılmadı; paket adı yok |
+| AUR | Paketçi, lisans, kaynak tarball | Yapılmadı; paket adı yok |
 
-Distro adları (CachyOS, Debian 13, Pardus) yalnızca **hedef** olarak anılır;
-burada hiçbir paket adı veya kurulum komutu doğrulanmamıştır.
+Release varlık adları (ör. `v0.2.0`):
+
+- `nova-v0.2.0-x86_64-unknown-linux-gnu.tar.gz` / `.deb` / `.rpm`
+- `nova-v0.2.0-aarch64-unknown-linux-gnu.tar.gz` / `.deb` / `.rpm`
+- `nova-v0.2.0-x86_64-pc-windows-msvc.zip`
+- `nova-v0.2.0-x86_64-apple-darwin.tar.gz`
+- `nova-v0.2.0-aarch64-apple-darwin.tar.gz`
+- `nova-v0.2.0-nix-expr.tar.gz`
+- `SHA256SUMS.txt`
+
+İsteğe bağlı imza: `MINISIGN_PRIVATE_KEY` (+ `MINISIGN_PASSWORD`) secret’ları
+yoksa paketler imzasız yayımlanır; checksum her zaman eklenir. Ayrıntı:
+`packaging/README.md`.
+
+Distro adları (CachyOS, Debian, Pardus, Fedora) hedef olarak anılır; Arch
+üzerinde çalışma zamanı tercihi hâlâ **pacman**’dır.
 
 ## Bağımlılık bakımı
 

@@ -1,8 +1,8 @@
 name: Release
 
-# Etiket `vMAJOR.MINOR.PATCH` (Cargo.toml ile aynı) itildiğinde Linux
-# x86_64 ikilisini paketler ve GitHub Release oluşturur.
-# Ayarlar→Güncelle / `U` bu varlıkları `pick_linux_asset` ile seçer.
+# Tag `vMAJOR.MINOR.PATCH` (must match Cargo.toml) or workflow_dispatch with
+# the same tag → multi-platform packages + GitHub Release.
+# Self-update (`U`) picks host OS/arch assets via `update::pick_release_asset*`.
 
 on:
   push:
@@ -11,31 +11,39 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Yayımlanacak etiket (ör. v0.1.0); boşsa yalnızca paket dener"
+        description: "Yayımlanacak etiket (ör. v0.2.0); boşsa yalnızca paket dener"
         required: false
         default: ""
 
 permissions:
   contents: write
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  linux-x86_64:
+  meta:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+      publish: ${{ steps.meta.outputs.publish }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: dtolnay/rust-toolchain@stable
-
       - name: Sürüm bilgisini çöz
         id: meta
         run: |
           set -euo pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.tag }}" ]; then
             TAG="${{ inputs.tag }}"
+            PUBLISH=true
           elif [ "${{ github.ref_type }}" = "tag" ]; then
             TAG="${{ github.ref_name }}"
+            PUBLISH=true
           else
             TAG="v$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name=="nova") | .version')"
+            PUBLISH=false
           fi
           VERSION="${TAG#v}"
           CARGO_VERSION="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name=="nova") | .version')"
@@ -43,70 +51,246 @@ jobs:
             echo "::error::Etiket sürümü ($VERSION) Cargo.toml ($CARGO_VERSION) ile uyuşmuyor"
             exit 1
           fi
-          TARGET="x86_64-unknown-linux-gnu"
-          ASSET="nova-${TAG}-${TARGET}.tar.gz"
           {
             echo "tag=$TAG"
             echo "version=$VERSION"
-            echo "target=$TARGET"
-            echo "asset=$ASSET"
+            echo "publish=$PUBLISH"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Release derlemesi
-        run: cargo build --release --locked
+  build:
+    needs: meta
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: tar.gz
+            binary: nova
+            packages: "deb rpm"
+            cross: false
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            archive: tar.gz
+            binary: nova
+            packages: "deb rpm"
+            cross: true
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+            binary: nova.exe
+            packages: ""
+            cross: false
+          - os: macos-13
+            target: x86_64-apple-darwin
+            archive: tar.gz
+            binary: nova
+            packages: ""
+            cross: false
+          - os: macos-14
+            target: aarch64-apple-darwin
+            archive: tar.gz
+            binary: nova
+            packages: ""
+            cross: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Arşiv ve checksum
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cross linker (Linux aarch64)
+        if: matrix.cross && runner.os == 'Linux'
         run: |
           set -euo pipefail
-          STAGE="dist/nova-${{ steps.meta.outputs.tag }}-${{ steps.meta.outputs.target }}"
-          mkdir -p "$STAGE"
-          install -m 755 target/release/nova "$STAGE/nova"
-          cp LICENSE.md LICENSE-MIT LICENSE-APACHE README.md "$STAGE/"
-          tar -C dist -czf "dist/${{ steps.meta.outputs.asset }}" "$(basename "$STAGE")"
-          (cd dist && sha256sum "${{ steps.meta.outputs.asset }}" > SHA256SUMS.txt)
-          cat dist/SHA256SUMS.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq gcc-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
 
-      - name: GitHub Release yayimla
-        if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
+      - name: Release derlemesi
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build --release --locked --target "${{ matrix.target }}" --bin nova
+
+      - name: Arşiv
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x packaging/scripts/make-archive.sh
+          BIN="target/${{ matrix.target }}/release/${{ matrix.binary }}"
+          mkdir -p dist
+          ASSET="$(./packaging/scripts/make-archive.sh \
+            "${{ needs.meta.outputs.tag }}" \
+            "${{ matrix.target }}" \
+            "$BIN" \
+            dist \
+            "${{ matrix.archive }}")"
+          echo "ASSET=$ASSET" >> "$GITHUB_ENV"
+          ls -la dist/
+
+      - name: nfpm (.deb / .rpm)
+        if: matrix.packages != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -sSfL "https://github.com/goreleaser/nfpm/releases/download/v2.41.3/nfpm_2.41.3_Linux_x86_64.tar.gz" \
+            | tar -xz -C /tmp nfpm
+          sudo install -m 755 /tmp/nfpm /usr/local/bin/nfpm
+          chmod +x packaging/scripts/linux-packages.sh
+          BIN="target/${{ matrix.target }}/release/${{ matrix.binary }}"
+          ./packaging/scripts/linux-packages.sh \
+            "${{ needs.meta.outputs.version }}" \
+            "${{ matrix.target }}" \
+            "$BIN" \
+            dist
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-${{ needs.meta.outputs.tag }}-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+
+  nix-expr:
+    needs: meta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pack Nix expression
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          STAGE="nova-${{ needs.meta.outputs.tag }}-nix-expr"
+          mkdir -p "dist/$STAGE"
+          cp -a packaging/nix/. "dist/$STAGE/"
+          # Point nova-src at this release tag for consumers of the asset.
+          sed -i 's|ref=main|ref=${{ needs.meta.outputs.tag }}|g' "dist/$STAGE/flake.nix"
+          tar -C dist -czf "dist/${STAGE}.tar.gz" "$STAGE"
+          ls -la dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nova-${{ needs.meta.outputs.tag }}-nix-expr
+          path: dist/*.tar.gz
+
+  release:
+    needs: [meta, build, nix-expr]
+    if: needs.meta.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Collect + SHA256SUMS
+        id: collect
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          find artifacts -type f \( \
+              -name 'nova-*.tar.gz' -o \
+              -name 'nova-*.zip' -o \
+              -name 'nova-*.deb' -o \
+              -name 'nova-*.rpm' \
+            \) -print0 | while IFS= read -r -d '' f; do
+            cp -f "$f" "dist/$(basename "$f")"
+          done
+          cd dist
+          rm -f SHA256SUMS.txt
+          {
+            shopt -s nullglob
+            for f in nova-*.tar.gz nova-*.zip nova-*.deb nova-*.rpm; do
+              sha256sum "$f"
+            done
+          } | sort -k2 > SHA256SUMS.txt
+          echo "=== SHA256SUMS ==="
+          cat SHA256SUMS.txt
+          : > "$GITHUB_WORKSPACE/release-files.txt"
+          awk '{print $2}' SHA256SUMS.txt >> "$GITHUB_WORKSPACE/release-files.txt"
+          echo "SHA256SUMS.txt" >> "$GITHUB_WORKSPACE/release-files.txt"
+          ls -la
+
+      - name: Optional minisign
+        env:
+          MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY }}
+          MINISIGN_PASSWORD: ${{ secrets.MINISIGN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MINISIGN_PRIVATE_KEY:-}" ]; then
+            echo "MINISIGN_PRIVATE_KEY yok — paketler imzasız yayımlanacak (SHA256SUMS yeterli)."
+            echo "İmza için repo secret: MINISIGN_PRIVATE_KEY (+ isteğe bağlı MINISIGN_PASSWORD)."
+            exit 0
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq minisign
+          umask 077
+          KEY="$RUNNER_TEMP/minisign.key"
+          printf '%s\n' "$MINISIGN_PRIVATE_KEY" > "$KEY"
+          SIGS="$RUNNER_TEMP/minisigs.txt"
+          : > "$SIGS"
+          cd dist
+          while read -r f; do
+            [ -f "$f" ] || continue
+            [[ "$f" == *.minisig ]] && continue
+            minisign -S -s "$KEY" -m "$f" <<< "${MINISIGN_PASSWORD:-}"
+            echo "$f.minisig" >> "$SIGS"
+          done < "$GITHUB_WORKSPACE/release-files.txt"
+          cat "$SIGS" >> "$GITHUB_WORKSPACE/release-files.txt"
+
+      - name: GitHub Release yayımla
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          TAG="${{ steps.meta.outputs.tag }}"
-          ASSET="${{ steps.meta.outputs.asset }}"
-          TARGET="${{ steps.meta.outputs.target }}"
-          CHECKSUM="$(cat dist/SHA256SUMS.txt)"
+          TAG="${{ needs.meta.outputs.tag }}"
+          VERSION="${{ needs.meta.outputs.version }}"
           {
             echo "## Nova ${TAG}"
             echo
-            echo "Linux x86_64 TUI başlatıcı. Arşiv içinde çalıştırılabilir \`nova\` dosyası vardır."
+            echo "Linux-first TUI launcher with multi-platform release packages."
             echo
-            echo "### Kurulum (kullanıcı alanı)"
+            echo "### Assets"
             echo
-            echo '```bash'
-            echo "tar -xzf ${ASSET}"
-            echo "install -m 755 nova-${TAG}-${TARGET}/nova ~/.local/bin/nova"
+            echo "| Platform | Asset |"
+            echo "|----------|-------|"
+            echo "| Linux x86_64 | \`nova-${TAG}-x86_64-unknown-linux-gnu.tar.gz\` |"
+            echo "| Linux aarch64 | \`nova-${TAG}-aarch64-unknown-linux-gnu.tar.gz\` |"
+            echo "| Debian/Ubuntu amd64 | \`nova-${TAG}-x86_64-unknown-linux-gnu.deb\` |"
+            echo "| Debian/Ubuntu arm64 | \`nova-${TAG}-aarch64-unknown-linux-gnu.deb\` |"
+            echo "| Fedora/RHEL x86_64 | \`nova-${TAG}-x86_64-unknown-linux-gnu.rpm\` |"
+            echo "| Fedora/RHEL aarch64 | \`nova-${TAG}-aarch64-unknown-linux-gnu.rpm\` |"
+            echo "| Windows x86_64 | \`nova-${TAG}-x86_64-pc-windows-msvc.zip\` |"
+            echo "| macOS Intel | \`nova-${TAG}-x86_64-apple-darwin.tar.gz\` |"
+            echo "| macOS Apple Silicon | \`nova-${TAG}-aarch64-apple-darwin.tar.gz\` |"
+            echo "| Nix expression | \`nova-${TAG}-nix-expr.tar.gz\` |"
+            echo "| Checksums | \`SHA256SUMS.txt\` |"
+            echo
+            echo "See README / CHANGELOG / packaging/README.md. Binary signing"
+            echo "(minisign) is optional; checksums are always attached."
+            echo
+            echo "### Checksums"
+            echo
             echo '```'
-            echo
-            echo "PATH'te \`~/.local/bin\` olduğundan emin olun. Nova içinden **Ayarlar → Güncelle**"
-            echo "(veya araç sekmesinde \`U\`) sonraki sürümleri aynı Releases kanalından kurabilir."
-            echo
-            echo "### Checksum"
-            echo
+            cat dist/SHA256SUMS.txt
             echo '```'
-            echo "${CHECKSUM}"
-            echo '```'
-            echo
-            echo "Kaynak derleme ve mimari için README / ARCHITECTURE.md bakın."
-            echo "Katalog katkıları: [Nova-Store](https://github.com/Teknoloji-Filozoflari/Nova-Store)."
           } > dist/RELEASE_NOTES.md
 
+          UPLOAD=()
+          while read -r f; do
+            [ -f "dist/$f" ] || continue
+            UPLOAD+=("dist/$f")
+          done < "$GITHUB_WORKSPACE/release-files.txt"
+
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "dist/${ASSET}" dist/SHA256SUMS.txt --clobber
+            gh release upload "$TAG" "${UPLOAD[@]}" --clobber
           else
             gh release create "$TAG" \
-              "dist/${ASSET}" \
-              dist/SHA256SUMS.txt \
+              "${UPLOAD[@]}" \
               --title "Nova ${TAG}" \
               --notes-file dist/RELEASE_NOTES.md
           fi

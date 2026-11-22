@@ -48,17 +48,84 @@ değiştirmez; onları bir araya getirir.
 
 ## Kurulum
 
-### İkili (önerilen)
+Nova **Linux-first** bir TUI’dir. GitHub Releases `v0.2.0+` ile Linux
+x86_64/aarch64, Debian/Fedora paketleri, Nix ifadesi, Windows zip ve macOS
+arşivleri yayımlanır. Windows/macOS’ta Linux paket yöneticisi yolları
+(pacman/dnf/apt) yok; brew/cargo/npm ve arşiv kurulumu kullanılabilir.
 
-[Releases](https://github.com/Teknoloji-Filozoflari/Nova/releases) sayfasından
-`nova-v*-x86_64-unknown-linux-gnu.tar.gz` (+ `SHA256SUMS.txt`) indirin:
+Tüm varlıklar için `SHA256SUMS.txt` vardır. İsteğe bağlı minisign imzası
+yalnızca repo secret’ları (`MINISIGN_PRIVATE_KEY`) tanımlıysa eklenir.
+
+### Linux — tar.gz (önerilen, kullanıcı alanı)
+
+| Arch | Asset |
+| --- | --- |
+| x86_64 | `nova-v0.2.0-x86_64-unknown-linux-gnu.tar.gz` |
+| aarch64 | `nova-v0.2.0-aarch64-unknown-linux-gnu.tar.gz` |
 
 ```bash
-tar -xzf nova-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
-install -m 755 nova-v0.1.0-x86_64-unknown-linux-gnu/nova ~/.local/bin/nova
+TAG=v0.2.0
+TARGET=x86_64-unknown-linux-gnu   # veya aarch64-unknown-linux-gnu
+curl -sL "https://github.com/Teknoloji-Filozoflari/Nova/releases/download/${TAG}/nova-${TAG}-${TARGET}.tar.gz" -o nova.tgz
+tar -xzf nova.tgz
+install -m 755 "nova-${TAG}-${TARGET}/nova" ~/.local/bin/nova
 ```
 
-`~/.local/bin` PATH’te olsun. Sonraki sürümler için **Ayarlar → Nova güncelle**
+### Debian / Ubuntu (`.deb`)
+
+| Arch | Asset |
+| --- | --- |
+| amd64 | `nova-v0.2.0-x86_64-unknown-linux-gnu.deb` |
+| arm64 | `nova-v0.2.0-aarch64-unknown-linux-gnu.deb` |
+
+```bash
+sudo apt install ./nova-v0.2.0-x86_64-unknown-linux-gnu.deb
+```
+
+### Fedora / RHEL-like (`.rpm`)
+
+| Arch | Asset |
+| --- | --- |
+| x86_64 | `nova-v0.2.0-x86_64-unknown-linux-gnu.rpm` |
+| aarch64 | `nova-v0.2.0-aarch64-unknown-linux-gnu.rpm` |
+
+```bash
+sudo dnf install ./nova-v0.2.0-x86_64-unknown-linux-gnu.rpm
+```
+
+### NixOS / Nix
+
+Release’deki `nova-v0.2.0-nix-expr.tar.gz` veya depodaki `packaging/nix`:
+
+```bash
+# klon üzerinden
+nix run ./packaging/nix
+# veya GitHub (flake input `nova-src`; yerel: --override-input nova-src path:.)
+nix run 'git+https://github.com/Teknoloji-Filozoflari/Nova?dir=packaging/nix'
+```
+
+### Windows (x86_64)
+
+Asset: `nova-v0.2.0-x86_64-pc-windows-msvc.zip` (`nova.exe`)
+
+```powershell
+Expand-Archive nova-v0.2.0-x86_64-pc-windows-msvc.zip -DestinationPath $env:LOCALAPPDATA\Nova
+# nova.exe yolunu PATH'e ekleyin veya kısayol oluşturun
+```
+
+### macOS
+
+| Arch | Asset |
+| --- | --- |
+| Intel | `nova-v0.2.0-x86_64-apple-darwin.tar.gz` |
+| Apple Silicon | `nova-v0.2.0-aarch64-apple-darwin.tar.gz` |
+
+```bash
+tar -xzf nova-v0.2.0-aarch64-apple-darwin.tar.gz
+install -m 755 nova-v0.2.0-aarch64-apple-darwin/nova /usr/local/bin/nova
+```
+
+`~/.local/bin` (Linux) PATH’te olsun. Sonraki sürümler için **Ayarlar → Nova güncelle**
 (`U`) Releases kanalını kullanır; `main`’deki commit’ler için aynı ekranda
 **`G`** → `cargo install --git` (ağ + derleme).
 
@@ -73,7 +140,7 @@ cargo build --release && ./target/release/nova
 cargo install --git https://github.com/Teknoloji-Filozoflari/Nova.git --branch main --force --locked
 ```
 
-Gereksinimler: Linux, Rust toolchain, desteklenen bir terminal backend
+Gereksinimler: Rust toolchain; Linux’ta desteklenen bir terminal backend
 (`$TERMINAL`, kitty, alacritty, wezterm, gnome-terminal, konsole, foot, xterm,
 tmux, …). Emülatör yokken arayüz gezilebilir; başlatma backend bulamazsa hata verir.
 
