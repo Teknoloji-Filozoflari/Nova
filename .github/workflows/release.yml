@@ -81,19 +81,23 @@ jobs:
             binary: nova.exe
             packages: ""
             cross: false
-          - os: macos-13
-            target: x86_64-apple-darwin
-            archive: tar.gz
-            binary: nova
-            packages: ""
-            cross: false
-          - os: macos-14
+          # macos-13/14 are unavailable or stuck-queued on this account
+          # ("macos-14-arm64-us-default is not supported"). Use macos-latest
+          # (Apple Silicon): native aarch64 + Darwin x86_64 cross target.
+          - os: macos-latest
             target: aarch64-apple-darwin
             archive: tar.gz
             binary: nova
             packages: ""
             cross: false
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            archive: tar.gz
+            binary: nova
+            packages: ""
+            cross: false
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ startsWith(matrix.os, 'macos') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -177,7 +181,8 @@ jobs:
 
   release:
     needs: [meta, build, nix-expr]
-    if: needs.meta.outputs.publish == 'true'
+    # Publish whatever matrix cells succeeded (macOS may be continue-on-error).
+    if: always() && needs.meta.result == 'success' && needs.meta.outputs.publish == 'true' && needs.nix-expr.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
