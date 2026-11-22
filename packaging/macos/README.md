@@ -1,9 +1,12 @@
 # macOS packaging
 
-CI builds:
+CI builds on `macos-latest` (Apple Silicon):
 
-- `nova-vX.Y.Z-x86_64-apple-darwin.tar.gz` (`macos-13`)
-- `nova-vX.Y.Z-aarch64-apple-darwin.tar.gz` (`macos-14`)
+- `nova-vX.Y.Z-aarch64-apple-darwin.tar.gz` (native)
+- `nova-vX.Y.Z-x86_64-apple-darwin.tar.gz` (cross target on the same runner)
+
+`macos-13` / `macos-14` labels are avoided: this account reported
+`macos-14-arm64-us-default is not supported`, and `macos-13` stayed queued.
 
 ```bash
 ./packaging/scripts/make-archive.sh v0.2.0 aarch64-apple-darwin \

@@ -36,3 +36,10 @@ Unsigned packages are published whenever a tag build succeeds. To also attach
 
 Public key should be documented in release notes / README when signing is enabled.
 Without these secrets the release job skips signing and still uploads checksums.
+
+## Runner notes
+
+- Linux + Windows use `ubuntu-latest` / `windows-latest`.
+- macOS uses `macos-latest` only (native aarch64 + cross `x86_64-apple-darwin`).
+  macOS matrix cells are `continue-on-error` so a runner outage does not block
+  publishing Linux/Windows/Nix assets.
