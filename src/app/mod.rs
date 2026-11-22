@@ -3844,8 +3844,7 @@ impl App {
     /// Mağaza kataloğundan ayrıdır; `kind: nova-commands-bank` korunur.
     /// İmzasız `main` yalnızca yedek yoldur — durum satırında açıkça etiketlenir.
     pub fn start_commands_bank_refresh(&mut self) {
-        self.status_message =
-            "Komut bankası yenileniyor (imzalı Releases + repo main)…".into();
+        self.status_message = "Komut bankası yenileniyor (imzalı Releases + repo main)…".into();
         let current_sha = self
             .commands_bank
             .content_sha256

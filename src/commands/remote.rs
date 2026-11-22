@@ -204,10 +204,8 @@ pub fn verify_signed_bank_triplet(
     search_index_sig: &str,
     pk: &PublicKey,
 ) -> Result<(), String> {
-    verify_bytes_with_key(catalog, catalog_sig, pk)
-        .map_err(|e| format!("catalog.json: {e}"))?;
-    verify_bytes_with_key(manifest, manifest_sig, pk)
-        .map_err(|e| format!("manifest.json: {e}"))?;
+    verify_bytes_with_key(catalog, catalog_sig, pk).map_err(|e| format!("catalog.json: {e}"))?;
+    verify_bytes_with_key(manifest, manifest_sig, pk).map_err(|e| format!("manifest.json: {e}"))?;
     verify_bytes_with_key(search_index, search_index_sig, pk)
         .map_err(|e| format!("search-index.json: {e}"))?;
     Ok(())
@@ -382,10 +380,7 @@ pub fn refresh_or_keep_trusted(
     let paths = TrustedBankPaths::default_paths();
     match try_refresh_from_remote(paths.as_ref()) {
         Ok((fetched, outcome)) => (Some(fetched), outcome),
-        Err(reason) => (
-            current.cloned(),
-            BankCatalogRefresh::KeptTrusted { reason },
-        ),
+        Err(reason) => (current.cloned(), BankCatalogRefresh::KeptTrusted { reason }),
     }
 }
 
@@ -444,7 +439,8 @@ mod tests {
     }
 
     fn fixture_text(name: &str) -> String {
-        fs::read_to_string(fixture_dir().join(name)).unwrap_or_else(|e| panic!("fixture {name}: {e}"))
+        fs::read_to_string(fixture_dir().join(name))
+            .unwrap_or_else(|e| panic!("fixture {name}: {e}"))
     }
 
     /// Fixture imzaları üretim anahtarıyla değil, test anahtarıyla atılmıştır.
@@ -472,8 +468,7 @@ mod tests {
     #[test]
     fn embedded_key_matches_assets_file() {
         let assets = fs::read_to_string(
-            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("assets/keys/nova-commands-catalog.pub"),
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets/keys/nova-commands-catalog.pub"),
         )
         .expect("assets key file");
         let line = assets
