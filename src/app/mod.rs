@@ -3839,18 +3839,18 @@ impl App {
         self.status_message = note;
     }
 
-    /// Komut bankasını Nova-Commands repo (main) ile yeniler (imzasız HTTPS + SHA).
+    /// Komut bankasını imzalı Releases + Nova-Commands repo (main) ile yeniler.
     ///
     /// Mağaza kataloğundan ayrıdır; `kind: nova-commands-bank` korunur.
+    /// İmzasız `main` yalnızca yedek yoldur — durum satırında açıkça etiketlenir.
     pub fn start_commands_bank_refresh(&mut self) {
-        self.status_message =
-            "Komut bankası yenileniyor (Nova-Commands repo main; imzasız HTTPS)…".into();
+        self.status_message = "Komut bankası yenileniyor (imzalı Releases + repo main)…".into();
         let current_sha = self
             .commands_bank
             .content_sha256
             .clone()
             .or_else(commands::loader::embedded_content_sha256);
-        let (fetched, sync) = commands::refresh_commands_from_repo(current_sha.as_deref());
+        let (fetched, note) = commands::refresh_signed_then_repo(current_sha.as_deref());
         if let Some(fetched) = fetched {
             self.commands_bank = fetched.bank;
             self.commands_search_index = fetched.search_index;
@@ -3858,7 +3858,7 @@ impl App {
             self.commands_entry_index = 0;
             self.refresh_local_commands_stub();
         }
-        self.status_message = commands::format_sync_note(&sync);
+        self.status_message = note;
     }
 
     /// Gelişmiş ayarlar modalını açar (terminal, medya varsayılanları…).
@@ -7303,8 +7303,8 @@ mod tests {
         assert_eq!(app.commands_bank.content_sha256, before_sha);
         assert_eq!(app.commands_bank.commands.len(), before_n);
         assert!(
-            app.status_message.contains("Komut bankası")
-                || app.status_message.contains("yenilenemedi")
+            app.status_message.contains("Releases")
+                || app.status_message.contains("imzasız main")
                 || app.status_message.contains("test:"),
             "mesaj: {}",
             app.status_message

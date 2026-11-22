@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "kind": "nova-commands-bank",
+  "content_sha256": "99ab2e2f0726c3e9a4cf179bb4adbb98b2754f44e1ea514442c29dd3180bef10",
+  "command_count": 1,
+  "concept_count": 0,
+  "task_count": 0,
+  "profile_count": 0,
+  "commands": [
+    {
+      "id": "fixture-echo",
+      "name": "echo",
+      "category": "shell",
+      "summary": {
+        "tr": "Metin yazdırır",
+        "en": "Prints text"
+      },
+      "risk": "safe",
+      "verification": {
+        "status": "draft"
+      },
+      "examples": [
+        {
+          "title": {
+            "tr": "Merhaba",
+            "en": "Hello"
+          },
+          "command": "echo hello",
+          "risk": "safe"
+        }
+      ]
+    }
+  ],
+  "concepts": [],
+  "tasks": [],
+  "profiles": []
+}

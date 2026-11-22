@@ -1,14 +1,16 @@
 //! Nova-Commands **repo** (main) üzerinden banka senkronu.
 //!
-//! İmzalı Releases yokken `metadata/{manifest,catalog,search-index}.json`
+//! İmzalı Releases yoluna ek olarak `metadata/{manifest,catalog,search-index}.json`
 //! (veya `NOVA_COMMANDS_*_URL`) HTTPS ile çekilir. Bu yol **imzasızdır**;
 //! güven sabit GitHub ham URL + HTTPS + `kind`/`content_sha256` sözleşmesiyle
-//! sınırlıdır. UI bunu açıkça söylemeli.
+//! sınırlıdır. UI bunu açıkça söylemeli — tercih edilen yol
+//! [`crate::commands::remote`] (minisign + `catalog-v*` Releases).
 //!
 //! Başarılı senkron bellek içi bankayı günceller ve isteğe bağlı olarak
 //! `~/.local/share/nova/commands/` altına önbellek yazar (gömülü
 //! `assets/commands` üzerine yazmaz — gömülü vendor kopyası için
-//! `tools/sync_commands_catalog.sh`).
+//! `tools/sync_commands_catalog.sh`). İmzasız önbellek, imzalı
+//! `trusted/` kopyasının üzerine **yazmaz**.
 
 use crate::commands::bank::{CommandBank, BANK_KIND};
 use crate::commands::loader::{
@@ -297,20 +299,58 @@ pub fn format_sync_note(sync: &CommandsRepoSync) -> String {
             content_sha256,
             source,
         } => format!(
-            "Komut bankası güncellendi: {commands} komut, {concepts} konsept (sha {}…; {source}; imzasız main).",
+            "Repo (imzasız main) senkronu uygulandı: {commands} komut, {concepts} konsept (sha {}…; {source}).",
             &content_sha256[..12.min(content_sha256.len())]
         ),
         CommandsRepoSync::Unchanged {
             content_sha256,
             source,
         } => format!(
-            "Komut bankası güncel (sha {}…; {source}).",
+            "Repo (imzasız main) güncel (sha {}…; {source}).",
             &content_sha256[..12.min(content_sha256.len())]
         ),
         CommandsRepoSync::Failed { reason } => {
-            format!("Komut bankası yenilenemedi — gömülü/önbellek korundu: {reason}")
+            format!("Repo (imzasız main): {reason}")
         }
     }
+}
+
+/// İmzalı Releases + imzasız repo (`main`) yollarını birlikte dener.
+///
+/// Önce [`crate::commands::remote`]; başarısızsa veya istenirse repo raw HTTPS.
+/// Dönüş: (uygulanan banka — yoksa mevcut korunur, insan özeti).
+pub fn refresh_signed_then_repo(
+    current_sha: Option<&str>,
+) -> (Option<FetchedCommandsBank>, String) {
+    let mut notes = Vec::new();
+    let paths = crate::commands::remote::TrustedBankPaths::default_paths();
+
+    let after_signed = match crate::commands::remote::try_refresh_from_remote(paths.as_ref()) {
+        Ok((fetched, refresh)) => {
+            notes.push(crate::commands::remote::format_refresh_note(&refresh));
+            Some(fetched)
+        }
+        Err(reason) => {
+            notes.push(format!("Releases imzalı banka: {reason}"));
+            None
+        }
+    };
+
+    let sha_for_repo = after_signed
+        .as_ref()
+        .map(|f| f.manifest.content_sha256.as_str())
+        .or(current_sha);
+
+    let (repo_fetched, repo_sync) = refresh_commands_from_repo(sha_for_repo);
+    notes.push(format_sync_note(&repo_sync));
+
+    // Repo başarılı güncelleme → onu uygula; değilse imzalı sonucu (veya None) koru.
+    let final_bank = match (&repo_fetched, &repo_sync) {
+        (Some(fetched), CommandsRepoSync::Updated { .. }) => Some(fetched.clone()),
+        _ => after_signed.or(repo_fetched),
+    };
+
+    (final_bank, notes.join(" "))
 }
 
 #[cfg(test)]
@@ -375,15 +415,25 @@ mod tests {
             content_sha256: "abcdefghijklmnop".into(),
             source: "https://example.com/m".into(),
         });
-        assert!(u.contains("güncellendi"), "{u}");
+        assert!(u.contains("imzasız main"), "{u}");
         let c = format_sync_note(&CommandsRepoSync::Unchanged {
             content_sha256: "abcdefghijklmnop".into(),
             source: "https://example.com/m".into(),
         });
-        assert!(c.contains("güncel"), "{c}");
+        assert!(c.contains("imzasız main"), "{c}");
         let f = format_sync_note(&CommandsRepoSync::Failed {
             reason: "ağ yok".into(),
         });
-        assert!(f.contains("yenilenemedi"), "{f}");
+        assert!(f.contains("imzasız main"), "{f}");
+    }
+
+    #[test]
+    fn signed_then_repo_skips_network_in_tests() {
+        let (fetched, note) = refresh_signed_then_repo(None);
+        assert!(fetched.is_none(), "testte ağ yok");
+        assert!(
+            note.contains("Releases") && note.contains("imzasız main"),
+            "{note}"
+        );
     }
 }
