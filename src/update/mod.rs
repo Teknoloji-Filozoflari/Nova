@@ -910,6 +910,21 @@ mod tests {
     }
 
     #[test]
+    fn pick_linux_asset_rejects_non_linux_fixture() {
+        // Canlı GitHub olmadan: yalnız Darwin asset’i Linux seçiciden elenir.
+        // (Host-arch / aarch64 skoru paketleme işine bırakılır.)
+        let err = pick_linux_asset_from([(
+            "nova-v0.2.0-aarch64-apple-darwin.tar.gz",
+            "https://example/darwin",
+        )])
+        .unwrap_err();
+        assert!(
+            err.contains("bulunamadı") || err.to_lowercase().contains("linux"),
+            "{err}"
+        );
+    }
+
+    #[test]
     fn parse_release_json_without_assets_is_ok() {
         let body = r#"{
             "tag_name": "v0.3.0",

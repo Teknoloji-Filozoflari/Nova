@@ -6,6 +6,10 @@
 //! sınırlıdır. UI bunu açıkça söylemeli — tercih edilen yol
 //! [`crate::commands::remote`] (minisign + `catalog-v*` Releases).
 //!
+//! **Hazırlık notu:** Nova-Commands `catalog-v*` + minisign sözleşmesi için
+//! ayrı bir `commands/remote` istemcisi (Store `remote` aynası) henüz yok;
+//! bu modül bilinçli olarak imzasız `main` yedek kanalıdır.
+//!
 //! Başarılı senkron bellek içi bankayı günceller ve isteğe bağlı olarak
 //! `~/.local/share/nova/commands/` altına önbellek yazar (gömülü
 //! `assets/commands` üzerine yazmaz — gömülü vendor kopyası için

@@ -133,7 +133,11 @@ fn commands_tab_local_source_uses_local_kind_not_bank() {
     );
     assert_eq!(app.commands_local.kind, LOCAL_KIND);
     assert_ne!(app.commands_local.kind, BANK_KIND);
-    assert!(app.commands_local.stub);
+    // v1: varsayılan limit altında tamamlanan tarama stub değildir.
+    assert!(
+        !app.commands_local.stub,
+        "PATH keşfi limit’e takılmadan bitince stub:false olmalı"
+    );
     assert_eq!(app.commands_source(), nova::commands::CommandsSource::Local);
 }
 

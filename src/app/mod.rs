@@ -167,7 +167,7 @@ pub struct App {
     /// Komut Rehberi sekmesi etkin mi?
     ///
     /// Sol panelde araç kategorilerinden sonra, Mağaza'dan önce gelir.
-    /// Nova-Commands bankası + yerel PATH stub'ı; Mağaza ile karışmaz.
+    /// Nova-Commands bankası + yerel PATH keşfi; Mağaza ile karışmaz.
     pub commands_tab: bool,
     /// Mağaza sekmesi etkin mi?
     ///
@@ -237,7 +237,7 @@ pub struct App {
     pub commands_bank: CommandBank,
     /// Gömülü arama indeksi (`nova-commands-search-index`) — banka ile ayrı kind.
     pub commands_search_index: SearchIndex,
-    /// Yerel PATH keşfi anlık görüntüsü (`nova-local-commands` stub).
+    /// Yerel PATH keşfi anlık görüntüsü (`nova-local-commands`).
     pub commands_local: LocalCommandsSnapshot,
     /// Seçili aracın indeksi (filtrelenmiş liste üzerinden).
     pub tool_index: usize,
@@ -885,7 +885,7 @@ impl App {
 
         let panel_top = areas.content_top;
         let panel_h = areas.content_height;
-        const SETTINGS_ACTIONS: usize = 6;
+        const SETTINGS_ACTIONS: usize = 7;
 
         if self.settings_side_picker_open() && areas.wide {
             let side_start = areas.category_end_x.saturating_add(areas.secondary_width);
@@ -975,7 +975,7 @@ impl App {
 
     /// Ayarlar listesinde tıklanan eylemi uygular (Tema / Dil → paneli aç).
     fn apply_settings_action_click(&mut self, index: usize) {
-        self.settings_action_index = index.min(5);
+        self.settings_action_index = index.min(6);
         self.focus = PanelFocus::Tool;
         match self.settings_action_index {
             4 => self.open_theme_picker(),
@@ -984,6 +984,11 @@ impl App {
                 self.theme_picker_open = false;
                 self.language_picker_open = false;
                 self.modal = modal::Modal::ToolForm(Box::default());
+            }
+            6 => {
+                self.theme_picker_open = false;
+                self.language_picker_open = false;
+                let _ = self.toggle_hide_command_drafts();
             }
             _ => {
                 self.theme_picker_open = false;
@@ -1222,7 +1227,7 @@ impl App {
                 self.select_settings_tab();
             }
             KeyCode::Char('g') | KeyCode::Char('G') => {
-                // Komut Rehberi: Nova-Commands bankası + yerel PATH stub.
+                // Komut Rehberi: Nova-Commands bankası + yerel PATH keşfi.
                 self.select_commands_tab();
             }
             KeyCode::Char('m') | KeyCode::Char('M') => {
@@ -1454,7 +1459,7 @@ impl App {
             PanelFocus::Category => self.move_tab_down(),
             PanelFocus::Tool => {
                 if self.settings_tab {
-                    self.settings_action_index = (self.settings_action_index + 1).min(5);
+                    self.settings_action_index = (self.settings_action_index + 1).min(6);
                     return;
                 }
                 let tools = self.filtered_tools();
@@ -1802,12 +1807,20 @@ impl App {
         }
     }
 
-    /// Yerel PATH keşfi stub'ını yeniler (bank eşleşmesi yalnız `bank_id`).
-    pub fn refresh_local_commands_stub(&mut self) {
-        self.commands_local = commands::local::discover_path_stub(Some(&self.commands_bank), 64);
+    /// Yerel PATH keşfini yeniler (bank eşleşmesi yalnız `bank_id`).
+    pub fn refresh_local_commands(&mut self) {
+        self.commands_local = commands::local::discover_path(
+            Some(&self.commands_bank),
+            commands::local::DEFAULT_PATH_DISCOVERY_LIMIT,
+        );
     }
 
-    /// Dual-concept kaynak (PATH stub ↔ banka).
+    /// Eski ad — [`Self::refresh_local_commands`].
+    pub fn refresh_local_commands_stub(&mut self) {
+        self.refresh_local_commands();
+    }
+
+    /// Dual-concept kaynak (PATH keşfi ↔ banka).
     pub fn commands_source(&self) -> CommandsSource {
         self.commands_mode.source()
     }
@@ -1936,8 +1949,15 @@ impl App {
 
     /// Başlangıç konuları (konseptler); arama/süzgeç dürüstçe boş bırakabilir.
     pub fn filtered_concepts(&self) -> Vec<&commands::ConceptEntry> {
-        let mut concepts: Vec<&commands::ConceptEntry> =
-            self.commands_bank.concepts.iter().collect();
+        let mut concepts: Vec<&commands::ConceptEntry> = self
+            .commands_bank
+            .concepts
+            .iter()
+            .filter(|c| {
+                !self.hide_command_drafts()
+                    || c.verification.status != commands::VerificationStatus::Draft
+            })
+            .collect();
         if !self.search_query.is_empty() {
             let q = self.search_query.to_ascii_lowercase();
             let lang = self.ui_lang().id();
@@ -2235,6 +2255,11 @@ impl App {
                 if self.command_favorite_only && !self.is_command_favorite(&c.id) {
                     return false;
                 }
+                if self.hide_command_drafts()
+                    && c.verification.status == commands::VerificationStatus::Draft
+                {
+                    return false;
+                }
                 if !self.commands_filters.matches(c) {
                     return false;
                 }
@@ -2370,6 +2395,11 @@ impl App {
             .tasks
             .iter()
             .filter(|t| {
+                if self.hide_command_drafts()
+                    && t.verification.status == commands::VerificationStatus::Draft
+                {
+                    return false;
+                }
                 if !searching && t.category != cat {
                     return false;
                 }
@@ -3826,8 +3856,38 @@ impl App {
                     "Özel araç: ad, program, kategori… Esc iptal, Enter gözden geçir.".into();
             }
             4 => self.open_theme_picker(),
-            _ => self.open_language_picker(),
+            5 => self.open_language_picker(),
+            _ => {
+                let _ = self.toggle_hide_command_drafts();
+            }
         }
+    }
+
+    /// Komut Rehberi’nde draft banka kayıtlarını gizleme tercihini çevirir.
+    pub fn toggle_hide_command_drafts(&mut self) -> Result<bool, String> {
+        let next = !self.state.file.prefs.hide_command_drafts;
+        self.state.file.prefs.hide_command_drafts = next;
+        self.persist_state()
+            .map_err(|e| format!("Tercih kaydedilemedi: {e}"))?;
+        let lang = self.ui_lang();
+        let state = if next {
+            lang.t(crate::i18n::Msg::HideCommandDraftsHintOn)
+        } else {
+            lang.t(crate::i18n::Msg::HideCommandDraftsHintOff)
+        };
+        self.status_message = format!(
+            "{} {}",
+            lang.t(crate::i18n::Msg::HideCommandDraftsToggled),
+            state
+        );
+        // Liste indeksi geçersiz kalmasın.
+        self.commands_entry_index = 0;
+        Ok(next)
+    }
+
+    /// Draft banka kayıtları gizlensin mi?
+    pub fn hide_command_drafts(&self) -> bool {
+        self.state.file.prefs.hide_command_drafts
     }
 
     /// Mağaza kataloğunu imzalı Releases + Nova-Store repo (main) ile yeniler.
@@ -7161,6 +7221,29 @@ mod tests {
         app.handle_key(typed('k')).unwrap();
         assert!(app.store_tab);
         assert!(!app.settings_tab);
+    }
+
+    #[test]
+    fn hide_command_drafts_filters_bank_lists() {
+        let mut app = sample_app();
+        app.select_commands_tab();
+        // Hızlı referans: kategoriye bağlı olmadan tüm banka listelenir.
+        app.set_commands_mode(crate::commands::CommandsBrowseMode::QuickReference);
+        let before = app.filtered_bank_commands().len();
+        assert!(before > 0);
+        let drafts_visible = app
+            .filtered_bank_commands()
+            .iter()
+            .filter(|c| c.verification.status == crate::commands::VerificationStatus::Draft)
+            .count();
+        assert!(drafts_visible > 0, "hızlı ref’te draft görünür olmalı");
+        app.state.file.prefs.hide_command_drafts = true;
+        let after = app.filtered_bank_commands().len();
+        assert_eq!(after, before - drafts_visible);
+        assert!(app
+            .filtered_bank_commands()
+            .iter()
+            .all(|c| c.verification.status != crate::commands::VerificationStatus::Draft));
     }
 
     #[test]
