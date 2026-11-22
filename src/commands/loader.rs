@@ -250,18 +250,29 @@ mod tests {
             bank.command_count.unwrap_or(bank.commands.len()),
             bank.commands.len()
         );
-        // Canlı banka schema v2 + beklenen digest (Nova-Commands #41 / NV-129 @ e6466b7f…).
+        // Canlı banka schema v2 + beklenen digest (Nova-Commands #43 Software @ aad2fb79…).
         assert_eq!(bank.schema_version, 2);
         assert_eq!(
             man.content_sha256,
-            "e6466b7f777fe49019c2cc7d6d4bcf279857d76a209e7ca68b7292f5f945ec06"
+            "aad2fb79aad8f4954e25a5538811163c4efc18d5551eabdcddc4f233f938da2f"
         );
+        assert_eq!(bank.command_count, Some(319));
+        assert_eq!(bank.concept_count, Some(31));
         assert!(
             bank.concepts.iter().any(|c| !c.learning_path.is_empty()
                 || !c.command_table.is_empty()
                 || !c.safe_exercises.is_empty()),
             "NV-123 topic-guide alanları beklenirdi"
         );
+        let software = bank
+            .concepts
+            .iter()
+            .find(|c| c.id == "software")
+            .expect("software topic-guide concept");
+        assert_eq!(software.format.as_deref(), Some("topic-guide"));
+        assert!(!software.subtopics.is_empty());
+        assert!(!software.command_table.is_empty());
+        assert!(!software.learning_path.is_empty());
         let with_refs = bank
             .commands
             .iter()

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "kind": "nova-commands-search-index",
-  "entry_count": 350,
+  "entry_count": 400,
   "entries": [
     {
       "type": "command",
@@ -20,7 +20,9 @@
         "ansible",
         "automation",
         "devops",
-        "iac"
+        "iac",
+        "software",
+        "server"
       ],
       "summary": {
         "tr": "Ansible otomasyon motoru.",
@@ -39,6 +41,7 @@
         ]
       },
       "concepts": [
+        "software",
         "infrastructure-as-code"
       ]
     },
@@ -173,7 +176,8 @@
       "tags": [
         "cloud",
         "aws",
-        "devops"
+        "devops",
+        "software"
       ],
       "summary": {
         "tr": "AWS Command Line Interface.",
@@ -192,6 +196,7 @@
         ]
       },
       "concepts": [
+        "software",
         "cloud",
         "infrastructure-as-code"
       ]
@@ -213,7 +218,8 @@
       "tags": [
         "cloud",
         "azure",
-        "devops"
+        "devops",
+        "software"
       ],
       "summary": {
         "tr": "Azure CLI.",
@@ -230,6 +236,7 @@
         ]
       },
       "concepts": [
+        "software",
         "cloud",
         "infrastructure-as-code"
       ]
@@ -459,6 +466,86 @@
     },
     {
       "type": "command",
+      "id": "bun",
+      "name": "bun",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "backend",
+        "tools",
+        "bun",
+        "node"
+      ],
+      "summary": {
+        "tr": "Bun — JS runtime, paket yöneticisi ve test runner.",
+        "en": "Bun — JS runtime, package manager, and test runner."
+      },
+      "intent": {
+        "tr": [
+          "bun kur",
+          "bun çalıştır",
+          "bunx"
+        ],
+        "en": [
+          "bun install",
+          "bun run",
+          "bunx"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "bundle",
+      "name": "bundle",
+      "category": "development",
+      "kind": "package_manager",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "ruby",
+        "packages"
+      ],
+      "summary": {
+        "tr": "Bundler (bundle) — Ruby proje bağımlılıkları.",
+        "en": "Bundler (bundle) — Ruby project dependencies."
+      },
+      "intent": {
+        "tr": [
+          "bundle install",
+          "bundler"
+        ],
+        "en": [
+          "bundle install",
+          "bundler"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "caddy",
       "name": "caddy",
       "category": "system",
@@ -533,7 +620,9 @@
       },
       "concepts": [
         "package-managers",
-        "terminal-basics"
+        "terminal-basics",
+        "software",
+        "development-basics"
       ]
     },
     {
@@ -793,6 +882,125 @@
     },
     {
       "type": "command",
+      "id": "code",
+      "name": "code",
+      "category": "development",
+      "kind": "vendor_cli",
+      "risk": "caution",
+      "learning_level": "beginner",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "tools",
+        "frontend",
+        "editor",
+        "vscode"
+      ],
+      "summary": {
+        "tr": "Visual Studio Code komut satırı (`code`).",
+        "en": "Visual Studio Code command line (`code`)."
+      },
+      "intent": {
+        "tr": [
+          "vscode aç",
+          "code .",
+          "uzantı kur",
+          "vs code cli"
+        ],
+        "en": [
+          "open vscode",
+          "code .",
+          "install extension",
+          "vs code cli"
+        ]
+      },
+      "concepts": [
+        "software",
+        "development-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "codium",
+      "name": "codium",
+      "category": "development",
+      "kind": "vendor_cli",
+      "risk": "caution",
+      "learning_level": "beginner",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "editors",
+        "tools"
+      ],
+      "summary": {
+        "tr": "VSCodium komut satırı (codium).",
+        "en": "VSCodium command line (codium)."
+      },
+      "intent": {
+        "tr": [
+          "codium aç",
+          "vscodium"
+        ],
+        "en": [
+          "open codium",
+          "vscodium"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "composer",
+      "name": "composer",
+      "category": "development",
+      "kind": "package_manager",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "php",
+        "packages"
+      ],
+      "summary": {
+        "tr": "Composer — PHP bağımlılık yöneticisi.",
+        "en": "Composer — PHP dependency manager."
+      },
+      "intent": {
+        "tr": [
+          "composer kur",
+          "php paket"
+        ],
+        "en": [
+          "composer install",
+          "php package"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "cp",
       "name": "cp",
       "category": "filesystem",
@@ -941,6 +1149,45 @@
     },
     {
       "type": "command",
+      "id": "dart",
+      "name": "dart",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "mobile",
+        "language",
+        "dart"
+      ],
+      "summary": {
+        "tr": "Dart SDK CLI.",
+        "en": "Dart SDK CLI."
+      },
+      "intent": {
+        "tr": [
+          "dart çalıştır",
+          "dart pub"
+        ],
+        "en": [
+          "dart run",
+          "dart pub"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "date",
       "name": "date",
       "category": "system",
@@ -1045,6 +1292,45 @@
         ]
       },
       "concepts": []
+    },
+    {
+      "type": "command",
+      "id": "deno",
+      "name": "deno",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "backend",
+        "javascript",
+        "language"
+      ],
+      "summary": {
+        "tr": "Deno — güvenli JS/TS runtime.",
+        "en": "Deno — secure JS/TS runtime."
+      },
+      "intent": {
+        "tr": [
+          "deno çalıştır",
+          "deno test"
+        ],
+        "en": [
+          "deno run",
+          "deno test"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
     },
     {
       "type": "command",
@@ -1390,7 +1676,9 @@
       ],
       "verification": "draft",
       "tags": [
-        "containers"
+        "containers",
+        "software",
+        "server"
       ],
       "summary": {
         "tr": "Docker konteyner CLI.",
@@ -1412,6 +1700,7 @@
       },
       "concepts": [
         "containers",
+        "software",
         "containers-basics"
       ]
     },
@@ -1447,6 +1736,86 @@
       },
       "concepts": [
         "containers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "doctl",
+      "name": "doctl",
+      "category": "cloud",
+      "kind": "remote_cli",
+      "risk": "dangerous",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "cloud",
+        "devops"
+      ],
+      "summary": {
+        "tr": "DigitalOcean CLI (doctl).",
+        "en": "DigitalOcean CLI (doctl)."
+      },
+      "intent": {
+        "tr": [
+          "digitalocean cli",
+          "doctl"
+        ],
+        "en": [
+          "digitalocean cli",
+          "doctl"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "dotnet",
+      "name": "dotnet",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "dotnet",
+        "csharp"
+      ],
+      "summary": {
+        "tr": ".NET SDK CLI — new, build, run, test, tool.",
+        "en": ".NET SDK CLI — new, build, run, test, tool."
+      },
+      "intent": {
+        "tr": [
+          "dotnet derle",
+          "csharp proje",
+          "dotnet new",
+          "nuget paket"
+        ],
+        "en": [
+          "build dotnet",
+          "csharp project",
+          "dotnet new",
+          "nuget package"
+        ]
+      },
+      "concepts": [
+        "software",
+        "development-basics"
       ]
     },
     {
@@ -1598,6 +1967,43 @@
     },
     {
       "type": "command",
+      "id": "emacs",
+      "name": "emacs",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "editors",
+        "tools"
+      ],
+      "summary": {
+        "tr": "GNU Emacs editörü.",
+        "en": "GNU Emacs editor."
+      },
+      "intent": {
+        "tr": [
+          "emacs aç",
+          "emacs düzenle"
+        ],
+        "en": [
+          "open emacs",
+          "edit with emacs"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "emerge",
       "name": "emerge",
       "category": "packages",
@@ -1712,6 +2118,44 @@
     },
     {
       "type": "command",
+      "id": "eslint",
+      "name": "eslint",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "tools",
+        "javascript"
+      ],
+      "summary": {
+        "tr": "ESLint — JS/TS lint aracı.",
+        "en": "ESLint — JS/TS linter."
+      },
+      "intent": {
+        "tr": [
+          "eslint lint",
+          "js lint"
+        ],
+        "en": [
+          "eslint lint",
+          "js lint"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "ethtool",
       "name": "ethtool",
       "category": "network",
@@ -1819,6 +2263,44 @@
       },
       "concepts": [
         "storage"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ffmpeg",
+      "name": "ffmpeg",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "tools",
+        "media",
+        "gamedev"
+      ],
+      "summary": {
+        "tr": "FFmpeg — medya dönüştürücü CLI.",
+        "en": "FFmpeg — media conversion CLI."
+      },
+      "intent": {
+        "tr": [
+          "ffmpeg dönüştür",
+          "video encode"
+        ],
+        "en": [
+          "ffmpeg convert",
+          "encode video"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -2013,6 +2495,81 @@
     },
     {
       "type": "command",
+      "id": "flutter",
+      "name": "flutter",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "mobile",
+        "tools"
+      ],
+      "summary": {
+        "tr": "Flutter SDK CLI.",
+        "en": "Flutter SDK CLI."
+      },
+      "intent": {
+        "tr": [
+          "flutter çalıştır",
+          "flutter doctor"
+        ],
+        "en": [
+          "flutter run",
+          "flutter doctor"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "flyctl",
+      "name": "fly",
+      "category": "cloud",
+      "kind": "remote_cli",
+      "risk": "dangerous",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "cloud",
+        "devops"
+      ],
+      "summary": {
+        "tr": "Fly.io CLI (flyctl / fly).",
+        "en": "Fly.io CLI (flyctl / fly)."
+      },
+      "intent": {
+        "tr": [
+          "fly.io",
+          "flyctl deploy"
+        ],
+        "en": [
+          "fly.io",
+          "flyctl deploy"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "free",
       "name": "free",
       "category": "monitoring",
@@ -2174,7 +2731,8 @@
       "tags": [
         "cloud",
         "gcp",
-        "devops"
+        "devops",
+        "software"
       ],
       "summary": {
         "tr": "Google Cloud CLI.",
@@ -2193,8 +2751,47 @@
         ]
       },
       "concepts": [
+        "software",
         "cloud",
         "infrastructure-as-code"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "gem",
+      "name": "gem",
+      "category": "development",
+      "kind": "package_manager",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "ruby",
+        "packages"
+      ],
+      "summary": {
+        "tr": "gem — RubyGems paket CLI.",
+        "en": "gem — RubyGems package CLI."
+      },
+      "intent": {
+        "tr": [
+          "gem kur",
+          "rubygems"
+        ],
+        "en": [
+          "gem install",
+          "rubygems"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -2799,7 +3396,10 @@
         "github",
         "cicd",
         "devops",
-        "git"
+        "git",
+        "software",
+        "vcs",
+        "tools"
       ],
       "summary": {
         "tr": "GitHub resmi CLI.",
@@ -2818,6 +3418,7 @@
         ]
       },
       "concepts": [
+        "software",
         "infrastructure-as-code"
       ]
     },
@@ -2837,7 +3438,9 @@
       "verification": "reviewed",
       "tags": [
         "git",
-        "vcs"
+        "vcs",
+        "software",
+        "tools"
       ],
       "summary": {
         "tr": "Dağıtık sürüm kontrol sistemi.",
@@ -2860,8 +3463,86 @@
         ]
       },
       "concepts": [
+        "software",
         "terminal-basics",
         "development-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "go",
+      "name": "go",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "go",
+        "language"
+      ],
+      "summary": {
+        "tr": "Go derleyici ve araç zinciri CLI.",
+        "en": "Go compiler and toolchain CLI."
+      },
+      "intent": {
+        "tr": [
+          "go derle",
+          "go test",
+          "golang"
+        ],
+        "en": [
+          "go build",
+          "go test",
+          "golang"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "godot",
+      "name": "godot",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "advanced",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "tools",
+        "gamedev"
+      ],
+      "summary": {
+        "tr": "Godot Engine CLI.",
+        "en": "Godot Engine CLI."
+      },
+      "intent": {
+        "tr": [
+          "godot cli",
+          "godot export"
+        ],
+        "en": [
+          "godot cli",
+          "godot export"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -2898,6 +3579,46 @@
       },
       "concepts": [
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "gradle",
+      "name": "gradle",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "java",
+        "jvm",
+        "build",
+        "android"
+      ],
+      "summary": {
+        "tr": "Gradle build aracı.",
+        "en": "Gradle build tool."
+      },
+      "intent": {
+        "tr": [
+          "gradle build",
+          "gradlew"
+        ],
+        "en": [
+          "gradle build",
+          "gradlew"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -3088,6 +3809,43 @@
     },
     {
       "type": "command",
+      "id": "helix",
+      "name": "hx",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "editors",
+        "tools"
+      ],
+      "summary": {
+        "tr": "Helix modal editör.",
+        "en": "Helix modal editor."
+      },
+      "intent": {
+        "tr": [
+          "helix aç",
+          "hx editör"
+        ],
+        "en": [
+          "open helix",
+          "hx editor"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "helm",
       "name": "helm",
       "category": "containers",
@@ -3104,7 +3862,9 @@
         "kubernetes",
         "helm",
         "devops",
-        "packages"
+        "packages",
+        "software",
+        "server"
       ],
       "summary": {
         "tr": "Kubernetes paket yöneticisi.",
@@ -3123,6 +3883,7 @@
         ]
       },
       "concepts": [
+        "software",
         "containers",
         "kubernetes",
         "infrastructure-as-code"
@@ -3640,6 +4401,83 @@
     },
     {
       "type": "command",
+      "id": "java",
+      "name": "java",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "java",
+        "jvm",
+        "language"
+      ],
+      "summary": {
+        "tr": "Java uygulama başlatıcı (java).",
+        "en": "Java application launcher (java)."
+      },
+      "intent": {
+        "tr": [
+          "java çalıştır",
+          "jvm sürüm"
+        ],
+        "en": [
+          "run java",
+          "jvm version"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "javac",
+      "name": "javac",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "java",
+        "jvm"
+      ],
+      "summary": {
+        "tr": "Java derleyicisi (javac).",
+        "en": "Java compiler (javac)."
+      },
+      "intent": {
+        "tr": [
+          "javac derle",
+          "java derle"
+        ],
+        "en": [
+          "javac compile",
+          "compile java"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "jexec",
       "name": "jexec",
       "category": "containers",
@@ -3828,6 +4666,44 @@
     },
     {
       "type": "command",
+      "id": "kind",
+      "name": "kind",
+      "category": "containers",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "advanced",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "server",
+        "containers",
+        "kubernetes"
+      ],
+      "summary": {
+        "tr": "kind — Kubernetes in Docker.",
+        "en": "kind — Kubernetes in Docker."
+      },
+      "intent": {
+        "tr": [
+          "kind cluster",
+          "kubernetes local"
+        ],
+        "en": [
+          "kind cluster",
+          "local kubernetes"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "kubectl",
       "name": "kubectl",
       "category": "containers",
@@ -3844,7 +4720,9 @@
         "kubernetes",
         "containers",
         "devops",
-        "orchestration"
+        "orchestration",
+        "software",
+        "server"
       ],
       "summary": {
         "tr": "Kubernetes küme CLI.",
@@ -3863,6 +4741,7 @@
         ]
       },
       "concepts": [
+        "software",
         "containers",
         "kubernetes"
       ]
@@ -4375,6 +5254,44 @@
     },
     {
       "type": "command",
+      "id": "minikube",
+      "name": "minikube",
+      "category": "containers",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "advanced",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "server",
+        "containers",
+        "kubernetes"
+      ],
+      "summary": {
+        "tr": "minikube — yerel Kubernetes.",
+        "en": "minikube — local Kubernetes."
+      },
+      "intent": {
+        "tr": [
+          "minikube start",
+          "yerel kubernetes"
+        ],
+        "en": [
+          "minikube start",
+          "local kubernetes"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "mkdir",
       "name": "mkdir",
       "category": "filesystem",
@@ -4605,6 +5522,44 @@
     },
     {
       "type": "command",
+      "id": "mongosh",
+      "name": "mongosh",
+      "category": "databases",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "data",
+        "database",
+        "backend"
+      ],
+      "summary": {
+        "tr": "MongoDB Shell (mongosh).",
+        "en": "MongoDB Shell (mongosh)."
+      },
+      "intent": {
+        "tr": [
+          "mongosh",
+          "mongodb shell"
+        ],
+        "en": [
+          "mongosh",
+          "mongodb shell"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "mount",
       "name": "mount",
       "category": "disks",
@@ -4722,6 +5677,45 @@
     },
     {
       "type": "command",
+      "id": "mvn",
+      "name": "mvn",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "java",
+        "jvm",
+        "build"
+      ],
+      "summary": {
+        "tr": "Apache Maven build aracı.",
+        "en": "Apache Maven build tool."
+      },
+      "intent": {
+        "tr": [
+          "maven derle",
+          "mvn test"
+        ],
+        "en": [
+          "maven build",
+          "mvn test"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "mysql",
       "name": "mysql",
       "category": "databases",
@@ -4738,7 +5732,9 @@
         "database",
         "mysql",
         "mariadb",
-        "server"
+        "server",
+        "software",
+        "data"
       ],
       "summary": {
         "tr": "MySQL/MariaDB istemci CLI.",
@@ -4755,6 +5751,7 @@
         ]
       },
       "concepts": [
+        "software",
         "databases"
       ]
     },
@@ -5044,6 +6041,49 @@
         "firewalls",
         "networking",
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ng",
+      "name": "ng",
+      "category": "development",
+      "kind": "vendor_cli",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "angular",
+        "node",
+        "tools"
+      ],
+      "summary": {
+        "tr": "Angular CLI (`ng`) — iskelet, serve, build.",
+        "en": "Angular CLI (`ng`) — scaffold, serve, build."
+      },
+      "intent": {
+        "tr": [
+          "angular cli",
+          "ng serve",
+          "ng new",
+          "angular oluştur"
+        ],
+        "en": [
+          "angular cli",
+          "ng serve",
+          "ng new",
+          "generate angular"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -5404,6 +6444,176 @@
     },
     {
       "type": "command",
+      "id": "node",
+      "name": "node",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "beginner",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "backend",
+        "node",
+        "javascript"
+      ],
+      "summary": {
+        "tr": "Node.js JavaScript runtime CLI.",
+        "en": "Node.js JavaScript runtime CLI."
+      },
+      "intent": {
+        "tr": [
+          "node sürüm",
+          "javascript çalıştır",
+          "node betik",
+          "nodejs"
+        ],
+        "en": [
+          "node version",
+          "run javascript",
+          "node script",
+          "nodejs"
+        ]
+      },
+      "concepts": [
+        "software",
+        "development-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "npm",
+      "name": "npm",
+      "category": "development",
+      "kind": "package_manager",
+      "risk": "caution",
+      "learning_level": "beginner",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "backend",
+        "node",
+        "npm",
+        "packages"
+      ],
+      "summary": {
+        "tr": "Node.js paket yöneticisi (npm CLI).",
+        "en": "Node.js package manager (npm CLI)."
+      },
+      "intent": {
+        "tr": [
+          "npm kur",
+          "npm install",
+          "npm script",
+          "paket kur node"
+        ],
+        "en": [
+          "npm install",
+          "npm scripts",
+          "node packages",
+          "install dependency"
+        ]
+      },
+      "concepts": [
+        "software",
+        "package-managers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "npx",
+      "name": "npx",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "beginner",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows",
+        "bsd"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "tools",
+        "node",
+        "npm"
+      ],
+      "summary": {
+        "tr": "npm paket yürütücüsü (tek seferlik CLI).",
+        "en": "npm package runner (one-shot CLIs)."
+      },
+      "intent": {
+        "tr": [
+          "npx çalıştır",
+          "tek seferlik cli",
+          "create vite"
+        ],
+        "en": [
+          "run npx",
+          "one shot cli",
+          "create scaffold"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "nvim",
+      "name": "nvim",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "editors",
+        "tools"
+      ],
+      "summary": {
+        "tr": "Neovim metin editörü.",
+        "en": "Neovim text editor."
+      },
+      "intent": {
+        "tr": [
+          "neovim aç",
+          "nvim"
+        ],
+        "en": [
+          "open neovim",
+          "nvim"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "openssl",
       "name": "openssl",
       "category": "security",
@@ -5481,6 +6691,44 @@
         "packages",
         "package-managers",
         "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "packer",
+      "name": "packer",
+      "category": "devops",
+      "kind": "executable",
+      "risk": "dangerous",
+      "learning_level": "advanced",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "devops",
+        "cloud",
+        "tools"
+      ],
+      "summary": {
+        "tr": "HashiCorp Packer — imaj build.",
+        "en": "HashiCorp Packer — image build."
+      },
+      "intent": {
+        "tr": [
+          "packer build",
+          "imaj oluştur"
+        ],
+        "en": [
+          "packer build",
+          "build image"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -5751,6 +6999,44 @@
     },
     {
       "type": "command",
+      "id": "php",
+      "name": "php",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "php",
+        "language"
+      ],
+      "summary": {
+        "tr": "PHP yorumlayıcısı CLI.",
+        "en": "PHP interpreter CLI."
+      },
+      "intent": {
+        "tr": [
+          "php çalıştır",
+          "php sunucu"
+        ],
+        "en": [
+          "run php",
+          "php server"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "ping",
       "name": "ping",
       "category": "network",
@@ -5783,6 +7069,82 @@
       "concepts": [
         "networking",
         "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pip",
+      "name": "pip",
+      "category": "development",
+      "kind": "package_manager",
+      "risk": "caution",
+      "learning_level": "beginner",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "python",
+        "packages"
+      ],
+      "summary": {
+        "tr": "pip — Python paket kurucu.",
+        "en": "pip — Python package installer."
+      },
+      "intent": {
+        "tr": [
+          "pip kur",
+          "python paket"
+        ],
+        "en": [
+          "pip install",
+          "python package"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pipx",
+      "name": "pipx",
+      "category": "development",
+      "kind": "package_manager",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "tools",
+        "python",
+        "packages"
+      ],
+      "summary": {
+        "tr": "pipx — izole Python CLI uygulamaları.",
+        "en": "pipx — isolated Python CLI apps."
+      },
+      "intent": {
+        "tr": [
+          "pipx kur",
+          "python cli araç"
+        ],
+        "en": [
+          "pipx install",
+          "python cli tool"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -6050,6 +7412,48 @@
     },
     {
       "type": "command",
+      "id": "pnpm",
+      "name": "pnpm",
+      "category": "development",
+      "kind": "package_manager",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "node",
+        "pnpm",
+        "packages"
+      ],
+      "summary": {
+        "tr": "pnpm — içerik adresli Node paket yöneticisi.",
+        "en": "pnpm — content-addressed Node package manager."
+      },
+      "intent": {
+        "tr": [
+          "pnpm kur",
+          "pnpm add",
+          "monorepo paket"
+        ],
+        "en": [
+          "pnpm install",
+          "pnpm add",
+          "monorepo packages"
+        ]
+      },
+      "concepts": [
+        "software",
+        "package-managers"
+      ]
+    },
+    {
+      "type": "command",
       "id": "podman",
       "name": "podman",
       "category": "containers",
@@ -6061,7 +7465,9 @@
       ],
       "verification": "draft",
       "tags": [
-        "containers"
+        "containers",
+        "software",
+        "server"
       ],
       "summary": {
         "tr": "Demonssuz konteyner motoru.",
@@ -6078,7 +7484,46 @@
         ]
       },
       "concepts": [
+        "software",
         "containers"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "poetry",
+      "name": "poetry",
+      "category": "development",
+      "kind": "package_manager",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "python",
+        "packages"
+      ],
+      "summary": {
+        "tr": "Poetry — Python bağımlılık ve paketleme.",
+        "en": "Poetry — Python dependency and packaging."
+      },
+      "intent": {
+        "tr": [
+          "poetry kur",
+          "poetry add"
+        ],
+        "en": [
+          "poetry install",
+          "poetry add"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -6156,6 +7601,43 @@
         "packages",
         "package-managers",
         "package-managers-comparison"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "prettier",
+      "name": "prettier",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "beginner",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "tools"
+      ],
+      "summary": {
+        "tr": "Prettier — kod formatlayıcı.",
+        "en": "Prettier — code formatter."
+      },
+      "intent": {
+        "tr": [
+          "prettier format",
+          "kod formatla"
+        ],
+        "en": [
+          "prettier format",
+          "format code"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -6245,7 +7727,10 @@
       "tags": [
         "sql",
         "database",
-        "postgresql"
+        "postgresql",
+        "software",
+        "data",
+        "backend"
       ],
       "summary": {
         "tr": "PostgreSQL etkileşimli terminal.",
@@ -6262,8 +7747,47 @@
         ]
       },
       "concepts": [
+        "software",
         "json-data",
         "permissions"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "pulumi",
+      "name": "pulumi",
+      "category": "devops",
+      "kind": "executable",
+      "risk": "dangerous",
+      "learning_level": "advanced",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "devops",
+        "iac",
+        "cloud"
+      ],
+      "summary": {
+        "tr": "Pulumi — programatik IaC CLI.",
+        "en": "Pulumi — programmatic IaC CLI."
+      },
+      "intent": {
+        "tr": [
+          "pulumi preview",
+          "pulumi up"
+        ],
+        "en": [
+          "pulumi preview",
+          "pulumi up"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -6340,7 +7864,9 @@
       },
       "concepts": [
         "path",
-        "terminal-basics"
+        "terminal-basics",
+        "software",
+        "development-basics"
       ]
     },
     {
@@ -6558,7 +8084,9 @@
         "database",
         "redis",
         "cache",
-        "server"
+        "server",
+        "software",
+        "data"
       ],
       "summary": {
         "tr": "Redis komut satırı istemcisi.",
@@ -6575,6 +8103,7 @@
         ]
       },
       "concepts": [
+        "software",
         "databases"
       ]
     },
@@ -7028,6 +8557,120 @@
         "networking",
         "storage",
         "networking-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "ruby",
+      "name": "ruby",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "ruby",
+        "language"
+      ],
+      "summary": {
+        "tr": "Ruby yorumlayıcısı.",
+        "en": "Ruby interpreter."
+      },
+      "intent": {
+        "tr": [
+          "ruby çalıştır",
+          "ruby sürüm"
+        ],
+        "en": [
+          "run ruby",
+          "ruby version"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "rustc",
+      "name": "rustc",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "rust",
+        "language"
+      ],
+      "summary": {
+        "tr": "Rust derleyicisi (rustc).",
+        "en": "Rust compiler (rustc)."
+      },
+      "intent": {
+        "tr": [
+          "rust derle",
+          "rustc"
+        ],
+        "en": [
+          "compile rust",
+          "rustc"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "rustup",
+      "name": "rustup",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "rust",
+        "tools"
+      ],
+      "summary": {
+        "tr": "Rust toolchain kurucu/yöneticisi (rustup).",
+        "en": "Rust toolchain installer/manager (rustup)."
+      },
+      "intent": {
+        "tr": [
+          "rustup kur",
+          "rust toolchain"
+        ],
+        "en": [
+          "rustup install",
+          "rust toolchain"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -7511,7 +9154,8 @@
       "tags": [
         "sql",
         "database",
-        "data"
+        "data",
+        "software"
       ],
       "summary": {
         "tr": "SQLite komut satırı kabuğu.",
@@ -7528,6 +9172,7 @@
         ]
       },
       "concepts": [
+        "software",
         "json-data",
         "terminal-basics"
       ]
@@ -8021,6 +9666,43 @@
     },
     {
       "type": "command",
+      "id": "swift",
+      "name": "swift",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "macos",
+        "linux"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "language",
+        "backend",
+        "mobile"
+      ],
+      "summary": {
+        "tr": "Swift derleyici/araç zinciri CLI.",
+        "en": "Swift compiler/toolchain CLI."
+      },
+      "intent": {
+        "tr": [
+          "swift derle",
+          "swiftpm"
+        ],
+        "en": [
+          "swift build",
+          "swiftpm"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "sync",
       "name": "sync",
       "category": "disks",
@@ -8142,7 +9824,9 @@
       "tags": [
         "system",
         "systemd",
-        "service"
+        "service",
+        "software",
+        "server"
       ],
       "summary": {
         "tr": "systemd birimlerini denetler.",
@@ -8163,6 +9847,7 @@
         ]
       },
       "concepts": [
+        "software",
         "systemd",
         "terminal-basics",
         "monitoring-and-logs"
@@ -8407,7 +10092,8 @@
         "iac",
         "terraform",
         "devops",
-        "cloud"
+        "cloud",
+        "software"
       ],
       "summary": {
         "tr": "HashiCorp Terraform (IaC).",
@@ -8426,6 +10112,7 @@
         ]
       },
       "concepts": [
+        "software",
         "infrastructure-as-code",
         "cloud"
       ]
@@ -8542,6 +10229,44 @@
       },
       "concepts": [
         "terminal-basics"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "tofu",
+      "name": "tofu",
+      "category": "devops",
+      "kind": "executable",
+      "risk": "dangerous",
+      "learning_level": "advanced",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "devops",
+        "iac",
+        "server"
+      ],
+      "summary": {
+        "tr": "OpenTofu — açık IaC (Terraform uyumlu).",
+        "en": "OpenTofu — open IaC (Terraform-compatible)."
+      },
+      "intent": {
+        "tr": [
+          "opentofu",
+          "tofu plan"
+        ],
+        "en": [
+          "opentofu",
+          "tofu plan"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -8688,6 +10413,44 @@
         "files",
         "terminal-basics",
         "linux-directory-structure"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "tsc",
+      "name": "tsc",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "typescript",
+        "build"
+      ],
+      "summary": {
+        "tr": "TypeScript derleyicisi (tsc).",
+        "en": "TypeScript compiler (tsc)."
+      },
+      "intent": {
+        "tr": [
+          "typescript derle",
+          "tsc"
+        ],
+        "en": [
+          "compile typescript",
+          "tsc"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -9087,6 +10850,119 @@
     },
     {
       "type": "command",
+      "id": "uv",
+      "name": "uv",
+      "category": "development",
+      "kind": "package_manager",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "backend",
+        "python",
+        "packages"
+      ],
+      "summary": {
+        "tr": "uv — hızlı Python paket/proje aracı.",
+        "en": "uv — fast Python package/project tool."
+      },
+      "intent": {
+        "tr": [
+          "uv kur",
+          "uv sync"
+        ],
+        "en": [
+          "uv install",
+          "uv sync"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "vagrant",
+      "name": "vagrant",
+      "category": "devops",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "devops",
+        "virtualization",
+        "tools"
+      ],
+      "summary": {
+        "tr": "Vagrant — geliştirme VM yöneticisi.",
+        "en": "Vagrant — development VM manager."
+      },
+      "intent": {
+        "tr": [
+          "vagrant up",
+          "vagrant ssh"
+        ],
+        "en": [
+          "vagrant up",
+          "vagrant ssh"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "vim",
+      "name": "vim",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "editors",
+        "tools"
+      ],
+      "summary": {
+        "tr": "Vim metin editörü.",
+        "en": "Vim text editor."
+      },
+      "intent": {
+        "tr": [
+          "vim aç",
+          "vi düzenle"
+        ],
+        "en": [
+          "open vim",
+          "edit with vi"
+        ]
+      },
+      "concepts": [
+        "software"
+      ]
+    },
+    {
+      "type": "command",
       "id": "virsh",
       "name": "virsh",
       "category": "virtualization",
@@ -9161,6 +11037,43 @@
       "concepts": [
         "permissions",
         "server-security-checklist"
+      ]
+    },
+    {
+      "type": "command",
+      "id": "vite",
+      "name": "vite",
+      "category": "development",
+      "kind": "executable",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "build"
+      ],
+      "summary": {
+        "tr": "Vite — frontend build/dev sunucu.",
+        "en": "Vite — frontend build/dev server."
+      },
+      "intent": {
+        "tr": [
+          "vite sunucu",
+          "vite build"
+        ],
+        "en": [
+          "vite server",
+          "vite build"
+        ]
+      },
+      "concepts": [
+        "software"
       ]
     },
     {
@@ -9814,6 +11727,48 @@
     },
     {
       "type": "command",
+      "id": "yarn",
+      "name": "yarn",
+      "category": "development",
+      "kind": "package_manager",
+      "risk": "caution",
+      "learning_level": "intermediate",
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "verification": "draft",
+      "tags": [
+        "software",
+        "frontend",
+        "node",
+        "yarn",
+        "packages"
+      ],
+      "summary": {
+        "tr": "Yarn — alternatif Node paket yöneticisi.",
+        "en": "Yarn — alternative Node package manager."
+      },
+      "intent": {
+        "tr": [
+          "yarn kur",
+          "yarn add",
+          "yarn script"
+        ],
+        "en": [
+          "yarn install",
+          "yarn add",
+          "yarn scripts"
+        ]
+      },
+      "concepts": [
+        "software",
+        "package-managers"
+      ]
+    },
+    {
+      "type": "command",
       "id": "zfs",
       "name": "zfs",
       "category": "disks",
@@ -10249,7 +12204,9 @@
         "gcc",
         "python3",
         "diff",
-        "patch"
+        "patch",
+        "node",
+        "dotnet"
       ]
     },
     {
@@ -10993,6 +12950,78 @@
         "tail",
         "cut",
         "xargs"
+      ]
+    },
+    {
+      "type": "concept",
+      "id": "software",
+      "difficulty": "beginner",
+      "format": "topic-guide",
+      "categories": [
+        "development",
+        "containers",
+        "cloud",
+        "devops",
+        "databases"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "windows",
+        "bsd"
+      ],
+      "tags": [
+        "software",
+        "frontend",
+        "backend",
+        "server",
+        "data",
+        "cloud",
+        "editors",
+        "gamedev",
+        "language"
+      ],
+      "title": {
+        "tr": "Yazılım CLI’ları (Software)",
+        "en": "Software CLIs"
+      },
+      "summary": {
+        "tr": "Kurulabilir dünya çapında yazılım araçları — diller, frontend/backend, veri, bulut, editörler, oyun.",
+        "en": "World-scale installable software tooling — languages, frontend/backend, data, cloud, editors, games."
+      },
+      "related_commands": [
+        "git",
+        "node",
+        "npm",
+        "python3",
+        "pip",
+        "uv",
+        "go",
+        "cargo",
+        "java",
+        "mvn",
+        "dotnet",
+        "php",
+        "composer",
+        "flutter",
+        "code",
+        "nvim",
+        "docker",
+        "kubectl",
+        "terraform",
+        "aws",
+        "psql",
+        "mysql",
+        "mongosh",
+        "redis-cli",
+        "godot",
+        "ffmpeg",
+        "deno",
+        "vite",
+        "kind",
+        "pulumi",
+        "ansible",
+        "systemctl"
       ]
     },
     {
@@ -13521,10 +15550,10 @@
       ]
     }
   ],
-  "content_sha256": "e6466b7f777fe49019c2cc7d6d4bcf279857d76a209e7ca68b7292f5f945ec06",
-  "generated_at": "2026-11-11T20:13:35Z",
-  "command_count": 270,
-  "concept_count": 30,
+  "content_sha256": "aad2fb79aad8f4954e25a5538811163c4efc18d5551eabdcddc4f233f938da2f",
+  "generated_at": "2026-11-22T10:11:09Z",
+  "command_count": 319,
+  "concept_count": 31,
   "task_count": 36,
   "profile_count": 14
 }
