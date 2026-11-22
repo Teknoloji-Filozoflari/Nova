@@ -1,0 +1,30 @@
+# nfpm template — ARCH / VERSION / BINARY substituted by packaging/scripts/linux-packages.sh
+name: nova
+arch: "${ARCH}"
+platform: linux
+version: "${VERSION}"
+section: utils
+priority: optional
+maintainer: "Nova Contributors <https://github.com/Teknoloji-Filozoflari/Nova>"
+description: |
+  TUI launcher for terminal applications.
+  Discover, install, and launch CLI tools from one keyboard-driven interface.
+vendor: Teknoloji-Filozoflari
+homepage: https://github.com/Teknoloji-Filozoflari/Nova
+license: MIT OR Apache-2.0
+contents:
+  - src: "${BINARY}"
+    dst: /usr/bin/nova
+    file_info:
+      mode: 0755
+  - src: "${LICENSE_MIT}"
+    dst: /usr/share/doc/nova/LICENSE-MIT
+  - src: "${LICENSE_APACHE}"
+    dst: /usr/share/doc/nova/LICENSE-APACHE
+  - src: "${README}"
+    dst: /usr/share/doc/nova/README.md
+overrides:
+  deb:
+    depends: []
+  rpm:
+    depends: []

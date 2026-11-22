@@ -1,11 +1,32 @@
 [package]
 name = "nova"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
-description = "A TUI launcher for terminal applications on Linux"
+description = "A TUI launcher for terminal applications (Linux-first; Windows/macOS packages available)"
 authors = ["Nova Contributors"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
+repository = "https://github.com/Teknoloji-Filozoflari/Nova"
+
+[package.metadata.deb]
+section = "utils"
+priority = "optional"
+maintainer = "Nova Contributors <https://github.com/Teknoloji-Filozoflari/Nova>"
+license-file = ["LICENSE-MIT", "0"]
+assets = [
+  ["target/release/nova", "usr/bin/", "755"],
+  ["README.md", "usr/share/doc/nova/", "644"],
+  ["LICENSE-MIT", "usr/share/doc/nova/", "644"],
+  ["LICENSE-APACHE", "usr/share/doc/nova/", "644"],
+]
+
+[package.metadata.generate-rpm]
+assets = [
+  { source = "target/release/nova", dest = "/usr/bin/nova", mode = "755" },
+  { source = "README.md", dest = "/usr/share/doc/nova/README.md", mode = "644" },
+  { source = "LICENSE-MIT", dest = "/usr/share/doc/nova/LICENSE-MIT", mode = "644" },
+  { source = "LICENSE-APACHE", dest = "/usr/share/doc/nova/LICENSE-APACHE", mode = "644" },
+]
 
 [dependencies]
 ratatui = "0.28"
@@ -23,6 +44,7 @@ serde_json = "1"
 # rustls transitif; 1.9+ edition2024 ister — Rust 1.83 CI ile uyum için pin.
 zeroize = "=1.8.1"
 minisign-verify = "0.3"
+zip = { version = "9", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
 # Gerçek terminal/Konsole başlatmayan testler için ek paket gerekmiyor; sahte
