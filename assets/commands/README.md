@@ -38,17 +38,30 @@ Nova kökünden:
 dosyalarını buraya kopyalar; `kind` + `content_sha256` tutarlılığını doğrular.
 Gömülü kopya bir sonraki Nova sürümüne / PR’ye gider.
 
-### 2) Çalışma zamanı (isteğe bağlı — Ayarlar)
+### 2) Çalışma zamanı — imzalı Releases (tercih edilen)
 
-Ayarlar → **Komut bankası**: Nova-Commands `main` ham HTTPS URL’lerinden
-manifest (+ gerekirse catalog/search-index) çeker.
+Ayarlar → **Komut bankası**: önce Nova-Commands GitHub Releases
+(`catalog-v*` / `releases/latest`) üzerinden `catalog.json` +
+`manifest.json` + `search-index.json` ve `.minisig` asset’lerini çeker.
 
-- İmzasızdır; güven = sabit GitHub raw URL + HTTPS + `kind` / `content_sha256`.
+- Minisign doğrulama: gömülü `assets/keys/nova-commands-catalog.pub`
+  (`src/commands/remote.rs`).
+- İmza başarısız / 404 → mevcut güvenilen veya gömülü banka **korunur**.
+- Başarıda `~/.local/share/nova/commands/trusted/` altına yazar.
+- Açılışta imzalı güvenilen kopya, imzasız önbelleğin ve gömülünün önündedir.
+
+### 3) Çalışma zamanı — imzasız `main` (yedek)
+
+İmzalı yol başarısızsa (veya ek olarak) Nova-Commands `main` ham HTTPS
+URL’lerinden manifest (+ gerekirse catalog/search-index) çekilir.
+
+- **İmzasızdır**; UI durum satırında “imzasız main” diye etiketlenir.
+- Güven = sabit GitHub raw URL + HTTPS + `kind` / `content_sha256`.
 - Aynı SHA ise catalog indirmez (“güncel”).
-- Başarıda `~/.local/share/nova/commands/` (veya `NOVA_COMMANDS_DIR`) önbelleğine yazar.
-- Açılışta geçerli önbellek gömülünün önüne geçer; ağ çağrısı yok.
+- Başarıda `~/.local/share/nova/commands/` önbelleğine yazar (`trusted/` üzerine yazmaz).
 - Mağaza (`assets/store`, Releases imzası) bu yoldan **etkilenmez**.
 
-Ortam değişkenleri: `NOVA_COMMANDS_MANIFEST_URL`, `NOVA_COMMANDS_CATALOG_URL`,
-`NOVA_COMMANDS_SEARCH_INDEX_URL`, `NOVA_COMMANDS_DISABLE_REMOTE=1`,
-`NOVA_COMMANDS_DIR`.
+Ortam değişkenleri: `NOVA_COMMANDS_RELEASE_*_URL` /
+`NOVA_COMMANDS_RELEASES_BASE`, `NOVA_COMMANDS_MANIFEST_URL`,
+`NOVA_COMMANDS_CATALOG_URL`, `NOVA_COMMANDS_SEARCH_INDEX_URL`,
+`NOVA_COMMANDS_DISABLE_REMOTE=1`, `NOVA_COMMANDS_DIR`.

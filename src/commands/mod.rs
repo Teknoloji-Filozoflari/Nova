@@ -19,6 +19,7 @@ pub mod checklist;
 pub mod filters;
 pub mod loader;
 pub mod local;
+pub mod remote;
 pub mod repo_sync;
 
 pub use bank::{
@@ -45,8 +46,13 @@ pub use loader::{
     SearchEntry, SearchIndex, SearchName,
 };
 pub use local::{LocalCommandsSnapshot, LocalEntry, LOCAL_KIND};
+pub use remote::{
+    format_refresh_note, refresh_or_keep_trusted, try_refresh_from_remote, BankCatalogRefresh,
+    TrustedBankPaths,
+};
 pub use repo_sync::{
-    format_sync_note, refresh_commands_from_repo, CommandsRepoSync, FetchedCommandsBank,
+    format_sync_note, refresh_commands_from_repo, refresh_signed_then_repo, CommandsRepoSync,
+    FetchedCommandsBank,
 };
 
 /// Host Arch mi? (`/etc/arch-release`) — paket ipuçlarında pacman önceliği.

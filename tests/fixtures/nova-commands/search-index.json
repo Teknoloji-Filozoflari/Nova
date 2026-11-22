@@ -1,0 +1,17 @@
+{
+  "schema_version": 2,
+  "kind": "nova-commands-search-index",
+  "content_sha256": "99ab2e2f0726c3e9a4cf179bb4adbb98b2754f44e1ea514442c29dd3180bef10",
+  "entry_count": 1,
+  "entries": [
+    {
+      "type": "command",
+      "id": "fixture-echo",
+      "name": "echo",
+      "category": "shell",
+      "tags": [],
+      "risk": "safe",
+      "verification": "draft"
+    }
+  ]
+}

@@ -201,15 +201,23 @@ pub fn embedded_content_sha256() -> Option<String> {
     load_manifest().ok().map(|m| m.content_sha256)
 }
 
-/// Açılış yüklemesi: geçerli disk önbelleği varsa o, yoksa gömülü.
+/// Açılış yüklemesi: imzalı güvenilen → imzasız önbellek → gömülü.
 ///
-/// Ağ çağrısı **yapmaz**. Uzak yenileme için [`crate::commands::repo_sync`].
+/// Ağ çağrısı **yapmaz**. Uzak yenileme için [`crate::commands::remote`] /
+/// [`crate::commands::repo_sync`].
 pub fn load_bank_preferring_cache() -> Result<(CommandBank, SearchIndex, String), String> {
+    if let Some(trusted) = crate::commands::remote::load_trusted_bank() {
+        return Ok((
+            trusted.bank,
+            trusted.search_index,
+            format!("imzalı güvenilen ({})", trusted.source),
+        ));
+    }
     if let Ok(cached) = crate::commands::repo_sync::load_cached_commands_bank() {
         return Ok((
             cached.bank,
             cached.search_index,
-            format!("önbellek ({})", cached.source),
+            format!("önbellek imzasız ({})", cached.source),
         ));
     }
     let bank = load_bank()?;
