@@ -152,7 +152,7 @@ jobs:
             dist
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nova-${{ needs.meta.outputs.tag }}-${{ matrix.target }}
           path: dist/*
@@ -174,7 +174,7 @@ jobs:
           sed -i 's|ref=main|ref=${{ needs.meta.outputs.tag }}|g' "dist/$STAGE/flake.nix"
           tar -C dist -czf "dist/${STAGE}.tar.gz" "$STAGE"
           ls -la dist/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nova-${{ needs.meta.outputs.tag }}-nix-expr
           path: dist/*.tar.gz
